@@ -20,7 +20,9 @@ export default function Dashboard() {
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [calendarView, setCalendarView] = useState('mes');
   const [searchTerm, setSearchTerm] = useState('');
-  const [originalClients, setOriginalClients] = useState<any[]>([]);
+  const [searchingClients, setSearchingClients] = useState(false);
+  const [showCompletedTasks, setShowCompletedTasks] = useState(false);
+  const [taskFilter, setTaskFilter] = useState('all');
 
   useEffect(() => {
     // Aplicar tema no body
@@ -44,12 +46,9 @@ export default function Dashboard() {
         const api = new MondeAPI(serverUrl);
         api.setToken(token);
 
-        // Carregar dados reais da API do Monde
-        const [tasksResponse, clientsResponse, statsResponse] = await Promise.all([
+        // Carregar apenas tarefas e estatísticas - clientes serão buscados sob demanda
+        const [tasksResponse, statsResponse] = await Promise.all([
           fetch('/api/monde/tarefas', {
-            headers: { 'Authorization': `Bearer ${token}` }
-          }).then(res => res.json()).catch(() => ({ data: [] })),
-          fetch('/api/monde/clientes', {
             headers: { 'Authorization': `Bearer ${token}` }
           }).then(res => res.json()).catch(() => ({ data: [] })),
           fetch('/api/monde/tarefas/stats', {
@@ -59,7 +58,17 @@ export default function Dashboard() {
 
         // Processar dados do formato JSON:API do Monde
         const tasks = tasksResponse?.data || [];
-        const clients = clientsResponse?.data || [];
+        
+        // Ordenar tarefas: usuário logado primeiro, depois outras
+        const sortedTasks = tasks.sort((a: any, b: any) => {
+          const userEmail = user?.email || '';
+          const aIsUser = a.relationships?.assignee?.data?.attributes?.email === userEmail;
+          const bIsUser = b.relationships?.assignee?.data?.attributes?.email === userEmail;
+          
+          if (aIsUser && !bIsUser) return -1;
+          if (!aIsUser && bIsUser) return 1;
+          return 0;
+        });
         
         // Calcular estatísticas reais das tarefas
         const realStats = {
@@ -72,9 +81,8 @@ export default function Dashboard() {
           }).length
         };
 
-        setTasks(tasks);
-        setClients(clients);
-        setOriginalClients(clients);
+        setTasks(sortedTasks);
+        setClients([]); // Não carregar clientes na inicialização
         setStats({
           ...realStats,
           totalVariation: "+15%",
@@ -94,11 +102,12 @@ export default function Dashboard() {
 
   const handleSearchClients = async () => {
     if (!searchTerm.trim()) {
-      setClients(originalClients);
+      setClients([]);
       return;
     }
 
     try {
+      setSearchingClients(true);
       const token = localStorage.getItem('keeptur-token');
       const response = await fetch(`/api/monde/clientes?filter[search]=${encodeURIComponent(searchTerm)}`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -110,7 +119,38 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error('Erro ao pesquisar clientes:', error);
+    } finally {
+      setSearchingClients(false);
     }
+  };
+
+  // Filtrar tarefas baseado no status e filtros
+  const getFilteredTasks = () => {
+    let filtered = tasks;
+
+    // Filtrar por status concluído/aberto
+    if (!showCompletedTasks) {
+      filtered = filtered.filter((task: any) => !task.attributes.completed);
+    } else {
+      filtered = filtered.filter((task: any) => task.attributes.completed);
+    }
+
+    // Aplicar outros filtros
+    if (taskFilter !== 'all') {
+      const userEmail = user?.email || '';
+      filtered = filtered.filter((task: any) => {
+        switch (taskFilter) {
+          case 'created_by_me':
+            return task.attributes.creator_email === userEmail;
+          case 'assigned_to_me':
+            return task.relationships?.assignee?.data?.attributes?.email === userEmail;
+          default:
+            return true;
+        }
+      });
+    }
+
+    return filtered;
   };
 
   const toggleSidebar = () => {
@@ -245,7 +285,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-white/80 text-sm font-medium">Total de Tarefas</p>
-              <p className="text-white text-2xl font-bold">342</p>
+              <p className="text-white text-2xl font-bold">{stats.total || 0}</p>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
               <i className="ri-task-line text-white text-xl"></i>
@@ -253,7 +293,7 @@ export default function Dashboard() {
           </div>
           <div className="mt-4 flex items-center">
             <i className="ri-arrow-up-line text-white/80 text-sm"></i>
-            <span className="text-white/80 text-sm ml-1">+15% este mês</span>
+            <span className="text-white/80 text-sm ml-1">{stats.totalVariation || "+0%"}</span>
           </div>
         </div>
 
@@ -261,7 +301,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-white/80 text-sm font-medium">Tarefas Pendentes</p>
-              <p className="text-white text-2xl font-bold">127</p>
+              <p className="text-white text-2xl font-bold">{stats.pendentes || 0}</p>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
               <i className="ri-time-line text-white text-xl"></i>
@@ -269,7 +309,7 @@ export default function Dashboard() {
           </div>
           <div className="mt-4 flex items-center">
             <i className="ri-arrow-down-line text-white/80 text-sm"></i>
-            <span className="text-white/80 text-sm ml-1">-8% este mês</span>
+            <span className="text-white/80 text-sm ml-1">{stats.pendentesVariation || "+0%"}</span>
           </div>
         </div>
 
@@ -277,7 +317,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-white/80 text-sm font-medium">Tarefas Concluídas</p>
-              <p className="text-white text-2xl font-bold">189</p>
+              <p className="text-white text-2xl font-bold">{stats.concluidas || 0}</p>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
               <i className="ri-checkbox-circle-line text-white text-xl"></i>
@@ -341,6 +381,30 @@ export default function Dashboard() {
 
           {/* Filtros */}
           <div className="flex flex-wrap gap-3">
+            {/* Radio para tarefas abertas/concluídas */}
+            <div className="flex items-center gap-4 px-4 py-2 rounded-lg" style={{ backgroundColor: 'var(--card-bg)' }}>
+              <label className="flex items-center gap-2">
+                <input 
+                  type="radio" 
+                  name="taskStatus" 
+                  checked={!showCompletedTasks}
+                  onChange={() => setShowCompletedTasks(false)}
+                  className="form-radio" 
+                />
+                <span className="text-sm" style={{ color: 'var(--text-primary)' }}>Tarefas Abertas</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input 
+                  type="radio" 
+                  name="taskStatus" 
+                  checked={showCompletedTasks}
+                  onChange={() => setShowCompletedTasks(true)}
+                  className="form-radio" 
+                />
+                <span className="text-sm" style={{ color: 'var(--text-primary)' }}>Tarefas Concluídas</span>
+              </label>
+            </div>
+            
             <div className="flex gap-2">
               <div className="relative">
                 <input 
@@ -387,10 +451,14 @@ export default function Dashboard() {
                 <input type="date" className="form-input px-3 py-2 rounded-lg text-sm" />
               </div>
             </div>
-            <select className="form-input px-3 py-2 rounded-lg text-sm">
-              <option value="todas">Tarefas: Todas</option>
-              <option value="criadas">Criadas por Mim</option>
-              <option value="minhas">Minhas Tarefas</option>
+            <select 
+              className="form-input px-3 py-2 rounded-lg text-sm"
+              value={taskFilter}
+              onChange={(e) => setTaskFilter(e.target.value)}
+            >
+              <option value="all">Tarefas: Todas</option>
+              <option value="created_by_me">Criadas por Mim</option>
+              <option value="assigned_to_me">Atribuídas a Mim</option>
             </select>
             <select className="form-input px-3 py-2 rounded-lg text-sm">
               <option value="">Todas as Empresas</option>
@@ -446,14 +514,14 @@ export default function Dashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {tasks.map((task, index) => (
+                    {getFilteredTasks().map((task, index) => (
                       <tr key={task.id} className="table-row">
                         <td className="py-4 px-4">
                           <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>#{String(task.attributes.number).padStart(3, '0')}</span>
                         </td>
                         <td className="py-4 px-4">
                           <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                            {task.relationships?.person?.data?.id || 'Sem cliente'}
+                            {task.relationships?.person?.data?.attributes?.name || 'Sem cliente'}
                           </p>
                         </td>
                         <td className="py-4 px-4">
@@ -1050,7 +1118,7 @@ export default function Dashboard() {
               <button 
                 onClick={() => {
                   setSearchTerm('');
-                  setClients(originalClients);
+                  setClients([]);
                 }}
                 className="action-button px-4 py-2 rounded-lg text-sm font-medium rounded-button"
               >

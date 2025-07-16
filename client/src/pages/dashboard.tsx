@@ -1746,11 +1746,11 @@ export default function Dashboard() {
                                   {item.user_name || 'Usuário'}
                                 </span>
                                 <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
-                                  {item.attributes.created_at ? new Date(item.attributes.created_at).toLocaleString() : 'Data não disponível'}
+                                  {item.attributes['date-time'] ? new Date(item.attributes['date-time']).toLocaleString() : 'Data não disponível'}
                                 </span>
                               </div>
                               <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                                {item.attributes.description || 'Sem descrição'}
+                                {item.attributes.text || 'Sem texto'}
                               </p>
                             </div>
                           ))}

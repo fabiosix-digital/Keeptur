@@ -407,7 +407,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/monde/tarefas/:id/historico", authenticateToken, async (req: any, res) => {
     try {
       const taskId = req.params.id;
-      const mondeUrl = `https://web.monde.com.br/api/v2/tasks/${taskId}/task-historics?include=user`;
+      const mondeUrl = `https://web.monde.com.br/api/v2/task-historics?include=person&filter[task_id]=${taskId}`;
       
       const mondeResponse = await fetch(mondeUrl, {
         method: "GET",
@@ -428,10 +428,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Processar relacionamentos se existirem
           if (rawData.included) {
-            // Encontrar dados do usuário
-            if (history.relationships?.user?.data) {
+            // Encontrar dados do usuário (person)
+            if (history.relationships?.person?.data) {
               const userData = rawData.included.find((item: any) => 
-                item.type === 'people' && item.id === history.relationships.user.data.id
+                item.type === 'people' && item.id === history.relationships.person.data.id
               );
               if (userData) {
                 processedHistory.user_name = userData.attributes.name;

@@ -50,7 +50,9 @@ export default function Dashboard() {
           fetch('/api/monde/clientes', {
             headers: { 'Authorization': `Bearer ${token}` }
           }).then(res => res.json()).catch(() => ({ data: [] })),
-          fetch('/api/monde/tarefas/stats').then(res => res.json()).catch(() => ({}))
+          fetch('/api/monde/tarefas/stats', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          }).then(res => res.json()).catch(() => ({}))
         ]);
 
         // Processar dados do formato JSON:API do Monde

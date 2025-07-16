@@ -199,11 +199,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Middleware to verify JWT token
   const authenticateToken = async (req: any, res: any, next: any) => {
-    // Skip auth for demo endpoints
-    if (req.path === '/api/monde/demo-data' || req.path === '/api/monde/tarefas/stats') {
-      return next();
-    }
-
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(" ")[1];
 
@@ -213,9 +208,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const decoded = jwt.verify(token, JWT_SECRET) as any;
+      
+      if (!decoded.sessaoId) {
+        return res.status(401).json({ message: "Token inválido - sem sessaoId" });
+      }
+
       const sessao = await storage.getSessao(decoded.sessaoId);
       
-      if (!sessao || sessao.expires_at < new Date()) {
+      if (!sessao) {
+        return res.status(401).json({ message: "Sessão não encontrada" });
+      }
+
+      if (sessao.expires_at && sessao.expires_at < new Date()) {
         return res.status(401).json({ message: "Token expirado" });
       }
 
@@ -223,6 +227,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.empresaId = decoded.empresaId;
       next();
     } catch (error) {
+      console.error('Erro na autenticação:', error);
       return res.status(401).json({ message: "Token inválido" });
     }
   };
@@ -336,7 +341,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/monde/tarefas/:id", authenticateToken, async (req: any, res) => {
     try {
       const taskId = req.params.id;
-      const mondeUrl = `https://web.monde.com.br/api/v2/tarefas/${taskId}`;
+      const mondeUrl = `https://web.monde.com.br/api/v2/tasks/${taskId}`;
       
       const mondeResponse = await fetch(mondeUrl, {
         method: "DELETE",
@@ -362,7 +367,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint para criar nova tarefa
   app.post("/api/monde/tarefas", authenticateToken, async (req: any, res) => {
     try {
-      const mondeUrl = `https://web.monde.com.br/api/v2/tarefas`;
+      const mondeUrl = `https://web.monde.com.br/api/v2/tasks`;
       
       const mondeResponse = await fetch(mondeUrl, {
         method: "POST",
@@ -382,21 +387,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para estatísticas de tarefas
-  app.get("/api/monde/tarefas/stats", async (req: any, res) => {
+  // Endpoint para estatísticas de tarefas - calcular com dados reais
+  app.get("/api/monde/tarefas/stats", authenticateToken, async (req: any, res) => {
     try {
-      // Retornar dados reais conforme solicitado
+      // Buscar tarefas reais da API do Monde
+      const mondeUrl = `https://web.monde.com.br/api/v2/tasks`;
+      
+      const mondeResponse = await fetch(mondeUrl, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/vnd.api+json",
+          "Accept": "application/vnd.api+json",
+          "Authorization": `Bearer ${req.sessao.access_token}`,
+        },
+      });
+
+      if (!mondeResponse.ok) {
+        console.error("Erro ao buscar tarefas para stats:", mondeResponse.status);
+        return res.status(500).json({ message: "Erro ao buscar dados da API do Monde" });
+      }
+
+      const data = await mondeResponse.json();
+      const tasks = data.data || [];
+      
+      // Calcular estatísticas reais
       const stats = {
-        total: 342,
-        pendentes: 127,
-        concluidas: 189,
-        atrasadas: 26,
+        total: tasks.length,
+        pendentes: tasks.filter((t: any) => !t.attributes.completed).length,
+        concluidas: tasks.filter((t: any) => t.attributes.completed).length,
+        atrasadas: tasks.filter((t: any) => {
+          const dueDate = new Date(t.attributes.due);
+          return dueDate < new Date() && !t.attributes.completed;
+        }).length,
         totalVariation: "+15%",
         pendentesVariation: "-8%",
         concluidasVariation: "+23%",
         atrasadasVariation: "+12%"
       };
-
+      
       res.json(stats);
     } catch (error) {
       console.error("Erro ao buscar estatísticas:", error);
@@ -404,86 +432,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para dados de demonstração com estrutura real
-  app.get("/api/monde/demo-data", async (req: any, res) => {
-    try {
-      // Dados de demonstração com estrutura real do Monde
-      const demoData = {
-        data: [
-          {
-            id: 1,
-            titulo: "Reserva de hotel para cliente Maria Silva",
-            descricao: "Reservar hotel 5 estrelas em Cancún para o período de 15 a 22 de janeiro",
-            status: "pendente",
-            prioridade: "alta",
-            cliente_id: 1,
-            usuario_id: 1,
-            categoria_id: 1,
-            data_vencimento: "2025-01-20T10:00:00Z",
-            created_at: "2025-01-16T08:00:00Z",
-            updated_at: "2025-01-16T08:00:00Z"
-          },
-          {
-            id: 2,
-            titulo: "Confirmação de voo para João Santos",
-            descricao: "Confirmar voo executivo para Paris, classe business",
-            status: "em_andamento",
-            prioridade: "media",
-            cliente_id: 2,
-            usuario_id: 1,
-            categoria_id: 2,
-            data_vencimento: "2025-01-18T14:30:00Z",
-            created_at: "2025-01-16T09:00:00Z",
-            updated_at: "2025-01-16T11:00:00Z"
-          },
-          {
-            id: 3,
-            titulo: "Seguro viagem para Pedro Costa",
-            descricao: "Contratar seguro viagem completo para a Europa, cobertura médica ampla",
-            status: "concluida",
-            prioridade: "baixa",
-            cliente_id: 3,
-            usuario_id: 1,
-            categoria_id: 3,
-            data_vencimento: "2025-01-15T16:00:00Z",
-            created_at: "2025-01-14T10:00:00Z",
-            updated_at: "2025-01-15T15:30:00Z"
-          },
-          {
-            id: 4,
-            titulo: "Cotação de pacote para Ana Rodrigues",
-            descricao: "Cotação completa para lua de mel em Bali",
-            status: "pendente",
-            prioridade: "alta",
-            cliente_id: 4,
-            usuario_id: 1,
-            categoria_id: 1,
-            data_vencimento: "2025-01-21T09:00:00Z",
-            created_at: "2025-01-16T14:00:00Z",
-            updated_at: "2025-01-16T14:00:00Z"
-          },
-          {
-            id: 5,
-            titulo: "Transfer aeroporto para Carlos Lima",
-            descricao: "Organizar transfer VIP do aeroporto para o hotel",
-            status: "em_andamento",
-            prioridade: "media",
-            cliente_id: 5,
-            usuario_id: 1,
-            categoria_id: 2,
-            data_vencimento: "2025-01-19T12:00:00Z",
-            created_at: "2025-01-16T16:00:00Z",
-            updated_at: "2025-01-16T17:00:00Z"
-          }
-        ]
-      };
-
-      res.json(demoData);
-    } catch (error) {
-      console.error("Erro ao buscar dados de demonstração:", error);
-      res.status(500).json({ message: "Erro ao buscar dados de demonstração" });
-    }
-  });
+  // Removido endpoint demo-data - usar apenas dados reais da API do Monde
 
   // Initialize default plans
   const initializePlans = async () => {

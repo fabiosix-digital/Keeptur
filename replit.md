@@ -21,6 +21,11 @@ Preferred communication style: Simple, everyday language in Portuguese.
 - ✅ Dados de demonstração funcionando com estrutura real das tarefas
 - ✅ Sistema de drag-and-drop entre colunas do Kanban implementado
 - ✅ Interface completa com filtros, visualizações (lista, kanban, calendário) funcionando
+- ✅ Implementação completa de integração com API real do Monde
+- ✅ Remoção de todos os dados mockados e endpoints de demonstração
+- ✅ Sistema configurado para usar apenas dados reais da API do Monde (tasks, people, stats)
+- ✅ Correção do middleware de autenticação JWT para endpoints da API do Monde
+- ✅ Endpoints corretos configurados para v2 da API do Monde (/api/v2/tasks, /api/v2/people)
 
 ## System Architecture
 

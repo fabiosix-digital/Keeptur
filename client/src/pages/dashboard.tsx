@@ -30,6 +30,8 @@ export default function Dashboard() {
   const [selectedAssignee, setSelectedAssignee] = useState('');
   const [showTaskDetails, setShowTaskDetails] = useState(false);
   const [selectedTaskDetails, setSelectedTaskDetails] = useState<any>(null);
+  const [taskHistoryTab, setTaskHistoryTab] = useState('detalhes');
+  const [taskHistory, setTaskHistory] = useState<any[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
@@ -281,6 +283,30 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, [taskFilter, taskSearchTerm, selectedCategory, selectedPriority, selectedAssignee, searchTerm]);
 
+  // Função para visualizar detalhes da tarefa
+  const handleViewTask = async (task: any) => {
+    setSelectedTaskDetails(task);
+    setShowTaskDetails(true);
+    setTaskHistoryTab('detalhes');
+    
+    // Carregar histórico da tarefa
+    const history = await loadTaskHistory(task.id);
+    setTaskHistory(history);
+  };
+
+  // Funções de ação das tarefas
+  const handleCompleteTask = (taskId: string) => {
+    console.log('Completar tarefa:', taskId);
+  };
+
+  const handleTransferTask = (taskId: string) => {
+    console.log('Transferir tarefa:', taskId);
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    console.log('Deletar tarefa:', taskId);
+  };
+
   // Filtrar tarefas baseado no status e filtros
   const getFilteredTasks = () => {
     let filtered = tasks;
@@ -441,10 +467,7 @@ export default function Dashboard() {
     debouncedReloadTasks();
   };
 
-  const handleViewTask = (task: any) => {
-    setSelectedTaskDetails(task);
-    setShowTaskDetails(true);
-  };
+
 
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
@@ -506,65 +529,9 @@ export default function Dashboard() {
 
 
 
-  const handleCompleteTask = async (taskId: number) => {
-    try {
-      const token = localStorage.getItem('keeptur-token');
-      if (!token) return;
 
-      // Atualizar tarefa para concluída
-      await fetch(`/api/monde/tarefas/${taskId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ status: 'concluida' })
-      });
-      
-      // Recarregar dados
-      const tasksResponse = await fetch('/api/monde/tarefas', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      }).then(res => res.json()).catch(() => ({ data: [] }));
-      setTasks(tasksResponse?.data || []);
-      
-      console.log(`Tarefa ${taskId} marcada como concluída`);
-    } catch (error) {
-      console.error('Erro ao concluir tarefa:', error);
-    }
-  };
 
-  const handleTransferTask = async (taskId: number) => {
-    console.log(`Transferir tarefa ${taskId} - funcionalidade em desenvolvimento`);
-    alert('Funcionalidade de transferência será implementada em breve');
-  };
 
-  const handleDeleteTask = async (taskId: number) => {
-    if (!confirm('Tem certeza que deseja deletar esta tarefa?')) return;
-    
-    try {
-      const token = localStorage.getItem('keeptur-token');
-      if (!token) return;
-
-      const response = await fetch(`/api/monde/tarefas/${taskId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok || response.status === 204) {
-        // Recarregar dados
-        const tasksResponse = await fetch('/api/monde/tarefas', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }).then(res => res.json()).catch(() => ({ data: [] }));
-        setTasks(tasksResponse?.data || []);
-        
-        console.log(`Tarefa ${taskId} deletada`);
-      }
-    } catch (error) {
-      console.error('Erro ao deletar tarefa:', error);
-    }
-  };
 
 
   const renderTasksView = () => (
@@ -1687,13 +1654,13 @@ export default function Dashboard() {
                   <div>
                     <span className="font-medium" style={{ color: 'var(--text-secondary)' }}>Cliente:</span>
                     <span className="ml-2" style={{ color: 'var(--text-primary)' }}>
-                      {selectedTaskDetails.relationships?.person?.data?.attributes?.name || 'Não informado'}
+                      {selectedTaskDetails.client_name || 'Não informado'}
                     </span>
                   </div>
                   <div>
                     <span className="font-medium" style={{ color: 'var(--text-secondary)' }}>Responsável:</span>
                     <span className="ml-2" style={{ color: 'var(--text-primary)' }}>
-                      {selectedTaskDetails.relationships?.assignee?.data?.attributes?.name || 'Não informado'}
+                      {selectedTaskDetails.assignee_name || 'Não informado'}
                     </span>
                   </div>
                   <div>
@@ -1705,7 +1672,7 @@ export default function Dashboard() {
                   <div>
                     <span className="font-medium" style={{ color: 'var(--text-secondary)' }}>Categoria:</span>
                     <span className="ml-2" style={{ color: 'var(--text-primary)' }}>
-                      {selectedTaskDetails.relationships?.category?.data?.attributes?.name || 'Não informado'}
+                      {selectedTaskDetails.category_name || 'Não informado'}
                     </span>
                   </div>
                 </div>
@@ -1713,41 +1680,84 @@ export default function Dashboard() {
               
               <div className="mb-6">
                 <div className="flex space-x-1 mb-4">
-                  <button className="tab-button active px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+                  <button 
+                    className={`tab-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap ${
+                      taskHistoryTab === 'detalhes' ? 'active' : ''
+                    }`}
+                    onClick={() => setTaskHistoryTab('detalhes')}
+                  >
                     Detalhes
                   </button>
-                  <button className="tab-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+                  <button 
+                    className={`tab-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap ${
+                      taskHistoryTab === 'historico' ? 'active' : ''
+                    }`}
+                    onClick={() => setTaskHistoryTab('historico')}
+                  >
                     Histórico
                   </button>
                 </div>
                 
                 <div className="tab-content">
-                  <div className="mb-4">
-                    <h3 className="text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Descrição</h3>
-                    <p className="text-sm p-3 rounded-lg" style={{ color: 'var(--text-primary)', backgroundColor: 'var(--bg-tertiary)' }}>
-                      {selectedTaskDetails.attributes.description || 'Sem descrição'}
-                    </p>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <h3 className="text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Informações Adicionais</h3>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span style={{ color: 'var(--text-tertiary)' }}>Data de Criação:</span>
-                          <span style={{ color: 'var(--text-primary)' }}>
-                            {selectedTaskDetails.attributes.created_at ? new Date(selectedTaskDetails.attributes.created_at).toLocaleString() : 'Não informado'}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span style={{ color: 'var(--text-tertiary)' }}>Última Atualização:</span>
-                          <span style={{ color: 'var(--text-primary)' }}>
-                            {selectedTaskDetails.attributes.updated_at ? new Date(selectedTaskDetails.attributes.updated_at).toLocaleString() : 'Não informado'}
-                          </span>
+                  {taskHistoryTab === 'detalhes' && (
+                    <>
+                      <div className="mb-4">
+                        <h3 className="text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Descrição</h3>
+                        <p className="text-sm p-3 rounded-lg" style={{ color: 'var(--text-primary)', backgroundColor: 'var(--bg-tertiary)' }}>
+                          {selectedTaskDetails.attributes.description || 'Sem descrição'}
+                        </p>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <h3 className="text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Informações Adicionais</h3>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span style={{ color: 'var(--text-tertiary)' }}>Data de Criação:</span>
+                              <span style={{ color: 'var(--text-primary)' }}>
+                                {selectedTaskDetails.attributes['registered-at'] ? new Date(selectedTaskDetails.attributes['registered-at']).toLocaleString() : 'Não informado'}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span style={{ color: 'var(--text-tertiary)' }}>Última Atualização:</span>
+                              <span style={{ color: 'var(--text-primary)' }}>
+                                {selectedTaskDetails.attributes['completed-at'] ? new Date(selectedTaskDetails.attributes['completed-at']).toLocaleString() : 'Não informado'}
+                              </span>
+                            </div>
+                          </div>
                         </div>
                       </div>
+                    </>
+                  )}
+                  
+                  {taskHistoryTab === 'historico' && (
+                    <div className="max-h-96 overflow-y-auto">
+                      <h3 className="text-sm font-medium mb-4" style={{ color: 'var(--text-secondary)' }}>Histórico da Tarefa</h3>
+                      {taskHistory.length === 0 ? (
+                        <p className="text-sm text-center py-8" style={{ color: 'var(--text-tertiary)' }}>
+                          Nenhum histórico disponível
+                        </p>
+                      ) : (
+                        <div className="space-y-3">
+                          {taskHistory.map((item: any, index: number) => (
+                            <div key={index} className="p-3 rounded-lg border" style={{ backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border-color)' }}>
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                                  {item.user_name || 'Usuário'}
+                                </span>
+                                <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                                  {item.attributes.created_at ? new Date(item.attributes.created_at).toLocaleString() : 'Data não disponível'}
+                                </span>
+                              </div>
+                              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                                {item.attributes.description || 'Sem descrição'}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
               

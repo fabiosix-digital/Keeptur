@@ -301,7 +301,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Encontrar dados do cliente (person)
             if (task.relationships?.person?.data) {
               const personData = rawData.included.find((item: any) => 
-                item.type === 'person' && item.id === task.relationships.person.data.id
+                item.type === 'people' && item.id === task.relationships.person.data.id
               );
               if (personData) {
                 processedTask.client_name = personData.attributes.name;
@@ -312,7 +312,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Encontrar dados do responsável (assignee)
             if (task.relationships?.assignee?.data) {
               const assigneeData = rawData.included.find((item: any) => 
-                item.type === 'user' && item.id === task.relationships.assignee.data.id
+                item.type === 'people' && item.id === task.relationships.assignee.data.id
               );
               if (assigneeData) {
                 processedTask.assignee_name = assigneeData.attributes.name;
@@ -384,7 +384,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint para buscar categorias
   app.get("/api/monde/categorias", authenticateToken, async (req: any, res) => {
     try {
-      const mondeUrl = `https://web.monde.com.br/api/v2/task_categories`;
+      const mondeUrl = `https://web.monde.com.br/api/v2/task-categories`;
       
       const mondeResponse = await fetch(mondeUrl, {
         method: "GET",
@@ -407,7 +407,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/monde/tarefas/:id/historico", authenticateToken, async (req: any, res) => {
     try {
       const taskId = req.params.id;
-      const mondeUrl = `https://web.monde.com.br/api/v2/task_historics?filter[task_id]=${taskId}&include=user`;
+      const mondeUrl = `https://web.monde.com.br/api/v2/tasks/${taskId}/task-historics?include=user`;
       
       const mondeResponse = await fetch(mondeUrl, {
         method: "GET",
@@ -431,7 +431,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Encontrar dados do usuário
             if (history.relationships?.user?.data) {
               const userData = rawData.included.find((item: any) => 
-                item.type === 'user' && item.id === history.relationships.user.data.id
+                item.type === 'people' && item.id === history.relationships.user.data.id
               );
               if (userData) {
                 processedHistory.user_name = userData.attributes.name;

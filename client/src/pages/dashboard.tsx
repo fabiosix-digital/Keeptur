@@ -42,24 +42,36 @@ export default function Dashboard() {
         const api = new MondeAPI(serverUrl);
         api.setToken(token);
 
-        // Carregar dados reais
+        // Carregar dados reais da API do Monde
         const [tasksResponse, clientsResponse, statsResponse] = await Promise.all([
-          fetch('/api/monde/demo-data').then(res => res.json()).catch(() => ({ data: [] })),
-          api.getClients().catch(() => ({ data: [] })),
+          fetch('/api/monde/tarefas', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          }).then(res => res.json()).catch(() => ({ data: [] })),
+          fetch('/api/monde/clientes', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          }).then(res => res.json()).catch(() => ({ data: [] })),
           fetch('/api/monde/tarefas/stats').then(res => res.json()).catch(() => ({}))
         ]);
 
-        // Processar dados do formato JSON:API
+        // Processar dados do formato JSON:API do Monde
         const tasks = tasksResponse?.data || [];
-        const clients = Array.isArray(clientsResponse) ? clientsResponse : (clientsResponse?.data || []);
+        const clients = clientsResponse?.data || [];
+        
+        // Calcular estatísticas reais das tarefas
+        const realStats = {
+          total: tasks.length,
+          pendentes: tasks.filter((t: any) => !t.attributes.completed).length,
+          concluidas: tasks.filter((t: any) => t.attributes.completed).length,
+          atrasadas: tasks.filter((t: any) => {
+            const dueDate = new Date(t.attributes.due);
+            return dueDate < new Date() && !t.attributes.completed;
+          }).length
+        };
 
         setTasks(tasks);
         setClients(clients);
-        setStats(statsResponse || {
-          total: 342,
-          pendentes: 127,
-          concluidas: 189,
-          atrasadas: 26,
+        setStats({
+          ...realStats,
           totalVariation: "+15%",
           pendentesVariation: "-8%",
           concluidasVariation: "+23%",
@@ -107,7 +119,9 @@ export default function Dashboard() {
       });
       
       // Recarregar dados após atualização
-      const tasksResponse = await fetch('/api/monde/demo-data').then(res => res.json()).catch(() => ({ data: [] }));
+      const tasksResponse = await fetch('/api/monde/tarefas', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }).then(res => res.json()).catch(() => ({ data: [] }));
       setTasks(tasksResponse?.data || []);
       
       console.log(`Tarefa ${data.taskId} movida para ${newStatus}`);
@@ -137,7 +151,9 @@ export default function Dashboard() {
       });
       
       // Recarregar dados
-      const tasksResponse = await fetch('/api/monde/demo-data').then(res => res.json()).catch(() => ({ data: [] }));
+      const tasksResponse = await fetch('/api/monde/tarefas', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }).then(res => res.json()).catch(() => ({ data: [] }));
       setTasks(tasksResponse?.data || []);
       
       console.log(`Tarefa ${taskId} marcada como concluída`);
@@ -167,7 +183,9 @@ export default function Dashboard() {
 
       if (response.ok || response.status === 204) {
         // Recarregar dados
-        const tasksResponse = await fetch('/api/monde/demo-data').then(res => res.json()).catch(() => ({ data: [] }));
+        const tasksResponse = await fetch('/api/monde/tarefas', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }).then(res => res.json()).catch(() => ({ data: [] }));
         setTasks(tasksResponse?.data || []);
         
         console.log(`Tarefa ${taskId} deletada`);
@@ -405,45 +423,37 @@ export default function Dashboard() {
                     {tasks.map((task, index) => (
                       <tr key={task.id} className="table-row">
                         <td className="py-4 px-4">
-                          <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>#{String(task.id).padStart(3, '0')}</span>
+                          <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>#{String(task.attributes.number).padStart(3, '0')}</span>
                         </td>
                         <td className="py-4 px-4">
-                          <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Cliente {task.cliente_id}</p>
+                          <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                            {task.relationships?.person?.data?.id || 'Sem cliente'}
+                          </p>
                         </td>
                         <td className="py-4 px-4">
-                          <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{task.titulo}</p>
-                          <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{task.descricao}</p>
-                        </td>
-                        <td className="py-4 px-4">
-                          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Usuário {task.usuario_id}</p>
+                          <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{task.attributes.title}</p>
+                          <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{task.attributes.description || 'Sem descrição'}</p>
                         </td>
                         <td className="py-4 px-4">
                           <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                            {new Date(task.data_vencimento).toLocaleDateString('pt-BR')} {new Date(task.data_vencimento).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}
+                            {task.relationships?.assignee?.data?.id || 'Sem responsável'}
+                          </p>
+                        </td>
+                        <td className="py-4 px-4">
+                          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                            {new Date(task.attributes.due).toLocaleDateString('pt-BR')} {new Date(task.attributes.due).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}
                           </p>
                         </td>
                         <td className="py-4 px-4">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            task.status === 'pendente' ? 'status-badge-pending' :
-                            task.status === 'em_andamento' ? 'status-badge-progress' :
-                            task.status === 'concluida' ? 'status-badge-completed' :
-                            'status-badge-cancelled'
+                            task.attributes.completed ? 'status-badge-completed' : 'status-badge-pending'
                           }`}>
-                            {task.status === 'pendente' ? 'Pendente' :
-                             task.status === 'em_andamento' ? 'Em Andamento' :
-                             task.status === 'concluida' ? 'Concluída' :
-                             'Cancelada'}
+                            {task.attributes.completed ? 'Concluída' : 'Pendente'}
                           </span>
                         </td>
                         <td className="py-4 px-4">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            task.prioridade === 'alta' ? 'priority-badge-high' :
-                            task.prioridade === 'media' ? 'priority-badge-medium' :
-                            'priority-badge-low'
-                          }`}>
-                            {task.prioridade === 'alta' ? 'Alta' :
-                             task.prioridade === 'media' ? 'Média' :
-                             'Baixa'}
+                          <span className="priority-badge-medium px-2 py-1 rounded-full text-xs font-medium">
+                            Média
                           </span>
                         </td>
                         <td className="py-4 px-4">

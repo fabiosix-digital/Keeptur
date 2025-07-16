@@ -50,6 +50,7 @@ export interface IStorage {
   
   // Sessao operations
   createSessao(data: InsertSessao): Promise<Sessao>;
+  getSessao(id: number): Promise<Sessao | undefined>;
   getSessaoByToken(token: string): Promise<Sessao | undefined>;
   updateSessao(id: number, data: Partial<InsertSessao>): Promise<Sessao>;
   deleteSessao(id: number): Promise<void>;
@@ -149,6 +150,11 @@ export class DatabaseStorage implements IStorage {
   async createSessao(data: InsertSessao): Promise<Sessao> {
     const [sessao] = await db.insert(sessoes).values(data).returning();
     return sessao;
+  }
+
+  async getSessao(id: number): Promise<Sessao | undefined> {
+    const [sessao] = await db.select().from(sessoes).where(eq(sessoes.id, id));
+    return sessao || undefined;
   }
 
   async getSessaoByToken(token: string): Promise<Sessao | undefined> {

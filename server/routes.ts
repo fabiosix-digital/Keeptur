@@ -213,7 +213,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const decoded = jwt.verify(token, JWT_SECRET) as any;
-      const sessao = await storage.getSessaoByToken(decoded.sessaoId);
+      const sessao = await storage.getSessao(decoded.sessaoId);
       
       if (!sessao || sessao.expires_at < new Date()) {
         return res.status(401).json({ message: "Token expirado" });
@@ -227,10 +227,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   };
 
-  // Endpoints específicos para tarefas
+  // Endpoints específicos para tarefas - usando endpoint correto da API v2
   app.get("/api/monde/tarefas", authenticateToken, async (req: any, res) => {
     try {
-      const mondeUrl = `https://web.monde.com.br/api/v2/tarefas`;
+      const mondeUrl = `https://web.monde.com.br/api/v2/tasks?include=assignee,person,category`;
       
       const mondeResponse = await fetch(mondeUrl, {
         method: "GET",
@@ -251,7 +251,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/monde/clientes", authenticateToken, async (req: any, res) => {
     try {
-      const mondeUrl = `https://web.monde.com.br/api/v2/clientes`;
+      const mondeUrl = `https://web.monde.com.br/api/v2/people`;
       
       const mondeResponse = await fetch(mondeUrl, {
         method: "GET",
@@ -270,11 +270,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para atualizar tarefa
+  // Endpoint para atualizar tarefa - usando endpoint correto da API v2
   app.put("/api/monde/tarefas/:id", authenticateToken, async (req: any, res) => {
     try {
       const taskId = req.params.id;
-      const mondeUrl = `https://web.monde.com.br/api/v2/tarefas/${taskId}`;
+      const mondeUrl = `https://web.monde.com.br/api/v2/tasks/${taskId}`;
+      
+      const requestBody = {
+        data: {
+          type: "tasks",
+          id: taskId,
+          attributes: {
+            completed: req.body.status === 'concluida' ? true : false,
+            ...req.body
+          }
+        }
+      };
       
       const mondeResponse = await fetch(mondeUrl, {
         method: "PUT",
@@ -283,7 +294,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "Accept": "application/vnd.api+json",
           "Authorization": `Bearer ${req.sessao.access_token}`,
         },
-        body: JSON.stringify(req.body),
+        body: JSON.stringify(requestBody),
       });
 
       const data = await mondeResponse.json();
@@ -291,6 +302,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Erro ao atualizar tarefa:", error);
       res.status(500).json({ message: "Erro ao atualizar tarefa" });
+    }
+  });
+
+  // Endpoint para deletar tarefa
+  app.delete("/api/monde/tarefas/:id", authenticateToken, async (req: any, res) => {
+    try {
+      const taskId = req.params.id;
+      const mondeUrl = `https://web.monde.com.br/api/v2/tasks/${taskId}`;
+      
+      const mondeResponse = await fetch(mondeUrl, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/vnd.api+json",
+          "Accept": "application/vnd.api+json",
+          "Authorization": `Bearer ${req.sessao.access_token}`,
+        },
+      });
+
+      if (mondeResponse.status === 204) {
+        res.status(204).send();
+      } else {
+        const data = await mondeResponse.json();
+        res.status(mondeResponse.status).json(data);
+      }
+    } catch (error) {
+      console.error("Erro ao deletar tarefa:", error);
+      res.status(500).json({ message: "Erro ao deletar tarefa" });
     }
   });
 

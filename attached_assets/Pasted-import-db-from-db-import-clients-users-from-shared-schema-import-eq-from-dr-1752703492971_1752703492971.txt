@@ -1,0 +1,1201 @@
+import { db } from './db';
+import { clients, users } from '../shared/schema';
+import { eq } from 'drizzle-orm';
+
+interface MondeClient {
+  id: string;
+  type: string;
+  attributes: {
+    name: string;
+    email?: string;
+    phone?: string;
+    'mobile-phone'?: string;
+    'business-phone'?: string;
+    birthdate?: string;
+    'birth-date'?: string;
+    document?: string;
+    cpf?: string;
+    rg?: string;
+    cnpj?: string;
+    'company-name'?: string;
+    'state-inscription'?: string;
+    'city-inscription'?: string;
+    address?: string;
+    number?: string;
+    complement?: string;
+    district?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+    zipcode?: string;
+    gender?: string;
+    nationality?: string;
+    'passport-number'?: string;
+    'passport-expiration'?: string;
+    website?: string;
+    observations?: string;
+    'registered-at'?: string;
+    [key: string]: any;
+  };
+  relationships?: {
+    city?: {
+      data?: {
+        id: string;
+        type: string;
+      };
+    };
+  };
+}
+
+interface MondeResponse {
+  data: MondeClient[];
+  meta?: {
+    pagination?: {
+      page: number;
+      pages: number;
+      per_page: number;
+      total: number;
+    };
+  };
+}
+
+class MondeIntegrationService {
+  public mondeBaseUrl = 'https://web.monde.com.br/api/v2';
+  private token: string | null = null;
+  private tokenExpiry: number = 0;
+  private userTokens: Map<string, { token: string; expiry: number }> = new Map();
+
+  /**
+   * Autentica com a API do Monde e obtém o token
+   */
+  async authenticate(login: string, password: string): Promise<string> {
+    try {
+      // Sempre usar o endpoint oficial do Monde para autenticação
+      const authUrl = 'https://web.monde.com.br/api/v2/tokens';
+      console.log('Tentando autenticar no Monde:', authUrl);
+      const response = await fetch(authUrl, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/vnd.api+json',
+          'Content-Type': 'application/vnd.api+json',
+        },
+        body: JSON.stringify({
+          data: {
+            type: 'tokens',
+            attributes: {
+              login,
+              password,
+            },
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro na autenticação: ${response.status}`);
+      }
+
+      const data = await response.json();
+      this.token = data.data.attributes.token;
+      this.tokenExpiry = Date.now() + (55 * 60 * 1000); // 55 minutos para renovar antes de expirar
+      
+      return this.token;
+    } catch (error) {
+      console.error('Erro ao autenticar com Monde:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Busca perfil do usuário no Monde
+   */
+  async getUserProfile(token: string, token_email: string): Promise<any> {
+    try {
+      const response = await fetch(`${this.mondeBaseUrl}/profile`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/vnd.api+json',
+          'Content-Type': 'application/vnd.api+json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        console.log('Perfil não encontrado, usando dados padrão');
+        return {
+          firstName: 'Fabio',
+          lastName: 'Silva',
+          role: 'agent',
+          fullName: 'Fabio Silva',
+          email: token_email,
+          company: 'Allana Caires Turismo',
+          agencyName: 'Allana Caires Turismo'
+        };
+      }
+
+      const data = await response.json();
+      const attrs = data.data?.attributes || {};
+      
+      console.log('🔍 Dados do perfil Monde:', attrs);
+      
+      // Analisar tipo de usuário baseado nos dados disponíveis
+      const userType = this.determineUserType(attrs);
+      
+      return {
+        firstName: attrs.name?.split(' ')[0] || 'Fabio',
+        lastName: attrs.name?.split(' ').slice(1).join(' ') || 'Silva',
+        role: userType,
+        fullName: attrs.name || 'Fabio Silva',
+        email: attrs.email || token_email,
+        company: attrs.company || 'Allana Caires Turismo',
+        agencyName: attrs.company || 'Allana Caires Turismo',
+        phone: attrs.phone,
+        avatar: attrs.avatar
+      };
+    } catch (error) {
+      console.error('Erro ao buscar perfil:', error);
+      return {
+        firstName: 'Fabio',
+        lastName: 'Silva',
+        role: 'agent',
+        fullName: 'Fabio Silva',
+        email: token_email,
+        company: 'Allana Caires Turismo',
+        agencyName: 'Allana Caires Turismo'
+      };
+    }
+  }
+
+  /**
+   * Determina o tipo de usuário baseado nos dados do perfil
+   */
+  private determineUserType(attrs: any): string {
+    // Lógica para determinar se é agência ou agente
+    if (attrs.company || attrs.isAdmin || attrs.role === 'admin') {
+      return 'agency';
+    }
+    return 'agent';
+  }
+
+  /**
+   * Verifica se o token está válido
+   */
+  isTokenValid(): boolean {
+    return this.token !== null && Date.now() < this.tokenExpiry;
+  }
+
+  /**
+   * Obtém todos os clientes do Monde usando o token de autenticação
+   */
+  async getMondeClientsWithToken(token: string, progressCallback?: (progress: { current: number, total: number, page: number }) => void): Promise<MondeClient[]> {
+    try {
+      const allClients: MondeClient[] = [];
+      let page = 1;
+      let hasMorePages = true;
+      let totalPages = 0;
+
+      console.log('🔄 INICIANDO IMPORTAÇÃO COMPLETA DE CLIENTES DO MONDE...');
+
+      while (hasMorePages) {
+        const response = await fetch(`${this.mondeBaseUrl}/people?page[number]=${page}&page[size]=50`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/vnd.api+json',
+            'Content-Type': 'application/vnd.api+json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`❌ Erro ${response.status} na API Monde:`, errorText);
+          throw new Error(`Erro ao buscar clientes: ${response.status} - ${errorText}`);
+        }
+
+        const data: MondeResponse = await response.json();
+        allClients.push(...data.data);
+
+        // Verificar se há mais páginas
+        if (data.meta?.pagination) {
+          totalPages = data.meta.pagination.pages;
+          
+          console.log(`📄 Página ${page}/${data.meta.pagination.pages} processada - ${allClients.length}/${data.meta.pagination.total} clientes`);
+          
+          // Chamar callback de progresso se fornecido
+          if (progressCallback) {
+            progressCallback({
+              current: allClients.length,
+              total: data.meta.pagination.total,
+              page: page
+            });
+          }
+          
+          hasMorePages = page < data.meta.pagination.pages;
+        } else {
+          hasMorePages = false;
+        }
+        
+        page++;
+      }
+
+      console.log(`✅ IMPORTAÇÃO COMPLETA: ${allClients.length} clientes obtidos do Monde em ${totalPages} páginas`);
+      return allClients;
+    } catch (error) {
+      console.error('Erro ao buscar clientes do Monde:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Obtém todos os clientes do Monde (método original mantido para compatibilidade)
+   */
+  async getMondeClients(): Promise<MondeClient[]> {
+    if (!this.isTokenValid()) {
+      throw new Error('Token inválido ou expirado');
+    }
+
+    try {
+      const allClients: MondeClient[] = [];
+      let page = 1;
+      let hasMore = true;
+
+      while (hasMore) {
+        const response = await fetch(`${this.mondeBaseUrl}/people?page=${page}`, {
+          headers: {
+            'Authorization': `Bearer ${this.token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erro ao buscar clientes: ${response.status}`);
+        }
+
+        const data: MondeResponse = await response.json();
+        allClients.push(...data.data);
+
+        if (data.meta?.pagination) {
+          hasMore = page < data.meta.pagination.pages;
+          page++;
+        } else {
+          hasMore = false;
+        }
+      }
+
+      return allClients;
+    } catch (error) {
+      console.error('Erro ao buscar clientes do Monde:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Atualiza um cliente no Monde
+   */
+  async updateMondeClient(mondeId: string, clientData: any): Promise<boolean> {
+    if (!this.isTokenValid()) {
+      throw new Error('Token inválido ou expirado');
+    }
+
+    try {
+      const response = await fetch(`${this.mondeBaseUrl}/people/${mondeId}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${this.token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          data: {
+            type: 'people',
+            id: mondeId,
+            attributes: clientData,
+          },
+        }),
+      });
+
+      return response.ok;
+    } catch (error) {
+      console.error('Erro ao atualizar cliente no Monde:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Sincronização automática periódica para detectar novos clientes
+   */
+  async syncNewClientsForAllUsers(): Promise<void> {
+    try {
+      console.log('🔄 SINCRONIZAÇÃO AUTOMÁTICA DESABILITADA - USUÁRIOS MONDE CONSULTAM DIRETAMENTE');
+      
+      // IMPORTANTE: Usuários Monde agora consultam diretamente o banco Monde
+      // sem duplicar dados localmente. Sincronização automática desabilitada.
+      
+      // Buscar todos os usuários do Monde ativos
+      // const activeMondeUsers = this.getActiveMondeUsers();
+      
+      // for (const user of activeMondeUsers) {
+      //   try {
+      //     const validToken = await this.getValidTokenForUser(user.id, user.email);
+      //     if (validToken) {
+      //       const result = await this.importClientsForUser(user.id, validToken);
+      //       if (result.imported > 0) {
+      //         console.log(`Novos clientes importados para ${user.email}: ${result.imported}`);
+      //       }
+      //     } else {
+      //       console.log(`Token inválido para ${user.email}, pulando sincronização automática`);
+      //     }
+      //   } catch (error) {
+      //     console.error(`Erro na sincronização para usuário ${user.email}:`, error);
+      //   }
+      // }
+    } catch (error) {
+      console.error('Erro na sincronização automática:', error);
+    }
+  }
+
+  /**
+   * Obtém usuários ativos do Monde (em memória temporariamente)
+   */
+  private getActiveMondeUsers(): Array<{ id: string; email: string; mondeToken: string }> {
+    // Por enquanto, mantemos uma lista em memória dos usuários logados
+    // Em produção, isso seria armazenado no banco de dados
+    return this.activeUsers;
+  }
+
+  private activeUsers: Array<{ id: string; email: string; mondeToken: string }> = [];
+
+  /**
+   * Registra usuário do Monde para sincronização automática
+   */
+  registerMondeUser(user: { id: string; email: string; mondeToken: string }): void {
+    const existingIndex = this.activeUsers.findIndex(u => u.id === user.id);
+    if (existingIndex >= 0) {
+      this.activeUsers[existingIndex] = user;
+    } else {
+      this.activeUsers.push(user);
+    }
+    
+    // Armazenar token do usuário com expiração (1 hora)
+    this.userTokens.set(user.id, {
+      token: user.mondeToken,
+      expiry: Date.now() + (60 * 60 * 1000) // 1 hora
+    });
+  }
+
+  /**
+   * Obtém token válido para um usuário, renovando se necessário
+   */
+  async getValidTokenForUser(userId: string, userEmail: string): Promise<string | null> {
+    const userToken = this.userTokens.get(userId);
+    
+    if (!userToken) {
+      console.log(`Token não encontrado para usuário ${userEmail}`);
+      return null;
+    }
+    
+    // Verificar se o token ainda é válido (não expirou)
+    if (Date.now() < userToken.expiry) {
+      return userToken.token;
+    }
+    
+    console.log(`Token expirado para usuário ${userEmail}, necessário novo login`);
+    return null;
+  }
+
+  /**
+   * Verifica se token ainda é válido (simplificado)
+   */
+  private isTokenStillValid(token: string): boolean {
+    // Por enquanto, assume que tokens são válidos por 1 hora
+    // Em produção, você faria uma verificação real com a API
+    return token && token.length > 0;
+  }
+
+  /**
+   * Cria tarefa no Monde
+   */
+  async createTask(token: string, taskData: any): Promise<any> {
+    try {
+      const response = await fetch(`${this.mondeBaseUrl}/tasks`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/vnd.api+json',
+          'Content-Type': 'application/vnd.api+json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          data: {
+            type: 'tasks',
+            attributes: {
+              title: taskData.title,
+              description: taskData.description,
+              due: taskData.due,
+              completed: false
+            },
+            relationships: {
+              category: {
+                data: {
+                  id: taskData.category || 'Geral',
+                  type: 'task-categories'
+                }
+              },
+              assignee: {
+                data: {
+                  id: taskData.assigneeId,
+                  type: 'people'
+                }
+              },
+              person: {
+                data: {
+                  id: taskData.clientId,
+                  type: 'people'
+                }
+              }
+            }
+          }
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Erro ao criar tarefa no Monde:', errorData);
+        throw new Error(`Erro ${response.status}: ${errorData.errors?.[0]?.detail || 'Erro desconhecido'}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ Tarefa criada no Monde:', data);
+      return data;
+    } catch (error) {
+      console.error('Erro ao criar tarefa no Monde:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Busca tarefas no Monde
+   */
+  async getTasks(token: string, filters: any = {}): Promise<any> {
+    try {
+      const params = new URLSearchParams();
+      
+      if (filters.search) {
+        params.append('filter[search]', filters.search);
+      }
+      
+      if (filters.situation) {
+        params.append('filter[situation]', filters.situation);
+      }
+      
+      if (filters.assigned) {
+        params.append('filter[assigned]', filters.assigned);
+      }
+      
+      params.append('include', 'assignee,person,category');
+      params.append('fields[people]', 'name');
+      
+      const response = await fetch(`${this.mondeBaseUrl}/tasks?${params.toString()}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/vnd.api+json',
+          'Content-Type': 'application/vnd.api+json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Erro ao buscar tarefas no Monde:', errorData);
+        throw new Error(`Erro ${response.status}: ${errorData.errors?.[0]?.detail || 'Erro desconhecido'}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ Tarefas encontradas no Monde:', data.data?.length || 0);
+      return data;
+    } catch (error) {
+      console.error('Erro ao buscar tarefas no Monde:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Atualiza tarefa no Monde
+   */
+  async updateTask(token: string, taskId: string, taskData: any): Promise<any> {
+    try {
+      const response = await fetch(`${this.mondeBaseUrl}/tasks/${taskId}`, {
+        method: 'PUT',
+        headers: {
+          'Accept': 'application/vnd.api+json',
+          'Content-Type': 'application/vnd.api+json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          data: {
+            type: 'tasks',
+            id: taskId,
+            attributes: {
+              title: taskData.title,
+              description: taskData.description,
+              due: taskData.due,
+              completed: taskData.completed
+            }
+          }
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Erro ao atualizar tarefa no Monde:', errorData);
+        throw new Error(`Erro ${response.status}: ${errorData.errors?.[0]?.detail || 'Erro desconhecido'}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ Tarefa atualizada no Monde:', data);
+      return data;
+    } catch (error) {
+      console.error('Erro ao atualizar tarefa no Monde:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Remove tarefa no Monde
+   */
+  async deleteTask(token: string, taskId: string): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.mondeBaseUrl}/tasks/${taskId}`, {
+        method: 'DELETE',
+        headers: {
+          'Accept': 'application/vnd.api+json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Erro ao deletar tarefa no Monde:', errorData);
+        throw new Error(`Erro ${response.status}: ${errorData.errors?.[0]?.detail || 'Erro desconhecido'}`);
+      }
+
+      console.log('✅ Tarefa deletada no Monde');
+      return true;
+    } catch (error) {
+      console.error('Erro ao deletar tarefa no Monde:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Sincroniza clientes do Monde para o iAGENTE (método original mantido)
+   */
+  async syncClientsFromMonde(): Promise<{
+    imported: number;
+    updated: number;
+    conflicts: Array<{ email: string; mondeId: string; existingClientId: number }>;
+  }> {
+    console.log('Iniciando sincronização de clientes do Monde...');
+    
+    const result = {
+      imported: 0,
+      updated: 0,
+      conflicts: [] as Array<{ email: string; mondeId: string; existingClientId: number }>,
+    };
+
+    try {
+      const mondeClients = await this.getMondeClients();
+      
+      for (const mondeClient of mondeClients) {
+        const { id: mondeId, attributes } = mondeClient;
+        
+        if (!attributes.email) {
+          console.log(`Cliente ${mondeId} não possui email, pulando...`);
+          continue;
+        }
+
+        // Busca cliente existente por email
+        const existingClients = await db
+          .select()
+          .from(clients)
+          .where(eq(clients.email, attributes.email));
+
+        if (existingClients.length === 0) {
+          // Novo cliente - importar do Monde
+          await this.createClientFromMonde(mondeClient);
+          result.imported++;
+        } else {
+          const existingClient = existingClients[0];
+          
+          if (existingClient.mondeId === mondeId) {
+            // Cliente já vinculado - atualizar dados
+            await this.updateClientFromMonde(existingClient.id, mondeClient);
+            result.updated++;
+          } else if (!existingClient.mondeId) {
+            // Cliente não vinculado - possível conflito
+            result.conflicts.push({
+              email: attributes.email,
+              mondeId,
+              existingClientId: existingClient.id,
+            });
+          }
+        }
+      }
+
+      console.log(`Sincronização concluída: ${result.imported} importados, ${result.updated} atualizados, ${result.conflicts.length} conflitos`);
+      return result;
+    } catch (error) {
+      console.error('Erro na sincronização:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Mapeia tipo do Monde para tipo do iAGENTE
+   */
+  private mapMondeTypeToClientType(mondeClientData: MondeClient): { clientType: string; mondeType: string } {
+    const kind = mondeClientData.attributes.kind;
+    
+    switch (kind) {
+      case 'individual':
+        return { clientType: 'fisica', mondeType: 'Pessoa Física' };
+      case 'company':
+        return { clientType: 'juridica', mondeType: 'Pessoa Jurídica' };
+      case 'foreign':
+        return { clientType: 'estrangeiro', mondeType: 'Estrangeiro' };
+      case 'system':
+        return { clientType: 'sistema', mondeType: 'Sistema' };
+      case 'user_system':
+        return { clientType: 'usuario_sistema', mondeType: 'Usuário Sistema' };
+      case 'seller':
+        return { clientType: 'vendedor', mondeType: 'Vendedor' };
+      default:
+        // Fallback baseado em CPF/CNPJ se 'kind' não estiver disponível
+        if (mondeClientData.attributes.cnpj) {
+          return { clientType: 'juridica', mondeType: 'Pessoa Jurídica' };
+        } else if (mondeClientData.attributes['passport-number']) {
+          return { clientType: 'estrangeiro', mondeType: 'Estrangeiro' };
+        } else {
+          return { clientType: 'fisica', mondeType: 'Pessoa Física' };
+        }
+    }
+  }
+
+  /**
+   * Importa clientes do Monde para um usuário específico
+   */
+  /**
+   * Busca clientes no Monde usando token e filtros fornecidos
+   */
+  async searchMondeClientsWithFilters(token: string, filters: {
+    search?: string;
+    clientType?: string;
+    email?: string;
+    city?: string;
+    phone?: string;
+    maxResults?: number;
+  } = {}): Promise<{ clients: MondeClient[]; total: number; hasMore: boolean }> {
+    const allClients: MondeClient[] = [];
+    let page = 1;
+    let hasMorePages = true;
+    const maxResults = filters.maxResults || 5000;
+
+    try {
+      console.log('🔍 INICIANDO BUSCA DE CLIENTES NO MONDE...', filters);
+
+      let apiUrl = `${this.mondeBaseUrl}/people?page[size]=50`;
+      
+      if (filters.search) {
+        apiUrl += `&filter[search]=${encodeURIComponent(filters.search)}`;
+      }
+      
+      if (filters.email) {
+        apiUrl += `&filter[email]=${encodeURIComponent(filters.email)}`;
+      }
+      
+      if (filters.city) {
+        apiUrl += `&filter[city]=${encodeURIComponent(filters.city)}`;
+      }
+      
+      if (filters.phone) {
+        apiUrl += `&filter[phone]=${encodeURIComponent(filters.phone)}`;
+      }
+
+      while (hasMorePages && allClients.length < maxResults) {
+        const response = await fetch(`${apiUrl}&page[number]=${page}`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/vnd.api+json',
+            'Content-Type': 'application/vnd.api+json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`❌ Erro ${response.status} na API Monde:`, errorText);
+          throw new Error(`Erro ao buscar clientes: ${response.status} - ${errorText}`);
+        }
+
+        const data: MondeResponse = await response.json();
+        const clients = data.data || [];
+        
+        console.log(`📄 Página ${page}: ${clients.length} clientes encontrados`);
+        console.log(`🔍 DEBUG URL da API: ${apiUrl}&page[number]=${page}`);
+        console.log(`🔍 DEBUG Resposta completa:`, {
+          dataLength: clients.length,
+          meta: data.meta,
+          links: data.links,
+          hasNext: data.links?.next,
+          sampleClient: clients[0]?.attributes?.name
+        });
+        
+        let filteredClients = clients;
+        if (filters.clientType && filters.clientType !== 'todos') {
+          filteredClients = clients.filter((client: MondeClient) => {
+            const { clientType } = this.mapMondeTypeToClientType(client);
+            return clientType === filters.clientType;
+          });
+        }
+        
+        allClients.push(...filteredClients);
+        
+        const hasNext = data.links && data.links.next;
+        if (!hasNext || clients.length === 0) {
+          hasMorePages = false;
+        } else {
+          page++;
+        }
+      }
+
+      const total = allClients.length;
+      const hasMore = hasMorePages && total >= maxResults;
+      
+      console.log(`✅ BUSCA CONCLUÍDA: ${total} clientes encontrados`);
+      if (hasMore) {
+        console.log(`⚠️ Limite de ${maxResults} atingido. Use filtros para refinar a busca.`);
+      }
+
+      return {
+        clients: allClients.slice(0, maxResults),
+        total,
+        hasMore
+      };
+    } catch (error) {
+      console.error('Erro ao buscar clientes do Monde:', error);
+      throw error;
+    }
+  }
+
+  async importClientsForUser(userId: string, token: string): Promise<{
+    imported: number;
+    updated: number;
+    errors: string[];
+  }> {
+    try {
+      console.log(`🔄 INICIANDO IMPORTAÇÃO COMPLETA para usuário ${userId}`);
+      
+      const mondeClients = await this.getMondeClientsWithToken(token);
+      const { storage } = await import('./storage');
+      
+      let imported = 0;
+      let updated = 0;
+      const errors: string[] = [];
+
+      console.log(`📊 PROCESSANDO ${mondeClients.length} clientes do Monde...`);
+
+      for (let i = 0; i < mondeClients.length; i++) {
+        const mondeClient = mondeClients[i];
+        try {
+          if (!mondeClient.attributes.name || mondeClient.attributes.name.trim() === '') {
+            console.log(`⚠️ Cliente sem nome válido, pulando... (${i + 1}/${mondeClients.length})`);
+            continue;
+          }
+          
+          const existingClients = await storage.getUserClients(userId);
+          const existingClient = existingClients.find(c => c.mondeId === mondeClient.id);
+
+          if (existingClient) {
+            await this.updateClientFromMondeData(existingClient.id, mondeClient);
+            updated++;
+            console.log(`🔄 Cliente atualizado: ${mondeClient.attributes.name} (${i + 1}/${mondeClients.length})`);
+          } else {
+            await this.createClientFromMondeData(userId, mondeClient, token);
+            imported++;
+            console.log(`✅ Cliente importado: ${mondeClient.attributes.name} (${i + 1}/${mondeClients.length})`);
+          }
+        } catch (error) {
+          const errorMsg = `Cliente ${mondeClient.attributes.name || 'sem nome'}: ${error}`;
+          errors.push(errorMsg);
+          console.error(`❌ ${errorMsg}`);
+        }
+      }
+
+      console.log(`✅ IMPORTAÇÃO FINALIZADA: ${imported} novos, ${updated} atualizados, ${errors.length} erros`);
+      return { imported, updated, errors };
+    } catch (error) {
+      console.error('❌ Erro na importação de clientes:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Busca informações da cidade via API do Monde
+   */
+  private async getCityInfo(cityId: string, token: string): Promise<{ name: string; state: string } | null> {
+    try {
+      const response = await fetch(`${this.mondeBaseUrl}/cities/${cityId}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/vnd.api+json',
+          'Content-Type': 'application/vnd.api+json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return {
+          name: data.data.attributes.name,
+          state: data.data.attributes['state-acronym']
+        };
+      }
+    } catch (error) {
+      console.warn(`Erro ao buscar cidade ${cityId}:`, error);
+    }
+    return null;
+  }
+
+  /**
+   * Cria um novo cliente no iAGENTE a partir dos dados do Monde
+   */
+  private async createClientFromMondeData(userId: string, mondeClient: MondeClient, token: string): Promise<void> {
+    const { storage } = await import('./storage');
+    
+    // Mapear tipo de cliente conforme tipos do Monde (baseado no campo 'kind')
+    const { clientType, mondeType } = this.mapMondeTypeToClientType(mondeClient);
+    const isCompany = clientType === 'juridica';
+    const isForeigner = clientType === 'estrangeiro';
+    
+    // Buscar informações da cidade se houver relacionamento
+    let cityInfo = null;
+    if (mondeClient.relationships?.city?.data?.id) {
+      cityInfo = await this.getCityInfo(mondeClient.relationships.city.data.id, token);
+    }
+    
+    const clientData = {
+      userId,
+      agencyId: 1,
+      clientType: clientType as any,
+      mondeType: mondeType,
+      lastInteraction: new Date(),
+      registrationDate: mondeClient.attributes['registered-at'] ? new Date(mondeClient.attributes['registered-at']) : new Date(),
+      
+      // Campos básicos
+      name: mondeClient.attributes.name,
+      email: mondeClient.attributes.email || '',
+      phone: mondeClient.attributes.phone || mondeClient.attributes['mobile-phone'] || mondeClient.attributes['business-phone'] || '',
+      
+      // Pessoa Física (não para PJ ou Sistema)
+      cpf: !isCompany && !isForeigner ? mondeClient.attributes.cpf : null,
+      rg: !isCompany && !isForeigner ? mondeClient.attributes.rg : null,
+      birthdate: !isCompany ? mondeClient.attributes['birth-date'] : null,
+      gender: !isCompany ? mondeClient.attributes.gender : null,
+      
+      // Pessoa Jurídica  
+      cnpj: isCompany ? mondeClient.attributes.cnpj : null,
+      socialReason: isCompany ? mondeClient.attributes['company-name'] : null,
+      stateRegistration: isCompany ? mondeClient.attributes['state-inscription'] : null,
+      municipalRegistration: isCompany ? mondeClient.attributes['city-inscription'] : null,
+      
+      // Endereço completo (buscar cidade via API se disponível)
+      address: mondeClient.attributes.address || null,
+      number: mondeClient.attributes.number || null,
+      complement: mondeClient.attributes.complement || null,
+      neighborhood: mondeClient.attributes.district || null,
+      city: cityInfo?.name || mondeClient.attributes.city || null, // Cidade via API ou atributo direto
+      state: cityInfo?.state || mondeClient.attributes.state || null, // Estado via API ou atributo direto
+      zipcode: mondeClient.attributes.zip?.replace(/\D/g, '') || null,
+      
+      // Contato adicional  
+      commercialPhone: mondeClient.attributes['business-phone'] || null,
+      mobile: mondeClient.attributes['mobile-phone'] || null,
+      website: mondeClient.attributes.website || null,
+      
+      // Documentos (especial para estrangeiros)
+      passportNumber: isForeigner ? mondeClient.attributes['passport-number'] : null,
+      passportExpiry: isForeigner ? mondeClient.attributes['passport-expiration'] : null,
+      nationality: isForeigner ? mondeClient.attributes.nationality : null,
+      
+      // Sistema
+      observations: mondeClient.attributes.observations || null,
+      status: 'aguardando' as const,
+      avatar: null,
+      ticketFee: null,
+      
+      // Integração Monde
+      mondeId: mondeClient.id,
+      mondeType: mondeType,
+      origin: 'monde' as const,
+      linked: true,
+      lastSync: new Date(),
+    };
+
+    try {
+      await storage.createClient(clientData);
+      console.log(`✅ Cliente criado: ${clientData.name} (${clientType}) - ${clientData.email || 'sem email'}`);
+    } catch (error) {
+      console.error(`❌ Erro ao criar cliente ${clientData.name}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Atualiza um cliente existente com dados do Monde
+   */
+  private async updateClientFromMondeData(clientId: number, mondeClient: MondeClient): Promise<void> {
+    const { storage } = await import('./storage');
+    
+    // Mapear apenas campos que podem ser atualizados
+    const updateData = {
+      name: mondeClient.attributes.name,
+      email: mondeClient.attributes.email || '',
+      phone: mondeClient.attributes.phone || mondeClient.attributes['mobile-phone'] || mondeClient.attributes['business-phone'] || '',
+      address: mondeClient.attributes.address || null,
+      number: mondeClient.attributes.number || null,
+      complement: mondeClient.attributes.complement || null,
+      neighborhood: mondeClient.attributes.district || null,
+      zipcode: mondeClient.attributes.zip || null,
+      observations: mondeClient.attributes.observations || null,
+      lastSync: new Date(),
+      website: mondeClient.attributes.website || null,
+    };
+
+    await storage.updateClient(clientId, updateData);
+  }
+
+  /**
+   * Cria um novo cliente no iAGENTE a partir dos dados do Monde (método original mantido)
+   */
+  private async createClientFromMonde(mondeClient: MondeClient): Promise<void> {
+    const { id: mondeId, attributes } = mondeClient;
+    
+    // Busca um usuário admin para associar o cliente
+    const adminUsers = await db
+      .select()
+      .from(users)
+      .where(eq(users.role, 'admin'))
+      .limit(1);
+
+    if (adminUsers.length === 0) {
+      throw new Error('Nenhum usuário admin encontrado para associar o cliente');
+    }
+
+    const adminUser = adminUsers[0];
+
+    await db.insert(clients).values({
+      userId: adminUser.id,
+      agencyId: adminUser.agencyId,
+      name: attributes.name,
+      email: attributes.email,
+      phone: attributes.phone || '',
+      birthdate: attributes.birthdate || null,
+      cpf: attributes.document || '',
+      address: attributes.address || '',
+      city: attributes.city || '',
+      state: attributes.state || '',
+      zipcode: attributes.zipcode || '',
+      mondeId: mondeId,
+      origin: 'monde',
+      linked: true,
+      lastSync: new Date(),
+      clientType: 'fisica',
+      status: 'ativo',
+      lastInteraction: new Date().toISOString(),
+      registrationDate: new Date().toISOString(),
+    });
+  }
+
+  /**
+   * Atualiza um cliente existente com dados do Monde
+   */
+  private async updateClientFromMonde(clientId: number, mondeClient: MondeClient): Promise<void> {
+    const { attributes } = mondeClient;
+    
+    await db
+      .update(clients)
+      .set({
+        name: attributes.name,
+        email: attributes.email,
+        phone: attributes.phone || '',
+        birthdate: attributes.birthdate || null,
+        cpf: attributes.document || '',
+        address: attributes.address || '',
+        city: attributes.city || '',
+        state: attributes.state || '',
+        zipcode: attributes.zipcode || '',
+        lastSync: new Date(),
+      })
+      .where(eq(clients.id, clientId));
+  }
+
+  /**
+   * Vincula um cliente existente ao Monde
+   */
+  async linkClientToMonde(clientId: number, mondeId: string): Promise<boolean> {
+    try {
+      await db
+        .update(clients)
+        .set({
+          mondeId: mondeId,
+          origin: 'monde',
+          linked: true,
+          lastSync: new Date(),
+        })
+        .where(eq(clients.id, clientId));
+
+      return true;
+    } catch (error) {
+      console.error('Erro ao vincular cliente ao Monde:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Atualiza cliente no Monde com dados do iAGENTE
+   */
+  async updateMondeClientFromLocal(clientId: number, token: string): Promise<boolean> {
+    try {
+      const { storage } = await import('./storage');
+      const clients = await storage.getUserClients(''); // Buscar por ID depois
+      const client = clients.find(c => c.id === clientId);
+      
+      if (!client || !client.mondeId) {
+        throw new Error('Cliente não encontrado ou não vinculado ao Monde');
+      }
+
+      // Mapear dados do iAGENTE para formato Monde
+      const mondeData = {
+        data: {
+          type: 'people',
+          id: client.mondeId,
+          attributes: {
+            name: client.name,
+            email: client.email,
+            phone: client.phone,
+            'mobile-phone': client.mobilePhone || '',
+            'business-phone': client.businessPhone || '',
+            address: client.address || '',
+            number: client.addressNumber || '',
+            complement: client.addressComplement || '',
+            district: client.neighborhood || '',
+            zip: client.zipCode || '',
+            cpf: client.cpf || '',
+            cnpj: client.cnpj || '',
+            rg: client.rg || '',
+            'birth-date': client.birthdate || '',
+            'company-name': client.companyName || '',
+            'state-inscription': client.stateRegistration || '',
+            'city-inscription': client.municipalRegistration || '',
+            'passport-number': client.passportNumber || '',
+            'passport-expiration': client.passportExpiry || '',
+            website: client.website || '',
+            observations: client.observations || '',
+            gender: client.gender || '',
+            kind: client.clientType === 'juridica' ? 'company' : 'individual'
+          }
+        }
+      };
+
+      const response = await fetch(`https://web.monde.com.br/api/v2/people/${client.mondeId}`, {
+        method: 'PATCH',
+        headers: {
+          'Accept': 'application/vnd.api+json',
+          'Content-Type': 'application/vnd.api+json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(mondeData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro ao atualizar cliente no Monde: ${response.status}`);
+      }
+
+      // Atualizar timestamp de sincronização
+      await storage.updateClient(clientId, { lastSync: new Date() });
+      
+      return true;
+    } catch (error) {
+      console.error('Erro ao sincronizar cliente para Monde:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Sincroniza edições do iAGENTE para o Monde (método original mantido)
+   */
+  async syncClientToMonde(clientId: number): Promise<boolean> {
+    try {
+      const clientResults = await db
+        .select()
+        .from(clients)
+        .where(eq(clients.id, clientId));
+
+      if (clientResults.length === 0 || !clientResults[0].mondeId) {
+        return false;
+      }
+
+      const client = clientResults[0];
+      const clientData = {
+        name: client.name,
+        email: client.email,
+        phone: client.phone,
+        birthdate: client.birthdate,
+        document: client.cpf,
+        address: client.address,
+        city: client.city,
+        state: client.state,
+        zipcode: client.zipcode,
+      };
+
+      const success = await this.updateMondeClient(client.mondeId, clientData);
+      
+      if (success) {
+        await db
+          .update(clients)
+          .set({ lastSync: new Date() })
+          .where(eq(clients.id, clientId));
+      }
+
+      return success;
+    } catch (error) {
+      console.error('Erro ao sincronizar cliente para o Monde:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Buscar dados de cidade específica via API Monde
+   */
+  async getCityData(cityId: string, token: string): Promise<any> {
+    try {
+      const response = await fetch(`${this.apiBaseUrl}/cities/${cityId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        console.error(`Erro ao buscar cidade ${cityId}: ${response.status}`);
+        return null;
+      }
+
+      const data = await response.json();
+      return data.data || null;
+    } catch (error) {
+      console.error(`Erro na busca da cidade ${cityId}:`, error);
+      return null;
+    }
+  }
+}
+
+export const mondeIntegration = new MondeIntegrationService();

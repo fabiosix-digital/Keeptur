@@ -19,6 +19,8 @@ export default function Dashboard() {
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [calendarView, setCalendarView] = useState('mes');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [originalClients, setOriginalClients] = useState<any[]>([]);
 
   useEffect(() => {
     // Aplicar tema no body
@@ -30,7 +32,7 @@ export default function Dashboard() {
     const loadData = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem('keeptur-monde-token');
+        const token = localStorage.getItem('keeptur-token');
         const serverUrl = localStorage.getItem('keeptur-server-url') || 'http://allanacaires.monde.com.br';
         
         if (!token || !serverUrl) {
@@ -72,6 +74,7 @@ export default function Dashboard() {
 
         setTasks(tasks);
         setClients(clients);
+        setOriginalClients(clients);
         setStats({
           ...realStats,
           totalVariation: "+15%",
@@ -88,6 +91,27 @@ export default function Dashboard() {
 
     loadData();
   }, []);
+
+  const handleSearchClients = async () => {
+    if (!searchTerm.trim()) {
+      setClients(originalClients);
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('keeptur-token');
+      const response = await fetch(`/api/monde/clientes?filter[search]=${encodeURIComponent(searchTerm)}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setClients(data.data || []);
+      }
+    } catch (error) {
+      console.error('Erro ao pesquisar clientes:', error);
+    }
+  };
 
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
@@ -112,7 +136,7 @@ export default function Dashboard() {
 
       // Atualizar status da tarefa via API
       await fetch(`/api/monde/tarefas/${data.taskId}`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
@@ -1006,16 +1030,34 @@ export default function Dashboard() {
               <input 
                 type="text" 
                 placeholder="Buscar clientes..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearchClients()}
                 className="search-input pl-10 pr-4 py-2 rounded-lg text-sm w-64"
               />
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
                 <i className="ri-search-line text-gray-400"></i>
               </div>
             </div>
-            <button className="action-button px-4 py-2 rounded-lg text-sm font-medium rounded-button">
-              <i className="ri-filter-line mr-2"></i>
-              Filtros
+            <button 
+              onClick={handleSearchClients}
+              className="action-button px-4 py-2 rounded-lg text-sm font-medium rounded-button"
+            >
+              <i className="ri-search-line mr-2"></i>
+              Buscar
             </button>
+            {searchTerm && (
+              <button 
+                onClick={() => {
+                  setSearchTerm('');
+                  setClients(originalClients);
+                }}
+                className="action-button px-4 py-2 rounded-lg text-sm font-medium rounded-button"
+              >
+                <i className="ri-close-line mr-2"></i>
+                Limpar
+              </button>
+            )}
             <button className="primary-button px-4 py-2 rounded-lg text-sm font-medium rounded-button">
               <i className="ri-add-line mr-2"></i>
               Novo Cliente
@@ -1040,20 +1082,20 @@ export default function Dashboard() {
                   <td className="py-3 px-4">
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 rounded-full client-avatar flex items-center justify-center text-white font-medium text-sm">
-                        {client.nome.charAt(0).toUpperCase()}
+                        {(client.attributes?.name || client.nome)?.charAt(0).toUpperCase()}
                       </div>
                       <div>
                         <p className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>
-                          {client.nome}
+                          {client.attributes?.name || client.nome}
                         </p>
                       </div>
                     </div>
                   </td>
                   <td className="py-3 px-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                    {client.email}
+                    {client.attributes?.email || client.email}
                   </td>
                   <td className="py-3 px-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                    {client.telefone}
+                    {client.attributes?.phone || client.telefone}
                   </td>
                   <td className="py-3 px-4">
                     <span className="px-2 py-1 rounded-full text-xs status-badge-active">

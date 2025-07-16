@@ -256,7 +256,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/monde/clientes", authenticateToken, async (req: any, res) => {
     try {
-      const mondeUrl = `https://web.monde.com.br/api/v2/people`;
+      let mondeUrl = `https://web.monde.com.br/api/v2/people`;
+      
+      // Adicionar filtro de busca se fornecido
+      if (req.query['filter[search]']) {
+        mondeUrl += `?filter[search]=${encodeURIComponent(req.query['filter[search]'])}`;
+      }
       
       const mondeResponse = await fetch(mondeUrl, {
         method: "GET",

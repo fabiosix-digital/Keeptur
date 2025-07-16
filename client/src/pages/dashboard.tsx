@@ -10,6 +10,7 @@ export default function Dashboard() {
   const { theme, toggleTheme } = useTheme();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState('tarefas');
+  const [activeView, setActiveView] = useState('lista');
   const [tasks, setTasks] = useState([]);
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -54,6 +55,7 @@ export default function Dashboard() {
     logout();
   };
 
+
   const renderTasksView = () => (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Welcome Section */}
@@ -85,31 +87,31 @@ export default function Dashboard() {
           </div>
           <div className="mt-4 flex items-center">
             <i className="ri-arrow-up-line text-white/80 text-sm"></i>
-            <span className="text-white/80 text-sm ml-1">+12% este mês</span>
+            <span className="text-white/80 text-sm ml-1">+15% este mês</span>
           </div>
         </div>
 
         <div className="card rounded-xl p-6 stats-card-secondary">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-white/80 text-sm font-medium">Em Andamento</p>
-              <p className="text-white text-2xl font-bold">28</p>
+              <p className="text-white/80 text-sm font-medium">Tarefas Pendentes</p>
+              <p className="text-white text-2xl font-bold">127</p>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-              <i className="ri-loader-4-line text-white text-xl"></i>
+              <i className="ri-time-line text-white text-xl"></i>
             </div>
           </div>
           <div className="mt-4 flex items-center">
-            <i className="ri-arrow-up-line text-white/80 text-sm"></i>
-            <span className="text-white/80 text-sm ml-1">+8% este mês</span>
+            <i className="ri-arrow-down-line text-white/80 text-sm"></i>
+            <span className="text-white/80 text-sm ml-1">-8% este mês</span>
           </div>
         </div>
 
         <div className="card rounded-xl p-6 stats-card-success">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-white/80 text-sm font-medium">Concluídas</p>
-              <p className="text-white text-2xl font-bold">156</p>
+              <p className="text-white/80 text-sm font-medium">Tarefas Concluídas</p>
+              <p className="text-white text-2xl font-bold">189</p>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
               <i className="ri-checkbox-circle-line text-white text-xl"></i>
@@ -124,156 +126,405 @@ export default function Dashboard() {
         <div className="card rounded-xl p-6 stats-card-danger">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-white/80 text-sm font-medium">Atrasadas</p>
-              <p className="text-white text-2xl font-bold">12</p>
+              <p className="text-white/80 text-sm font-medium">Tarefas Atrasadas</p>
+              <p className="text-white text-2xl font-bold">26</p>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-              <i className="ri-time-line text-white text-xl"></i>
+              <i className="ri-alarm-warning-line text-white text-xl"></i>
             </div>
           </div>
           <div className="mt-4 flex items-center">
-            <i className="ri-arrow-down-line text-white/80 text-sm"></i>
-            <span className="text-white/80 text-sm ml-1">-5% este mês</span>
+            <i className="ri-arrow-up-line text-white/80 text-sm"></i>
+            <span className="text-white/80 text-sm ml-1">+12% este mês</span>
           </div>
         </div>
       </div>
 
-      {/* Kanban Board */}
+      {/* Task Management Panel */}
       <div className="card rounded-xl p-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <h2 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
-            Quadro Kanban
-          </h2>
-          <div className="flex items-center space-x-3">
-            <button className="action-button px-4 py-2 rounded-lg text-sm font-medium rounded-button">
-              <i className="ri-filter-line mr-2"></i>
-              Filtros
+        <div className="flex flex-col space-y-4">
+          {/* Tabs */}
+          <div className="flex items-center justify-between">
+            <div className="flex space-x-1">
+              <button 
+                onClick={() => setActiveView('lista')}
+                className={`tab-button ${activeView === 'lista' ? 'active' : ''} px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap`}
+              >
+                <i className="ri-list-check mr-2"></i>Lista
+              </button>
+              <button 
+                onClick={() => setActiveView('kanban')}
+                className={`tab-button ${activeView === 'kanban' ? 'active' : ''} px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap`}
+              >
+                <i className="ri-kanban-view mr-2"></i>Kanban
+              </button>
+              <button 
+                onClick={() => setActiveView('calendario')}
+                className={`tab-button ${activeView === 'calendario' ? 'active' : ''} px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap`}
+              >
+                <i className="ri-calendar-line mr-2"></i>Calendário
+              </button>
+            </div>
+            <button className="primary-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+              <i className="ri-add-line mr-2"></i>Nova Tarefa
             </button>
-            <button className="primary-button px-4 py-2 rounded-lg text-sm font-medium rounded-button">
-              <i className="ri-add-line mr-2"></i>
-              Nova Tarefa
-            </button>
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {/* Pendentes */}
-          <div className="kanban-column rounded-lg p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>
-                Pendentes
-              </h3>
-              <span className="bg-gray-200 text-gray-600 px-2 py-1 rounded-full text-xs">8</span>
+          {/* Filtros */}
+          <div className="flex flex-wrap gap-3">
+            <div className="flex gap-2">
+              <div className="relative">
+                <input 
+                  type="text" 
+                  placeholder="Buscar tarefas..." 
+                  className="search-input pl-10 pr-4 py-2 rounded-lg text-sm w-64"
+                />
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                  <i className="ri-search-line text-gray-400"></i>
+                </div>
+              </div>
+              <select className="form-input px-3 py-2 rounded-lg text-sm">
+                <option value="">Em:</option>
+                <option value="titulo">Título</option>
+                <option value="cliente">Cliente</option>
+                <option value="responsavel">Responsável</option>
+              </select>
             </div>
-            <div className="space-y-3">
-              {tasks.filter(t => t.status === 'pendente').map(task => (
-                <div key={task.id} className="kanban-card rounded-lg p-4">
-                  <h4 className="font-medium text-sm mb-2" style={{ color: 'var(--text-primary)' }}>
-                    {task.titulo}
-                  </h4>
-                  <p className="text-xs mb-3" style={{ color: 'var(--text-secondary)' }}>
-                    {task.cliente}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className={`px-2 py-1 rounded-full text-xs priority-badge-${task.prioridade}`}>
-                      {task.prioridade}
-                    </span>
-                    <div className="flex items-center space-x-1">
-                      <button className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600">
-                        <i className="ri-edit-line text-xs"></i>
-                      </button>
-                      <button className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600">
-                        <i className="ri-more-line text-xs"></i>
-                      </button>
+            <div className="flex gap-2">
+              <select className="form-input px-3 py-2 rounded-lg text-sm">
+                <option value="">Data de:</option>
+                <option value="cadastro">Cadastro</option>
+                <option value="conclusao">Conclusão</option>
+                <option value="vencimento">Vencimento</option>
+              </select>
+              <div className="flex items-center gap-2">
+                <input type="date" className="form-input px-3 py-2 rounded-lg text-sm" />
+                <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>até</span>
+                <input type="date" className="form-input px-3 py-2 rounded-lg text-sm" />
+              </div>
+            </div>
+            <select className="form-input px-3 py-2 rounded-lg text-sm">
+              <option value="todas">Tarefas: Todas</option>
+              <option value="criadas">Criadas por Mim</option>
+              <option value="minhas">Minhas Tarefas</option>
+            </select>
+            <select className="form-input px-3 py-2 rounded-lg text-sm">
+              <option value="">Situação</option>
+              <option value="not_completed">Não Concluída</option>
+              <option value="completed">Concluída</option>
+              <option value="deleted">Excluída</option>
+            </select>
+            <select className="form-input px-3 py-2 rounded-lg text-sm">
+              <option value="">Todas as Prioridades</option>
+              <option value="low">Baixa</option>
+              <option value="medium">Média</option>
+              <option value="high">Alta</option>
+            </select>
+          </div>
+
+          {/* Lista View */}
+          {activeView === 'lista' && (
+            <div className="view-content">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="table-row">
+                      <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>Nº</th>
+                      <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>Cliente</th>
+                      <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>Título</th>
+                      <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>Responsável</th>
+                      <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>Data/Hora</th>
+                      <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>Status</th>
+                      <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>Prioridade</th>
+                      <th className="text-right py-3 px-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="table-row">
+                      <td className="py-4 px-4">
+                        <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>#001</span>
+                      </td>
+                      <td className="py-4 px-4">
+                        <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Maria Rodrigues</p>
+                      </td>
+                      <td className="py-4 px-4">
+                        <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Reunião de Planejamento</p>
+                        <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Discussão sobre próximos passos</p>
+                      </td>
+                      <td className="py-4 px-4">
+                        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Ana Marques</p>
+                      </td>
+                      <td className="py-4 px-4">
+                        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>15/07/2025 14:30</p>
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className="status-badge-progress px-2 py-1 rounded-full text-xs font-medium">Em Andamento</span>
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className="priority-badge-high px-2 py-1 rounded-full text-xs font-medium">Alta</span>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="flex items-center justify-end space-x-2">
+                          <button className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
+                            <i className="ri-eye-line text-sm"></i>
+                          </button>
+                          <button className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
+                            <i className="ri-checkbox-circle-line text-sm"></i>
+                          </button>
+                          <button className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
+                            <i className="ri-user-shared-line text-sm"></i>
+                          </button>
+                          <button className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
+                            <i className="ri-delete-bin-line text-sm"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr className="table-row">
+                      <td className="py-4 px-4">
+                        <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>#002</span>
+                      </td>
+                      <td className="py-4 px-4">
+                        <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>João Silva</p>
+                      </td>
+                      <td className="py-4 px-4">
+                        <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Ligação de Follow-up</p>
+                        <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Acompanhamento da proposta</p>
+                      </td>
+                      <td className="py-4 px-4">
+                        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>João Silva</p>
+                      </td>
+                      <td className="py-4 px-4">
+                        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>16/07/2025 09:00</p>
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className="status-badge-pending px-2 py-1 rounded-full text-xs font-medium">Pendente</span>
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className="priority-badge-medium px-2 py-1 rounded-full text-xs font-medium">Média</span>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="flex items-center justify-end space-x-2">
+                          <button className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
+                            <i className="ri-eye-line text-sm"></i>
+                          </button>
+                          <button className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
+                            <i className="ri-checkbox-circle-line text-sm"></i>
+                          </button>
+                          <button className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
+                            <i className="ri-user-shared-line text-sm"></i>
+                          </button>
+                          <button className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
+                            <i className="ri-delete-bin-line text-sm"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Kanban View */}
+          {activeView === 'kanban' && (
+            <div className="view-content">
+              <div className="flex space-x-6 overflow-x-auto pb-4">
+                {/* A Fazer */}
+                <div className="kanban-column rounded-lg p-4 min-w-80">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>A Fazer</h3>
+                    <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">8</span>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="kanban-card rounded-lg p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <h4 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>Reunião de Planejamento</h4>
+                        <span className="priority-badge-high px-2 py-1 rounded-full text-xs font-medium">Alta</span>
+                      </div>
+                      <p className="text-xs mb-3" style={{ color: 'var(--text-tertiary)' }}>Maria Rodrigues</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>15/07 14:30</span>
+                        <div className="flex space-x-1">
+                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
+                            <i className="ri-eye-line text-xs"></i>
+                          </button>
+                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
+                            <i className="ri-edit-line text-xs"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="kanban-card rounded-lg p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <h4 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>Ligação de Follow-up</h4>
+                        <span className="priority-badge-medium px-2 py-1 rounded-full text-xs font-medium">Média</span>
+                      </div>
+                      <p className="text-xs mb-3" style={{ color: 'var(--text-tertiary)' }}>João Silva</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>16/07 09:00</span>
+                        <div className="flex space-x-1">
+                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
+                            <i className="ri-eye-line text-xs"></i>
+                          </button>
+                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
+                            <i className="ri-edit-line text-xs"></i>
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
+                  <button className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+                    <i className="ri-add-line mr-2"></i>Nova Tarefa
+                  </button>
                 </div>
-              ))}
-            </div>
-          </div>
 
-          {/* Em Progresso */}
-          <div className="kanban-column rounded-lg p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>
-                Em Progresso
-              </h3>
-              <span className="bg-blue-200 text-blue-600 px-2 py-1 rounded-full text-xs">3</span>
-            </div>
-            <div className="space-y-3">
-              {tasks.filter(t => t.status === 'progresso').map(task => (
-                <div key={task.id} className="kanban-card rounded-lg p-4">
-                  <h4 className="font-medium text-sm mb-2" style={{ color: 'var(--text-primary)' }}>
-                    {task.titulo}
-                  </h4>
-                  <p className="text-xs mb-3" style={{ color: 'var(--text-secondary)' }}>
-                    {task.cliente}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className={`px-2 py-1 rounded-full text-xs priority-badge-${task.prioridade}`}>
-                      {task.prioridade}
-                    </span>
-                    <div className="flex items-center space-x-1">
-                      <button className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600">
-                        <i className="ri-edit-line text-xs"></i>
-                      </button>
-                      <button className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600">
-                        <i className="ri-more-line text-xs"></i>
-                      </button>
+                {/* Em Andamento */}
+                <div className="kanban-column rounded-lg p-4 min-w-80">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>Em Andamento</h3>
+                    <span className="bg-blue-200 text-blue-700 px-2 py-1 rounded-full text-xs">3</span>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="kanban-card rounded-lg p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <h4 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>Análise de Requisitos</h4>
+                        <span className="priority-badge-medium px-2 py-1 rounded-full text-xs font-medium">Média</span>
+                      </div>
+                      <p className="text-xs mb-3" style={{ color: 'var(--text-tertiary)' }}>Lucia Santos</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>17/07 10:00</span>
+                        <div className="flex space-x-1">
+                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
+                            <i className="ri-eye-line text-xs"></i>
+                          </button>
+                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
+                            <i className="ri-edit-line text-xs"></i>
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
+                  <button className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+                    <i className="ri-add-line mr-2"></i>Nova Tarefa
+                  </button>
                 </div>
-              ))}
-            </div>
-          </div>
 
-          {/* Revisão */}
-          <div className="kanban-column rounded-lg p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>
-                Revisão
-              </h3>
-              <span className="bg-yellow-200 text-yellow-600 px-2 py-1 rounded-full text-xs">2</span>
-            </div>
-            <div className="space-y-3">
-              {/* Placeholder para tarefas em revisão */}
-            </div>
-          </div>
-
-          {/* Concluídas */}
-          <div className="kanban-column rounded-lg p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>
-                Concluídas
-              </h3>
-              <span className="bg-green-200 text-green-600 px-2 py-1 rounded-full text-xs">15</span>
-            </div>
-            <div className="space-y-3">
-              {tasks.filter(t => t.status === 'concluida').map(task => (
-                <div key={task.id} className="kanban-card rounded-lg p-4">
-                  <h4 className="font-medium text-sm mb-2" style={{ color: 'var(--text-primary)' }}>
-                    {task.titulo}
-                  </h4>
-                  <p className="text-xs mb-3" style={{ color: 'var(--text-secondary)' }}>
-                    {task.cliente}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className={`px-2 py-1 rounded-full text-xs priority-badge-${task.prioridade}`}>
-                      {task.prioridade}
-                    </span>
-                    <div className="flex items-center space-x-1">
-                      <button className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600">
-                        <i className="ri-edit-line text-xs"></i>
-                      </button>
-                      <button className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600">
-                        <i className="ri-more-line text-xs"></i>
-                      </button>
+                {/* Concluído */}
+                <div className="kanban-column rounded-lg p-4 min-w-80">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>Concluído</h3>
+                    <span className="bg-green-200 text-green-700 px-2 py-1 rounded-full text-xs">12</span>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="kanban-card rounded-lg p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <h4 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>Envio de Proposta</h4>
+                        <span className="priority-badge-low px-2 py-1 rounded-full text-xs font-medium">Baixa</span>
+                      </div>
+                      <p className="text-xs mb-3" style={{ color: 'var(--text-tertiary)' }}>Ana Costa</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>14/07 16:00</span>
+                        <div className="flex space-x-1">
+                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
+                            <i className="ri-eye-line text-xs"></i>
+                          </button>
+                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
+                            <i className="ri-edit-line text-xs"></i>
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
+                  <button className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+                    <i className="ri-add-line mr-2"></i>Nova Tarefa
+                  </button>
                 </div>
-              ))}
+
+                {/* Cancelado */}
+                <div className="kanban-column rounded-lg p-4 min-w-80">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>Cancelado</h3>
+                    <span className="bg-red-200 text-red-700 px-2 py-1 rounded-full text-xs">2</span>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="kanban-card rounded-lg p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <h4 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>Reunião Cancelada</h4>
+                        <span className="priority-badge-low px-2 py-1 rounded-full text-xs font-medium">Baixa</span>
+                      </div>
+                      <p className="text-xs mb-3" style={{ color: 'var(--text-tertiary)' }}>Roberto Ferreira</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>13/07 15:00</span>
+                        <div className="flex space-x-1">
+                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
+                            <i className="ri-eye-line text-xs"></i>
+                          </button>
+                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
+                            <i className="ri-edit-line text-xs"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <button className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+                    <i className="ri-add-line mr-2"></i>Nova Tarefa
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Calendário View */}
+          {activeView === 'calendario' && (
+            <div className="view-content">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-4">
+                  <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>Julho 2025</h3>
+                  <div className="flex space-x-1">
+                    <button className="action-button px-3 py-1 rounded-lg text-sm !rounded-button whitespace-nowrap">
+                      <i className="ri-arrow-left-line"></i>
+                    </button>
+                    <button className="action-button px-3 py-1 rounded-lg text-sm !rounded-button whitespace-nowrap">
+                      <i className="ri-arrow-right-line"></i>
+                    </button>
+                  </div>
+                </div>
+                <div className="flex space-x-1">
+                  <button className="tab-button active px-3 py-1 rounded-lg text-sm !rounded-button whitespace-nowrap">Mês</button>
+                  <button className="tab-button px-3 py-1 rounded-lg text-sm !rounded-button whitespace-nowrap">Semana</button>
+                  <button className="tab-button px-3 py-1 rounded-lg text-sm !rounded-button whitespace-nowrap">Dia</button>
+                </div>
+              </div>
+              <div className="grid grid-cols-7 gap-1">
+                <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Dom</div>
+                <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Seg</div>
+                <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Ter</div>
+                <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Qua</div>
+                <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Qui</div>
+                <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Sex</div>
+                <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Sáb</div>
+                
+                {/* Dias do mês */}
+                {[...Array(31)].map((_, i) => (
+                  <div key={i} className={`calendar-day rounded-lg p-2 ${i === 15 ? 'bg-blue-50' : ''}`}>
+                    <div className={`text-sm font-medium mb-1 ${i === 15 ? 'text-blue-600' : ''}`} style={{ color: i === 15 ? undefined : 'var(--text-primary)' }}>
+                      {i + 1}
+                    </div>
+                    {i === 11 && <div className="calendar-event">10:00 - Visita Técnica</div>}
+                    {i === 13 && <div className="calendar-event">16:00 - Envio Proposta</div>}
+                    {i === 14 && <div className="calendar-event">14:30 - Reunião</div>}
+                    {i === 15 && (
+                      <>
+                        <div className="calendar-event">09:00 - Follow-up</div>
+                        <div className="calendar-event">15:00 - Análise</div>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -430,13 +681,9 @@ export default function Dashboard() {
       <aside className={`sidebar ${sidebarCollapsed ? 'sidebar-collapsed' : 'sidebar-expanded'} sidebar-transition fixed inset-y-0 left-0 z-50 flex flex-col`}>
         <div className="flex items-center h-16 px-4 border-b" style={{ borderColor: 'var(--border-color)' }}>
           <div className="flex items-center">
-            <div className="font-display text-primary text-xl">
-              {sidebarCollapsed ? 'K' : 'Keeptur'}
-            </div>
+            <div className="font-display text-primary text-xl">logo</div>
             {!sidebarCollapsed && (
-              <div className="ml-2 font-bold text-lg" style={{ color: 'var(--text-primary)' }}>
-                Monde
-              </div>
+              <div className="ml-2 font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Monde</div>
             )}
           </div>
         </div>

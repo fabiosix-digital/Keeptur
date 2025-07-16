@@ -1,0 +1,195 @@
+// Função para organizar tarefas por status no Kanban
+const getTasksByStatus = (status: string) => {
+  const filteredTasks = getFilteredTasks();
+  
+  switch (status) {
+    case 'A Fazer':
+      // Tarefas não concluídas e sem status específico
+      return filteredTasks.filter((task: any) => 
+        !task.attributes.completed && 
+        (!task.attributes.status || task.attributes.status === 'pending')
+      );
+    case 'Em Andamento':
+      // Tarefas com status in_progress
+      return filteredTasks.filter((task: any) => 
+        !task.attributes.completed && 
+        task.attributes.status === 'in_progress'
+      );
+    case 'Concluído':
+      // Tarefas marcadas como concluídas
+      return filteredTasks.filter((task: any) => 
+        task.attributes.completed === true
+      );
+    case 'Cancelado':
+      // Tarefas com status cancelled
+      return filteredTasks.filter((task: any) => 
+        task.attributes.status === 'cancelled'
+      );
+    default:
+      return [];
+  }
+};
+
+// Kanban View com dados reais
+{activeView === 'kanban' && (
+  <div className="view-content">
+    <div className="flex space-x-6 overflow-x-auto pb-4">
+      {/* A Fazer */}
+      <div className="kanban-column rounded-lg p-4 min-w-80">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>A Fazer</h3>
+          <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
+            {getTasksByStatus('A Fazer').length}
+          </span>
+        </div>
+        <div 
+          className="space-y-3"
+          onDrop={(e) => handleDrop(e, 'A Fazer')}
+          onDragOver={(e) => e.preventDefault()}
+        >
+          {getTasksByStatus('A Fazer').map((task: any) => (
+            <div 
+              key={task.id}
+              className="kanban-card rounded-lg p-4 cursor-move"
+              draggable={true}
+              onDragStart={(e) => handleDragStart(e, task.id, 'A Fazer')}
+            >
+              <div className="flex items-start justify-between mb-2">
+                <h4 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>
+                  {task.attributes.title}
+                </h4>
+                <span className={`priority-badge-${getPriorityClass(task)} px-2 py-1 rounded-full text-xs font-medium`}>
+                  {getPriorityLabel(task)}
+                </span>
+              </div>
+              <p className="text-xs mb-3" style={{ color: 'var(--text-tertiary)' }}>
+                {task.client_name || 'Sem cliente'}
+              </p>
+              <div className="flex items-center justify-between">
+                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                  {formatTaskDate(task.attributes.due)}
+                </span>
+                <div className="flex space-x-1">
+                  <button 
+                    onClick={() => handleViewTask(task)}
+                    className="action-button p-1 rounded !rounded-button whitespace-nowrap"
+                  >
+                    <i className="ri-eye-line text-xs"></i>
+                  </button>
+                  <button 
+                    onClick={() => handleEditTask(task)}
+                    className="action-button p-1 rounded !rounded-button whitespace-nowrap"
+                  >
+                    <i className="ri-edit-line text-xs"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <button 
+          onClick={() => setShowTaskModal(true)}
+          className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
+        >
+          <i className="ri-add-line mr-2"></i>Nova Tarefa
+        </button>
+      </div>
+
+      {/* Em Andamento */}
+      <div className="kanban-column rounded-lg p-4 min-w-80">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>Em Andamento</h3>
+          <span className="bg-blue-200 text-blue-700 px-2 py-1 rounded-full text-xs">
+            {getTasksByStatus('Em Andamento').length}
+          </span>
+        </div>
+        <div 
+          className="space-y-3"
+          onDrop={(e) => handleDrop(e, 'Em Andamento')}
+          onDragOver={(e) => e.preventDefault()}
+        >
+          {getTasksByStatus('Em Andamento').map((task: any) => (
+            <div 
+              key={task.id}
+              className="kanban-card rounded-lg p-4 cursor-move"
+              draggable={true}
+              onDragStart={(e) => handleDragStart(e, task.id, 'Em Andamento')}
+            >
+              <div className="flex items-start justify-between mb-2">
+                <h4 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>
+                  {task.attributes.title}
+                </h4>
+                <span className={`priority-badge-${getPriorityClass(task)} px-2 py-1 rounded-full text-xs font-medium`}>
+                  {getPriorityLabel(task)}
+                </span>
+              </div>
+              <p className="text-xs mb-3" style={{ color: 'var(--text-tertiary)' }}>
+                {task.client_name || 'Sem cliente'}
+              </p>
+              <div className="flex items-center justify-between">
+                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                  {formatTaskDate(task.attributes.due)}
+                </span>
+                <div className="flex space-x-1">
+                  <button 
+                    onClick={() => handleViewTask(task)}
+                    className="action-button p-1 rounded !rounded-button whitespace-nowrap"
+                  >
+                    <i className="ri-eye-line text-xs"></i>
+                  </button>
+                  <button 
+                    onClick={() => handleEditTask(task)}
+                    className="action-button p-1 rounded !rounded-button whitespace-nowrap"
+                  >
+                    <i className="ri-edit-line text-xs"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <button 
+          onClick={() => setShowTaskModal(true)}
+          className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
+        >
+          <i className="ri-add-line mr-2"></i>Nova Tarefa
+        </button>
+      </div>
+
+      {/* Concluído e Cancelado seguem o mesmo padrão... */}
+    </div>
+  </div>
+)}
+
+// Funções auxiliares
+const getPriorityClass = (task: any) => {
+  // Implementar lógica de prioridade baseada nos dados reais
+  const priority = task.attributes.priority || 'medium';
+  return priority.toLowerCase();
+};
+
+const getPriorityLabel = (task: any) => {
+  const priority = task.attributes.priority || 'medium';
+  const labels: any = {
+    low: 'Baixa',
+    medium: 'Média',
+    high: 'Alta'
+  };
+  return labels[priority.toLowerCase()] || 'Média';
+};
+
+const formatTaskDate = (dateString: string) => {
+  if (!dateString) return 'Sem data';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('pt-BR', { 
+    day: '2-digit', 
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
+const handleEditTask = (task: any) => {
+  setSelectedTask(task);
+  setShowTaskModal(true);
+};

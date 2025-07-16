@@ -1,0 +1,71 @@
+// Função corrigida para carregar tarefas com filtros apropriados
+const loadTasks = async () => {
+  try {
+    const token = localStorage.getItem('keeptur-token');
+    const params = new URLSearchParams();
+    
+    // IMPORTANTE: Filtrar apenas tarefas do usuário logado por padrão
+    params.append('assignee', 'me');
+    
+    // Aplicar outros filtros se existirem
+    if (taskSearchTerm) params.append('search', taskSearchTerm);
+    if (selectedCategory) params.append('category', selectedCategory);
+    if (selectedPriority) params.append('priority', selectedPriority);
+    
+    // Se o filtro de tarefas for diferente de "all", aplicar
+    if (taskFilter === 'assigned_to_me') {
+      params.append('assignee', 'me');
+    } else if (taskFilter === 'created_by_me') {
+      params.append('filter[created_by]', 'me');
+    }
+    
+    const url = `/api/monde/tarefas?${params.toString()}`;
+    
+    const response = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (!response.ok) {
+      throw new Error('Erro ao carregar tarefas');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Erro ao carregar tarefas:', error);
+    return { data: [] };
+  }
+};
+
+// useEffect atualizado para carregar dados corretamente
+useEffect(() => {
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('keeptur-token');
+      const serverUrl = localStorage.getItem('keeptur-server-url') || 'http://allanacaires.monde.com.br';
+      
+      if (!token || !serverUrl) {
+        console.error('Token ou servidor não encontrado');
+        return;
+      }
+
+      // Carregar tarefas do usuário
+      const tasksResponse = await loadTasks();
+      const tasks = tasksResponse?.data || [];
+      
+      // Não precisamos mais ordenar pois já vem filtrado
+      setTasks(tasks);
+      
+      // Calcular estatísticas reais
+      const realStats = calculateTaskStats(tasks);
+      setStats(realStats);
+      
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  loadData();
+}, [user]); // Adicionar user como dependência

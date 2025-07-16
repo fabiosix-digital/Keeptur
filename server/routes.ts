@@ -506,63 +506,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para histórico de tarefas
-  app.get("/api/monde/task-historics", authenticateToken, async (req: any, res) => {
-    try {
-      const queryParams = new URLSearchParams();
-      
-      // Adicionar filtros se fornecidos
-      if (req.query['filter[task_id]']) {
-        queryParams.append('filter[task_id]', req.query['filter[task_id]'] as string);
-      }
-      
-      const mondeUrl = `https://web.monde.com.br/api/v2/task-historics?${queryParams.toString()}`;
-      
-      const mondeResponse = await fetch(mondeUrl, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/vnd.api+json",
-          "Accept": "application/vnd.api+json",
-          "Authorization": `Bearer ${req.sessao.access_token}`,
-        },
-      });
-
-      if (!mondeResponse.ok) {
-        console.error("Erro ao buscar histórico de tarefas:", mondeResponse.status);
-        return res.status(500).json({ message: "Erro ao buscar histórico da API do Monde" });
-      }
-
-      const data = await mondeResponse.json();
-      res.json(data);
-    } catch (error) {
-      console.error("Erro ao buscar histórico de tarefas:", error);
-      res.status(500).json({ message: "Erro ao buscar histórico de tarefas" });
-    }
-  });
-
-  // Endpoint para criar histórico de tarefa
-  app.post("/api/monde/task-historics", authenticateToken, async (req: any, res) => {
-    try {
-      const mondeUrl = `https://web.monde.com.br/api/v2/task-historics`;
-      
-      const mondeResponse = await fetch(mondeUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/vnd.api+json",
-          "Accept": "application/vnd.api+json",
-          "Authorization": `Bearer ${req.sessao.access_token}`,
-        },
-        body: JSON.stringify(req.body),
-      });
-
-      const data = await mondeResponse.json();
-      res.status(mondeResponse.status).json(data);
-    } catch (error) {
-      console.error("Erro ao criar histórico de tarefa:", error);
-      res.status(500).json({ message: "Erro ao criar histórico de tarefa" });
-    }
-  });
-
   // Removido endpoint demo-data - usar apenas dados reais da API do Monde
 
   // Initialize default plans

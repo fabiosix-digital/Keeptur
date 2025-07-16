@@ -29,10 +29,6 @@ export default function Dashboard() {
   const [selectedAssignee, setSelectedAssignee] = useState('');
   const [showTaskDetails, setShowTaskDetails] = useState(false);
   const [selectedTaskDetails, setSelectedTaskDetails] = useState<any>(null);
-  const [sortBy, setSortBy] = useState('');
-  const [sortOrder, setSortOrder] = useState('asc');
-  const [taskHistory, setTaskHistory] = useState<any[]>([]);
-  const [loadingHistory, setLoadingHistory] = useState(false);
 
   useEffect(() => {
     // Aplicar tema no body
@@ -198,7 +194,7 @@ export default function Dashboard() {
       filtered = filtered.filter((task: any) => {
         switch (taskFilter) {
           case 'created_by_me':
-            return task.relationships?.author?.data?.attributes?.email === userEmail;
+            return task.attributes.creator_email === userEmail;
           case 'assigned_to_me':
             return task.relationships?.assignee?.data?.attributes?.email === userEmail;
           default:
@@ -207,86 +203,12 @@ export default function Dashboard() {
       });
     }
 
-    // Aplicar ordenação
-    if (sortBy) {
-      filtered = [...filtered].sort((a: any, b: any) => {
-        let aValue, bValue;
-        
-        switch (sortBy) {
-          case 'id':
-            aValue = a.attributes.number;
-            bValue = b.attributes.number;
-            break;
-          case 'title':
-            aValue = a.attributes.title;
-            bValue = b.attributes.title;
-            break;
-          case 'person':
-            aValue = a.relationships?.person?.data?.attributes?.name || '';
-            bValue = b.relationships?.person?.data?.attributes?.name || '';
-            break;
-          case 'assignee':
-            aValue = a.relationships?.assignee?.data?.attributes?.name || '';
-            bValue = b.relationships?.assignee?.data?.attributes?.name || '';
-            break;
-          case 'due':
-            aValue = new Date(a.attributes.due);
-            bValue = new Date(b.attributes.due);
-            break;
-          case 'completed':
-            aValue = a.attributes.completed;
-            bValue = b.attributes.completed;
-            break;
-          default:
-            return 0;
-        }
-        
-        if (sortOrder === 'asc') {
-          return aValue > bValue ? 1 : -1;
-        } else {
-          return aValue < bValue ? 1 : -1;
-        }
-      });
-    }
-
     return filtered;
-  };
-
-  // Função para lidar com ordenação
-  const handleSort = (column: string) => {
-    if (sortBy === column) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(column);
-      setSortOrder('asc');
-    }
-  };
-
-  // Função para carregar histórico da tarefa
-  const loadTaskHistory = async (taskId: string) => {
-    try {
-      setLoadingHistory(true);
-      const token = localStorage.getItem('keeptur-token');
-      
-      const response = await fetch(`/api/monde/task-historics?filter[task_id]=${taskId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setTaskHistory(data.data || []);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar histórico:', error);
-    } finally {
-      setLoadingHistory(false);
-    }
   };
 
   const handleViewTask = (task: any) => {
     setSelectedTaskDetails(task);
     setShowTaskDetails(true);
-    loadTaskHistory(task.id);
   };
 
   const toggleSidebar = () => {
@@ -658,66 +580,12 @@ export default function Dashboard() {
                 <table className="w-full">
                   <thead>
                     <tr className="table-row">
-                      <th 
-                        className="text-left py-3 px-4 font-medium text-sm cursor-pointer hover:bg-gray-50" 
-                        style={{ color: 'var(--text-secondary)' }}
-                        onClick={() => handleSort('id')}
-                      >
-                        Nº
-                        {sortBy === 'id' && (
-                          <i className={`ri-arrow-${sortOrder === 'asc' ? 'up' : 'down'}-line ml-1`}></i>
-                        )}
-                      </th>
-                      <th 
-                        className="text-left py-3 px-4 font-medium text-sm cursor-pointer hover:bg-gray-50" 
-                        style={{ color: 'var(--text-secondary)' }}
-                        onClick={() => handleSort('person')}
-                      >
-                        Cliente
-                        {sortBy === 'person' && (
-                          <i className={`ri-arrow-${sortOrder === 'asc' ? 'up' : 'down'}-line ml-1`}></i>
-                        )}
-                      </th>
-                      <th 
-                        className="text-left py-3 px-4 font-medium text-sm cursor-pointer hover:bg-gray-50" 
-                        style={{ color: 'var(--text-secondary)' }}
-                        onClick={() => handleSort('title')}
-                      >
-                        Título
-                        {sortBy === 'title' && (
-                          <i className={`ri-arrow-${sortOrder === 'asc' ? 'up' : 'down'}-line ml-1`}></i>
-                        )}
-                      </th>
-                      <th 
-                        className="text-left py-3 px-4 font-medium text-sm cursor-pointer hover:bg-gray-50" 
-                        style={{ color: 'var(--text-secondary)' }}
-                        onClick={() => handleSort('assignee')}
-                      >
-                        Responsável
-                        {sortBy === 'assignee' && (
-                          <i className={`ri-arrow-${sortOrder === 'asc' ? 'up' : 'down'}-line ml-1`}></i>
-                        )}
-                      </th>
-                      <th 
-                        className="text-left py-3 px-4 font-medium text-sm cursor-pointer hover:bg-gray-50" 
-                        style={{ color: 'var(--text-secondary)' }}
-                        onClick={() => handleSort('due')}
-                      >
-                        Vencimento
-                        {sortBy === 'due' && (
-                          <i className={`ri-arrow-${sortOrder === 'asc' ? 'up' : 'down'}-line ml-1`}></i>
-                        )}
-                      </th>
-                      <th 
-                        className="text-left py-3 px-4 font-medium text-sm cursor-pointer hover:bg-gray-50" 
-                        style={{ color: 'var(--text-secondary)' }}
-                        onClick={() => handleSort('completed')}
-                      >
-                        Status
-                        {sortBy === 'completed' && (
-                          <i className={`ri-arrow-${sortOrder === 'asc' ? 'up' : 'down'}-line ml-1`}></i>
-                        )}
-                      </th>
+                      <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>Nº</th>
+                      <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>Cliente</th>
+                      <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>Título</th>
+                      <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>Responsável</th>
+                      <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>Data/Hora</th>
+                      <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>Status</th>
                       <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>Prioridade</th>
                       <th className="text-right py-3 px-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>Ações</th>
                     </tr>
@@ -739,7 +607,7 @@ export default function Dashboard() {
                         </td>
                         <td className="py-4 px-4">
                           <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                            {task.relationships?.assignee?.data?.attributes?.name || 'Sem responsável'}
+                            {task.relationships?.assignee?.data?.id || 'Sem responsável'}
                           </p>
                         </td>
                         <td className="py-4 px-4">
@@ -807,429 +675,17 @@ export default function Dashboard() {
                 <div className="kanban-column rounded-lg p-4 min-w-80">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>A Fazer</h3>
-                    <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
-                      {getFilteredTasks().filter(task => !task.attributes.completed).length}
-                    </span>
+                    <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">8</span>
                   </div>
                   <div 
                     className="space-y-3"
                     onDrop={(e) => handleDrop(e, 'A Fazer')}
                     onDragOver={(e) => e.preventDefault()}
                   >
-                    {getFilteredTasks().filter(task => !task.attributes.completed).map((task) => (
-                      <div 
-                        key={task.id}
-                        className="kanban-card rounded-lg p-4 cursor-move"
-                        draggable={true}
-                        onDragStart={(e) => handleDragStart(e, task.id, 'A Fazer')}
-                        onClick={() => handleViewTask(task)}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-medium px-2 py-1 rounded-full bg-blue-100 text-blue-800">
-                            #{String(task.attributes.number).padStart(3, '0')}
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            {new Date(task.attributes.due).toLocaleDateString('pt-BR')}
-                          </span>
-                        </div>
-                        <h4 className="font-medium text-sm mb-2" style={{ color: 'var(--text-primary)' }}>
-                          {task.attributes.title}
-                        </h4>
-                        <p className="text-xs mb-3" style={{ color: 'var(--text-tertiary)' }}>
-                          {task.attributes.description || 'Sem descrição'}
-                        </p>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                              <span className="text-white text-xs font-medium">
-                                {task.relationships?.assignee?.data?.attributes?.name?.charAt(0) || 'S'}
-                              </span>
-                            </div>
-                            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                              {task.relationships?.assignee?.data?.attributes?.name || 'Sem responsável'}
-                            </span>
-                          </div>
-                          <span className="priority-badge-medium px-2 py-1 rounded-full text-xs font-medium">
-                            Média
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Em Andamento */}
-                <div className="kanban-column rounded-lg p-4 min-w-80">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>Em Andamento</h3>
-                    <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">0</span>
-                  </div>
-                  <div 
-                    className="space-y-3"
-                    onDrop={(e) => handleDrop(e, 'Em Andamento')}
-                    onDragOver={(e) => e.preventDefault()}
-                  >
-                    {/* Vazio - tarefas em andamento serão arrastadas aqui */}
-                  </div>
-                </div>
-
-                {/* Concluído */}
-                <div className="kanban-column rounded-lg p-4 min-w-80">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>Concluído</h3>
-                    <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
-                      {getFilteredTasks().filter(task => task.attributes.completed).length}
-                    </span>
-                  </div>
-                  <div 
-                    className="space-y-3"
-                    onDrop={(e) => handleDrop(e, 'Concluído')}
-                    onDragOver={(e) => e.preventDefault()}
-                  >
-                    {getFilteredTasks().filter(task => task.attributes.completed).map((task) => (
-                      <div 
-                        key={task.id}
-                        className="kanban-card rounded-lg p-4 cursor-move opacity-75"
-                        draggable={true}
-                        onDragStart={(e) => handleDragStart(e, task.id, 'Concluído')}
-                        onClick={() => handleViewTask(task)}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-medium px-2 py-1 rounded-full bg-green-100 text-green-800">
-                            #{String(task.attributes.number).padStart(3, '0')}
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            {new Date(task.attributes.due).toLocaleDateString('pt-BR')}
-                          </span>
-                        </div>
-                        <h4 className="font-medium text-sm mb-2" style={{ color: 'var(--text-primary)' }}>
-                          {task.attributes.title}
-                        </h4>
-                        <p className="text-xs mb-3" style={{ color: 'var(--text-tertiary)' }}>
-                          {task.attributes.description || 'Sem descrição'}
-                        </p>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                              <span className="text-white text-xs font-medium">
-                                {task.relationships?.assignee?.data?.attributes?.name?.charAt(0) || 'S'}
-                              </span>
-                            </div>
-                            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                              {task.relationships?.assignee?.data?.attributes?.name || 'Sem responsável'}
-                            </span>
-                          </div>
-                          <span className="status-badge-completed px-2 py-1 rounded-full text-xs font-medium">
-                            Concluída
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Calendário View */}
-          {activeView === 'calendario' && (
-            <div className="view-content">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-medium" style={{ color: 'var(--text-primary)' }}>
-                  Calendário de Tarefas
-                </h3>
-                <div className="flex items-center space-x-2">
-                  <button 
-                    onClick={() => setCalendarView('mes')}
-                    className={`tab-button ${calendarView === 'mes' ? 'active' : ''} px-4 py-2 rounded-lg text-sm font-medium`}
-                  >
-                    Mês
-                  </button>
-                  <button 
-                    onClick={() => setCalendarView('semana')}
-                    className={`tab-button ${calendarView === 'semana' ? 'active' : ''} px-4 py-2 rounded-lg text-sm font-medium`}
-                  >
-                    Semana
-                  </button>
-                </div>
-              </div>
-
-              {calendarView === 'mes' && (
-                <div className="grid grid-cols-7 gap-1">
-                  {/* Cabeçalho dos dias da semana */}
-                  {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => (
-                    <div key={day} className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
-                      {day}
-                    </div>
-                  ))}
-                  
-                  {/* Gerar dias do mês */}
-                  {Array.from({ length: 35 }, (_, i) => {
-                    const date = new Date();
-                    date.setDate(date.getDate() - date.getDay() + i);
-                    const tasksForDay = getFilteredTasks().filter(task => {
-                      const taskDate = new Date(task.attributes.due);
-                      return taskDate.toDateString() === date.toDateString();
-                    });
-                    
-                    return (
-                      <div key={i} className="calendar-day p-2 rounded-lg">
-                        <div className="text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>
-                          {date.getDate()}
-                        </div>
-                        <div className="space-y-1">
-                          {tasksForDay.slice(0, 3).map(task => (
-                            <div
-                              key={task.id}
-                              className="calendar-event rounded text-xs p-1 cursor-pointer"
-                              onClick={() => handleViewTask(task)}
-                            >
-                              {task.attributes.title}
-                            </div>
-                          ))}
-                          {tasksForDay.length > 3 && (
-                            <div className="text-xs text-gray-500">
-                              +{tasksForDay.length - 3} mais
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {calendarView === 'semana' && (
-                <div className="grid grid-cols-7 gap-4">
-                  {Array.from({ length: 7 }, (_, i) => {
-                    const date = new Date();
-                    date.setDate(date.getDate() - date.getDay() + i);
-                    const tasksForDay = getFilteredTasks().filter(task => {
-                      const taskDate = new Date(task.attributes.due);
-                      return taskDate.toDateString() === date.toDateString();
-                    });
-                    
-                    return (
-                      <div key={i} className="space-y-2">
-                        <div className="text-center">
-                          <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                            {date.toLocaleDateString('pt-BR', { weekday: 'short' })}
-                          </div>
-                          <div className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
-                            {date.getDate()}
-                          </div>
-                        </div>
-                        <div className="space-y-1">
-                          {tasksForDay.map(task => (
-                            <div
-                              key={task.id}
-                              className="calendar-event rounded text-xs p-2 cursor-pointer"
-                              onClick={() => handleViewTask(task)}
-                            >
-                              <div className="font-medium">{task.attributes.title}</div>
-                              <div className="opacity-75">
-                                {new Date(task.attributes.due).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-
-  // Modal para visualizar detalhes da tarefa
-  const renderTaskDetailsModal = () => {
-    if (!showTaskDetails || !selectedTaskDetails) return null;
-
-    return (
-      <div className="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="modal-content bg-white rounded-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
-          {/* Header */}
-          <div className="p-6 border-b">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
-                #{String(selectedTaskDetails.attributes.number).padStart(3, '0')} - {selectedTaskDetails.attributes.title}
-              </h2>
-              <button 
-                onClick={() => setShowTaskDetails(false)}
-                className="action-button p-2 rounded-lg"
-              >
-                <i className="ri-close-line text-lg"></i>
-              </button>
-            </div>
-          </div>
-
-          {/* Conteúdo */}
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Informações da Tarefa */}
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-semibold text-lg mb-3" style={{ color: 'var(--text-primary)' }}>
-                    Informações da Tarefa
-                  </h3>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
-                        Cliente
-                      </label>
-                      <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
-                        {selectedTaskDetails.relationships?.person?.data?.attributes?.name || 'Sem cliente'}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
-                        Responsável
-                      </label>
-                      <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
-                        {selectedTaskDetails.relationships?.assignee?.data?.attributes?.name || 'Sem responsável'}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
-                        Status
-                      </label>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        selectedTaskDetails.attributes.completed ? 'status-badge-completed' : 'status-badge-pending'
-                      }`}>
-                        {selectedTaskDetails.attributes.completed ? 'Concluída' : 'Pendente'}
-                      </span>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
-                        Vencimento
-                      </label>
-                      <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
-                        {new Date(selectedTaskDetails.attributes.due).toLocaleDateString('pt-BR')} às {new Date(selectedTaskDetails.attributes.due).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
-                    Descrição
-                  </label>
-                  <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
-                    {selectedTaskDetails.attributes.description || 'Sem descrição'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Histórico */}
-              <div>
-                <h3 className="font-semibold text-lg mb-3" style={{ color: 'var(--text-primary)' }}>
-                  Histórico da Tarefa
-                </h3>
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {loadingHistory ? (
-                    <div className="text-center py-4">
-                      <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-                      <p className="text-sm mt-2" style={{ color: 'var(--text-secondary)' }}>
-                        Carregando histórico...
-                      </p>
-                    </div>
-                  ) : taskHistory.length === 0 ? (
-                    <p className="text-sm text-gray-500 text-center py-4">
-                      Nenhum histórico encontrado
-                    </p>
-                  ) : (
-                    taskHistory.map((history, index) => (
-                      <div key={index} className="border rounded-lg p-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                            {history.attributes.action || 'Ação'}
-                          </span>
-                          <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                            {new Date(history.attributes.created_at).toLocaleDateString('pt-BR')}
-                          </span>
-                        </div>
-                        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                          {history.attributes.description || 'Sem descrição'}
-                        </p>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // Modal para criar/editar tarefa
-  const renderTaskModal = () => {
-    if (!showTaskModal) return null;
-
-    return (
-      <div className="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="modal-content bg-white rounded-xl p-6 w-full max-w-2xl mx-4">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
-              {selectedTask ? 'Editar Tarefa' : 'Nova Tarefa'}
-            </h2>
-            <button 
-              onClick={() => setShowTaskModal(false)}
-              className="action-button p-2 rounded-lg"
-            >
-              <i className="ri-close-line text-lg"></i>
-            </button>
-          </div>
-          <form onSubmit={handleTaskSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
-                  Título da Tarefa
-                </label>
-                <input 
-                  type="text" 
-                  className="form-input w-full px-3 py-2 rounded-lg text-sm"
-                  placeholder="Ex: Reunião com cliente"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
-                  Cliente
-                </label>
-                <select className="form-input w-full px-3 py-2 rounded-lg text-sm">
-                  <option value="">Selecione o cliente</option>
-                  <option value="maria">Maria Rodrigues</option>
-                  <option value="joao">João Silva</option>
-                  <option value="ana">Ana Costa</option>
-                </select>
-              </div>
-            </div>
-            <div className="flex justify-end space-x-3 mt-6">
-              <button 
-                type="button"
-                onClick={() => setShowTaskModal(false)}
-                className="action-button px-4 py-2 rounded-lg text-sm font-medium"
-              >
-                Cancelar
-              </button>
-              <button 
-                type="submit"
-                className="primary-button px-4 py-2 rounded-lg text-sm font-medium"
-              >
-                Criar Tarefa
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    );
-  };
+                    <div 
+                      className="kanban-card rounded-lg p-4 cursor-move"
+                      draggable={true}
+                      onDragStart={(e) => handleDragStart(e, 1, 'A Fazer')}
                     >
                       <div className="flex items-start justify-between mb-2">
                         <h4 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>Reunião de Planejamento</h4>

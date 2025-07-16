@@ -23,6 +23,12 @@ export default function Dashboard() {
   const [searchingClients, setSearchingClients] = useState(false);
   const [showCompletedTasks, setShowCompletedTasks] = useState(false);
   const [taskFilter, setTaskFilter] = useState('all');
+  const [taskSearchTerm, setTaskSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedPriority, setSelectedPriority] = useState('');
+  const [selectedAssignee, setSelectedAssignee] = useState('');
+  const [showTaskDetails, setShowTaskDetails] = useState(false);
+  const [selectedTaskDetails, setSelectedTaskDetails] = useState<any>(null);
 
   useEffect(() => {
     // Aplicar tema no body
@@ -46,15 +52,8 @@ export default function Dashboard() {
         const api = new MondeAPI(serverUrl);
         api.setToken(token);
 
-        // Carregar apenas tarefas e estatísticas - clientes serão buscados sob demanda
-        const [tasksResponse, statsResponse] = await Promise.all([
-          fetch('/api/monde/tarefas', {
-            headers: { 'Authorization': `Bearer ${token}` }
-          }).then(res => res.json()).catch(() => ({ data: [] })),
-          fetch('/api/monde/tarefas/stats', {
-            headers: { 'Authorization': `Bearer ${token}` }
-          }).then(res => res.json()).catch(() => ({}))
-        ]);
+        // Carregar tarefas com filtros aplicados
+        const tasksResponse = await loadTasks();
 
         // Processar dados do formato JSON:API do Monde
         const tasks = tasksResponse?.data || [];
@@ -71,25 +70,11 @@ export default function Dashboard() {
         });
         
         // Calcular estatísticas reais das tarefas
-        const realStats = {
-          total: tasks.length,
-          pendentes: tasks.filter((t: any) => !t.attributes.completed).length,
-          concluidas: tasks.filter((t: any) => t.attributes.completed).length,
-          atrasadas: tasks.filter((t: any) => {
-            const dueDate = new Date(t.attributes.due);
-            return dueDate < new Date() && !t.attributes.completed;
-          }).length
-        };
+        const realStats = calculateTaskStats(sortedTasks);
 
         setTasks(sortedTasks);
         setClients([]); // Não carregar clientes na inicialização
-        setStats({
-          ...realStats,
-          totalVariation: "+15%",
-          pendentesVariation: "-8%",
-          concluidasVariation: "+23%",
-          atrasadasVariation: "+12%"
-        });
+        setStats(realStats);
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
       } finally {
@@ -99,6 +84,74 @@ export default function Dashboard() {
 
     loadData();
   }, []);
+
+  // Função para carregar tarefas com filtros
+  const loadTasks = async () => {
+    try {
+      const token = localStorage.getItem('keeptur-token');
+      const params = new URLSearchParams();
+      
+      // Aplicar filtros
+      if (taskSearchTerm) params.append('search', taskSearchTerm);
+      if (selectedCategory) params.append('category', selectedCategory);
+      if (selectedPriority) params.append('priority', selectedPriority);
+      if (selectedAssignee) params.append('assignee', selectedAssignee);
+      
+      const url = `/api/monde/tarefas${params.toString() ? `?${params.toString()}` : ''}`;
+      
+      const response = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      return response.json();
+    } catch (error) {
+      console.error('Erro ao carregar tarefas:', error);
+      return { data: [] };
+    }
+  };
+
+  // Função para calcular estatísticas das tarefas
+  const calculateTaskStats = (tasks: any[]) => {
+    const stats = {
+      total: tasks.length,
+      pendentes: tasks.filter((t: any) => !t.attributes.completed).length,
+      concluidas: tasks.filter((t: any) => t.attributes.completed).length,
+      atrasadas: tasks.filter((t: any) => {
+        const dueDate = new Date(t.attributes.due);
+        return dueDate < new Date() && !t.attributes.completed;
+      }).length
+    };
+    
+    return {
+      ...stats,
+      totalVariation: "+15%",
+      pendentesVariation: "-8%",
+      concluidasVariation: "+23%",
+      atrasadasVariation: "+12%"
+    };
+  };
+
+  // Recarregar tarefas quando filtros mudarem
+  const reloadTasks = async () => {
+    setLoading(true);
+    const tasksResponse = await loadTasks();
+    const tasks = tasksResponse?.data || [];
+    
+    // Ordenar tarefas: usuário logado primeiro, depois outras
+    const sortedTasks = tasks.sort((a: any, b: any) => {
+      const userEmail = user?.email || '';
+      const aIsUser = a.relationships?.assignee?.data?.attributes?.email === userEmail;
+      const bIsUser = b.relationships?.assignee?.data?.attributes?.email === userEmail;
+      
+      if (aIsUser && !bIsUser) return -1;
+      if (!aIsUser && bIsUser) return 1;
+      return 0;
+    });
+    
+    setTasks(sortedTasks);
+    setStats(calculateTaskStats(sortedTasks));
+    setLoading(false);
+  };
 
   const handleSearchClients = async () => {
     if (!searchTerm.trim()) {
@@ -153,6 +206,11 @@ export default function Dashboard() {
     return filtered;
   };
 
+  const handleViewTask = (task: any) => {
+    setSelectedTaskDetails(task);
+    setShowTaskDetails(true);
+  };
+
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
@@ -196,10 +254,7 @@ export default function Dashboard() {
     }
   };
 
-  const handleViewTask = (task: any) => {
-    setSelectedTask(task);
-    setShowTaskModal(true);
-  };
+
 
   const handleCompleteTask = async (taskId: number) => {
     try {
@@ -410,6 +465,9 @@ export default function Dashboard() {
                 <input 
                   type="text" 
                   placeholder="Buscar tarefas..." 
+                  value={taskSearchTerm}
+                  onChange={(e) => setTaskSearchTerm(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && reloadTasks()}
                   className="search-input pl-10 pr-4 py-2 rounded-lg text-sm w-64"
                 />
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
@@ -475,24 +533,43 @@ export default function Dashboard() {
               <option value="maria">Maria Santos</option>
               <option value="pedro">Pedro Costa</option>
             </select>
-            <select className="form-input px-3 py-2 rounded-lg text-sm">
+            <select 
+              className="form-input px-3 py-2 rounded-lg text-sm"
+              value={selectedCategory}
+              onChange={(e) => {
+                setSelectedCategory(e.target.value);
+                setTimeout(reloadTasks, 100);
+              }}
+            >
               <option value="">Todas as Categorias</option>
               <option value="reuniao">Reunião</option>
               <option value="ligacao">Ligação</option>
               <option value="email">E-mail</option>
               <option value="visita">Visita</option>
             </select>
-            <select className="form-input px-3 py-2 rounded-lg text-sm">
-              <option value="">Situação</option>
-              <option value="not_completed">Não Concluída</option>
-              <option value="completed">Concluída</option>
-              <option value="deleted">Excluída</option>
-            </select>
-            <select className="form-input px-3 py-2 rounded-lg text-sm">
+            <select 
+              className="form-input px-3 py-2 rounded-lg text-sm"
+              value={selectedPriority}
+              onChange={(e) => {
+                setSelectedPriority(e.target.value);
+                setTimeout(reloadTasks, 100);
+              }}
+            >
               <option value="">Todas as Prioridades</option>
               <option value="low">Baixa</option>
               <option value="medium">Média</option>
               <option value="high">Alta</option>
+            </select>
+            <select 
+              className="form-input px-3 py-2 rounded-lg text-sm"
+              value={selectedAssignee}
+              onChange={(e) => {
+                setSelectedAssignee(e.target.value);
+                setTimeout(reloadTasks, 100);
+              }}
+            >
+              <option value="">Todos os Responsáveis</option>
+              <option value="me">Minhas Tarefas</option>
             </select>
           </div>
 
@@ -1327,6 +1404,126 @@ export default function Dashboard() {
       
       {/* Modal de Nova Tarefa */}
       <TaskModal />
+
+      {/* Modal de Visualização de Tarefa */}
+      {showTaskDetails && selectedTaskDetails && (
+        <div className="fixed inset-0 modal-overlay flex items-center justify-center z-50">
+          <div className="modal-content rounded-xl shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b" style={{ borderColor: 'var(--border-color)' }}>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs font-medium" style={{ color: 'var(--text-tertiary)' }}>
+                    #{selectedTaskDetails.id}
+                  </span>
+                  <span className={`status-badge-${selectedTaskDetails.attributes.completed ? 'completed' : 'pending'} px-3 py-1 rounded-full text-sm font-medium`}>
+                    {selectedTaskDetails.attributes.completed ? 'Concluído' : 'Pendente'}
+                  </span>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowTaskDetails(false)}
+                className="theme-toggle p-2 rounded-lg !rounded-button whitespace-nowrap"
+              >
+                <i className="ri-close-line text-lg"></i>
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                  {selectedTaskDetails.attributes.title}
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium" style={{ color: 'var(--text-secondary)' }}>Cliente:</span>
+                    <span className="ml-2" style={{ color: 'var(--text-primary)' }}>
+                      {selectedTaskDetails.relationships?.person?.data?.attributes?.name || 'Não informado'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="font-medium" style={{ color: 'var(--text-secondary)' }}>Responsável:</span>
+                    <span className="ml-2" style={{ color: 'var(--text-primary)' }}>
+                      {selectedTaskDetails.relationships?.assignee?.data?.attributes?.name || 'Não informado'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="font-medium" style={{ color: 'var(--text-secondary)' }}>Data/Hora:</span>
+                    <span className="ml-2" style={{ color: 'var(--text-primary)' }}>
+                      {selectedTaskDetails.attributes.due ? new Date(selectedTaskDetails.attributes.due).toLocaleString() : 'Não informado'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="font-medium" style={{ color: 'var(--text-secondary)' }}>Categoria:</span>
+                    <span className="ml-2" style={{ color: 'var(--text-primary)' }}>
+                      {selectedTaskDetails.relationships?.category?.data?.attributes?.name || 'Não informado'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mb-6">
+                <div className="flex space-x-1 mb-4">
+                  <button className="tab-button active px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+                    Detalhes
+                  </button>
+                  <button className="tab-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+                    Histórico
+                  </button>
+                </div>
+                
+                <div className="tab-content">
+                  <div className="mb-4">
+                    <h3 className="text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Descrição</h3>
+                    <p className="text-sm p-3 rounded-lg" style={{ color: 'var(--text-primary)', backgroundColor: 'var(--bg-tertiary)' }}>
+                      {selectedTaskDetails.attributes.description || 'Sem descrição'}
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h3 className="text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Informações Adicionais</h3>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span style={{ color: 'var(--text-tertiary)' }}>Data de Criação:</span>
+                          <span style={{ color: 'var(--text-primary)' }}>
+                            {selectedTaskDetails.attributes.created_at ? new Date(selectedTaskDetails.attributes.created_at).toLocaleString() : 'Não informado'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span style={{ color: 'var(--text-tertiary)' }}>Última Atualização:</span>
+                          <span style={{ color: 'var(--text-primary)' }}>
+                            {selectedTaskDetails.attributes.updated_at ? new Date(selectedTaskDetails.attributes.updated_at).toLocaleString() : 'Não informado'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-end space-x-3 pt-4 border-t" style={{ borderColor: 'var(--border-color)' }}>
+                <button 
+                  onClick={() => setShowTaskDetails(false)}
+                  className="action-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
+                >
+                  Fechar
+                </button>
+                <button 
+                  onClick={() => {
+                    setShowTaskDetails(false);
+                    setSelectedTask(selectedTaskDetails);
+                    setShowTaskModal(true);
+                  }}
+                  className="primary-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
+                >
+                  <i className="ri-edit-line mr-2"></i>
+                  Editar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

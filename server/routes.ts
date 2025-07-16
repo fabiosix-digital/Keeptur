@@ -232,10 +232,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   };
 
-  // Endpoints específicos para tarefas - usando endpoint correto da API v2
+  // Endpoints específicos para tarefas - usando endpoint correto da API v2 com filtros
   app.get("/api/monde/tarefas", authenticateToken, async (req: any, res) => {
     try {
-      const mondeUrl = `https://web.monde.com.br/api/v2/tasks?include=assignee,person,category`;
+      let mondeUrl = `https://web.monde.com.br/api/v2/tasks?include=assignee,person,category`;
+      
+      // Adicionar filtros da query string
+      const queryParams = new URLSearchParams();
+      
+      // Filtros de status
+      if (req.query.status) {
+        queryParams.append('filter[status]', req.query.status);
+      }
+      
+      // Filtros de responsável
+      if (req.query.assignee) {
+        queryParams.append('filter[assignee]', req.query.assignee);
+      }
+      
+      // Filtros de categoria
+      if (req.query.category) {
+        queryParams.append('filter[category]', req.query.category);
+      }
+      
+      // Filtros de data
+      if (req.query.date_from) {
+        queryParams.append('filter[date_from]', req.query.date_from);
+      }
+      if (req.query.date_to) {
+        queryParams.append('filter[date_to]', req.query.date_to);
+      }
+      
+      // Filtros de prioridade
+      if (req.query.priority) {
+        queryParams.append('filter[priority]', req.query.priority);
+      }
+      
+      // Filtros de busca
+      if (req.query.search) {
+        queryParams.append('filter[search]', req.query.search);
+      }
+      
+      // Adicionar parâmetros à URL se existirem
+      if (queryParams.toString()) {
+        mondeUrl += `&${queryParams.toString()}`;
+      }
       
       const mondeResponse = await fetch(mondeUrl, {
         method: "GET",
@@ -254,6 +295,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para buscar pessoas (clientes) - sempre sob demanda
+  app.get("/api/monde/pessoas", authenticateToken, async (req: any, res) => {
+    try {
+      let mondeUrl = `https://web.monde.com.br/api/v2/people`;
+      
+      // Adicionar filtro de busca se fornecido
+      if (req.query['filter[search]']) {
+        mondeUrl += `?filter[search]=${encodeURIComponent(req.query['filter[search]'])}`;
+      }
+      
+      const mondeResponse = await fetch(mondeUrl, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/vnd.api+json",
+          "Accept": "application/vnd.api+json",
+          "Authorization": `Bearer ${req.sessao.access_token}`,
+        },
+      });
+
+      const data = await mondeResponse.json();
+      res.status(mondeResponse.status).json(data);
+    } catch (error) {
+      console.error("Erro ao buscar pessoas:", error);
+      res.status(500).json({ message: "Erro ao buscar pessoas" });
+    }
+  });
+
+  // Manter compatibilidade com nome clientes
   app.get("/api/monde/clientes", authenticateToken, async (req: any, res) => {
     try {
       let mondeUrl = `https://web.monde.com.br/api/v2/people`;

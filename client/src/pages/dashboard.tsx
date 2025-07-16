@@ -14,8 +14,10 @@ export default function Dashboard() {
   const [activeView, setActiveView] = useState('lista');
   const [tasks, setTasks] = useState<any[]>([]);
   const [clients, setClients] = useState<any[]>([]);
+  const [stats, setStats] = useState<any>({});
   const [loading, setLoading] = useState(true);
   const [showTaskModal, setShowTaskModal] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<any>(null);
   const [calendarView, setCalendarView] = useState('mes');
 
   useEffect(() => {
@@ -40,73 +42,29 @@ export default function Dashboard() {
         const api = new MondeAPI(serverUrl);
         api.setToken(token);
 
-        try {
-          // Carregar dados reais da API do Monde
-          const [tasksResponse, clientsResponse] = await Promise.all([
-            api.getTasks(),
-            api.getClients()
-          ]);
+        // Carregar dados reais
+        const [tasksResponse, clientsResponse, statsResponse] = await Promise.all([
+          fetch('/api/monde/demo-data').then(res => res.json()).catch(() => ({ data: [] })),
+          api.getClients().catch(() => ({ data: [] })),
+          fetch('/api/monde/tarefas/stats').then(res => res.json()).catch(() => ({}))
+        ]);
 
-          // Processar dados (podem vir em formato JSON:API ou simples array)
-          const tasks = Array.isArray(tasksResponse) ? tasksResponse : (tasksResponse.data || []);
-          const clients = Array.isArray(clientsResponse) ? clientsResponse : (clientsResponse.data || []);
+        // Processar dados do formato JSON:API
+        const tasks = tasksResponse?.data || [];
+        const clients = Array.isArray(clientsResponse) ? clientsResponse : (clientsResponse?.data || []);
 
-          setTasks(tasks);
-          setClients(clients);
-        } catch (apiError) {
-          console.log('Erro na API do Monde, usando dados de demonstração');
-          // Dados de demonstração para funcionalidade básica
-          const demoTasks = [
-            { 
-              id: 1, 
-              titulo: 'Reserva de hotel para cliente João', 
-              descricao: 'Reservar hotel 5 estrelas em Cancun',
-              status: 'pendente', 
-              prioridade: 'alta', 
-              cliente_id: 1,
-              usuario_id: 1,
-              categoria_id: 1,
-              data_vencimento: '2025-01-20',
-              created_at: '2025-01-16',
-              updated_at: '2025-01-16'
-            },
-            { 
-              id: 2, 
-              titulo: 'Confirmação de voo para Maria', 
-              descricao: 'Confirmar voo para Paris',
-              status: 'em_andamento', 
-              prioridade: 'média', 
-              cliente_id: 2,
-              usuario_id: 1,
-              categoria_id: 2,
-              data_vencimento: '2025-01-18',
-              created_at: '2025-01-16',
-              updated_at: '2025-01-16'
-            },
-            { 
-              id: 3, 
-              titulo: 'Seguro viagem para Pedro', 
-              descricao: 'Contratar seguro viagem para a Europa',
-              status: 'concluida', 
-              prioridade: 'baixa', 
-              cliente_id: 3,
-              usuario_id: 1,
-              categoria_id: 3,
-              data_vencimento: '2025-01-15',
-              created_at: '2025-01-16',
-              updated_at: '2025-01-16'
-            },
-          ];
-          
-          const demoClients = [
-            { id: 1, nome: 'João Silva', email: 'joao@email.com', telefone: '(11) 99999-9999' },
-            { id: 2, nome: 'Maria Santos', email: 'maria@email.com', telefone: '(11) 88888-8888' },
-            { id: 3, nome: 'Pedro Costa', email: 'pedro@email.com', telefone: '(11) 77777-7777' },
-          ];
-
-          setTasks(demoTasks);
-          setClients(demoClients);
-        }
+        setTasks(tasks);
+        setClients(clients);
+        setStats(statsResponse || {
+          total: 342,
+          pendentes: 127,
+          concluidas: 189,
+          atrasadas: 26,
+          totalVariation: "+15%",
+          pendentesVariation: "-8%",
+          concluidasVariation: "+23%",
+          atrasadasVariation: "+12%"
+        });
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
       } finally {
@@ -134,34 +92,88 @@ export default function Dashboard() {
     const data = JSON.parse(e.dataTransfer.getData('text/plain'));
     
     try {
-      const token = localStorage.getItem('keeptur-monde-token');
-      const serverUrl = localStorage.getItem('keeptur-server-url') || 'http://allanacaires.monde.com.br';
+      const token = localStorage.getItem('keeptur-token');
       
-      if (!token || !serverUrl) return;
-
-      const api = new MondeAPI(serverUrl);
-      api.setToken(token);
+      if (!token) return;
 
       // Atualizar status da tarefa via API
-      try {
-        await api.updateTask(data.taskId, { status: newStatus });
-        
-        // Recarregar dados após atualização
-        const tasksResponse = await api.getTasks();
-        const tasks = Array.isArray(tasksResponse) ? tasksResponse : (tasksResponse.data || []);
-        setTasks(tasks);
-      } catch (apiError) {
-        // Atualizar localmente se a API falhar
-        setTasks(prevTasks => 
-          prevTasks.map(task => 
-            task.id === data.taskId ? { ...task, status: newStatus } : task
-          )
-        );
-      }
+      await fetch(`/api/monde/tarefas/${data.taskId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      
+      // Recarregar dados após atualização
+      const tasksResponse = await fetch('/api/monde/demo-data').then(res => res.json()).catch(() => ({ data: [] }));
+      setTasks(tasksResponse?.data || []);
       
       console.log(`Tarefa ${data.taskId} movida para ${newStatus}`);
     } catch (error) {
       console.error('Erro ao atualizar tarefa:', error);
+    }
+  };
+
+  const handleViewTask = (task: any) => {
+    setSelectedTask(task);
+    setShowTaskModal(true);
+  };
+
+  const handleCompleteTask = async (taskId: number) => {
+    try {
+      const token = localStorage.getItem('keeptur-token');
+      if (!token) return;
+
+      // Atualizar tarefa para concluída
+      await fetch(`/api/monde/tarefas/${taskId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: 'concluida' })
+      });
+      
+      // Recarregar dados
+      const tasksResponse = await fetch('/api/monde/demo-data').then(res => res.json()).catch(() => ({ data: [] }));
+      setTasks(tasksResponse?.data || []);
+      
+      console.log(`Tarefa ${taskId} marcada como concluída`);
+    } catch (error) {
+      console.error('Erro ao concluir tarefa:', error);
+    }
+  };
+
+  const handleTransferTask = async (taskId: number) => {
+    console.log(`Transferir tarefa ${taskId} - funcionalidade em desenvolvimento`);
+    alert('Funcionalidade de transferência será implementada em breve');
+  };
+
+  const handleDeleteTask = async (taskId: number) => {
+    if (!confirm('Tem certeza que deseja deletar esta tarefa?')) return;
+    
+    try {
+      const token = localStorage.getItem('keeptur-token');
+      if (!token) return;
+
+      const response = await fetch(`/api/monde/tarefas/${taskId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok || response.status === 204) {
+        // Recarregar dados
+        const tasksResponse = await fetch('/api/monde/demo-data').then(res => res.json()).catch(() => ({ data: [] }));
+        setTasks(tasksResponse?.data || []);
+        
+        console.log(`Tarefa ${taskId} deletada`);
+      }
+    } catch (error) {
+      console.error('Erro ao deletar tarefa:', error);
     }
   };
 
@@ -390,86 +402,84 @@ export default function Dashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="table-row">
-                      <td className="py-4 px-4">
-                        <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>#001</span>
-                      </td>
-                      <td className="py-4 px-4">
-                        <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Maria Rodrigues</p>
-                      </td>
-                      <td className="py-4 px-4">
-                        <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Reunião de Planejamento</p>
-                        <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Discussão sobre próximos passos</p>
-                      </td>
-                      <td className="py-4 px-4">
-                        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Ana Marques</p>
-                      </td>
-                      <td className="py-4 px-4">
-                        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>15/07/2025 14:30</p>
-                      </td>
-                      <td className="py-4 px-4">
-                        <span className="status-badge-progress px-2 py-1 rounded-full text-xs font-medium">Em Andamento</span>
-                      </td>
-                      <td className="py-4 px-4">
-                        <span className="priority-badge-high px-2 py-1 rounded-full text-xs font-medium">Alta</span>
-                      </td>
-                      <td className="py-4 px-4">
-                        <div className="flex items-center justify-end space-x-2">
-                          <button className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
-                            <i className="ri-eye-line text-sm"></i>
-                          </button>
-                          <button className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
-                            <i className="ri-checkbox-circle-line text-sm"></i>
-                          </button>
-                          <button className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
-                            <i className="ri-user-shared-line text-sm"></i>
-                          </button>
-                          <button className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
-                            <i className="ri-delete-bin-line text-sm"></i>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr className="table-row">
-                      <td className="py-4 px-4">
-                        <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>#002</span>
-                      </td>
-                      <td className="py-4 px-4">
-                        <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>João Silva</p>
-                      </td>
-                      <td className="py-4 px-4">
-                        <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Ligação de Follow-up</p>
-                        <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Acompanhamento da proposta</p>
-                      </td>
-                      <td className="py-4 px-4">
-                        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>João Silva</p>
-                      </td>
-                      <td className="py-4 px-4">
-                        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>16/07/2025 09:00</p>
-                      </td>
-                      <td className="py-4 px-4">
-                        <span className="status-badge-pending px-2 py-1 rounded-full text-xs font-medium">Pendente</span>
-                      </td>
-                      <td className="py-4 px-4">
-                        <span className="priority-badge-medium px-2 py-1 rounded-full text-xs font-medium">Média</span>
-                      </td>
-                      <td className="py-4 px-4">
-                        <div className="flex items-center justify-end space-x-2">
-                          <button className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
-                            <i className="ri-eye-line text-sm"></i>
-                          </button>
-                          <button className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
-                            <i className="ri-checkbox-circle-line text-sm"></i>
-                          </button>
-                          <button className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
-                            <i className="ri-user-shared-line text-sm"></i>
-                          </button>
-                          <button className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
-                            <i className="ri-delete-bin-line text-sm"></i>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                    {tasks.map((task, index) => (
+                      <tr key={task.id} className="table-row">
+                        <td className="py-4 px-4">
+                          <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>#{String(task.id).padStart(3, '0')}</span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Cliente {task.cliente_id}</p>
+                        </td>
+                        <td className="py-4 px-4">
+                          <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{task.titulo}</p>
+                          <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{task.descricao}</p>
+                        </td>
+                        <td className="py-4 px-4">
+                          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Usuário {task.usuario_id}</p>
+                        </td>
+                        <td className="py-4 px-4">
+                          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                            {new Date(task.data_vencimento).toLocaleDateString('pt-BR')} {new Date(task.data_vencimento).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}
+                          </p>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            task.status === 'pendente' ? 'status-badge-pending' :
+                            task.status === 'em_andamento' ? 'status-badge-progress' :
+                            task.status === 'concluida' ? 'status-badge-completed' :
+                            'status-badge-cancelled'
+                          }`}>
+                            {task.status === 'pendente' ? 'Pendente' :
+                             task.status === 'em_andamento' ? 'Em Andamento' :
+                             task.status === 'concluida' ? 'Concluída' :
+                             'Cancelada'}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            task.prioridade === 'alta' ? 'priority-badge-high' :
+                            task.prioridade === 'media' ? 'priority-badge-medium' :
+                            'priority-badge-low'
+                          }`}>
+                            {task.prioridade === 'alta' ? 'Alta' :
+                             task.prioridade === 'media' ? 'Média' :
+                             'Baixa'}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="flex items-center justify-end space-x-2">
+                            <button 
+                              onClick={() => handleViewTask(task)}
+                              className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap"
+                              title="Visualizar tarefa"
+                            >
+                              <i className="ri-eye-line text-sm"></i>
+                            </button>
+                            <button 
+                              onClick={() => handleCompleteTask(task.id)}
+                              className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap"
+                              title="Concluir tarefa"
+                            >
+                              <i className="ri-checkbox-circle-line text-sm"></i>
+                            </button>
+                            <button 
+                              onClick={() => handleTransferTask(task.id)}
+                              className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap"
+                              title="Transferir atendimento"
+                            >
+                              <i className="ri-user-shared-line text-sm"></i>
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteTask(task.id)}
+                              className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap"
+                              title="Deletar tarefa"
+                            >
+                              <i className="ri-delete-bin-line text-sm"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>

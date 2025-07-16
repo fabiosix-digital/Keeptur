@@ -30,25 +30,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if empresa exists for this server URL
       let empresa = await storage.getEmpresaByMondeUrl(serverUrl);
       
-      // Call Monde API to authenticate
-      const mondeResponse = await fetch(`${serverUrl}/api/login`, {
+      // Call Monde API to authenticate using the correct v2 endpoint
+      const mondeApiUrl = "https://web.monde.com.br/api/v2/tokens";
+      
+      console.log("Tentando autenticar com Monde API:", mondeApiUrl);
+      console.log("Login sendo usado:", `${email}@${serverUrl.replace('http://', '').replace('https://', '')}`);
+      
+      const mondeResponse = await fetch(mondeApiUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        headers: { 
+          "Content-Type": "application/vnd.api+json",
+          "Accept": "application/vnd.api+json",
+          "User-Agent": "Keeptur/1.0"
+        },
+        body: JSON.stringify({
+          data: {
+            type: "tokens",
+            attributes: {
+              login: `${email}@${serverUrl.replace('http://', '').replace('https://', '')}`,
+              password: password
+            }
+          }
+        }),
       });
 
       if (!mondeResponse.ok) {
-        return res.status(401).json({ message: "Credenciais inválidas" });
+        const errorText = await mondeResponse.text().catch(() => "Erro desconhecido");
+        console.log("Monde API error:", mondeResponse.status, errorText);
+        return res.status(401).json({ 
+          message: "Credenciais inválidas ou servidor inacessível",
+          details: `Status: ${mondeResponse.status}`
+        });
       }
 
       const mondeData = await mondeResponse.json();
       
+      // Extract user info from Monde response
+      const mondeToken = mondeData.data.attributes.token;
+      const mondeLogin = mondeData.data.attributes.login;
+      const empresaNome = serverUrl.replace('http://', '').replace('https://', '').split('.')[0];
+      
       // Create empresa if it doesn't exist
       if (!empresa) {
         empresa = await storage.createEmpresa({
-          nome: mondeData.empresa_nome || "Empresa",
+          nome: empresaNome,
           servidor_monde_url: serverUrl,
-          empresa_id_monde: mondeData.empresa_id,
+          empresa_id_monde: mondeData.data.id,
         });
       }
 
@@ -56,13 +83,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const planActive = await storage.isEmpresaPlanActive(empresa.id);
       
       // Create or update session
-      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour (Monde token expires in 1 hour)
       const sessao = await storage.createSessao({
         empresa_id: empresa.id,
-        access_token: mondeData.access_token,
-        refresh_token: mondeData.refresh_token,
+        access_token: mondeToken,
+        refresh_token: "", // Monde doesn't provide refresh tokens
         expires_at: expiresAt,
-        user_data: mondeData.user,
+        user_data: {
+          login: mondeLogin,
+          email: `${email}@${serverUrl.replace('http://', '').replace('https://', '')}`,
+          role: "admin",
+          name: mondeLogin
+        },
       });
 
       // Generate local JWT token
@@ -74,10 +106,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({
         token,
-        user: mondeData.user,
+        user: {
+          id: sessao.id,
+          name: mondeLogin,
+          email: `${email}@${serverUrl.replace('http://', '').replace('https://', '')}`,
+          role: "admin",
+        },
         empresa_id: empresa.id,
         has_active_plan: planActive,
-        monde_token: mondeData.access_token,
+        monde_token: mondeToken,
       });
     } catch (error) {
       console.error("Login error:", error);

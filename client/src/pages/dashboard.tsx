@@ -12,8 +12,8 @@ export default function Dashboard() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState('tarefas');
   const [activeView, setActiveView] = useState('lista');
-  const [tasks, setTasks] = useState([]);
-  const [clients, setClients] = useState([]);
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [clients, setClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [calendarView, setCalendarView] = useState('mes');
@@ -65,7 +65,7 @@ export default function Dashboard() {
   const handleDrop = (e: React.DragEvent, newStatus: string) => {
     e.preventDefault();
     const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-    // Aqui você implementaria a lógica de atualização do status da tarefa
+    // Implementar lógica de atualização do status da tarefa
     console.log(`Movendo tarefa ${data.taskId} de ${data.status} para ${newStatus}`);
   };
 
@@ -390,8 +390,16 @@ export default function Dashboard() {
                     <h3 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>A Fazer</h3>
                     <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">8</span>
                   </div>
-                  <div className="space-y-3">
-                    <div className="kanban-card rounded-lg p-4">
+                  <div 
+                    className="space-y-3"
+                    onDrop={(e) => handleDrop(e, 'A Fazer')}
+                    onDragOver={(e) => e.preventDefault()}
+                  >
+                    <div 
+                      className="kanban-card rounded-lg p-4 cursor-move"
+                      draggable={true}
+                      onDragStart={(e) => handleDragStart(e, 1, 'A Fazer')}
+                    >
                       <div className="flex items-start justify-between mb-2">
                         <h4 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>Reunião de Planejamento</h4>
                         <span className="priority-badge-high px-2 py-1 rounded-full text-xs font-medium">Alta</span>
@@ -409,7 +417,11 @@ export default function Dashboard() {
                         </div>
                       </div>
                     </div>
-                    <div className="kanban-card rounded-lg p-4">
+                    <div 
+                      className="kanban-card rounded-lg p-4 cursor-move"
+                      draggable={true}
+                      onDragStart={(e) => handleDragStart(e, 2, 'A Fazer')}
+                    >
                       <div className="flex items-start justify-between mb-2">
                         <h4 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>Ligação de Follow-up</h4>
                         <span className="priority-badge-medium px-2 py-1 rounded-full text-xs font-medium">Média</span>
@@ -439,8 +451,16 @@ export default function Dashboard() {
                     <h3 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>Em Andamento</h3>
                     <span className="bg-blue-200 text-blue-700 px-2 py-1 rounded-full text-xs">3</span>
                   </div>
-                  <div className="space-y-3">
-                    <div className="kanban-card rounded-lg p-4">
+                  <div 
+                    className="space-y-3"
+                    onDrop={(e) => handleDrop(e, 'Em Andamento')}
+                    onDragOver={(e) => e.preventDefault()}
+                  >
+                    <div 
+                      className="kanban-card rounded-lg p-4 cursor-move"
+                      draggable={true}
+                      onDragStart={(e) => handleDragStart(e, 3, 'Em Andamento')}
+                    >
                       <div className="flex items-start justify-between mb-2">
                         <h4 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>Análise de Requisitos</h4>
                         <span className="priority-badge-medium px-2 py-1 rounded-full text-xs font-medium">Média</span>
@@ -459,7 +479,10 @@ export default function Dashboard() {
                       </div>
                     </div>
                   </div>
-                  <button className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+                  <button 
+                    onClick={() => setShowTaskModal(true)}
+                    className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
+                  >
                     <i className="ri-add-line mr-2"></i>Nova Tarefa
                   </button>
                 </div>
@@ -470,8 +493,16 @@ export default function Dashboard() {
                     <h3 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>Concluído</h3>
                     <span className="bg-green-200 text-green-700 px-2 py-1 rounded-full text-xs">12</span>
                   </div>
-                  <div className="space-y-3">
-                    <div className="kanban-card rounded-lg p-4">
+                  <div 
+                    className="space-y-3"
+                    onDrop={(e) => handleDrop(e, 'Concluído')}
+                    onDragOver={(e) => e.preventDefault()}
+                  >
+                    <div 
+                      className="kanban-card rounded-lg p-4 cursor-move"
+                      draggable={true}
+                      onDragStart={(e) => handleDragStart(e, 4, 'Concluído')}
+                    >
                       <div className="flex items-start justify-between mb-2">
                         <h4 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>Envio de Proposta</h4>
                         <span className="priority-badge-low px-2 py-1 rounded-full text-xs font-medium">Baixa</span>
@@ -490,7 +521,10 @@ export default function Dashboard() {
                       </div>
                     </div>
                   </div>
-                  <button className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+                  <button 
+                    onClick={() => setShowTaskModal(true)}
+                    className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
+                  >
                     <i className="ri-add-line mr-2"></i>Nova Tarefa
                   </button>
                 </div>
@@ -501,8 +535,16 @@ export default function Dashboard() {
                     <h3 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>Cancelado</h3>
                     <span className="bg-red-200 text-red-700 px-2 py-1 rounded-full text-xs">2</span>
                   </div>
-                  <div className="space-y-3">
-                    <div className="kanban-card rounded-lg p-4">
+                  <div 
+                    className="space-y-3"
+                    onDrop={(e) => handleDrop(e, 'Cancelado')}
+                    onDragOver={(e) => e.preventDefault()}
+                  >
+                    <div 
+                      className="kanban-card rounded-lg p-4 cursor-move"
+                      draggable={true}
+                      onDragStart={(e) => handleDragStart(e, 5, 'Cancelado')}
+                    >
                       <div className="flex items-start justify-between mb-2">
                         <h4 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>Reunião Cancelada</h4>
                         <span className="priority-badge-low px-2 py-1 rounded-full text-xs font-medium">Baixa</span>
@@ -521,7 +563,10 @@ export default function Dashboard() {
                       </div>
                     </div>
                   </div>
-                  <button className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+                  <button 
+                    onClick={() => setShowTaskModal(true)}
+                    className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
+                  >
                     <i className="ri-add-line mr-2"></i>Nova Tarefa
                   </button>
                 </div>
@@ -565,33 +610,82 @@ export default function Dashboard() {
                   </button>
                 </div>
               </div>
-              <div className="grid grid-cols-7 gap-1">
-                <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Dom</div>
-                <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Seg</div>
-                <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Ter</div>
-                <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Qua</div>
-                <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Qui</div>
-                <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Sex</div>
-                <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Sáb</div>
-                
-                {/* Dias do mês */}
-                {[...Array(31)].map((_, i) => (
-                  <div key={i} className={`calendar-day rounded-lg p-2 ${i === 15 ? 'bg-blue-50' : ''}`}>
-                    <div className={`text-sm font-medium mb-1 ${i === 15 ? 'text-blue-600' : ''}`} style={{ color: i === 15 ? undefined : 'var(--text-primary)' }}>
-                      {i + 1}
+              {calendarView === 'mes' && (
+                <div className="grid grid-cols-7 gap-1">
+                  <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Dom</div>
+                  <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Seg</div>
+                  <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Ter</div>
+                  <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Qua</div>
+                  <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Qui</div>
+                  <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Sex</div>
+                  <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Sáb</div>
+                  
+                  {/* Dias do mês */}
+                  {[...Array(31)].map((_, i) => (
+                    <div key={i} className={`calendar-day rounded-lg p-2 ${i === 15 ? 'bg-blue-50' : ''}`}>
+                      <div className={`text-sm font-medium mb-1 ${i === 15 ? 'text-blue-600' : ''}`} style={{ color: i === 15 ? undefined : 'var(--text-primary)' }}>
+                        {i + 1}
+                      </div>
+                      {i === 11 && <div className="calendar-event">10:00 - Visita Técnica</div>}
+                      {i === 13 && <div className="calendar-event">16:00 - Envio Proposta</div>}
+                      {i === 14 && <div className="calendar-event">14:30 - Reunião</div>}
+                      {i === 15 && (
+                        <>
+                          <div className="calendar-event">09:00 - Follow-up</div>
+                          <div className="calendar-event">15:00 - Análise</div>
+                        </>
+                      )}
                     </div>
-                    {i === 11 && <div className="calendar-event">10:00 - Visita Técnica</div>}
-                    {i === 13 && <div className="calendar-event">16:00 - Envio Proposta</div>}
-                    {i === 14 && <div className="calendar-event">14:30 - Reunião</div>}
-                    {i === 15 && (
-                      <>
-                        <div className="calendar-event">09:00 - Follow-up</div>
-                        <div className="calendar-event">15:00 - Análise</div>
-                      </>
-                    )}
+                  ))}
+                </div>
+              )}
+              
+              {calendarView === 'semana' && (
+                <div className="grid grid-cols-8 gap-1">
+                  <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+                    Horário
                   </div>
-                ))}
-              </div>
+                  {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => (
+                    <div key={day} className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+                      {day}
+                    </div>
+                  ))}
+                  {Array.from({ length: 24 }, (_, hour) => (
+                    <React.Fragment key={hour}>
+                      <div className="p-2 text-center text-xs border" style={{ borderColor: 'var(--border-color)' }}>
+                        {hour.toString().padStart(2, '0')}:00
+                      </div>
+                      {Array.from({ length: 7 }, (_, day) => (
+                        <div key={day} className="calendar-day p-2 text-center text-xs min-h-[40px] border" style={{ borderColor: 'var(--border-color)' }}>
+                          {hour === 9 && day === 1 ? 'Reunião' : ''}
+                          {hour === 14 && day === 3 ? 'Proposta' : ''}
+                        </div>
+                      ))}
+                    </React.Fragment>
+                  ))}
+                </div>
+              )}
+              
+              {calendarView === 'dia' && (
+                <div className="grid grid-cols-2 gap-1">
+                  <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+                    Horário
+                  </div>
+                  <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+                    Tarefas
+                  </div>
+                  {Array.from({ length: 24 }, (_, hour) => (
+                    <React.Fragment key={hour}>
+                      <div className="p-2 text-center text-xs border" style={{ borderColor: 'var(--border-color)' }}>
+                        {hour.toString().padStart(2, '0')}:00
+                      </div>
+                      <div className="calendar-day p-2 text-center text-xs min-h-[40px] border" style={{ borderColor: 'var(--border-color)' }}>
+                        {hour === 9 ? 'Reunião com cliente' : hour === 14 ? 'Desenvolver proposta' : ''}
+                      </div>
+                    </React.Fragment>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -884,9 +978,7 @@ export default function Dashboard() {
             {sidebarCollapsed ? (
               <img src={logoIcon} alt="Keeptur" className="w-6 h-6" />
             ) : (
-              <div className="flex items-center">
-                <img src={logoFull} alt="Keeptur" className="h-8" />
-              </div>
+              <img src={logoFull} alt="Keeptur" className="h-8" />
             )}
           </div>
         </div>

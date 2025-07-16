@@ -10,9 +10,9 @@ const JWT_SECRET = process.env.JWT_SECRET || "keeptur-secret-key";
 
 // API schemas
 const loginSchema = z.object({
-  email: z.string().email(),
+  email: z.string().min(1),
   password: z.string().min(1),
-  serverUrl: z.string().url(),
+  serverUrl: z.string().min(1),
 });
 
 const planSubscriptionSchema = z.object({
@@ -24,6 +24,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Login route
   app.post("/api/auth/login", async (req, res) => {
     try {
+      console.log("Login request body:", req.body);
       const { email, password, serverUrl } = loginSchema.parse(req.body);
       
       // Check if empresa exists for this server URL

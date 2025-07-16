@@ -7,6 +7,8 @@ import {
   Menu, 
   PanelLeftOpen 
 } from "lucide-react";
+import logoKeeptur from "@/assets/logo-keeptur.png";
+import iconKeeptur from "@/assets/icon-keeptur.png";
 
 interface SidebarProps {
   collapsed: boolean;
@@ -38,9 +40,10 @@ export function Sidebar({ collapsed, onToggle, currentView, onViewChange, onLogo
     <aside className={`sidebar ${collapsed ? 'sidebar-collapsed' : 'sidebar-expanded'} sidebar-transition fixed inset-y-0 left-0 z-50 flex flex-col`}>
       <div className="flex items-center h-16 px-4 border-b border-border">
         <div className="flex items-center">
-          <div className="font-['Pacifico'] text-primary text-xl">Keeptur</div>
-          {!collapsed && (
-            <div className="ml-2 font-bold text-lg text-primary">Tasks</div>
+          {collapsed ? (
+            <img src={iconKeeptur} alt="Keeptur" className="w-8 h-8" />
+          ) : (
+            <img src={logoKeeptur} alt="Keeptur" className="h-8" />
           )}
         </div>
       </div>

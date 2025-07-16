@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { PlanModal } from "@/components/ui/plan-modal";
 import { Modal } from "@/components/ui/modal";
 import { Loader2, Eye, EyeOff, User, Lock, Globe, AlertCircle } from "lucide-react";
+import logoKeeptur from "@/assets/logo-keeptur.png";
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -97,7 +98,7 @@ export default function Login() {
     <div className="login-body flex items-center justify-center min-h-screen p-4">
       <Card className="login-container w-full max-w-md p-8 rounded-2xl fade-in">
         <div className="text-center mb-8">
-          <div className="font-['Pacifico'] text-primary text-3xl mb-2">Keeptur</div>
+          <img src={logoKeeptur} alt="Keeptur" className="h-12 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Bem-vindo ao Keeptur</h1>
           <p className="text-gray-600 text-sm">Faça login para acessar sua conta</p>
         </div>

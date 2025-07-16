@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../lib/auth';
 import { MondeAPI } from '../lib/monde-api';
 import { useTheme } from '../hooks/use-theme';
 import logoFull from '@assets/LOGO Lilas_1752695672079.png';
 import logoIcon from '@assets/ico Lilas_1752695703171.png';
+import '../modal.css';
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -14,6 +15,8 @@ export default function Dashboard() {
   const [tasks, setTasks] = useState([]);
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [calendarView, setCalendarView] = useState('mes');
 
   useEffect(() => {
     // Aplicar tema no body
@@ -53,6 +56,17 @@ export default function Dashboard() {
 
   const handleLogout = () => {
     logout();
+  };
+
+  const handleDragStart = (e: React.DragEvent, taskId: number, status: string) => {
+    e.dataTransfer.setData('text/plain', JSON.stringify({ taskId, status }));
+  };
+
+  const handleDrop = (e: React.DragEvent, newStatus: string) => {
+    e.preventDefault();
+    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+    // Aqui você implementaria a lógica de atualização do status da tarefa
+    console.log(`Movendo tarefa ${data.taskId} de ${data.status} para ${newStatus}`);
   };
 
 
@@ -165,7 +179,10 @@ export default function Dashboard() {
                 <i className="ri-calendar-line mr-2"></i>Calendário
               </button>
             </div>
-            <button className="primary-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+            <button 
+              onClick={() => setShowTaskModal(true)}
+              className="primary-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
+            >
               <i className="ri-add-line mr-2"></i>Nova Tarefa
             </button>
           </div>
@@ -185,9 +202,24 @@ export default function Dashboard() {
               </div>
               <select className="form-input px-3 py-2 rounded-lg text-sm">
                 <option value="">Em:</option>
-                <option value="titulo">Título</option>
-                <option value="cliente">Cliente</option>
+                <option value="cadastrada_em">Cadastrada Em</option>
+                <option value="categoria">Categoria</option>
+                <option value="celular">Celular</option>
+                <option value="concluida_em">Concluída em</option>
+                <option value="cpf">CPF</option>
+                <option value="email">E-mail</option>
+                <option value="empresa">Empresa</option>
+                <option value="motivo_perda">Motivo da perda</option>
+                <option value="numero">Número</option>
+                <option value="origem_lead">Origem do Lead</option>
+                <option value="pessoa">Pessoa</option>
                 <option value="responsavel">Responsável</option>
+                <option value="situacao_venda">Situação da venda</option>
+                <option value="telefone">Telefone</option>
+                <option value="telefone_comercial">Telefone comercial</option>
+                <option value="titulo">Título</option>
+                <option value="valor_orcamento">Valor do orçamento</option>
+                <option value="vencimento">Vencimento</option>
               </select>
             </div>
             <div className="flex gap-2">
@@ -207,6 +239,28 @@ export default function Dashboard() {
               <option value="todas">Tarefas: Todas</option>
               <option value="criadas">Criadas por Mim</option>
               <option value="minhas">Minhas Tarefas</option>
+            </select>
+            <select className="form-input px-3 py-2 rounded-lg text-sm">
+              <option value="">Todas as Empresas</option>
+              <option value="empresa1">Empresa Alpha</option>
+              <option value="empresa2">Empresa Beta</option>
+              <option value="empresa3">Empresa Gamma</option>
+              <option value="empresa4">Empresa Delta</option>
+              <option value="empresa5">Empresa Epsilon</option>
+            </select>
+            <select className="form-input px-3 py-2 rounded-lg text-sm">
+              <option value="">Todos os Agentes</option>
+              <option value="ana">Ana Marques</option>
+              <option value="joao">João Silva</option>
+              <option value="maria">Maria Santos</option>
+              <option value="pedro">Pedro Costa</option>
+            </select>
+            <select className="form-input px-3 py-2 rounded-lg text-sm">
+              <option value="">Todas as Categorias</option>
+              <option value="reuniao">Reunião</option>
+              <option value="ligacao">Ligação</option>
+              <option value="email">E-mail</option>
+              <option value="visita">Visita</option>
             </select>
             <select className="form-input px-3 py-2 rounded-lg text-sm">
               <option value="">Situação</option>
@@ -491,9 +545,24 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <div className="flex space-x-1">
-                  <button className="tab-button active px-3 py-1 rounded-lg text-sm !rounded-button whitespace-nowrap">Mês</button>
-                  <button className="tab-button px-3 py-1 rounded-lg text-sm !rounded-button whitespace-nowrap">Semana</button>
-                  <button className="tab-button px-3 py-1 rounded-lg text-sm !rounded-button whitespace-nowrap">Dia</button>
+                  <button 
+                    onClick={() => setCalendarView('mes')}
+                    className={`tab-button ${calendarView === 'mes' ? 'active' : ''} px-3 py-1 rounded-lg text-sm !rounded-button whitespace-nowrap`}
+                  >
+                    Mês
+                  </button>
+                  <button 
+                    onClick={() => setCalendarView('semana')}
+                    className={`tab-button ${calendarView === 'semana' ? 'active' : ''} px-3 py-1 rounded-lg text-sm !rounded-button whitespace-nowrap`}
+                  >
+                    Semana
+                  </button>
+                  <button 
+                    onClick={() => setCalendarView('dia')}
+                    className={`tab-button ${calendarView === 'dia' ? 'active' : ''} px-3 py-1 rounded-lg text-sm !rounded-button whitespace-nowrap`}
+                  >
+                    Dia
+                  </button>
                 </div>
               </div>
               <div className="grid grid-cols-7 gap-1">
@@ -526,6 +595,137 @@ export default function Dashboard() {
             </div>
           )}
         </div>
+      </div>
+    </div>
+  );
+
+  // Modal de Nova Tarefa
+  const TaskModal = () => (
+    <div className={`fixed inset-0 modal-overlay flex items-center justify-center z-50 ${showTaskModal ? '' : 'hidden'}`}>
+      <div className="modal-content rounded-xl shadow-xl p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>Nova Tarefa</h3>
+          <button 
+            onClick={() => setShowTaskModal(false)}
+            className="theme-toggle p-2 rounded-lg !rounded-button whitespace-nowrap"
+          >
+            <i className="ri-close-line text-lg"></i>
+          </button>
+        </div>
+        <div className="flex space-x-1 mb-6">
+          <button className="tab-button active px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+            Detalhes
+          </button>
+          <button className="tab-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+            Anexos
+          </button>
+          <button className="tab-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+            Campos Personalizados
+          </button>
+        </div>
+        <form>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+                Título da Tarefa *
+              </label>
+              <input 
+                type="text" 
+                className="form-input w-full px-3 py-2 rounded-lg text-sm" 
+                placeholder="Digite o título da tarefa"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+                Categoria
+              </label>
+              <select className="form-input w-full px-3 py-2 rounded-lg text-sm">
+                <option value="todo">A Fazer</option>
+                <option value="progress">Em Andamento</option>
+                <option value="completed">Concluído</option>
+                <option value="cancelled">Cancelado</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+                Responsável
+              </label>
+              <select className="form-input w-full px-3 py-2 rounded-lg text-sm">
+                <option value="">Selecione o responsável</option>
+                <option value="ana">Ana Marques</option>
+                <option value="joao">João Silva</option>
+                <option value="maria">Maria Santos</option>
+                <option value="pedro">Pedro Costa</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+                Cliente
+              </label>
+              <select className="form-input w-full px-3 py-2 rounded-lg text-sm">
+                <option value="">Selecione o cliente</option>
+                <option value="maria">Maria Rodrigues</option>
+                <option value="joao">João Silva</option>
+                <option value="ana">Ana Costa</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+                Prioridade
+              </label>
+              <select className="form-input w-full px-3 py-2 rounded-lg text-sm">
+                <option value="low">Baixa</option>
+                <option value="medium">Média</option>
+                <option value="high">Alta</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+                Data de Vencimento
+              </label>
+              <input 
+                type="datetime-local" 
+                className="form-input w-full px-3 py-2 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+                Tipo de Tarefa
+              </label>
+              <select className="form-input w-full px-3 py-2 rounded-lg text-sm">
+                <option value="reuniao">Reunião</option>
+                <option value="ligacao">Ligação</option>
+                <option value="email">E-mail</option>
+                <option value="visita">Visita</option>
+              </select>
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+                Descrição
+              </label>
+              <textarea 
+                className="form-input w-full px-3 py-2 rounded-lg text-sm h-32"
+                placeholder="Descreva os detalhes da tarefa..."
+              ></textarea>
+            </div>
+          </div>
+          <div className="flex justify-end space-x-3 mt-6">
+            <button 
+              type="button"
+              onClick={() => setShowTaskModal(false)}
+              className="action-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
+            >
+              Cancelar
+            </button>
+            <button 
+              type="submit"
+              className="primary-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
+            >
+              Criar Tarefa
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
@@ -681,9 +881,13 @@ export default function Dashboard() {
       <aside className={`sidebar ${sidebarCollapsed ? 'sidebar-collapsed' : 'sidebar-expanded'} sidebar-transition fixed inset-y-0 left-0 z-50 flex flex-col`}>
         <div className="flex items-center h-16 px-4 border-b" style={{ borderColor: 'var(--border-color)' }}>
           <div className="flex items-center">
-            <div className="font-display text-primary text-xl">logo</div>
-            {!sidebarCollapsed && (
-              <div className="ml-2 font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Monde</div>
+            {sidebarCollapsed ? (
+              <img src={logoIcon} alt="Keeptur" className="w-6 h-6" />
+            ) : (
+              <div className="flex items-center">
+                <img src={logoFull} alt="Keeptur" className="h-8" />
+                <div className="ml-2 font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Monde</div>
+              </div>
             )}
           </div>
         </div>
@@ -723,9 +927,9 @@ export default function Dashboard() {
           
           <button onClick={handleLogout} className="menu-item flex items-center px-3 py-2.5 text-sm font-medium w-full bg-red-500 hover:bg-red-600 text-white">
             <div className="w-5 h-5 flex items-center justify-center">
-              <i className="ri-logout-box-line"></i>
+              <i className="ri-logout-box-line text-white"></i>
             </div>
-            {!sidebarCollapsed && <span className="ml-3">Sair</span>}
+            {!sidebarCollapsed && <span className="ml-3 text-white">Sair</span>}
             {sidebarCollapsed && <span className="tooltip">Sair</span>}
           </button>
           
@@ -795,9 +999,15 @@ export default function Dashboard() {
       </div>
 
       {/* Floating Action Button */}
-      <button className="floating-button">
+      <button 
+        onClick={() => setShowTaskModal(true)}
+        className="floating-button"
+      >
         <i className="ri-add-line text-xl"></i>
       </button>
+      
+      {/* Modal de Nova Tarefa */}
+      <TaskModal />
     </div>
   );
 }

@@ -1,0 +1,124 @@
+# Overview
+
+Keeptur is a SaaS task management system designed specifically for travel agencies integrated with Monde. The system acts as a secondary application that synchronizes with the Monde platform via API while maintaining its own subscription and payment infrastructure. It provides a comprehensive task management solution with Kanban boards, user management, and client integration.
+
+## User Preferences
+
+Preferred communication style: Simple, everyday language.
+
+## System Architecture
+
+### Frontend Architecture
+- **Framework**: React with TypeScript
+- **Build Tool**: Vite for development and production builds
+- **Styling**: Tailwind CSS with shadcn/ui components
+- **State Management**: React Query (@tanstack/react-query) for server state
+- **Routing**: Wouter for client-side routing
+- **UI Components**: Radix UI primitives with custom styling
+
+### Backend Architecture
+- **Runtime**: Node.js with Express.js
+- **Database**: PostgreSQL with Neon serverless
+- **ORM**: Drizzle ORM with Drizzle Kit for migrations
+- **Authentication**: JWT tokens with bcryptjs for password hashing
+- **Session Management**: PostgreSQL sessions with connect-pg-simple
+
+### Project Structure
+```
+├── client/          # React frontend
+├── server/          # Express backend
+├── shared/          # Shared schemas and types
+├── migrations/      # Database migrations
+└── attached_assets/ # Design mockups and documentation
+```
+
+## Key Components
+
+### Authentication System
+- **Multi-step authentication**: Users authenticate with Monde API first, then validate Keeptur subscription
+- **JWT implementation**: Local JWT tokens for session management
+- **Role-based access**: Super Admin (local), Agency Admin, and Agent/Operator roles from Monde
+
+### Database Schema
+- **Local tables**: Super admins, companies (empresas), plans (planos), subscriptions (assinaturas), payments (pagamentos), sessions (sessoes)
+- **Monde integration**: All user and task data synchronized via API calls
+- **Subscription management**: Local billing system with plan tiers and payment tracking
+
+### API Integration
+- **Monde API**: External API for user authentication, task data, client information
+- **Task management**: CRUD operations for tasks with status tracking
+- **Client management**: Read-only client data from Monde system
+
+### User Interface Components
+- **Kanban Board**: Drag-and-drop task management with status columns
+- **Task Modal**: Create/edit tasks with comprehensive form fields
+- **Client Modal**: View client details and contact information
+- **Plan Modal**: Subscription selection and upgrade interface
+- **Sidebar Navigation**: Collapsible navigation with task/client views
+
+## Data Flow
+
+### Authentication Flow
+1. User provides email, password, and Monde server URL
+2. System validates credentials against Monde API
+3. Creates or updates local empresa record
+4. Checks for active Keeptur subscription
+5. Redirects to dashboard or subscription selection
+
+### Task Management Flow
+1. Tasks loaded from Monde API on dashboard access
+2. Kanban board displays tasks grouped by status/category
+3. Drag-and-drop updates sent to Monde API
+4. Real-time updates reflected in UI
+5. Task creation/editing synced with Monde system
+
+### Subscription Management
+1. New companies require active subscription
+2. Plan selection modal for inactive subscriptions
+3. Payment processing and subscription activation
+4. Feature access controlled by subscription tier
+
+## External Dependencies
+
+### Core Dependencies
+- **@neondatabase/serverless**: PostgreSQL database connection
+- **drizzle-orm**: Database ORM and query builder
+- **bcryptjs**: Password hashing
+- **jsonwebtoken**: JWT token generation
+- **express**: Web server framework
+- **@tanstack/react-query**: Server state management
+
+### UI Dependencies
+- **@radix-ui/***: Comprehensive UI component primitives
+- **tailwindcss**: Utility-first CSS framework
+- **lucide-react**: Icon library
+- **wouter**: Lightweight routing
+- **react-hook-form**: Form management
+
+### Development Dependencies
+- **vite**: Frontend build tool
+- **typescript**: Type checking
+- **tsx**: TypeScript execution
+- **esbuild**: Backend bundling
+
+## Deployment Strategy
+
+### Development Environment
+- **Frontend**: Vite dev server with HMR
+- **Backend**: tsx with nodemon-like behavior
+- **Database**: Neon PostgreSQL serverless
+- **Environment**: Replit-optimized development setup
+
+### Production Build
+- **Frontend**: Vite build to `dist/public`
+- **Backend**: esbuild bundle to `dist/index.js`
+- **Database**: Drizzle migrations via `db:push`
+- **Deployment**: Single process serving both frontend and API
+
+### Environment Configuration
+- **DATABASE_URL**: PostgreSQL connection string
+- **JWT_SECRET**: Token signing secret
+- **NODE_ENV**: Environment mode (development/production)
+- **MONDE_API_BASE**: Base URL for Monde API integration
+
+The system is designed as a companion application to Monde, providing enhanced task management capabilities while maintaining data synchronization and user authentication through the primary Monde platform.

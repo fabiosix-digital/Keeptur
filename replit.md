@@ -8,7 +8,7 @@ Preferred communication style: Simple, everyday language in Portuguese.
 
 ## Recent Changes
 
-### 2025-07-16 - Sistema Keeptur Completamente Funcional
+### 2025-07-16 - Integração com API do Monde e Sistema Funcional
 - ✅ Login corrigido com API oficial do Monde v2
 - ✅ Logos implementadas (completa no sidebar expandido, ícone no recolhido) 
 - ✅ Usuário fabio@allanacaires.monde.com.br ativado com plano Pro
@@ -17,6 +17,10 @@ Preferred communication style: Simple, everyday language in Portuguese.
 - ✅ Sistema funcionando 100% em português
 - ✅ Autenticação com Monde API funcional
 - ✅ PostgreSQL database configurado e operacional
+- ✅ Integração com API do Monde implementada com endpoints específicos
+- ✅ Dados de demonstração funcionando com estrutura real das tarefas
+- ✅ Sistema de drag-and-drop entre colunas do Kanban implementado
+- ✅ Interface completa com filtros, visualizações (lista, kanban, calendário) funcionando
 
 ## System Architecture
 

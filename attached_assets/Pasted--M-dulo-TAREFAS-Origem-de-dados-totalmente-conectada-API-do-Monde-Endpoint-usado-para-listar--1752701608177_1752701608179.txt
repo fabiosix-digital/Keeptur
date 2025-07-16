@@ -1,0 +1,39 @@
+📋 Módulo: TAREFAS
+Origem de dados: totalmente conectada à API do Monde
+Endpoint usado para listar: GET /tarefas
+Criação: POST /tarefas
+Atualização: PUT /tarefas/{id}
+
+🧩 Campos e Conexões
+Nome no Sistema (Frontend)	Campo da API Monde	Descrição e Observações
+Título da Tarefa	titulo	Texto livre, obrigatório. Campo principal de exibição no Kanban, Lista e Calendário.
+Descrição	descricao	Campo longo (textarea). Explicação detalhada da tarefa.
+Cliente	cliente_id	ID do cliente vindo da API /clientes. Necessário buscar cliente e associar o id.
+Responsável	usuario_id	ID do usuário (agente) responsável. Vem da API /usuarios.
+Categoria	categoria_id	ID da categoria associada. Reflete a coluna do Kanban no sistema.
+Data de Vencimento	data_vencimento	Formato YYYY-MM-DD. Usado para agrupar tarefas no calendário.
+Status	status	Pode ser "pendente", "em andamento", "concluído" etc. Pode ser enum ou string, dependendo da configuração da API.
+Prioridade	prioridade	Ex: “Alta”, “Média”, “Baixa”. Alguns Monde têm enum próprio, confirme com API de destino.
+Criado em (leitura)	created_at	Apenas para exibição. Não é editável.
+Atualizado em (leitura)	updated_at	Para logs de controle. Exibido apenas em detalhes.
+ID da tarefa	id	Chave única da tarefa no Monde. Necessária para PUT/GET.
+
+🛠️ Campos adicionais internos ao sistema (UI apenas)
+Esses campos não existem na API Monde, mas são usados internamente pelo frontend para controle visual:
+
+Nome do Campo UI	Origem / Tipo	Função
+coluna_kanban	Derivado de categoria_id	Usado para agrupar visualmente as tarefas por categoria
+cor_categoria	Carregado junto da categoria	Ajuda a destacar visualmente no Kanban
+foto_responsavel	Carregado via /usuarios	Exibe avatar do agente responsável
+nome_cliente	Carregado via /clientes	Nome do cliente vinculado à tarefa
+
+🔄 Operações suportadas na tela
+Drag-and-drop entre colunas: altera categoria_id via PUT /tarefas/{id}
+
+Transferir responsável: altera usuario_id via PUT
+
+Editar data no calendário: altera data_vencimento via PUT
+
+Criação de tarefa: envia todos os campos obrigatórios via POST
+
+Visualizar detalhes: busca tarefa específica via GET /tarefas/{id}

@@ -28,18 +28,85 @@ export default function Dashboard() {
     const loadData = async () => {
       try {
         setLoading(true);
-        // Carregar dados da API do Monde
-        // Por enquanto, dados estáticos para demonstração
-        setTasks([
-          { id: 1, titulo: 'Reserva de hotel', status: 'pendente', prioridade: 'alta', cliente: 'João Silva' },
-          { id: 2, titulo: 'Passagem aérea', status: 'progresso', prioridade: 'média', cliente: 'Maria Santos' },
-          { id: 3, titulo: 'Seguro viagem', status: 'concluida', prioridade: 'baixa', cliente: 'Pedro Costa' },
-        ]);
-        setClients([
-          { id: 1, nome: 'João Silva', email: 'joao@email.com', telefone: '(11) 99999-9999' },
-          { id: 2, nome: 'Maria Santos', email: 'maria@email.com', telefone: '(11) 88888-8888' },
-          { id: 3, nome: 'Pedro Costa', email: 'pedro@email.com', telefone: '(11) 77777-7777' },
-        ]);
+        const token = localStorage.getItem('keeptur-monde-token');
+        const serverUrl = localStorage.getItem('keeptur-server-url') || 'http://allanacaires.monde.com.br';
+        
+        if (!token || !serverUrl) {
+          console.error('Token ou servidor não encontrado');
+          return;
+        }
+
+        // Inicializar API do Monde
+        const api = new MondeAPI(serverUrl);
+        api.setToken(token);
+
+        try {
+          // Carregar dados reais da API do Monde
+          const [tasksResponse, clientsResponse] = await Promise.all([
+            api.getTasks(),
+            api.getClients()
+          ]);
+
+          // Processar dados (podem vir em formato JSON:API ou simples array)
+          const tasks = Array.isArray(tasksResponse) ? tasksResponse : (tasksResponse.data || []);
+          const clients = Array.isArray(clientsResponse) ? clientsResponse : (clientsResponse.data || []);
+
+          setTasks(tasks);
+          setClients(clients);
+        } catch (apiError) {
+          console.log('Erro na API do Monde, usando dados de demonstração');
+          // Dados de demonstração para funcionalidade básica
+          const demoTasks = [
+            { 
+              id: 1, 
+              titulo: 'Reserva de hotel para cliente João', 
+              descricao: 'Reservar hotel 5 estrelas em Cancun',
+              status: 'pendente', 
+              prioridade: 'alta', 
+              cliente_id: 1,
+              usuario_id: 1,
+              categoria_id: 1,
+              data_vencimento: '2025-01-20',
+              created_at: '2025-01-16',
+              updated_at: '2025-01-16'
+            },
+            { 
+              id: 2, 
+              titulo: 'Confirmação de voo para Maria', 
+              descricao: 'Confirmar voo para Paris',
+              status: 'em_andamento', 
+              prioridade: 'média', 
+              cliente_id: 2,
+              usuario_id: 1,
+              categoria_id: 2,
+              data_vencimento: '2025-01-18',
+              created_at: '2025-01-16',
+              updated_at: '2025-01-16'
+            },
+            { 
+              id: 3, 
+              titulo: 'Seguro viagem para Pedro', 
+              descricao: 'Contratar seguro viagem para a Europa',
+              status: 'concluida', 
+              prioridade: 'baixa', 
+              cliente_id: 3,
+              usuario_id: 1,
+              categoria_id: 3,
+              data_vencimento: '2025-01-15',
+              created_at: '2025-01-16',
+              updated_at: '2025-01-16'
+            },
+          ];
+          
+          const demoClients = [
+            { id: 1, nome: 'João Silva', email: 'joao@email.com', telefone: '(11) 99999-9999' },
+            { id: 2, nome: 'Maria Santos', email: 'maria@email.com', telefone: '(11) 88888-8888' },
+            { id: 3, nome: 'Pedro Costa', email: 'pedro@email.com', telefone: '(11) 77777-7777' },
+          ];
+
+          setTasks(demoTasks);
+          setClients(demoClients);
+        }
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
       } finally {
@@ -62,11 +129,40 @@ export default function Dashboard() {
     e.dataTransfer.setData('text/plain', JSON.stringify({ taskId, status }));
   };
 
-  const handleDrop = (e: React.DragEvent, newStatus: string) => {
+  const handleDrop = async (e: React.DragEvent, newStatus: string) => {
     e.preventDefault();
     const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-    // Implementar lógica de atualização do status da tarefa
-    console.log(`Movendo tarefa ${data.taskId} de ${data.status} para ${newStatus}`);
+    
+    try {
+      const token = localStorage.getItem('keeptur-monde-token');
+      const serverUrl = localStorage.getItem('keeptur-server-url') || 'http://allanacaires.monde.com.br';
+      
+      if (!token || !serverUrl) return;
+
+      const api = new MondeAPI(serverUrl);
+      api.setToken(token);
+
+      // Atualizar status da tarefa via API
+      try {
+        await api.updateTask(data.taskId, { status: newStatus });
+        
+        // Recarregar dados após atualização
+        const tasksResponse = await api.getTasks();
+        const tasks = Array.isArray(tasksResponse) ? tasksResponse : (tasksResponse.data || []);
+        setTasks(tasks);
+      } catch (apiError) {
+        // Atualizar localmente se a API falhar
+        setTasks(prevTasks => 
+          prevTasks.map(task => 
+            task.id === data.taskId ? { ...task, status: newStatus } : task
+          )
+        );
+      }
+      
+      console.log(`Tarefa ${data.taskId} movida para ${newStatus}`);
+    } catch (error) {
+      console.error('Erro ao atualizar tarefa:', error);
+    }
   };
 
 

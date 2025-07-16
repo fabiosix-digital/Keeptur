@@ -222,31 +222,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   };
 
-  // Proxy routes to Monde API
-  app.use("/api/monde/*", authenticateToken, async (req: any, res) => {
+  // Endpoints específicos para tarefas
+  app.get("/api/monde/tarefas", authenticateToken, async (req: any, res) => {
     try {
       const empresa = await storage.getEmpresa(req.empresaId);
-      if (!empresa) {
-        return res.status(404).json({ message: "Empresa não encontrada" });
+      if (!empresa || !empresa.access_token) {
+        return res.status(404).json({ message: "Empresa não encontrada ou token inválido" });
       }
 
-      const mondePath = req.path.replace("/api/monde", "");
-      const mondeUrl = `${empresa.servidor_monde_url}${mondePath}`;
-
+      const mondeUrl = `https://web.monde.com.br/api/v2/tarefas`;
+      
       const mondeResponse = await fetch(mondeUrl, {
-        method: req.method,
+        method: "GET",
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${req.sessao.access_token}`,
+          "Content-Type": "application/vnd.api+json",
+          "Accept": "application/vnd.api+json",
+          "Authorization": `Bearer ${empresa.access_token}`,
         },
-        body: req.method !== "GET" ? JSON.stringify(req.body) : undefined,
       });
 
       const data = await mondeResponse.json();
       res.status(mondeResponse.status).json(data);
     } catch (error) {
-      console.error("Monde API proxy error:", error);
-      res.status(500).json({ message: "Erro ao acessar API do Monde" });
+      console.error("Erro ao buscar tarefas:", error);
+      res.status(500).json({ message: "Erro ao buscar tarefas" });
+    }
+  });
+
+  app.get("/api/monde/clientes", authenticateToken, async (req: any, res) => {
+    try {
+      const empresa = await storage.getEmpresa(req.empresaId);
+      if (!empresa || !empresa.access_token) {
+        return res.status(404).json({ message: "Empresa não encontrada ou token inválido" });
+      }
+
+      const mondeUrl = `https://web.monde.com.br/api/v2/clientes`;
+      
+      const mondeResponse = await fetch(mondeUrl, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/vnd.api+json",
+          "Accept": "application/vnd.api+json",
+          "Authorization": `Bearer ${empresa.access_token}`,
+        },
+      });
+
+      const data = await mondeResponse.json();
+      res.status(mondeResponse.status).json(data);
+    } catch (error) {
+      console.error("Erro ao buscar clientes:", error);
+      res.status(500).json({ message: "Erro ao buscar clientes" });
+    }
+  });
+
+  // Endpoint para atualizar tarefa
+  app.put("/api/monde/tarefas/:id", authenticateToken, async (req: any, res) => {
+    try {
+      const empresa = await storage.getEmpresa(req.empresaId);
+      if (!empresa || !empresa.access_token) {
+        return res.status(404).json({ message: "Empresa não encontrada ou token inválido" });
+      }
+
+      const taskId = req.params.id;
+      const mondeUrl = `https://web.monde.com.br/api/v2/tarefas/${taskId}`;
+      
+      const mondeResponse = await fetch(mondeUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/vnd.api+json",
+          "Accept": "application/vnd.api+json",
+          "Authorization": `Bearer ${empresa.access_token}`,
+        },
+        body: JSON.stringify(req.body),
+      });
+
+      const data = await mondeResponse.json();
+      res.status(mondeResponse.status).json(data);
+    } catch (error) {
+      console.error("Erro ao atualizar tarefa:", error);
+      res.status(500).json({ message: "Erro ao atualizar tarefa" });
     }
   });
 

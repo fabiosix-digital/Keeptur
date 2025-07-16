@@ -54,9 +54,11 @@ export class MondeAPI {
 
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     const url = `/api/monde${endpoint}`;
+    const keepturToken = localStorage.getItem('keeptur-token');
+    
     const headers = {
       "Content-Type": "application/json",
-      ...(this.token && { Authorization: `Bearer ${this.token}` }),
+      ...(keepturToken && { Authorization: `Bearer ${keepturToken}` }),
       ...options?.headers,
     };
 

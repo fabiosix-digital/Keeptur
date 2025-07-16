@@ -19,6 +19,7 @@ export const empresas = pgTable("empresas", {
   nome: varchar("nome", { length: 255 }).notNull(),
   servidor_monde_url: text("servidor_monde_url").notNull(),
   empresa_id_monde: varchar("empresa_id_monde", { length: 100 }).notNull(),
+  access_token: text("access_token"),
   ativo: boolean("ativo").default(true),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),

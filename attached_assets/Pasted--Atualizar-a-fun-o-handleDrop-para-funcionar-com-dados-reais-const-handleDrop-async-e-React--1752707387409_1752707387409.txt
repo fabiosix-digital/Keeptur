@@ -1,0 +1,144 @@
+// Atualizar a função handleDrop para funcionar com dados reais
+const handleDrop = async (e: React.DragEvent, newStatus: string) => {
+  e.preventDefault();
+  const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+  
+  try {
+    const token = localStorage.getItem('keeptur-token');
+    if (!token) return;
+    
+    // Mapear status do Kanban para status da API
+    const statusMap: any = {
+      'A Fazer': 'pending',
+      'Em Andamento': 'in_progress',
+      'Concluído': 'completed',
+      'Cancelado': 'cancelled'
+    };
+    
+    const apiStatus = statusMap[newStatus] || 'pending';
+    
+    // Se for "Concluído", marcar completed como true
+    const requestBody: any = {
+      status: apiStatus
+    };
+    
+    if (apiStatus === 'completed') {
+      requestBody.completed = true;
+    }
+
+    // Atualizar tarefa via API
+    await fetch(`/api/monde/tarefas/${data.taskId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(requestBody)
+    });
+    
+    // Recarregar tarefas
+    await reloadTasks();
+    
+  } catch (error) {
+    console.error('Erro ao atualizar tarefa:', error);
+    alert('Erro ao mover tarefa. Tente novamente.');
+  }
+};
+
+// Atualizar função de estatísticas para mostrar valores reais
+const calculateTaskStats = (tasks: any[]) => {
+  const now = new Date();
+  
+  const stats = {
+    total: tasks.length,
+    pendentes: tasks.filter((t: any) => !t.attributes.completed).length,
+    concluidas: tasks.filter((t: any) => t.attributes.completed).length,
+    atrasadas: tasks.filter((t: any) => {
+      if (!t.attributes.due || t.attributes.completed) return false;
+      const dueDate = new Date(t.attributes.due);
+      return dueDate < now;
+    }).length
+  };
+  
+  // Calcular variações reais baseadas no mês anterior
+  const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  
+  const lastMonthTasks = tasks.filter((t: any) => {
+    const taskDate = new Date(t.attributes['registered-at'] || t.attributes.created_at);
+    return taskDate >= lastMonth && taskDate < thisMonth;
+  });
+  
+  const thisMonthTasks = tasks.filter((t: any) => {
+    const taskDate = new Date(t.attributes['registered-at'] || t.attributes.created_at);
+    return taskDate >= thisMonth;
+  });
+  
+  // Calcular percentuais de variação
+  const calculateVariation = (current: number, previous: number) => {
+    if (previous === 0) return current > 0 ? '+100%' : '0%';
+    const variation = ((current - previous) / previous) * 100;
+    return variation >= 0 ? `+${variation.toFixed(0)}%` : `${variation.toFixed(0)}%`;
+  };
+  
+  return {
+    ...stats,
+    totalVariation: calculateVariation(thisMonthTasks.length, lastMonthTasks.length),
+    pendentesVariation: calculateVariation(
+      thisMonthTasks.filter(t => !t.attributes.completed).length,
+      lastMonthTasks.filter(t => !t.attributes.completed).length
+    ),
+    concluidasVariation: calculateVariation(
+      thisMonthTasks.filter(t => t.attributes.completed).length,
+      lastMonthTasks.filter(t => t.attributes.completed).length
+    ),
+    atrasadasVariation: calculateVariation(
+      stats.atrasadas,
+      lastMonthTasks.filter((t: any) => {
+        if (!t.attributes.due || t.attributes.completed) return false;
+        const dueDate = new Date(t.attributes.due);
+        return dueDate < lastMonth;
+      }).length
+    )
+  };
+};
+
+// Adicionar debounce para evitar múltiplas chamadas
+const debounce = (func: Function, wait: number) => {
+  let timeout: NodeJS.Timeout;
+  return function executedFunction(...args: any[]) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+};
+
+// Aplicar debounce na função reloadTasks
+const debouncedReloadTasks = debounce(reloadTasks, 500);
+
+// Atualizar os onChange dos filtros para usar debounce
+const handleFilterChange = (filterType: string, value: string) => {
+  switch (filterType) {
+    case 'search':
+      setTaskSearchTerm(value);
+      break;
+    case 'category':
+      setSelectedCategory(value);
+      break;
+    case 'priority':
+      setSelectedPriority(value);
+      break;
+    case 'assignee':
+      setSelectedAssignee(value);
+      break;
+    case 'taskFilter':
+      setTaskFilter(value);
+      break;
+  }
+  
+  // Usar debounce para evitar múltiplas chamadas
+  debouncedReloadTasks();
+};

@@ -29,6 +29,8 @@ export default function Dashboard() {
   const [selectedAssignee, setSelectedAssignee] = useState('');
   const [showTaskDetails, setShowTaskDetails] = useState(false);
   const [selectedTaskDetails, setSelectedTaskDetails] = useState<any>(null);
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
   useEffect(() => {
     // Aplicar tema no body
@@ -91,24 +93,32 @@ export default function Dashboard() {
       const token = localStorage.getItem('keeptur-token');
       const params = new URLSearchParams();
       
-      // Aplicar filtros
+      // IMPORTANTE: Filtrar apenas tarefas do usuário logado por padrão
+      params.append('assignee', 'me');
+      
+      // Aplicar outros filtros se existirem
       if (taskSearchTerm) params.append('search', taskSearchTerm);
       if (selectedCategory) params.append('category', selectedCategory);
       if (selectedPriority) params.append('priority', selectedPriority);
-      if (selectedAssignee) params.append('assignee', selectedAssignee);
       
-      // Filtro padrão: apenas tarefas do usuário logado
-      if (taskFilter === 'assigned_to_me' || selectedAssignee === 'me') {
+      // Se o filtro de tarefas for diferente de "all", aplicar
+      if (taskFilter === 'assigned_to_me') {
         params.append('assignee', 'me');
+      } else if (taskFilter === 'created_by_me') {
+        params.append('filter[created_by]', 'me');
       }
       
-      const url = `/api/monde/tarefas${params.toString() ? `?${params.toString()}` : ''}`;
+      const url = `/api/monde/tarefas?${params.toString()}`;
       
       const response = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
-      return response.json();
+      if (!response.ok) {
+        throw new Error('Erro ao carregar tarefas');
+      }
+      
+      return await response.json();
     } catch (error) {
       console.error('Erro ao carregar tarefas:', error);
       return { data: [] };
@@ -117,22 +127,59 @@ export default function Dashboard() {
 
   // Função para calcular estatísticas das tarefas
   const calculateTaskStats = (tasks: any[]) => {
+    const now = new Date();
+    
     const stats = {
       total: tasks.length,
       pendentes: tasks.filter((t: any) => !t.attributes.completed).length,
       concluidas: tasks.filter((t: any) => t.attributes.completed).length,
       atrasadas: tasks.filter((t: any) => {
+        if (!t.attributes.due || t.attributes.completed) return false;
         const dueDate = new Date(t.attributes.due);
-        return dueDate < new Date() && !t.attributes.completed;
+        return dueDate < now;
       }).length
+    };
+    
+    // Calcular variações reais baseadas no mês anterior
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    const lastMonthTasks = tasks.filter((t: any) => {
+      const taskDate = new Date(t.attributes['registered-at'] || t.attributes.created_at);
+      return taskDate >= lastMonth && taskDate < thisMonth;
+    });
+    
+    const thisMonthTasks = tasks.filter((t: any) => {
+      const taskDate = new Date(t.attributes['registered-at'] || t.attributes.created_at);
+      return taskDate >= thisMonth;
+    });
+    
+    // Calcular percentuais de variação
+    const calculateVariation = (current: number, previous: number) => {
+      if (previous === 0) return current > 0 ? '+100%' : '0%';
+      const variation = ((current - previous) / previous) * 100;
+      return variation >= 0 ? `+${variation.toFixed(0)}%` : `${variation.toFixed(0)}%`;
     };
     
     return {
       ...stats,
-      totalVariation: "+15%",
-      pendentesVariation: "-8%",
-      concluidasVariation: "+23%",
-      atrasadasVariation: "+12%"
+      totalVariation: calculateVariation(thisMonthTasks.length, lastMonthTasks.length),
+      pendentesVariation: calculateVariation(
+        thisMonthTasks.filter(t => !t.attributes.completed).length,
+        lastMonthTasks.filter(t => !t.attributes.completed).length
+      ),
+      concluidasVariation: calculateVariation(
+        thisMonthTasks.filter(t => t.attributes.completed).length,
+        lastMonthTasks.filter(t => t.attributes.completed).length
+      ),
+      atrasadasVariation: calculateVariation(
+        stats.atrasadas,
+        lastMonthTasks.filter((t: any) => {
+          if (!t.attributes.due || t.attributes.completed) return false;
+          const dueDate = new Date(t.attributes.due);
+          return dueDate < lastMonth;
+        }).length
+      )
     };
   };
 
@@ -217,16 +264,116 @@ export default function Dashboard() {
     
     switch (status) {
       case 'A Fazer':
-        return filteredTasks.filter((task: any) => !task.attributes.completed);
+        // Tarefas não concluídas e sem status específico
+        return filteredTasks.filter((task: any) => 
+          !task.attributes.completed && 
+          (!task.attributes.status || task.attributes.status === 'pending')
+        );
       case 'Em Andamento':
-        return filteredTasks.filter((task: any) => task.attributes.status === 'in_progress');
+        // Tarefas com status in_progress
+        return filteredTasks.filter((task: any) => 
+          !task.attributes.completed && 
+          task.attributes.status === 'in_progress'
+        );
       case 'Concluído':
-        return filteredTasks.filter((task: any) => task.attributes.completed);
+        // Tarefas marcadas como concluídas
+        return filteredTasks.filter((task: any) => 
+          task.attributes.completed === true
+        );
       case 'Cancelado':
-        return filteredTasks.filter((task: any) => task.attributes.status === 'cancelled');
+        // Tarefas com status cancelled
+        return filteredTasks.filter((task: any) => 
+          task.attributes.status === 'cancelled'
+        );
       default:
-        return filteredTasks;
+        return [];
     }
+  };
+
+  // Função para organizar tarefas por data (para calendário)
+  const getTasksByDate = (date: Date) => {
+    const filteredTasks = getFilteredTasks();
+    return filteredTasks.filter((task: any) => {
+      if (!task.attributes.due) return false;
+      const taskDate = new Date(task.attributes.due);
+      return (
+        taskDate.getDate() === date.getDate() &&
+        taskDate.getMonth() === date.getMonth() &&
+        taskDate.getFullYear() === date.getFullYear()
+      );
+    });
+  };
+
+  // Funções auxiliares para o Kanban
+  const getPriorityClass = (task: any) => {
+    const priority = task.attributes.priority || 'medium';
+    return priority.toLowerCase();
+  };
+
+  const getPriorityLabel = (task: any) => {
+    const priority = task.attributes.priority || 'medium';
+    const labels: any = {
+      low: 'Baixa',
+      medium: 'Média',
+      high: 'Alta'
+    };
+    return labels[priority.toLowerCase()] || 'Média';
+  };
+
+  const formatTaskDate = (dateString: string) => {
+    if (!dateString) return 'Sem data';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR', { 
+      day: '2-digit', 
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const handleEditTask = (task: any) => {
+    setSelectedTask(task);
+    setShowTaskModal(true);
+  };
+
+  // Adicionar debounce para evitar múltiplas chamadas
+  const debounce = (func: Function, wait: number) => {
+    let timeout: NodeJS.Timeout;
+    return function executedFunction(...args: any[]) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  };
+
+  // Aplicar debounce na função reloadTasks
+  const debouncedReloadTasks = debounce(reloadTasks, 500);
+
+  // Função para lidar com mudanças de filtro
+  const handleFilterChange = (filterType: string, value: string) => {
+    switch (filterType) {
+      case 'search':
+        setTaskSearchTerm(value);
+        break;
+      case 'category':
+        setSelectedCategory(value);
+        break;
+      case 'priority':
+        setSelectedPriority(value);
+        break;
+      case 'assignee':
+        setSelectedAssignee(value);
+        break;
+      case 'taskFilter':
+        setTaskFilter(value);
+        break;
+    }
+    
+    // Usar debounce para evitar múltiplas chamadas
+    debouncedReloadTasks();
   };
 
   const handleViewTask = (task: any) => {
@@ -252,28 +399,43 @@ export default function Dashboard() {
     
     try {
       const token = localStorage.getItem('keeptur-token');
-      
       if (!token) return;
+      
+      // Mapear status do Kanban para status da API
+      const statusMap: any = {
+        'A Fazer': 'pending',
+        'Em Andamento': 'in_progress',
+        'Concluído': 'completed',
+        'Cancelado': 'cancelled'
+      };
+      
+      const apiStatus = statusMap[newStatus] || 'pending';
+      
+      // Se for "Concluído", marcar completed como true
+      const requestBody: any = {
+        status: apiStatus
+      };
+      
+      if (apiStatus === 'completed') {
+        requestBody.completed = true;
+      }
 
-      // Atualizar status da tarefa via API
+      // Atualizar tarefa via API
       await fetch(`/api/monde/tarefas/${data.taskId}`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ status: newStatus })
+        body: JSON.stringify(requestBody)
       });
       
-      // Recarregar dados após atualização
-      const tasksResponse = await fetch('/api/monde/tarefas', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      }).then(res => res.json()).catch(() => ({ data: [] }));
-      setTasks(tasksResponse?.data || []);
+      // Recarregar tarefas
+      await reloadTasks();
       
-      console.log(`Tarefa ${data.taskId} movida para ${newStatus}`);
     } catch (error) {
       console.error('Erro ao atualizar tarefa:', error);
+      alert('Erro ao mover tarefa. Tente novamente.');
     }
   };
 

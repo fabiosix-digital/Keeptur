@@ -1,0 +1,259 @@
+// Função para organizar tarefas por data
+const getTasksByDate = (date: Date) => {
+  const filteredTasks = getFilteredTasks();
+  return filteredTasks.filter((task: any) => {
+    if (!task.attributes.due) return false;
+    const taskDate = new Date(task.attributes.due);
+    return (
+      taskDate.getDate() === date.getDate() &&
+      taskDate.getMonth() === date.getMonth() &&
+      taskDate.getFullYear() === date.getFullYear()
+    );
+  });
+};
+
+// Estado para o mês/ano atual do calendário
+const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+
+// Função para gerar os dias do mês
+const generateCalendarDays = () => {
+  const firstDay = new Date(currentYear, currentMonth, 1);
+  const lastDay = new Date(currentYear, currentMonth + 1, 0);
+  const daysInMonth = lastDay.getDate();
+  const startingDayOfWeek = firstDay.getDay();
+  
+  const days = [];
+  
+  // Dias do mês anterior
+  const prevMonthLastDay = new Date(currentYear, currentMonth, 0).getDate();
+  for (let i = startingDayOfWeek - 1; i >= 0; i--) {
+    days.push({
+      day: prevMonthLastDay - i,
+      isCurrentMonth: false,
+      date: new Date(currentYear, currentMonth - 1, prevMonthLastDay - i)
+    });
+  }
+  
+  // Dias do mês atual
+  for (let i = 1; i <= daysInMonth; i++) {
+    days.push({
+      day: i,
+      isCurrentMonth: true,
+      date: new Date(currentYear, currentMonth, i)
+    });
+  }
+  
+  // Dias do próximo mês
+  const remainingDays = 42 - days.length; // 6 semanas * 7 dias
+  for (let i = 1; i <= remainingDays; i++) {
+    days.push({
+      day: i,
+      isCurrentMonth: false,
+      date: new Date(currentYear, currentMonth + 1, i)
+    });
+  }
+  
+  return days;
+};
+
+// Calendário View com dados reais
+{activeView === 'calendario' && (
+  <div className="view-content">
+    <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center space-x-4">
+        <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+          {new Date(currentYear, currentMonth).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+        </h3>
+        <div className="flex space-x-1">
+          <button 
+            onClick={() => {
+              if (currentMonth === 0) {
+                setCurrentMonth(11);
+                setCurrentYear(currentYear - 1);
+              } else {
+                setCurrentMonth(currentMonth - 1);
+              }
+            }}
+            className="action-button px-3 py-1 rounded-lg text-sm !rounded-button whitespace-nowrap"
+          >
+            <i className="ri-arrow-left-line"></i>
+          </button>
+          <button 
+            onClick={() => {
+              if (currentMonth === 11) {
+                setCurrentMonth(0);
+                setCurrentYear(currentYear + 1);
+              } else {
+                setCurrentMonth(currentMonth + 1);
+              }
+            }}
+            className="action-button px-3 py-1 rounded-lg text-sm !rounded-button whitespace-nowrap"
+          >
+            <i className="ri-arrow-right-line"></i>
+          </button>
+        </div>
+      </div>
+      <div className="flex space-x-1">
+        <button 
+          onClick={() => setCalendarView('mes')}
+          className={`tab-button ${calendarView === 'mes' ? 'active' : ''} px-3 py-1 rounded-lg text-sm !rounded-button whitespace-nowrap`}
+        >
+          Mês
+        </button>
+        <button 
+          onClick={() => setCalendarView('semana')}
+          className={`tab-button ${calendarView === 'semana' ? 'active' : ''} px-3 py-1 rounded-lg text-sm !rounded-button whitespace-nowrap`}
+        >
+          Semana
+        </button>
+        <button 
+          onClick={() => setCalendarView('dia')}
+          className={`tab-button ${calendarView === 'dia' ? 'active' : ''} px-3 py-1 rounded-lg text-sm !rounded-button whitespace-nowrap`}
+        >
+          Dia
+        </button>
+      </div>
+    </div>
+    
+    {calendarView === 'mes' && (
+      <div className="grid grid-cols-7 gap-1">
+        {/* Cabeçalho dos dias da semana */}
+        {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => (
+          <div key={day} className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+            {day}
+          </div>
+        ))}
+        
+        {/* Dias do mês */}
+        {generateCalendarDays().map((dayInfo, index) => {
+          const tasksForDay = getTasksByDate(dayInfo.date);
+          const isToday = dayInfo.date.toDateString() === new Date().toDateString();
+          
+          return (
+            <div 
+              key={index} 
+              className={`calendar-day rounded-lg p-2 min-h-[120px] ${isToday ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+            >
+              <div 
+                className={`text-sm font-medium mb-1 ${
+                  isToday ? 'text-blue-600' : ''
+                }`} 
+                style={{ 
+                  color: isToday ? undefined : (dayInfo.isCurrentMonth ? 'var(--text-primary)' : 'var(--text-tertiary)')
+                }}
+              >
+                {dayInfo.day}
+              </div>
+              <div className="space-y-1">
+                {tasksForDay.slice(0, 3).map((task: any) => (
+                  <div 
+                    key={task.id}
+                    className="calendar-event cursor-pointer"
+                    onClick={() => handleViewTask(task)}
+                    title={task.attributes.title}
+                  >
+                    {new Date(task.attributes.due).toLocaleTimeString('pt-BR', { 
+                      hour: '2-digit', 
+                      minute: '2-digit' 
+                    })} - {task.attributes.title.substring(0, 15)}...
+                  </div>
+                ))}
+                {tasksForDay.length > 3 && (
+                  <div className="text-xs text-center" style={{ color: 'var(--text-tertiary)' }}>
+                    +{tasksForDay.length - 3} mais
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    )}
+    
+    {calendarView === 'semana' && (
+      <WeekView 
+        tasks={getFilteredTasks()} 
+        currentDate={new Date(currentYear, currentMonth, 1)}
+        onTaskClick={handleViewTask}
+      />
+    )}
+    
+    {calendarView === 'dia' && (
+      <DayView 
+        tasks={getFilteredTasks()} 
+        currentDate={new Date()}
+        onTaskClick={handleViewTask}
+      />
+    )}
+  </div>
+)}
+
+// Componente de visualização semanal
+const WeekView = ({ tasks, currentDate, onTaskClick }: any) => {
+  const getWeekDays = () => {
+    const days = [];
+    const startOfWeek = new Date(currentDate);
+    startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
+    
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(startOfWeek);
+      day.setDate(startOfWeek.getDate() + i);
+      days.push(day);
+    }
+    return days;
+  };
+  
+  const weekDays = getWeekDays();
+  
+  return (
+    <div className="grid grid-cols-8 gap-1">
+      <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+        Horário
+      </div>
+      {weekDays.map((day, index) => (
+        <div key={index} className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+          {day.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric' })}
+        </div>
+      ))}
+      
+      {Array.from({ length: 24 }, (_, hour) => (
+        <React.Fragment key={hour}>
+          <div className="p-2 text-center text-xs border" style={{ borderColor: 'var(--border-color)' }}>
+            {hour.toString().padStart(2, '0')}:00
+          </div>
+          {weekDays.map((day, dayIndex) => {
+            const tasksForHour = tasks.filter((task: any) => {
+              if (!task.attributes.due) return false;
+              const taskDate = new Date(task.attributes.due);
+              return (
+                taskDate.getDate() === day.getDate() &&
+                taskDate.getMonth() === day.getMonth() &&
+                taskDate.getFullYear() === day.getFullYear() &&
+                taskDate.getHours() === hour
+              );
+            });
+            
+            return (
+              <div 
+                key={dayIndex} 
+                className="calendar-day p-2 text-xs min-h-[40px] border" 
+                style={{ borderColor: 'var(--border-color)' }}
+              >
+                {tasksForHour.map((task: any) => (
+                  <div 
+                    key={task.id}
+                    className="text-xs cursor-pointer hover:text-blue-600"
+                    onClick={() => onTaskClick(task)}
+                  >
+                    {task.attributes.title.substring(0, 10)}...
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+};

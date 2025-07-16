@@ -14,6 +14,7 @@ export default function Dashboard() {
   const [activeView, setActiveView] = useState('lista');
   const [tasks, setTasks] = useState<any[]>([]);
   const [clients, setClients] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [stats, setStats] = useState<any>({});
   const [loading, setLoading] = useState(true);
   const [showTaskModal, setShowTaskModal] = useState(false);
@@ -57,6 +58,12 @@ export default function Dashboard() {
         // Carregar tarefas com filtros aplicados
         const tasksResponse = await loadTasks();
 
+        // Carregar categorias
+        const categoriesResponse = await fetch('/api/monde/categorias', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const categoriesData = await categoriesResponse.json();
+
         // Processar dados do formato JSON:API do Monde
         const tasks = tasksResponse?.data || [];
         
@@ -76,6 +83,7 @@ export default function Dashboard() {
 
         setTasks(sortedTasks);
         setClients([]); // Não carregar clientes na inicialização
+        setCategories(categoriesData?.data || []);
         setStats(realStats);
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
@@ -93,22 +101,23 @@ export default function Dashboard() {
       const token = localStorage.getItem('keeptur-token');
       const params = new URLSearchParams();
       
-      // IMPORTANTE: Filtrar apenas tarefas do usuário logado por padrão
-      params.append('assignee', 'me');
-      
-      // Aplicar outros filtros se existirem
-      if (taskSearchTerm) params.append('search', taskSearchTerm);
-      if (selectedCategory) params.append('category', selectedCategory);
-      if (selectedPriority) params.append('priority', selectedPriority);
-      
-      // Se o filtro de tarefas for diferente de "all", aplicar
+      // Aplicar filtros baseados no taskFilter
       if (taskFilter === 'assigned_to_me') {
         params.append('assignee', 'me');
       } else if (taskFilter === 'created_by_me') {
         params.append('filter[created_by]', 'me');
       }
+      // Se for 'all', não aplicar filtro de assignee para mostrar todas as tarefas da empresa
       
-      const url = `/api/monde/tarefas?${params.toString()}`;
+      // Aplicar outros filtros se existirem
+      if (taskSearchTerm) params.append('search', taskSearchTerm);
+      if (selectedCategory) params.append('category', selectedCategory);
+      if (selectedPriority) params.append('priority', selectedPriority);
+      if (selectedAssignee && selectedAssignee !== 'all') {
+        params.append('assignee', selectedAssignee);
+      }
+      
+      const url = `/api/monde/tarefas${params.toString() ? `?${params.toString()}` : ''}`;
       
       const response = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -229,6 +238,49 @@ export default function Dashboard() {
     }
   };
 
+  // Função para carregar histórico de uma tarefa
+  const loadTaskHistory = async (taskId: string) => {
+    try {
+      const token = localStorage.getItem('keeptur-token');
+      const response = await fetch(`/api/monde/tarefas/${taskId}/historico`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        return data.data || [];
+      }
+      return [];
+    } catch (error) {
+      console.error('Erro ao carregar histórico:', error);
+      return [];
+    }
+  };
+
+  // Função para recarregar dados periodicamente
+  const reloadTasksAndClients = async () => {
+    const tasksResponse = await loadTasks();
+    const tasks = tasksResponse?.data || [];
+    
+    // Atualizar tarefas
+    setTasks(tasks);
+    setStats(calculateTaskStats(tasks));
+    
+    // Recarregar clientes se houver busca ativa
+    if (searchTerm.trim()) {
+      await handleSearchClients();
+    }
+  };
+
+  // Polling para atualizar dados a cada 30 segundos
+  useEffect(() => {
+    const interval = setInterval(() => {
+      reloadTasksAndClients();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [taskFilter, taskSearchTerm, selectedCategory, selectedPriority, selectedAssignee, searchTerm]);
+
   // Filtrar tarefas baseado no status e filtros
   const getFilteredTasks = () => {
     let filtered = tasks;
@@ -258,7 +310,20 @@ export default function Dashboard() {
     return filtered;
   };
 
-  // Função para organizar tarefas por status no Kanban
+  // Função para organizar tarefas por categoria (colunas do Kanban)
+  const getTasksByCategory = (categoryId: string) => {
+    const filteredTasks = getFilteredTasks();
+    
+    if (categoryId === 'sem-categoria') {
+      return filteredTasks.filter((task: any) => !task.relationships?.category?.data);
+    }
+    
+    return filteredTasks.filter((task: any) => 
+      task.relationships?.category?.data?.id === categoryId
+    );
+  };
+
+  // Função para organizar tarefas por status no Kanban (mantida para compatibilidade)
   const getTasksByStatus = (status: string) => {
     const filteredTasks = getFilteredTasks();
     

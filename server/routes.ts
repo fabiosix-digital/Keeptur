@@ -381,6 +381,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para buscar categorias
+  app.get("/api/monde/categorias", authenticateToken, async (req: any, res) => {
+    try {
+      const mondeUrl = `https://web.monde.com.br/api/v2/task_categories`;
+      
+      const mondeResponse = await fetch(mondeUrl, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/vnd.api+json",
+          "Accept": "application/vnd.api+json",
+          "Authorization": `Bearer ${req.sessao.access_token}`,
+        },
+      });
+
+      const data = await mondeResponse.json();
+      res.status(mondeResponse.status).json(data);
+    } catch (error) {
+      console.error("Erro ao buscar categorias:", error);
+      res.status(500).json({ message: "Erro ao buscar categorias" });
+    }
+  });
+
+  // Endpoint para buscar histórico de uma tarefa
+  app.get("/api/monde/tarefas/:id/historico", authenticateToken, async (req: any, res) => {
+    try {
+      const taskId = req.params.id;
+      const mondeUrl = `https://web.monde.com.br/api/v2/task_historics?filter[task_id]=${taskId}&include=user`;
+      
+      const mondeResponse = await fetch(mondeUrl, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/vnd.api+json",
+          "Accept": "application/vnd.api+json",
+          "Authorization": `Bearer ${req.sessao.access_token}`,
+        },
+      });
+
+      const rawData = await mondeResponse.json();
+      
+      // Processar histórico para incluir dados do usuário
+      const processedData = {
+        ...rawData,
+        data: rawData.data?.map((history: any) => {
+          const processedHistory = { ...history };
+          
+          // Processar relacionamentos se existirem
+          if (rawData.included) {
+            // Encontrar dados do usuário
+            if (history.relationships?.user?.data) {
+              const userData = rawData.included.find((item: any) => 
+                item.type === 'user' && item.id === history.relationships.user.data.id
+              );
+              if (userData) {
+                processedHistory.user_name = userData.attributes.name;
+                processedHistory.user_email = userData.attributes.email;
+              }
+            }
+          }
+          
+          return processedHistory;
+        }) || []
+      };
+      
+      res.status(mondeResponse.status).json(processedData);
+    } catch (error) {
+      console.error("Erro ao buscar histórico:", error);
+      res.status(500).json({ message: "Erro ao buscar histórico" });
+    }
+  });
+
   // Manter compatibilidade com nome clientes
   app.get("/api/monde/clientes", authenticateToken, async (req: any, res) => {
     try {

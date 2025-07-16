@@ -814,7 +814,9 @@ export default function Dashboard() {
                           <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>#{String(task.attributes.number).padStart(3, '0')}</span>
                         </td>
                         <td className="py-4 px-4">
-                          <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                          <p className={`text-sm font-medium ${
+                            !task.client_name ? 'text-red-600' : ''
+                          }`} style={{ color: !task.client_name ? '#dc2626' : 'var(--text-primary)' }}>
                             {task.client_name || 'Sem cliente'}
                           </p>
                         </td>
@@ -1653,8 +1655,9 @@ export default function Dashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="font-medium" style={{ color: 'var(--text-secondary)' }}>Cliente:</span>
-                    <span className="ml-2" style={{ color: 'var(--text-primary)' }}>
-                      {selectedTaskDetails.client_name || 'Não informado'}
+                    <span className={`ml-2 ${!selectedTaskDetails.client_name ? 'text-red-600' : ''}`} 
+                          style={{ color: !selectedTaskDetails.client_name ? '#dc2626' : 'var(--text-primary)' }}>
+                      {selectedTaskDetails.client_name || 'Sem cliente'}
                     </span>
                   </div>
                   <div>

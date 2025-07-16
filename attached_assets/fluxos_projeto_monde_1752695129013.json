@@ -1,0 +1,72 @@
+{
+  "Tela de Login": {
+    "ações": [
+      "Usuário preenche e-mail/usuário, senha e URL do servidor Monde",
+      "Sistema envia POST para /api/login",
+      "Se sucesso, salva access_token e empresa_id no localStorage",
+      "Verifica se há plano ativo no sistema local",
+      "Se sim → redireciona para dashboard",
+      "Se não → escurece interface e abre modal de plano"
+    ]
+  },
+  "Dashboard (Gestão de Tarefas)": {
+    "ações": [
+      "Exibe tarefas agrupadas por categoria no Kanban",
+      "Usuário pode filtrar por responsável, cliente, categoria ou data",
+      "Drag-and-drop entre colunas altera o campo categoria_id (PUT /tarefas/{id})",
+      "Clicar em tarefa abre modal de edição com todos os campos",
+      "Botão de criar tarefa abre modal com campos obrigatórios e dispara POST /tarefas",
+      "Ao editar tarefa, envia PUT /tarefas/{id} com campos alterados",
+      "Botão de cliente abre modal lateral com dados via GET /clientes/{id}",
+      "Transferência de responsável usa PUT /tarefas/{id} com novo usuario_id"
+    ]
+  },
+  "Tela de Lista": {
+    "ações": [
+      "Mostra tarefas em tabela com colunas: Título, Cliente, Responsável, Categoria, Data",
+      "Permite edição inline de status e responsável",
+      "Botão de filtro por coluna",
+      "Busca com debounce para cliente, tarefa e responsável"
+    ]
+  },
+  "Tela de Calendário": {
+    "ações": [
+      "Agrupa tarefas por data de vencimento",
+      "Clique em um dia mostra tarefas daquele dia",
+      "Permite edição rápida ou visualização da tarefa",
+      "Drag and drop muda data de vencimento (PUT)"
+    ]
+  },
+  "Tela Modal de Criação/Edição de Tarefa": {
+    "campos": [
+      "Título",
+      "Descrição",
+      "Cliente (busca)",
+      "Responsável (select)",
+      "Categoria (select)",
+      "Status",
+      "Prioridade",
+      "Data de vencimento"
+    ],
+    "ações": [
+      "Validação de campos obrigatórios",
+      "Salva via POST (nova) ou PUT (edição)"
+    ]
+  },
+  "Modal de Cliente": {
+    "campos": [
+      "Nome",
+      "Telefone",
+      "Email",
+      "Documento",
+      "Endereço",
+      "Data Nascimento",
+      "Responsável",
+      "Observações"
+    ],
+    "ações": [
+      "Apenas leitura",
+      "Busca cliente via GET /clientes/{id}"
+    ]
+  }
+}

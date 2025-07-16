@@ -1,0 +1,189 @@
+PROJETO: Keeptur – Gestão de Tarefas para Agências
+🔐 Visão Geral
+Keeptur é um sistema SaaS que centraliza a gestão de tarefas e atendimentos de agências de viagem integradas ao Monde. O sistema utiliza 100% da base de dados do Monde via API para sincronização de clientes, tarefas, usuários e categorias.
+
+A única estrutura local mantida no banco do Keeptur é:
+
+Super Admin (painel mestre de controle)
+
+Cobranças e planos do Keeptur
+
+👥 Perfis de Usuário
+1. Super Admin (local)
+Acesso via URL separada: https://sistema.com/admin
+
+Controla todos os usuários, empresas, planos e pagamentos
+
+Visualiza relatórios de uso e receita
+
+2. Administrador de Agência (via Monde)
+Sincronizado da API Monde (role: admin)
+
+Tem acesso total ao painel de tarefas da sua empresa
+
+Pode transferir tarefas, gerenciar usuários, criar novas tarefas
+
+3. Agente/Operador (via Monde)
+Também sincronizado da API Monde (role: operador)
+
+Visualiza apenas as tarefas que são atribuídas a ele ou visíveis pela agência
+
+Pode comentar, atualizar status, movimentar tarefas se tiver permissão
+
+🧾 Requisitos para uso
+Usuário precisa ter conta ativa no Monde (login com e-mail + senha + URL do servidor Monde)
+
+Usuário precisa contratar um plano do Keeptur
+
+Se não tiver plano ativo, o sistema carrega escurecido com bloqueio e modal de escolha de plano
+
+Caso o Monde esteja vencido ou inválido, o sistema bloqueia o acesso a dados
+
+🧩 Funcionalidades Principais
+🔐 Login
+Campos: usuário/email, senha, URL do servidor
+
+Após login, salva:
+
+Token do Monde
+
+ID da empresa
+
+Nível de acesso
+
+Se plano do Keeptur estiver inativo → exibe tela escura + seleção de plano
+
+🏠 Tela Principal: Dashboard de Tarefas
+Variações:
+Kanban
+
+Tarefas agrupadas por categoria
+
+Permite drag and drop (move categoria_id no Monde)
+
+Pode filtrar por usuário, cliente, data ou status
+
+Lista
+
+Tabela com colunas: Título, Cliente, Responsável, Status, Data
+
+Busca avançada por qualquer campo
+
+Permite edição rápida inline
+
+Calendário
+
+Exibe tarefas por data de vencimento
+
+Permite reprogramar tarefa arrastando no calendário
+
+✅ Modal de Criação e Edição de Tarefas
+Campos conectados à API Monde:
+
+título → titulo
+
+descrição → descricao
+
+cliente → cliente_id
+
+responsável → usuario_id
+
+categoria → categoria_id
+
+prioridade, status, data_vencimento
+
+Botões: Salvar, Excluir, Cancelar
+
+👤 Modal de Cliente
+Exibe dados do cliente conectados ao Monde:
+
+nome, e-mail, telefone, documento, endereço, data de nascimento, responsável
+
+Ao clicar em cliente → traz dados via /clientes/{id}
+
+📦 Controle de Planos (Local)
+Planos definidos localmente, vinculados à empresa:
+
+Nome	Usuários	Valor Mensal
+Starter	até 5	R$ 49,90
+Pro	até 10	R$ 99,90
+Premium	até 20	R$ 149,90
+
+Usuário pode trocar plano a qualquer momento
+
+Vencimentos e cobranças controladas pelo Super Admin
+
+🧑‍💻 Painel do Super Admin (Interno)
+Acesso exclusivo via URL separada com autenticação local.
+
+Telas:
+📊 Dashboard
+Gráficos de planos ativos, receita mensal, inadimplentes
+
+Lista de últimas empresas cadastradas
+
+👥 Usuários
+Gerencia empresas, planos, acessos
+
+Vê detalhes de cada empresa e seus usuários
+
+💳 Cobranças
+Visualiza pagamentos por dia
+
+Relatório de vendas por período
+
+Filtros: por plano, data, status
+
+🧠 Integração com API Monde
+Sincronização Bidirecional:
+Toda alteração feita no Keeptur → reflete no Monde via PUT/POST
+
+Tudo que muda no Monde → é carregado na interface do Keeptur
+
+Endpoints utilizados:
+POST /login
+
+GET /tarefas
+
+POST /tarefas
+
+PUT /tarefas/{id}
+
+GET /clientes
+
+GET /clientes/{id}
+
+GET /usuarios
+
+GET /categorias
+
+🧮 Banco de Dados Local
+Somente para controle interno:
+
+Tabela: super_admins
+id	nome	email	senha_hash	role
+
+Tabela: empresas
+| id_monde | nome_fantasia | url_monde | plano | status | vencimento |
+
+Tabela: pagamentos
+| id | empresa_id | plano | valor | status | vencimento | metodo |
+
+🔐 Segurança e Restrições
+Cada requisição à API Monde usa token armazenado por usuário
+
+Caso o Monde expire, bloqueia sincronização
+
+Caso o plano do Keeptur expire, escurece a tela e bloqueia botões com aviso
+
+Todas ações críticas (ex: mudar plano, excluir tarefa) devem exibir confirmação
+
+🧭 Resumo Final
+Módulo	Conectado à API Monde	Banco Local
+Tarefas	✅	❌
+Clientes	✅	❌
+Usuários da agência	✅	❌
+Categorias	✅	❌
+Login via Monde	✅	❌
+Super Admin	❌	✅
+Planos e cobranças	❌	✅

@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monde - Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Pacifico&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
+<script src="https://cdn.tailwindcss.com/3.4.16"></script>
+<script>
+tailwind.config = {
+theme: {
+extend: {
+colors: {
+primary: '#6366f1',
+secondary: '#f59e0b'
+},
+borderRadius: {
+'none': '0px',
+'sm': '4px',
+DEFAULT: '8px',
+'md': '12px',
+'lg': '16px',
+'xl': '20px',
+'2xl': '24px',
+'3xl': '32px',
+'full': '9999px',
+'button': '8px'
+},
+fontFamily: {
+sans: ['Inter', 'sans-serif'],
+}
+}
+}
+}
+</script>
+<style>
+:where([class^="ri-"])::before { content: "\f3c2"; }
+body {
+font-family: 'Inter', sans-serif;
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+min-height: 100vh;
+}
+.login-container {
+background: rgba(255, 255, 255, 0.95);
+backdrop-filter: blur(10px);
+border: 1px solid rgba(255, 255, 255, 0.2);
+box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+}
+.form-input {
+background: #f8fafc;
+border: 1px solid #e2e8f0;
+color: #0f172a;
+transition: all 0.2s ease;
+}
+.form-input:focus {
+outline: none;
+border-color: #6366f1;
+box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+background: #ffffff;
+}
+.form-input.error {
+border-color: #ef4444;
+background: #fef2f2;
+}
+.primary-button {
+background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+color: white;
+border: none;
+transition: all 0.2s ease;
+}
+.primary-button:hover {
+background: linear-gradient(135deg, #5855eb 0%, #7c3aed 100%);
+transform: translateY(-1px);
+box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+}
+.primary-button:disabled {
+opacity: 0.6;
+cursor: not-allowed;
+transform: none;
+}
+.checkbox-custom {
+appearance: none;
+width: 1.25rem;
+height: 1.25rem;
+border: 2px solid #d1d5db;
+border-radius: 4px;
+background: #ffffff;
+position: relative;
+cursor: pointer;
+transition: all 0.2s ease;
+}
+.checkbox-custom:checked {
+background: #6366f1;
+border-color: #6366f1;
+}
+.checkbox-custom:checked::after {
+content: '';
+position: absolute;
+top: 2px;
+left: 6px;
+width: 6px;
+height: 10px;
+border: solid white;
+border-width: 0 2px 2px 0;
+transform: rotate(45deg);
+}
+.modal-overlay {
+background: rgba(0, 0, 0, 0.8);
+backdrop-filter: blur(8px);
+}
+.modal-content {
+background: white;
+border-radius: 16px;
+box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+max-height: 90vh;
+overflow-y: auto;
+}
+.plan-card {
+background: white;
+border: 2px solid #e5e7eb;
+border-radius: 12px;
+transition: all 0.3s ease;
+position: relative;
+overflow: hidden;
+}
+.plan-card:hover {
+border-color: #6366f1;
+box-shadow: 0 10px 25px rgba(99, 102, 241, 0.15);
+transform: translateY(-2px);
+}
+.plan-card.popular {
+border-color: #6366f1;
+position: relative;
+}
+.plan-card.popular::before {
+content: 'Mais Popular';
+position: absolute;
+top: 0;
+left: 50%;
+transform: translateX(-50%);
+background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+color: white;
+padding: 0.5rem 1.5rem;
+font-size: 0.75rem;
+font-weight: 600;
+border-radius: 0 0 8px 8px;
+}
+.loading-spinner {
+border: 2px solid #f3f4f6;
+border-top: 2px solid #6366f1;
+border-radius: 50%;
+width: 1rem;
+height: 1rem;
+animation: spin 1s linear infinite;
+}
+@keyframes spin {
+0% { transform: rotate(0deg); }
+100% { transform: rotate(360deg); }
+}
+.fade-in {
+animation: fadeIn 0.3s ease-in-out;
+}
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(20px); }
+to { opacity: 1; transform: translateY(0); }
+}
+.error-message {
+color: #ef4444;
+font-size: 0.875rem;
+margin-top: 0.5rem;
+display: flex;
+align-items: center;
+gap: 0.5rem;
+}
+.success-message {
+color: #10b981;
+font-size: 0.875rem;
+margin-top: 0.5rem;
+display: flex;
+align-items: center;
+gap: 0.5rem;
+}
+.input-group {
+position: relative;
+}
+.input-icon {
+position: absolute;
+left: 0.75rem;
+top: 50%;
+transform: translateY(-50%);
+color: #6b7280;
+pointer-events: none;
+}
+.input-group {
+position: relative;
+display: flex;
+align-items: center;
+}
+
+.input-icon {
+position: absolute;
+left: 0.75rem;
+top: 50%;
+transform: translateY(-50%);
+color: #6b7280;
+pointer-events: none;
+z-index: 10;
+width: 1.25rem;
+height: 1.25rem;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.input-with-icon {
+width: 100%;
+}
+</style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+<div class="login-container w-full max-w-md p-8 rounded-2xl fade-in">
+<div class="text-center mb-8">
+<div class="font-['Pacifico'] text-primary text-3xl mb-2">logo</div>
+<h1 class="text-2xl font-bold text-gray-900 mb-2">Bem-vindo ao Monde</h1>
+<p class="text-gray-600 text-sm">Faça login para acessar sua conta</p>
+</div>
+<form id="login-form" class="space-y-6">
+<div>
+<label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+E-mail ou nome de usuário
+</label>
+<div class="input-group">
+<div class="input-icon w-5 h-5 flex items-center justify-center">
+<i class="ri-user-line"></i>
+</div>
+<input
+type="text"
+id="email"
+name="email"
+class="form-input input-with-icon w-full pl-10 pr-3 py-3 rounded-lg text-sm"
+placeholder="Digite seu e-mail ou usuário"
+required
+>
+</div>
+<div id="email-error" class="error-message hidden">
+<i class="ri-error-warning-line"></i>
+<span>Este campo é obrigatório</span>
+</div>
+</div>
+<div>
+<label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+Senha
+</label>
+<div class="input-group">
+<div class="input-icon w-5 h-5 flex items-center justify-center">
+<i class="ri-lock-line"></i>
+</div>
+<input
+type="password"
+id="password"
+name="password"
+class="form-input input-with-icon w-full pl-10 pr-10 py-3 rounded-lg text-sm"
+placeholder="Digite sua senha"
+required
+>
+<button
+type="button"
+id="toggle-password"
+class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+>
+<div class="w-5 h-5 flex items-center justify-center">
+<i class="ri-eye-line"></i>
+</div>
+</button>
+</div>
+<div id="password-error" class="error-message hidden">
+<i class="ri-error-warning-line"></i>
+<span>Este campo é obrigatório</span>
+</div>
+</div>
+<div>
+<label for="server-url" class="block text-sm font-medium text-gray-700 mb-2">
+URL do servidor Monde
+</label>
+<div class="input-group">
+<div class="input-icon w-5 h-5 flex items-center justify-center">
+<i class="ri-global-line"></i>
+</div>
+<input
+type="url"
+id="server-url"
+name="server-url"
+class="form-input input-with-icon w-full pl-10 pr-3 py-3 rounded-lg text-sm"
+placeholder="https://suaempresa.monde.com.br"
+required
+>
+</div>
+<div id="server-url-error" class="error-message hidden">
+<i class="ri-error-warning-line"></i>
+<span>Digite uma URL válida</span>
+</div>
+</div>
+<div class="flex items-center">
+<input
+type="checkbox"
+id="remember-me"
+name="remember-me"
+class="checkbox-custom"
+>
+<label for="remember-me" class="ml-3 text-sm text-gray-700 cursor-pointer">
+Lembrar-me
+</label>
+</div>
+<button
+type="submit"
+id="login-button"
+class="primary-button w-full py-3 px-4 rounded-lg text-sm font-semibold !rounded-button whitespace-nowrap"
+>
+<span id="login-text">Entrar</span>
+<div id="login-spinner" class="loading-spinner hidden inline-block ml-2"></div>
+</button>
+<div class="text-center">
+<a href="#" id="forgot-password" class="text-sm text-primary hover:text-primary/80 transition-colors">
+Esqueci minha senha
+</a>
+</div>
+</form>
+</div>
+<div id="error-modal" class="fixed inset-0 modal-overlay flex items-center justify-center z-50 hidden">
+<div class="modal-content p-6 max-w-md w-full mx-4">
+<div class="text-center">
+<div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+<i class="ri-error-warning-line text-2xl text-red-600"></i>
+</div>
+<h3 class="text-lg font-semibold text-gray-900 mb-2">Erro de Conexão</h3>
+<p id="error-message" class="text-gray-600 mb-6">
+Não foi possível se conectar ao servidor Monde informado. Verifique a URL e tente novamente.
+</p>
+<button
+id="close-error-modal"
+class="primary-button px-6 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
+>
+Tentar Novamente
+</button>
+</div>
+</div>
+</div>
+<div id="plan-modal" class="fixed inset-0 modal-overlay flex items-center justify-center z-50 hidden">
+<div class="modal-content p-8 max-w-4xl w-full mx-4">
+<div class="text-center mb-8">
+<div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+<i class="ri-checkbox-circle-line text-2xl text-green-600"></i>
+</div>
+<p class="text-gray-600 mb-2">
+Você se conectou com sucesso ao sistema <strong>MONDE</strong>,<br>
+mas ainda não ativou seu plano de uso nesta plataforma.
+</p>
+<h2 class="text-2xl font-bold text-gray-900">
+Escolha seu plano para liberar o painel de agendamentos e tarefas
+</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div class="plan-card p-6">
+<div class="text-center">
+<h3 class="text-xl font-bold text-gray-900 mb-2">Starter</h3>
+<p class="text-gray-600 mb-4">Até 5 usuários</p>
+<div class="mb-6">
+<span class="text-3xl font-bold text-gray-900">R$ 49</span>
+<span class="text-gray-600">,90/mês</span>
+</div>
+<ul class="text-sm text-gray-600 mb-6 space-y-2">
+<li class="flex items-center">
+<i class="ri-check-line text-green-500 mr-2"></i>
+Gestão de tarefas
+</li>
+<li class="flex items-center">
+<i class="ri-check-line text-green-500 mr-2"></i>
+Calendário básico
+</li>
+<li class="flex items-center">
+<i class="ri-check-line text-green-500 mr-2"></i>
+Suporte por e-mail
+</li>
+</ul>
+<button class="primary-button w-full py-3 px-4 rounded-lg text-sm font-semibold !rounded-button whitespace-nowrap">
+Assinar este plano
+</button>
+</div>
+</div>
+<div class="plan-card popular p-6 pt-8">
+<div class="text-center">
+<h3 class="text-xl font-bold text-gray-900 mb-2">Pro</h3>
+<p class="text-gray-600 mb-4">De 6 a 10 usuários</p>
+<div class="mb-6">
+<span class="text-3xl font-bold text-gray-900">R$ 89</span>
+<span class="text-gray-600">,90/mês</span>
+</div>
+<ul class="text-sm text-gray-600 mb-6 space-y-2">
+<li class="flex items-center">
+<i class="ri-check-line text-green-500 mr-2"></i>
+Tudo do Starter
+</li>
+<li class="flex items-center">
+<i class="ri-check-line text-green-500 mr-2"></i>
+Relatórios avançados
+</li>
+<li class="flex items-center">
+<i class="ri-check-line text-green-500 mr-2"></i>
+Integrações API
+</li>
+<li class="flex items-center">
+<i class="ri-check-line text-green-500 mr-2"></i>
+Suporte prioritário
+</li>
+</ul>
+<button class="primary-button w-full py-3 px-4 rounded-lg text-sm font-semibold !rounded-button whitespace-nowrap">
+Assinar este plano
+</button>
+</div>
+</div>
+<div class="plan-card p-6">
+<div class="text-center">
+<h3 class="text-xl font-bold text-gray-900 mb-2">Premium</h3>
+<p class="text-gray-600 mb-4">11 a 20 usuários</p>
+<div class="mb-6">
+<span class="text-3xl font-bold text-gray-900">R$ 149</span>
+<span class="text-gray-600">,90/mês</span>
+</div>
+<ul class="text-sm text-gray-600 mb-6 space-y-2">
+<li class="flex items-center">
+<i class="ri-check-line text-green-500 mr-2"></i>
+Tudo do Pro
+</li>
+<li class="flex items-center">
+<i class="ri-check-line text-green-500 mr-2"></i>
+Usuários ilimitados
+</li>
+<li class="flex items-center">
+<i class="ri-check-line text-green-500 mr-2"></i>
+Customizações
+</li>
+<li class="flex items-center">
+<i class="ri-check-line text-green-500 mr-2"></i>
+Suporte 24/7
+</li>
+</ul>
+<button class="primary-button w-full py-3 px-4 rounded-lg text-sm font-semibold !rounded-button whitespace-nowrap">
+Assinar este plano
+</button>
+</div>
+</div>
+</div>
+<div class="text-center text-sm text-gray-500">
+<p>Todos os planos incluem 14 dias de teste gratuito</p>
+</div>
+</div>
+</div>
+<script id="login-form-script">
+document.addEventListener('DOMContentLoaded', function() {
+const loginForm = document.getElementById('login-form');
+const emailInput = document.getElementById('email');
+const passwordInput = document.getElementById('password');
+const serverUrlInput = document.getElementById('server-url');
+const rememberMeCheckbox = document.getElementById('remember-me');
+const loginButton = document.getElementById('login-button');
+const loginText = document.getElementById('login-text');
+const loginSpinner = document.getElementById('login-spinner');
+const togglePassword = document.getElementById('toggle-password');
+const errorModal = document.getElementById('error-modal');
+const planModal = document.getElementById('plan-modal');
+const closeErrorModal = document.getElementById('close-error-modal');
+const errorMessage = document.getElementById('error-message');
+// Load saved data
+const savedUrl = localStorage.getItem('monde-server-url');
+const savedEmail = localStorage.getItem('monde-email');
+if (savedUrl) {
+serverUrlInput.value = savedUrl;
+rememberMeCheckbox.checked = true;
+}
+if (savedEmail) {
+emailInput.value = savedEmail;
+}
+// Toggle password visibility
+togglePassword.addEventListener('click', function() {
+const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+passwordInput.setAttribute('type', type);
+const icon = this.querySelector('i');
+icon.className = type === 'password' ? 'ri-eye-line' : 'ri-eye-off-line';
+});
+// Form validation
+function validateField(field, errorElement, validationFn) {
+const isValid = validationFn(field.value);
+if (isValid) {
+field.classList.remove('error');
+errorElement.classList.add('hidden');
+} else {
+field.classList.add('error');
+errorElement.classList.remove('hidden');
+}
+return isValid;
+}
+function validateEmail(email) {
+return email.trim().length > 0;
+}
+function validatePassword(password) {
+return password.length > 0;
+}
+function validateUrl(url) {
+try {
+new URL(url);
+return url.includes('monde.com.br') || url.includes('localhost') || url.includes('127.0.0.1');
+} catch {
+return false;
+}
+}
+// Real-time validation
+emailInput.addEventListener('blur', function() {
+validateField(this, document.getElementById('email-error'), validateEmail);
+});
+passwordInput.addEventListener('blur', function() {
+validateField(this, document.getElementById('password-error'), validatePassword);
+});
+serverUrlInput.addEventListener('blur', function() {
+validateField(this, document.getElementById('server-url-error'), validateUrl);
+});
+// Form submission
+loginForm.addEventListener('submit', function(e) {
+e.preventDefault();
+const emailValid = validateField(emailInput, document.getElementById('email-error'), validateEmail);
+const passwordValid = validateField(passwordInput, document.getElementById('password-error'), validatePassword);
+const urlValid = validateField(serverUrlInput, document.getElementById('server-url-error'), validateUrl);
+if (!emailValid || !passwordValid || !urlValid) {
+return;
+}
+// Show loading state
+loginButton.disabled = true;
+loginText.textContent = 'Conectando...';
+loginSpinner.classList.remove('hidden');
+// Save data if remember me is checked
+if (rememberMeCheckbox.checked) {
+localStorage.setItem('monde-server-url', serverUrlInput.value);
+localStorage.setItem('monde-email', emailInput.value);
+} else {
+localStorage.removeItem('monde-server-url');
+localStorage.removeItem('monde-email');
+}
+// Simulate API call
+setTimeout(() => {
+const success = Math.random() > 0.3; // 70% success rate for demo
+if (success) {
+// Simulate successful login but no plan
+const hasActivePlan = Math.random() > 0.7; // 30% have active plan
+if (hasActivePlan) {
+// Redirect to dashboard
+window.location.href = 'dashboard.html';
+} else {
+// Show plan selection modal
+planModal.classList.remove('hidden');
+planModal.classList.add('fade-in');
+}
+} else {
+// Show error modal
+errorModal.classList.remove('hidden');
+errorModal.classList.add('fade-in');
+}
+// Reset button state
+loginButton.disabled = false;
+loginText.textContent = 'Entrar';
+loginSpinner.classList.add('hidden');
+}, 2000);
+});
+// Close error modal
+closeErrorModal.addEventListener('click', function() {
+errorModal.classList.add('hidden');
+errorModal.classList.remove('fade-in');
+});
+// Close modals on outside click
+errorModal.addEventListener('click', function(e) {
+if (e.target === errorModal) {
+errorModal.classList.add('hidden');
+errorModal.classList.remove('fade-in');
+}
+});
+// Plan selection buttons
+document.querySelectorAll('.plan-card button').forEach(button => {
+button.addEventListener('click', function() {
+const planName = this.closest('.plan-card').querySelector('h3').textContent;
+// Show loading state
+this.disabled = true;
+this.innerHTML = '<div class="loading-spinner inline-block mr-2"></div>Processando...';
+// Simulate payment processing
+setTimeout(() => {
+// Hide plan modal and redirect to dashboard
+planModal.classList.add('hidden');
+planModal.classList.remove('fade-in');
+// Show success message
+const successDiv = document.createElement('div');
+successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 fade-in';
+successDiv.innerHTML = `
+<div class="flex items-center">
+<i class="ri-check-line mr-2"></i>
+Plano ${planName} ativado com sucesso!
+</div>
+`;
+document.body.appendChild(successDiv);
+setTimeout(() => {
+successDiv.remove();
+// Redirect to dashboard
+window.location.href = 'dashboard.html';
+}, 2000);
+}, 3000);
+});
+});
+// Forgot password link
+document.getElementById('forgot-password').addEventListener('click', function(e) {
+e.preventDefault();
+const modal = document.createElement('div');
+modal.className = 'fixed inset-0 modal-overlay flex items-center justify-center z-50';
+modal.innerHTML = `
+<div class="modal-content p-6 max-w-md w-full mx-4">
+<div class="text-center">
+<div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+<i class="ri-mail-line text-2xl text-blue-600"></i>
+</div>
+<h3 class="text-lg font-semibold text-gray-900 mb-2">Recuperar Senha</h3>
+<p class="text-gray-600 mb-6">
+Entre em contato com o administrador do seu sistema Monde para recuperar sua senha.
+</p>
+<button class="primary-button px-6 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+Entendi
+</button>
+</div>
+</div>
+`;
+document.body.appendChild(modal);
+modal.classList.add('fade-in');
+modal.querySelector('button').addEventListener('click', function() {
+modal.remove();
+});
+modal.addEventListener('click', function(e) {
+if (e.target === modal) {
+modal.remove();
+}
+});
+});
+});
+</script>
+</body>
+</html>

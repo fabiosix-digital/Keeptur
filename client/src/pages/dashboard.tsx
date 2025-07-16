@@ -97,6 +97,11 @@ export default function Dashboard() {
       if (selectedPriority) params.append('priority', selectedPriority);
       if (selectedAssignee) params.append('assignee', selectedAssignee);
       
+      // Filtro padrão: apenas tarefas do usuário logado
+      if (taskFilter === 'assigned_to_me' || selectedAssignee === 'me') {
+        params.append('assignee', 'me');
+      }
+      
       const url = `/api/monde/tarefas${params.toString() ? `?${params.toString()}` : ''}`;
       
       const response = await fetch(url, {
@@ -204,6 +209,24 @@ export default function Dashboard() {
     }
 
     return filtered;
+  };
+
+  // Função para organizar tarefas por status no Kanban
+  const getTasksByStatus = (status: string) => {
+    const filteredTasks = getFilteredTasks();
+    
+    switch (status) {
+      case 'A Fazer':
+        return filteredTasks.filter((task: any) => !task.attributes.completed);
+      case 'Em Andamento':
+        return filteredTasks.filter((task: any) => task.attributes.status === 'in_progress');
+      case 'Concluído':
+        return filteredTasks.filter((task: any) => task.attributes.completed);
+      case 'Cancelado':
+        return filteredTasks.filter((task: any) => task.attributes.status === 'cancelled');
+      default:
+        return filteredTasks;
+    }
   };
 
   const handleViewTask = (task: any) => {
@@ -598,7 +621,7 @@ export default function Dashboard() {
                         </td>
                         <td className="py-4 px-4">
                           <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                            {task.relationships?.person?.data?.attributes?.name || 'Sem cliente'}
+                            {task.client_name || 'Sem cliente'}
                           </p>
                         </td>
                         <td className="py-4 px-4">
@@ -607,7 +630,7 @@ export default function Dashboard() {
                         </td>
                         <td className="py-4 px-4">
                           <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                            {task.relationships?.assignee?.data?.id || 'Sem responsável'}
+                            {task.assignee_name || 'Sem responsável'}
                           </p>
                         </td>
                         <td className="py-4 px-4">

@@ -1,0 +1,45 @@
+🔍 Problemas Identificados
+1. Filtro de Usuário Não Implementado
+O código está trazendo TODAS as tarefas ao invés de filtrar apenas as do usuário conectado. A API do Monde suporta o filtro filter[assigned] que não está sendo usado.
+2. Dados Mockados nas Views
+
+Kanban: Mostra tarefas hardcoded ao invés dos dados reais
+Calendário: Eventos fixos no código
+Lista: Única view que tenta mostrar dados reais, mas com problemas
+
+3. Mapeamento Incorreto dos Dados
+A estrutura de dados da API Monde (JSON:API) não está sendo processada corretamente para exibir nomes de clientes, responsáveis, etc.
+4. Filtros Não Funcionais
+Os filtros de categoria, prioridade e responsável não estão sendo aplicados na requisição à API.
+📋 Correções Necessárias
+1. Implementar Filtro de Usuário
+javascript// Modificar a função loadTasks para incluir filtro do usuário
+const loadTasks = async () => {
+  const params = new URLSearchParams();
+  
+  // Filtrar apenas tarefas do usuário logado
+  params.append('filter[assigned]', 'user_tasks');
+  
+  // Incluir relacionamentos necessários
+  params.append('include', 'assignee,person,category,author');
+  
+  // Outros filtros...
+};
+2. Processar Dados Corretamente
+A API retorna dados e relacionamentos separados. É preciso fazer o merge correto:
+javascript// Exemplo de como processar os dados
+const processedTasks = tasks.map(task => ({
+  ...task,
+  clientName: findRelatedData(task.relationships?.person?.data?.id, included),
+  assigneeName: findRelatedData(task.relationships?.assignee?.data?.id, included)
+}));
+3. Usar Dados Reais nas Views
+Remover todos os dados mockados e usar os dados processados das tarefas.
+4. Implementar Filtros Funcionais
+Os filtros devem ser aplicados na requisição à API, não apenas no frontend.
+🛠️ Solução Detalhada
+Para corrigir o dashboard, preciso ver os seguintes arquivos adicionais:
+
+/lib/monde-api.js - Para entender como a API está sendo chamada
+/api/monde/tarefas - O endpoint proxy que faz a chamada real à API
+Estrutura de resposta real da API - Um exemplo de resposta para entender o formato dos

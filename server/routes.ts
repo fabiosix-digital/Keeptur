@@ -235,19 +235,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoints específicos para tarefas - usando endpoint correto da API v2 com filtros
   app.get("/api/monde/tarefas", authenticateToken, async (req: any, res) => {
     try {
-      let mondeUrl = `https://web.monde.com.br/api/v2/tasks?include=assignee,person,category`;
+      // Incluir relacionamentos essenciais
+      let mondeUrl = `https://web.monde.com.br/api/v2/tasks?include=assignee,person,category,author`;
       
       // Adicionar filtros da query string
       const queryParams = new URLSearchParams();
       
+      // Filtro padrão: apenas tarefas do usuário logado
+      if (req.query.assignee === 'me' || req.query.assignee === 'user_tasks') {
+        queryParams.append('filter[assigned]', 'user_tasks');
+      }
+      
       // Filtros de status
       if (req.query.status) {
         queryParams.append('filter[status]', req.query.status);
-      }
-      
-      // Filtros de responsável
-      if (req.query.assignee) {
-        queryParams.append('filter[assignee]', req.query.assignee);
       }
       
       // Filtros de categoria
@@ -287,8 +288,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
       });
 
-      const data = await mondeResponse.json();
-      res.status(mondeResponse.status).json(data);
+      const rawData = await mondeResponse.json();
+      
+      // Processar dados para mesclar relacionamentos
+      const processedData = {
+        ...rawData,
+        data: rawData.data?.map((task: any) => {
+          const processedTask = { ...task };
+          
+          // Processar relacionamentos se existirem
+          if (rawData.included) {
+            // Encontrar dados do cliente (person)
+            if (task.relationships?.person?.data) {
+              const personData = rawData.included.find((item: any) => 
+                item.type === 'person' && item.id === task.relationships.person.data.id
+              );
+              if (personData) {
+                processedTask.client_name = personData.attributes.name;
+                processedTask.client_email = personData.attributes.email;
+              }
+            }
+            
+            // Encontrar dados do responsável (assignee)
+            if (task.relationships?.assignee?.data) {
+              const assigneeData = rawData.included.find((item: any) => 
+                item.type === 'user' && item.id === task.relationships.assignee.data.id
+              );
+              if (assigneeData) {
+                processedTask.assignee_name = assigneeData.attributes.name;
+                processedTask.assignee_email = assigneeData.attributes.email;
+              }
+            }
+            
+            // Encontrar dados da categoria
+            if (task.relationships?.category?.data) {
+              const categoryData = rawData.included.find((item: any) => 
+                item.type === 'category' && item.id === task.relationships.category.data.id
+              );
+              if (categoryData) {
+                processedTask.category_name = categoryData.attributes.name;
+                processedTask.category_color = categoryData.attributes.color;
+              }
+            }
+            
+            // Encontrar dados do autor
+            if (task.relationships?.author?.data) {
+              const authorData = rawData.included.find((item: any) => 
+                item.type === 'user' && item.id === task.relationships.author.data.id
+              );
+              if (authorData) {
+                processedTask.author_name = authorData.attributes.name;
+                processedTask.author_email = authorData.attributes.email;
+              }
+            }
+          }
+          
+          return processedTask;
+        }) || []
+      };
+      
+      res.status(mondeResponse.status).json(processedData);
     } catch (error) {
       console.error("Erro ao buscar tarefas:", error);
       res.status(500).json({ message: "Erro ao buscar tarefas" });

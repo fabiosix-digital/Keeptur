@@ -886,7 +886,6 @@ export default function Dashboard() {
             ) : (
               <div className="flex items-center">
                 <img src={logoFull} alt="Keeptur" className="h-8" />
-                <div className="ml-2 font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Monde</div>
               </div>
             )}
           </div>

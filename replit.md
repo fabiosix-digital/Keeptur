@@ -8,7 +8,7 @@ Preferred communication style: Simple, everyday language in Portuguese.
 
 ## Recent Changes
 
-### 2025-07-16 - Integração com API do Monde e Sistema Funcional
+### 2025-07-17 - Correção de Filtros e Sistema de Token Expirado
 - ✅ Login corrigido com API oficial do Monde v2
 - ✅ Logos implementadas (completa no sidebar expandido, ícone no recolhido) 
 - ✅ Usuário fabio@allanacaires.monde.com.br ativado com plano Pro
@@ -26,6 +26,10 @@ Preferred communication style: Simple, everyday language in Portuguese.
 - ✅ Sistema configurado para usar apenas dados reais da API do Monde (tasks, people, stats)
 - ✅ Correção do middleware de autenticação JWT para endpoints da API do Monde
 - ✅ Endpoints corretos configurados para v2 da API do Monde (/api/v2/tasks, /api/v2/people)
+- ✅ TokenExpiredModal implementado para casos de token JWT expirado
+- ✅ Filtros de tarefas corrigidos - padrão "Minhas Tarefas" (assigned_to_me)
+- ✅ Filtro "Criadas por Mim" implementado corretamente
+- ✅ Sistema de interceptação global para requisições 401 (não autorizadas)
 
 ## System Architecture
 

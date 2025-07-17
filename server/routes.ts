@@ -254,9 +254,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Adicionar filtros da query string
       const queryParams = new URLSearchParams();
       
-      // Filtro padrão: apenas tarefas do usuário logado
-      if (req.query.assignee === 'me' || req.query.assignee === 'user_tasks') {
+      // Filtro de assignee (responsável pela tarefa)
+      if (req.query.assignee === 'me') {
         queryParams.append('filter[assigned]', 'user_tasks');
+      }
+      
+      // Filtro para tarefas criadas pelo usuário
+      if (req.query['filter[created_by]'] === 'me') {
+        queryParams.append('filter[created_by]', 'me');
       }
       
       // Filtros de status

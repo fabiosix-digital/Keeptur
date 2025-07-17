@@ -25,7 +25,7 @@ export default function Dashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchingClients, setSearchingClients] = useState(false);
   const [showCompletedTasks, setShowCompletedTasks] = useState(false);
-  const [taskFilter, setTaskFilter] = useState('all');
+  const [taskFilter, setTaskFilter] = useState('assigned_to_me');
   const [taskSearchTerm, setTaskSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedPriority, setSelectedPriority] = useState('');
@@ -77,21 +77,10 @@ export default function Dashboard() {
         // Processar dados do formato JSON:API do Monde
         const tasks = tasksResponse?.data || [];
         
-        // Ordenar tarefas: usuário logado primeiro, depois outras
-        const sortedTasks = tasks.sort((a: any, b: any) => {
-          const userEmail = user?.email || '';
-          const aIsUser = a.relationships?.assignee?.data?.attributes?.email === userEmail;
-          const bIsUser = b.relationships?.assignee?.data?.attributes?.email === userEmail;
-          
-          if (aIsUser && !bIsUser) return -1;
-          if (!aIsUser && bIsUser) return 1;
-          return 0;
-        });
-        
         // Calcular estatísticas reais das tarefas
-        const realStats = calculateTaskStats(sortedTasks);
+        const realStats = calculateTaskStats(tasks);
 
-        setTasks(sortedTasks);
+        setTasks(tasks);
         setClients([]); // Não carregar clientes na inicialização
         setCategories(categoriesData?.data || []);
         setStats(realStats);
@@ -125,7 +114,7 @@ export default function Dashboard() {
       } else if (taskFilter === 'created_by_me') {
         params.append('filter[created_by]', 'me');
       }
-      // Se for 'all', não aplicar filtro de assignee para mostrar todas as tarefas da empresa
+      // Se for 'all', não aplicar filtro para mostrar todas as tarefas da empresa
       
       // Aplicar outros filtros se existirem
       if (taskSearchTerm) params.append('search', taskSearchTerm);
@@ -755,9 +744,9 @@ export default function Dashboard() {
               value={taskFilter}
               onChange={(e) => setTaskFilter(e.target.value)}
             >
-              <option value="all">Tarefas: Todas</option>
+              <option value="assigned_to_me">Minhas Tarefas</option>
               <option value="created_by_me">Criadas por Mim</option>
-              <option value="assigned_to_me">Atribuídas a Mim</option>
+              <option value="all">Tarefas: Todas</option>
             </select>
             <select className="form-input px-3 py-2 rounded-lg text-sm">
               <option value="">Todas as Empresas</option>

@@ -1,0 +1,105 @@
+Cada tarefa possui um histórico de alterações, registros e comentários. Para listar esse histórico:
+
+✅ Endpoint:
+bash
+Copiar
+Editar
+GET /api/v2/task_historics
+🔹 Parâmetros obrigatórios:
+task_id: o ID da tarefa da qual você quer ver o histórico.
+
+🔧 Exemplo completo:
+http
+Copiar
+Editar
+GET /api/v2/task_historics?task_id=12345
+🔐 Cabeçalhos necessários:
+http
+Copiar
+Editar
+Authorization: Bearer SEU_TOKEN_JWT
+Accept: application/json
+🔍 Retorno da API
+A resposta incluirá uma lista cronológica de registros, com dados como:
+
+Campo	Descrição
+id	ID do histórico
+user	Usuário que executou a ação
+task_id	ID da tarefa relacionada
+field_changed	Qual campo foi alterado (ex: status, data, título)
+old_value	Valor anterior
+new_value	Novo valor
+created_at	Data/hora da modificação
+
+🛠️ 2. COMO EDITAR UMA TAREFA
+✅ Endpoint:
+bash
+Copiar
+Editar
+PUT /api/v2/tasks/{id}
+🔐 Cabeçalhos:
+http
+Copiar
+Editar
+Authorization: Bearer SEU_TOKEN_JWT
+Content-Type: application/json
+Accept: application/json
+🔹 Corpo JSON (editável):
+Você pode editar diversos campos da tarefa, como:
+
+json
+Copiar
+Editar
+{
+  "title": "Novo título da tarefa",
+  "description": "Descrição atualizada",
+  "status": "completed", 
+  "due_date": "2025-07-31",
+  "company_id": 33,
+  "user_id": 284,
+  "client_id": 1983,
+  "priority": "high",
+  "tags": [1, 2, 3],
+  "category_id": 5
+}
+📝 Campos Comuns que Podem Ser Alterados:
+Campo	Tipo	Exemplo	Descrição
+title	string	"Enviar proposta"	Novo título da tarefa
+description	string	"Aguardando resposta do cliente"	
+status	string	"pending", "in_progress", "completed"	Atualiza o status
+due_date	date (YYYY-MM-DD)	"2025-07-25"	Prazo de conclusão
+priority	string	"low", "medium", "high"	Prioridade da tarefa
+company_id	integer	33	Empresa responsável
+user_id	integer	284	Agente responsável
+category_id	integer	5	Categoria associada
+tags	array de inteiros	[1, 2]	IDs das tags
+client_id	integer	1983	ID do cliente vinculado
+
+📤 Exemplo de chamada PUT com fetch:
+ts
+Copiar
+Editar
+fetch('https://SEU_SERVIDOR/api/v2/tasks/12345', {
+  method: 'PUT',
+  headers: {
+    'Authorization': 'Bearer SEU_TOKEN_JWT',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    title: "Atualizar contrato",
+    status: "in_progress",
+    priority: "high"
+  })
+})
+  .then(res => res.json())
+  .then(data => console.log('Tarefa atualizada:', data));
+📦 INSTRUÇÕES FINAIS PARA SUA IA
+Para exibir histórico de uma tarefa, chame GET /api/v2/task_historics?task_id={id}.
+
+Para editar uma tarefa, use PUT /api/v2/tasks/{id} com os campos que desejar atualizar.
+
+O sistema da IA deve permitir alterar somente campos autorizados pelo usuário.
+
+O histórico não é editável — apenas consultável, mas é automático a cada edição feita.
+
+Toda alteração feita via API refletirá imediatamente no Monde (e vice-versa).

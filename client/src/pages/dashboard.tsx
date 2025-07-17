@@ -1923,7 +1923,7 @@ export default function Dashboard() {
   // Modal de Nova Tarefa/Editar Tarefa
   const TaskModal = () => {
     const isEditing = selectedTask !== null;
-    const modalTitle = isEditing ? 'Editar Tarefa' : 'Criar Tarefa';
+    const modalTitle = isEditing ? 'Detalhes da Tarefa' : 'Criar Tarefa';
     const buttonText = isEditing ? 'Salvar Alterações' : 'Salvar Tarefa';
     
     return (
@@ -1950,11 +1950,39 @@ export default function Dashboard() {
               </button>
             </div>
           </div>
-          <div className="p-6">
+          
+          {/* Abas da Modal */}
+          <div className="px-6 mb-4">
+            <div className="flex space-x-1">
+              <button className="tab-button active px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+                Detalhes
+              </button>
+              <button className="tab-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+                Anexos
+              </button>
+              <button className="tab-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+                Campos Personalizados
+              </button>
+            </div>
+          </div>
+          
+          <div className="px-6 pb-6">
             <form onSubmit={(e) => e.preventDefault()}>
+              {/* Informações da Tarefa */}
+              {isEditing && (
+                <div className="flex justify-between items-center mb-4">
+                  <span className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>
+                    #{selectedTask?.attributes?.number || selectedTask?.id}
+                  </span>
+                  <span className="px-3 py-1 rounded-lg text-xs font-medium bg-blue-100 text-blue-800">
+                    Em Andamento
+                  </span>
+                </div>
+              )}
+              
               <div className="mb-4">
                 <label
-                  className="block text-sm font-semibold mb-2"
+                  className="block text-sm font-medium mb-2"
                   style={{ color: "var(--text-secondary)" }}
                 >
                   Título
@@ -1971,7 +1999,7 @@ export default function Dashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
                   <label
-                    className="block text-sm font-semibold mb-2"
+                    className="block text-sm font-medium mb-2"
                     style={{ color: "var(--text-secondary)" }}
                   >
                     Cliente
@@ -1987,7 +2015,7 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <label
-                    className="block text-sm font-semibold mb-2"
+                    className="block text-sm font-medium mb-2"
                     style={{ color: "var(--text-secondary)" }}
                   >
                     Responsável
@@ -2006,68 +2034,51 @@ export default function Dashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
                   <label
-                    className="block text-sm font-semibold mb-2"
+                    className="block text-sm font-medium mb-2"
                     style={{ color: "var(--text-secondary)" }}
                   >
-                    Situação
+                    Data/Hora
                   </label>
-                  <select className="form-input w-full px-3 py-2 rounded-lg text-sm">
-                    <option value="open">Aberta</option>
-                    <option value="concluded">Concluída</option>
-                    <option value="archived">Arquivada</option>
-                  </select>
+                  <input
+                    type="datetime-local"
+                    className="form-input w-full px-3 py-2 rounded-lg text-sm"
+                    defaultValue={isEditing && selectedTask?.attributes?.due ? 
+                      new Date(selectedTask.attributes.due).toISOString().slice(0, 16) : ''}
+                  />
                 </div>
                 <div>
                   <label
-                    className="block text-sm font-semibold mb-2"
+                    className="block text-sm font-medium mb-2"
                     style={{ color: "var(--text-secondary)" }}
                   >
-                    Categoria
+                    Prioridade
                   </label>
                   <select className="form-input w-full px-3 py-2 rounded-lg text-sm">
-                    <option value="">Selecione</option>
-                    {categories.map((category: any) => (
-                      <option key={category.id} value={category.id}>
-                        {category.attributes?.name || category.name}
-                      </option>
-                    ))}
+                    <option value="low">Baixa</option>
+                    <option value="medium">Média</option>
+                    <option value="high">Alta</option>
                   </select>
                 </div>
               </div>
 
               <div className="mb-4">
                 <label
-                  className="block text-sm font-semibold mb-2"
-                  style={{ color: "var(--text-secondary)" }}
-                >
-                  Data de Vencimento
-                </label>
-                <input
-                  type="date"
-                  className="form-input w-full px-3 py-2 rounded-lg text-sm"
-                  defaultValue={isEditing && selectedTask?.attributes?.due ? 
-                    new Date(selectedTask.attributes.due).toISOString().split('T')[0] : ''}
-                />
-              </div>
-
-              <div className="mb-4">
-                <label
-                  className="block text-sm font-semibold mb-2"
+                  className="block text-sm font-medium mb-2"
                   style={{ color: "var(--text-secondary)" }}
                 >
                   Descrição
                 </label>
                 <textarea
-                  className="form-input w-full px-3 py-2 rounded-lg text-sm h-32"
+                  className="form-input w-full px-3 py-2 rounded-lg text-sm h-24"
                   placeholder="Descreva os detalhes da tarefa..."
                   defaultValue={isEditing ? selectedTask?.attributes?.description || '' : ''}
-                  rows={4}
+                  rows={3}
                 ></textarea>
               </div>
 
-              {/* Seção de Atualizações/Histórico */}
+              {/* Seção de Atualizações (somente no modo edição) */}
               {isEditing && (
-                <div className="mb-4">
+                <div className="mb-6">
                   <h6 className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>
                     Atualizações
                   </h6>
@@ -2123,45 +2134,51 @@ export default function Dashboard() {
 
                   {/* Histórico de atualizações */}
                   <div className="space-y-3 max-h-64 overflow-y-auto">
-                    {taskHistory.map((entry: any, index: number) => (
-                      <div key={index} className="flex items-start space-x-3 p-3 rounded-lg" style={{ backgroundColor: "var(--bg-tertiary)" }}>
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-medium stats-card">
-                          {entry.attributes?.person?.name?.charAt(0).toUpperCase() || 'U'}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
-                              {entry.attributes?.person?.name || 'Usuário'}
+                    {taskHistory.length > 0 ? (
+                      taskHistory.map((entry: any, index: number) => (
+                        <div key={index} className="flex items-start space-x-3 p-3 rounded-lg" style={{ backgroundColor: "var(--bg-tertiary)" }}>
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-medium stats-card">
+                            {entry.attributes?.person?.name?.charAt(0).toUpperCase() || 'U'}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                                {entry.attributes?.person?.name || 'Usuário'}
+                              </p>
+                              <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
+                                {entry.attributes?.['registered-at'] ? 
+                                  new Date(entry.attributes['registered-at']).toLocaleDateString('pt-BR', {
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  }) : ''
+                                }
+                              </p>
+                            </div>
+                            <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
+                              {entry.attributes?.description || 'Sem descrição'}
                             </p>
-                            <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
-                              {entry.attributes?.['registered-at'] ? 
-                                new Date(entry.attributes['registered-at']).toLocaleDateString('pt-BR', {
+                            {entry.attributes?.['next-return'] && (
+                              <p className="text-xs mt-1" style={{ color: "var(--text-tertiary)" }}>
+                                Próximo retorno: {new Date(entry.attributes['next-return']).toLocaleDateString('pt-BR', {
                                   day: '2-digit',
                                   month: '2-digit',
                                   year: 'numeric',
                                   hour: '2-digit',
                                   minute: '2-digit'
-                                }) : ''
-                              }
-                            </p>
+                                })}
+                              </p>
+                            )}
                           </div>
-                          <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
-                            {entry.attributes?.description || 'Sem descrição'}
-                          </p>
-                          {entry.attributes?.['next-return'] && (
-                            <p className="text-xs mt-1" style={{ color: "var(--text-tertiary)" }}>
-                              Próximo retorno: {new Date(entry.attributes['next-return']).toLocaleDateString('pt-BR', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </p>
-                          )}
                         </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8" style={{ color: "var(--text-secondary)" }}>
+                        <p className="text-sm">Nenhuma atualização encontrada para esta tarefa.</p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
               )}

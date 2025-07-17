@@ -510,55 +510,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para buscar histórico de uma tarefa
+  // Endpoint para buscar histórico de uma tarefa - usando filtro task_id
   app.get("/api/monde/tarefas/:id/historico", authenticateToken, async (req: any, res) => {
     try {
       const taskId = req.params.id;
       console.log('Tentando buscar histórico para task ID:', taskId);
-      const mondeUrl = `https://web.monde.com.br/api/v2/task-historics?include=person&page[size]=50`;
+      
+      // Usar filtro task_id conforme documentação
+      const mondeUrl = `https://web.monde.com.br/api/v2/task_historics?task_id=${taskId}&include=person&page[size]=50`;
       console.log('URL do histórico:', mondeUrl);
+      console.log('Token sendo usado:', req.sessao.access_token ? 'Token presente' : 'Token ausente');
       
       const mondeResponse = await fetch(mondeUrl, {
         method: "GET",
         headers: {
-          "Content-Type": "application/vnd.api+json",
-          "Accept": "application/vnd.api+json",
+          "Content-Type": "application/json",
+          "Accept": "application/json",
           "Authorization": `Bearer ${req.sessao.access_token}`,
         },
       });
 
       const rawData = await mondeResponse.json();
+      console.log('📋 Resposta do histórico:', rawData);
       
-      // Filtrar histórico por tarefa específica e processar
-      const filteredData = rawData.data?.filter((history: any) => {
-        // Verificar se o histórico é da tarefa específica
-        return history.relationships?.task?.data?.id === taskId;
-      }) || [];
-      
-      const processedData = {
-        ...rawData,
-        data: filteredData.map((history: any) => {
-          const processedHistory = { ...history };
-          
-          // Processar relacionamentos se existirem
-          if (rawData.included) {
-            // Encontrar dados do usuário (person)
-            if (history.relationships?.person?.data) {
-              const userData = rawData.included.find((item: any) => 
-                item.type === 'people' && item.id === history.relationships.person.data.id
-              );
-              if (userData) {
-                processedHistory.user_name = userData.attributes.name;
-                processedHistory.user_email = userData.attributes.email;
+      // Processar dados se existirem
+      if (rawData.data && Array.isArray(rawData.data)) {
+        const processedData = {
+          ...rawData,
+          data: rawData.data.map((history: any) => {
+            const processedHistory = { ...history };
+            
+            // Processar relacionamentos se existirem
+            if (rawData.included) {
+              // Encontrar dados do usuário (person)
+              if (history.relationships?.person?.data) {
+                const userData = rawData.included.find((item: any) => 
+                  item.type === 'people' && item.id === history.relationships.person.data.id
+                );
+                if (userData) {
+                  processedHistory.attributes.person = userData.attributes;
+                }
               }
             }
-          }
-          
-          return processedHistory;
-        })
-      };
-      
-      res.status(mondeResponse.status).json(processedData);
+            
+            return processedHistory;
+          })
+        };
+        
+        res.status(mondeResponse.status).json(processedData);
+      } else {
+        // Se não há dados, retornar estrutura vazia
+        res.status(200).json({ data: [] });
+      }
     } catch (error) {
       console.error("Erro ao buscar histórico:", error);
       res.status(500).json({ message: "Erro ao buscar histórico" });

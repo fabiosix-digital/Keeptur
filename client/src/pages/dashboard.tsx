@@ -1184,63 +1184,80 @@ export default function Dashboard() {
           {activeView === "kanban" && (
             <div className="view-content">
               <div className="flex space-x-6 overflow-x-auto pb-4">
-                {/* A Fazer */}
+                {/* Pendentes */}
                 <div className="kanban-column rounded-lg p-4 min-w-80">
                   <div className="flex items-center justify-between mb-4">
                     <h3
                       className="font-semibold text-sm"
                       style={{ color: "var(--text-primary)" }}
                     >
-                      A Fazer
+                      Pendentes
                     </h3>
                     <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
-                      8
+                      {getFilteredTasksWithStatus().filter(task => {
+                        const { status } = getTaskStatus(task);
+                        return status === "pending";
+                      }).length}
                     </span>
                   </div>
                   <div
                     className="space-y-3"
-                    onDrop={(e) => handleDrop(e, "A Fazer")}
+                    onDrop={(e) => handleDrop(e, "Pendentes")}
                     onDragOver={(e) => e.preventDefault()}
                   >
-                    <div
-                      className="kanban-card rounded-lg p-4 cursor-move"
-                      draggable={true}
-                      onDragStart={(e) => handleDragStart(e, 1, "A Fazer")}
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <h4
-                          className="font-medium text-sm"
-                          style={{ color: "var(--text-primary)" }}
+                    {getFilteredTasksWithStatus()
+                      .filter(task => {
+                        const { status } = getTaskStatus(task);
+                        return status === "pending";
+                      })
+                      .map((task: any) => (
+                        <div
+                          key={task.id}
+                          className="kanban-card rounded-lg p-4 cursor-move"
+                          draggable={true}
+                          onDragStart={(e) => handleDragStart(e, task.id, "Pendentes")}
                         >
-                          Reunião de Planejamento
-                        </h4>
-                        <span className="priority-badge-high px-2 py-1 rounded-full text-xs font-medium">
-                          Alta
-                        </span>
-                      </div>
-                      <p
-                        className="text-xs mb-3"
-                        style={{ color: "var(--text-tertiary)" }}
-                      >
-                        Maria Rodrigues
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <span
-                          className="text-xs"
-                          style={{ color: "var(--text-secondary)" }}
-                        >
-                          15/07 14:30
-                        </span>
-                        <div className="flex space-x-1">
-                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
-                            <i className="ri-eye-line text-xs"></i>
-                          </button>
-                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
-                            <i className="ri-edit-line text-xs"></i>
-                          </button>
+                          <div className="flex items-start justify-between mb-2">
+                            <h4
+                              className="font-medium text-sm"
+                              style={{ color: "var(--text-primary)" }}
+                            >
+                              {task.attributes.title}
+                            </h4>
+                            <span className="priority-badge-medium px-2 py-1 rounded-full text-xs font-medium">
+                              {getPriorityLabel(task.attributes.priority)}
+                            </span>
+                          </div>
+                          <p
+                            className="text-xs mb-3"
+                            style={{ color: "var(--text-tertiary)" }}
+                          >
+                            {getAssigneeName(task)}
+                          </p>
+                          <div className="flex items-center justify-between">
+                            <span
+                              className="text-xs"
+                              style={{ color: "var(--text-secondary)" }}
+                            >
+                              {formatTaskDate(task.attributes.due)}
+                            </span>
+                            <div className="flex space-x-1">
+                              <button 
+                                onClick={() => handleViewTask(task)}
+                                className="action-button p-1 rounded !rounded-button whitespace-nowrap"
+                              >
+                                <i className="ri-eye-line text-xs"></i>
+                              </button>
+                              <button 
+                                onClick={() => handleEditTask(task)}
+                                className="action-button p-1 rounded !rounded-button whitespace-nowrap"
+                              >
+                                <i className="ri-edit-line text-xs"></i>
+                              </button>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
+                      ))}
                     <div
                       className="kanban-card rounded-lg p-4 cursor-move"
                       draggable={true}
@@ -1286,17 +1303,20 @@ export default function Dashboard() {
                   </button>
                 </div>
 
-                {/* Em Andamento */}
+                {/* Atrasadas */}
                 <div className="kanban-column rounded-lg p-4 min-w-80">
                   <div className="flex items-center justify-between mb-4">
                     <h3
                       className="font-semibold text-sm"
                       style={{ color: "var(--text-primary)" }}
                     >
-                      Em Andamento
+                      Atrasadas
                     </h3>
-                    <span className="bg-blue-200 text-blue-700 px-2 py-1 rounded-full text-xs">
-                      3
+                    <span className="bg-red-200 text-red-700 px-2 py-1 rounded-full text-xs">
+                      {getFilteredTasksWithStatus().filter(task => {
+                        const { status } = getTaskStatus(task);
+                        return status === "overdue";
+                      }).length}
                     </span>
                   </div>
                   <div

@@ -99,7 +99,6 @@ export default function Login() {
       <Card className="login-container w-full max-w-md p-8 rounded-2xl fade-in">
         <div className="text-center mb-8">
           <img src={logoKeeptur} alt="Keeptur" className="h-12 mx-auto mb-4" />
-          
           <p className="text-gray-600 text-sm">Faça login para acessar sua conta</p>
         </div>
 

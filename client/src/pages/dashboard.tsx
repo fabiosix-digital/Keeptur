@@ -2461,7 +2461,9 @@ export default function Dashboard() {
                           <button 
                             onClick={() => {
                               console.log('🔍 Debugging pessoa:', selectedTask.relationships.person.data.id);
-                              getPersonName(selectedTask.relationships.person.data.id);
+                              console.log('🔍 Tarefa completa:', selectedTask);
+                              const result = getPersonName(selectedTask.relationships.person.data.id);
+                              console.log('🔍 Resultado:', result);
                             }}
                             className="text-blue-500 underline"
                           >

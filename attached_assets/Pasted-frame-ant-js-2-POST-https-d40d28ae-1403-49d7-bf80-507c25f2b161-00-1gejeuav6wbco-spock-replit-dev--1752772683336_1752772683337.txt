@@ -1,0 +1,39 @@
+frame_ant.js:2  POST https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/monde/tarefas/e77068cc-3a6a-4bb8-aa1a-370a77869bd3/historico 404 (Not Found)
+window.fetch @ frame_ant.js:2
+window.fetch @ Network.js:219
+saveAndCloseModal @ dashboard.tsx:2158
+callCallback2 @ chunk-WERSD76P.js?v=493869d8:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=493869d8:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=493869d8:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=493869d8:3736
+executeDispatch @ chunk-WERSD76P.js?v=493869d8:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=493869d8:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=493869d8:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=493869d8:7051
+(anônimo) @ chunk-WERSD76P.js?v=493869d8:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=493869d8:18913
+batchedUpdates @ chunk-WERSD76P.js?v=493869d8:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=493869d8:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=493869d8:5478
+dispatchEvent @ chunk-WERSD76P.js?v=493869d8:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=493869d8:5449Entenda o erro
+Console.js:61 ❌ Erro ao salvar histórico: {message: 'Erro ao criar histórico', details: '{"errors":[{"title":"Recurso não encontrado","deta…do não encontrado","code":"404","status":"404"}]}'}details: "{\"errors\":[{\"title\":\"Recurso não encontrado\",\"detail\":\"Recurso informado não encontrado\",\"code\":\"404\",\"status\":\"404\"}]}"message: "Erro ao criar histórico"[[Prototype]]: Object
+Mt.forEach.n.<computed> @ Console.js:61
+saveAndCloseModal @ dashboard.tsx:2176
+await in saveAndCloseModal
+callCallback2 @ chunk-WERSD76P.js?v=493869d8:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=493869d8:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=493869d8:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=493869d8:3736
+executeDispatch @ chunk-WERSD76P.js?v=493869d8:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=493869d8:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=493869d8:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=493869d8:7051
+(anônimo) @ chunk-WERSD76P.js?v=493869d8:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=493869d8:18913
+batchedUpdates @ chunk-WERSD76P.js?v=493869d8:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=493869d8:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=493869d8:5478
+dispatchEvent @ chunk-WERSD76P.js?v=493869d8:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=493869d8:5449Entenda o erro
+Console.js:61 Debug tarefa: Teste nome novo {completed: false, status: undefined, deleted: undefined, is_deleted: undefined, due: '2025-07-16T18:54:39.491-03:00'}

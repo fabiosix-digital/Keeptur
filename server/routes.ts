@@ -284,14 +284,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // 🎯 Filtro de situação (situation)
       if (req.query.situation) {
-        // Mapear situações do frontend para API
+        // Mapear situações do frontend para API do Monde
         const situationMap = {
-          "open": "active",
-          "concluded": "completed",
-          "archived": "archived"
+          "pendentes": "pending",
+          "concluidas": "completed", 
+          "atrasadas": "overdue",
+          "excluidas": "deleted"
         };
-        queryParams.append('filter[situation]', situationMap[req.query.situation] || req.query.situation);
-        console.log('✅ Filtro situação aplicado:', req.query.situation);
+        const apiSituation = situationMap[req.query.situation] || req.query.situation;
+        queryParams.append('filter[situation]', apiSituation);
+        console.log('✅ Filtro situação aplicado:', req.query.situation, '→', apiSituation);
+        console.log('📋 Mapeamento disponível:', JSON.stringify(situationMap));
+        console.log('📋 Situação recebida:', JSON.stringify(req.query.situation));
       }
       
       // 📂 Filtro de categoria
@@ -869,9 +873,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tasks = data.data || [];
       const included = data.included || [];
       
-      // Buscar usuários dos includes (pessoas sem CNPJ E kind='individual' são usuários)
+      // Buscar usuários dos includes (pessoas sem CNPJ E sem company-name são usuários)
       included.forEach((item: any) => {
-        if (item.type === 'people' && !item.attributes?.cnpj && item.attributes?.kind === 'individual') {
+        if (item.type === 'people' && 
+          !item.attributes?.cnpj && 
+          !item.attributes?.['company-name'] && 
+          item.attributes?.kind === 'individual'
+        ) {
           usersSet.add(JSON.stringify({
             id: item.id,
             name: item.attributes.name,
@@ -924,6 +932,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("📋 Exemplo de include para debug:", JSON.stringify(included[0], null, 2));
       }
       
+      // Log detalhado dos usuários encontrados
+      console.log("👥 Usuários encontrados:", users.map(u => u.name).join(", "));
+      
       res.json({ data: users });
     } catch (error) {
       console.error("Erro ao buscar usuários:", error);
@@ -960,14 +971,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tasks = data.data || [];
       const included = data.included || [];
       
-      // Buscar empresas dos includes (pessoas com CNPJ OU kind='corporate' são empresas)
+      // Buscar empresas dos includes (pessoas com CNPJ, kind='corporate' ou company-name preenchido)
       included.forEach((item: any) => {
-        if (item.type === 'people' && (item.attributes?.cnpj || item.attributes?.kind === 'corporate')) {
+        if (item.type === 'people' && (
+          item.attributes?.cnpj || 
+          item.attributes?.kind === 'corporate' || 
+          item.attributes?.['company-name']
+        )) {
           companiesSet.add(JSON.stringify({
             id: item.id,
-            name: item.attributes.name,
+            name: item.attributes.name || item.attributes['company-name'],
             attributes: {
-              name: item.attributes.name,
+              name: item.attributes.name || item.attributes['company-name'],
               person_type: 'company'
             }
           }));

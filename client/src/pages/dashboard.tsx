@@ -923,9 +923,10 @@ export default function Dashboard() {
               }}
             >
               <option value="">Todas as Situações</option>
-              <option value="open">Abertas</option>
-              <option value="concluded">Concluídas</option>
-              <option value="archived">Arquivadas</option>
+              <option value="pendentes">Pendentes</option>
+              <option value="concluidas">Concluídas</option>
+              <option value="atrasadas">Atrasadas</option>
+              <option value="excluidas">Excluídas</option>
             </select>
 
             {/* Filtro de Categoria */}
@@ -945,22 +946,7 @@ export default function Dashboard() {
               ))}
             </select>
 
-            {/* Filtro de Agente */}
-            <select
-              className="form-input px-3 py-2 rounded-lg text-sm text-gray-800"
-              value={selectedResponsible}
-              onChange={(e) => {
-                setSelectedResponsible(e.target.value);
-                setTimeout(reloadTasks, 100);
-              }}
-            >
-              <option value="">Todos os Agentes</option>
-              {users.map((user) => (
-                <option key={user.id} value={user.id} className="text-gray-800">
-                  {user.attributes?.name || user.name}
-                </option>
-              ))}
-            </select>
+
 
             {/* Filtros de Data já implementados acima */}
             

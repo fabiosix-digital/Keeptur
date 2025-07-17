@@ -703,6 +703,39 @@ export default function Dashboard() {
     return labels[priority.toLowerCase()] || "Média";
   };
 
+  // Sistema de cores para categorias
+  const getCategoryColor = (categoryName: string) => {
+    const colors = {
+      "Feedback": "#6366f1", // Indigo
+      "Venda - Orçamento": "#f59e0b", // Amber
+      "Captação de Cliente": "#10b981", // Emerald
+      "Crédito na Agência": "#ef4444", // Red
+      "Gerenciamento": "#8b5cf6", // Violet
+      "Financeiro": "#06b6d4", // Cyan
+      "Administrativo": "#f97316", // Orange
+      "Operacional": "#84cc16", // Lime
+      "Comercial": "#ec4899", // Pink
+      "Suporte": "#6b7280", // Gray
+    };
+    
+    // Se não encontrar a categoria, usar uma cor baseada no hash do nome
+    if (!colors[categoryName]) {
+      const hash = categoryName.split('').reduce((a, b) => {
+        a = ((a << 5) - a) + b.charCodeAt(0);
+        return a & a;
+      }, 0);
+      const hue = Math.abs(hash) % 360;
+      return `hsl(${hue}, 65%, 50%)`;
+    }
+    
+    return colors[categoryName];
+  };
+
+  // Função para capitalizar texto (primeira letra maiúscula)
+  const capitalizeText = (text: string) => {
+    return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+  };
+
   const formatTaskDate = (dateString: string) => {
     if (!dateString) return "Sem data";
     const date = new Date(dateString);
@@ -1362,9 +1395,12 @@ export default function Dashboard() {
                               </button>
                             </div>
                           </div>
-                          <div className="flex items-center justify-center">
-                            <span className="category-badge px-2 py-1 rounded-full text-xs font-medium w-full text-center">
-                              {getCategoryName(task)}
+                          <div className="flex items-start justify-end">
+                            <span 
+                              className="px-2 py-1 rounded-full text-xs font-medium text-white"
+                              style={{ backgroundColor: getCategoryColor(getCategoryName(task)) }}
+                            >
+                              {capitalizeText(getCategoryName(task))}
                             </span>
                           </div>
                         </div>
@@ -1446,8 +1482,11 @@ export default function Dashboard() {
                             </div>
                           </div>
                           <div className="flex items-start justify-end">
-                            <span className="priority-badge-medium px-2 py-1 rounded-full text-xs font-medium">
-                              {getCategoryName(task).toUpperCase()}
+                            <span 
+                              className="px-2 py-1 rounded-full text-xs font-medium text-white"
+                              style={{ backgroundColor: getCategoryColor(getCategoryName(task)) }}
+                            >
+                              {capitalizeText(getCategoryName(task))}
                             </span>
                           </div>
                         </div>
@@ -1471,9 +1510,7 @@ export default function Dashboard() {
                       Concluídas
                     </h3>
                     <span className="bg-green-200 text-green-700 px-2 py-1 rounded-full text-xs">
-                      {getFilteredTasksWithStatus().filter(task => {
-                        return task.attributes.completed === true || task.attributes.status === "completed";
-                      }).length}
+                      {getTasksByStatus("Concluído").length}
                     </span>
                   </div>
                   <div
@@ -1481,15 +1518,7 @@ export default function Dashboard() {
                     onDrop={(e) => handleDrop(e, "Concluídas")}
                     onDragOver={(e) => e.preventDefault()}
                   >
-                    {getFilteredTasksWithStatus()
-                      .filter(task => {
-                        // Usar tanto o status quanto o atributo completed
-                        const isCompleted = task.attributes.completed === true || task.attributes.status === "completed";
-                        if (isCompleted) {
-                          console.log('Tarefa concluída encontrada:', task.attributes.title, 'completed:', task.attributes.completed, 'status:', task.attributes.status);
-                        }
-                        return isCompleted;
-                      })
+                    {getTasksByStatus("Concluído")
                       .map((task: any) => (
                         <div
                           key={task.id}
@@ -1534,8 +1563,11 @@ export default function Dashboard() {
                             </div>
                           </div>
                           <div className="flex items-start justify-end">
-                            <span className="priority-badge-medium px-2 py-1 rounded-full text-xs font-medium">
-                              {getCategoryName(task).toUpperCase()}
+                            <span 
+                              className="px-2 py-1 rounded-full text-xs font-medium text-white"
+                              style={{ backgroundColor: getCategoryColor(getCategoryName(task)) }}
+                            >
+                              {capitalizeText(getCategoryName(task))}
                             </span>
                           </div>
                         </div>
@@ -1611,8 +1643,11 @@ export default function Dashboard() {
                             </div>
                           </div>
                           <div className="flex items-start justify-end">
-                            <span className="priority-badge-medium px-2 py-1 rounded-full text-xs font-medium">
-                              {getCategoryName(task).toUpperCase()}
+                            <span 
+                              className="px-2 py-1 rounded-full text-xs font-medium text-white"
+                              style={{ backgroundColor: getCategoryColor(getCategoryName(task)) }}
+                            >
+                              {capitalizeText(getCategoryName(task))}
                             </span>
                           </div>
                         </div>

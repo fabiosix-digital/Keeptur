@@ -363,7 +363,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 processedTask.client_email = personData.attributes.email;
                 processedTask.client_phone = personData.attributes.phone || personData.attributes['business-phone'] || '';
                 processedTask.client_mobile = personData.attributes['mobile-phone'] || '';
-                processedTask.client_company = personData.attributes['company-name'] || '';
+                
+                // Tentar múltiplos campos para empresa
+                const companyName = personData.attributes['company-name'] || 
+                                  personData.attributes.company || 
+                                  personData.attributes['company_name'] || 
+                                  personData.attributes.companyName || '';
+                
+                processedTask.client_company = companyName;
+                
+                // Debug do cliente para verificar campos disponíveis
+                if (personData.id === '9c409497-5b93-49fa-b6c2-f8381bc880d5') {
+                  console.log('🔍 Debug cliente Fabio Silva:', {
+                    id: personData.id,
+                    attributes: personData.attributes,
+                    company_fields: {
+                      'company-name': personData.attributes['company-name'],
+                      'company': personData.attributes.company,
+                      'company_name': personData.attributes['company_name'],
+                      'companyName': personData.attributes.companyName
+                    }
+                  });
+                }
               }
             }
             
@@ -532,8 +553,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const taskId = req.params.id;
       console.log('Tentando buscar histórico para task ID:', taskId);
       
-      // Usar filtro task_id conforme documentação
-      const mondeUrl = `https://web.monde.com.br/api/v2/task-historics?task_id=${taskId}&include=person&page[size]=50`;
+      // Usar filtro task_id conforme documentação, ordenado por data decrescente
+      const mondeUrl = `https://web.monde.com.br/api/v2/task-historics?task_id=${taskId}&include=person&page[size]=50&sort=-date-time`;
       console.log('URL do histórico:', mondeUrl);
       console.log('Token sendo usado:', req.sessao.access_token ? 'Token presente' : 'Token ausente');
       
@@ -547,7 +568,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const rawData = await mondeResponse.json();
-      console.log('📋 Resposta do histórico:', rawData);
+      console.log('📋 Status da resposta do histórico:', mondeResponse.status);
+      console.log('📋 Quantidade de históricos encontrados:', rawData.data?.length || 0);
+      
+      if (rawData.data && rawData.data.length > 0) {
+        console.log('📋 Primeiro histórico:', rawData.data[0]);
+      }
       
       // Processar dados se existirem
       if (rawData.data && Array.isArray(rawData.data)) {

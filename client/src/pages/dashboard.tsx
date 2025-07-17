@@ -2475,19 +2475,7 @@ export default function Dashboard() {
                         value={selectedTask?.client_name || 'Cliente não encontrado'}
                         readOnly
                       />
-                      {selectedTask?.client_name && (
-                        <div className="text-xs text-gray-500 mt-1">
-                          <strong>Cliente:</strong> {selectedTask.client_name}
-                          <br />
-                          <strong>Email:</strong> {selectedTask.client_email || 'Não informado'}
-                          <br />
-                          <strong>Telefone:</strong> {selectedTask.client_phone || 'Não informado'}
-                          <br />
-                          <strong>Celular:</strong> {selectedTask.client_mobile || 'Não informado'}
-                          <br />
-                          <strong>Empresa:</strong> {selectedTask.client_company || 'Não informado'}
-                        </div>
-                      )}
+
                     </div>
                     <div className="col-span-6">
                       <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>

@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import multer from "multer";
-import { insertEmpresaSchema, insertAssinaturaSchema, insertPagamentoSchema, insertSessaoSchema } from "@shared/schema";
+import { insertEmpresaSchema, insertAssinaturaSchema, insertPagamentoSchema, insertSessaoSchema, insertAnexoSchema } from "@shared/schema";
 import { z } from "zod";
 
 const JWT_SECRET = process.env.JWT_SECRET || "keeptur-secret-key";
@@ -1266,18 +1266,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('⚠️ Erro ao tentar enviar anexos para o Monde:', error);
       }
 
-      // Fallback: criar anexos localmente e registrar no histórico do Monde
-      const attachments = files.map(file => ({
-        id: `attachment_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`,
-        name: file.originalname,
-        filename: file.originalname,
-        size: file.size,
-        type: file.mimetype,
-        url: `/api/monde/anexos/${taskId}/${file.originalname}`,
-        created_at: new Date().toISOString()
-      }));
+      // Fallback: salvar anexos no banco de dados PostgreSQL
+      const attachments = [];
+      
+      for (const file of files) {
+        const fileBase64 = file.buffer.toString('base64');
+        const attachmentData = {
+          empresa_id: req.user.empresa_id,
+          tarefa_id: taskId,
+          nome_arquivo: `${Date.now()}_${file.originalname}`,
+          nome_original: file.originalname,
+          tamanho: file.size,
+          tipo_mime: file.mimetype,
+          dados_arquivo: fileBase64
+        };
 
-      console.log(`✅ Criados ${attachments.length} anexos localmente`);
+        try {
+          const savedAttachment = await storage.createAnexo(attachmentData);
+          attachments.push({
+            id: savedAttachment.id,
+            name: savedAttachment.nome_original,
+            filename: savedAttachment.nome_original,
+            size: savedAttachment.tamanho,
+            type: savedAttachment.tipo_mime,
+            url: `/api/monde/anexos/${taskId}/${savedAttachment.nome_arquivo}`,
+            created_at: savedAttachment.created_at
+          });
+        } catch (error) {
+          console.error('Erro ao salvar anexo no banco:', error);
+        }
+      }
+
+      console.log(`✅ Salvos ${attachments.length} anexos no banco de dados`);
 
       // Retornar dados dos anexos
       res.json({
@@ -1321,13 +1341,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('⚠️ Erro ao buscar anexos no Monde:', error);
       }
 
-      // Fallback: retornar lista vazia se não houver integração com Monde
-      res.json({
-        data: []
-      });
+      // Fallback: buscar anexos no banco de dados PostgreSQL
+      try {
+        const attachments = await storage.getAnexosByTarefa(taskId, req.user.empresa_id);
+        
+        const formattedAttachments = attachments.map(attachment => ({
+          id: attachment.id,
+          name: attachment.nome_original,
+          filename: attachment.nome_original,
+          size: attachment.tamanho,
+          type: attachment.tipo_mime,
+          url: `/api/monde/anexos/${taskId}/${attachment.nome_arquivo}`,
+          created_at: attachment.created_at
+        }));
+
+        console.log(`✅ Encontrados ${formattedAttachments.length} anexos no banco de dados`);
+        
+        res.json({
+          data: formattedAttachments
+        });
+      } catch (error) {
+        console.error('Erro ao buscar anexos no banco:', error);
+        res.json({
+          data: []
+        });
+      }
     } catch (error) {
       console.error("Erro ao buscar anexos:", error);
       res.status(500).json({ message: "Erro ao buscar anexos" });
+    }
+  });
+
+  // Endpoint para excluir anexos
+  app.delete("/api/monde/anexos/:taskId/:attachmentId", authenticateToken, async (req: any, res) => {
+    try {
+      const { taskId, attachmentId } = req.params;
+      
+      // Verificar se o anexo existe e pertence à empresa
+      const attachment = await storage.getAnexo(parseInt(attachmentId));
+      
+      if (!attachment || attachment.empresa_id !== req.user.empresa_id) {
+        return res.status(404).json({ message: "Anexo não encontrado" });
+      }
+      
+      // Excluir anexo do banco
+      await storage.deleteAnexo(parseInt(attachmentId));
+      
+      console.log(`🗑️ Anexo ${attachmentId} excluído com sucesso`);
+      
+      res.json({ message: "Anexo excluído com sucesso" });
+    } catch (error) {
+      console.error("Erro ao excluir anexo:", error);
+      res.status(500).json({ message: "Erro ao excluir anexo" });
+    }
+  });
+
+  // Endpoint para servir anexos do banco de dados
+  app.get("/api/monde/anexos/:taskId/:filename", authenticateToken, async (req: any, res) => {
+    try {
+      const { taskId, filename } = req.params;
+      
+      // Buscar anexo no banco
+      const attachments = await storage.getAnexosByTarefa(taskId, req.user.empresa_id);
+      const attachment = attachments.find(att => att.nome_arquivo === filename);
+      
+      if (!attachment) {
+        return res.status(404).json({ message: "Anexo não encontrado" });
+      }
+      
+      // Converter base64 para buffer
+      const fileBuffer = Buffer.from(attachment.dados_arquivo, 'base64');
+      
+      // Configurar headers para download
+      res.setHeader('Content-Type', attachment.tipo_mime);
+      res.setHeader('Content-Disposition', `attachment; filename="${attachment.nome_original}"`);
+      res.setHeader('Content-Length', fileBuffer.length);
+      
+      // Enviar arquivo
+      res.send(fileBuffer);
+    } catch (error) {
+      console.error("Erro ao servir anexo:", error);
+      res.status(500).json({ message: "Erro ao buscar anexo" });
     }
   });
 

@@ -67,10 +67,32 @@ export const sessoes = pgTable("sessoes", {
   updated_at: timestamp("updated_at").defaultNow(),
 });
 
+// Tabela para armazenar anexos das tarefas
+export const anexos = pgTable("anexos", {
+  id: serial("id").primaryKey(),
+  empresa_id: integer("empresa_id").references(() => empresas.id).notNull(),
+  tarefa_id: varchar("tarefa_id", { length: 100 }).notNull(), // ID da tarefa no Monde
+  nome_arquivo: varchar("nome_arquivo", { length: 255 }).notNull(),
+  nome_original: varchar("nome_original", { length: 255 }).notNull(),
+  tamanho: integer("tamanho").notNull(),
+  tipo_mime: varchar("tipo_mime", { length: 100 }).notNull(),
+  dados_arquivo: text("dados_arquivo").notNull(), // Base64 encoded file data
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const empresasRelations = relations(empresas, ({ many, one }) => ({
   assinaturas: many(assinaturas),
   sessoes: many(sessoes),
+  anexos: many(anexos),
+}));
+
+export const anexosRelations = relations(anexos, ({ one }) => ({
+  empresa: one(empresas, {
+    fields: [anexos.empresa_id],
+    references: [empresas.id],
+  }),
 }));
 
 export const planosRelations = relations(planos, ({ many }) => ({
@@ -138,6 +160,12 @@ export const insertSessaoSchema = createInsertSchema(sessoes).omit({
   updated_at: true,
 });
 
+export const insertAnexoSchema = createInsertSchema(anexos).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+});
+
 // Types
 export type SuperAdmin = typeof superAdmins.$inferSelect;
 export type InsertSuperAdmin = z.infer<typeof insertSuperAdminSchema>;
@@ -156,3 +184,6 @@ export type InsertPagamento = z.infer<typeof insertPagamentoSchema>;
 
 export type Sessao = typeof sessoes.$inferSelect;
 export type InsertSessao = z.infer<typeof insertSessaoSchema>;
+
+export type Anexo = typeof anexos.$inferSelect;
+export type InsertAnexo = z.infer<typeof insertAnexoSchema>;

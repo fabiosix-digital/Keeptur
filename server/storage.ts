@@ -5,18 +5,21 @@ import {
   assinaturas, 
   pagamentos, 
   sessoes,
+  anexos,
   type SuperAdmin,
   type Empresa,
   type Plano,
   type Assinatura,
   type Pagamento,
   type Sessao,
+  type Anexo,
   type InsertSuperAdmin,
   type InsertEmpresa,
   type InsertPlano,
   type InsertAssinatura,
   type InsertPagamento,
-  type InsertSessao
+  type InsertSessao,
+  type InsertAnexo
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte, desc } from "drizzle-orm";
@@ -54,6 +57,12 @@ export interface IStorage {
   getSessaoByToken(token: string): Promise<Sessao | undefined>;
   updateSessao(id: number, data: Partial<InsertSessao>): Promise<Sessao>;
   deleteSessao(id: number): Promise<void>;
+  
+  // Anexo operations
+  createAnexo(data: InsertAnexo): Promise<Anexo>;
+  getAnexo(id: number): Promise<Anexo | undefined>;
+  getAnexosByTarefa(tarefaId: string, empresaId: number): Promise<Anexo[]>;
+  deleteAnexo(id: number): Promise<void>;
   
   // Plan validation
   isEmpresaPlanActive(empresaId: number): Promise<boolean>;
@@ -169,6 +178,29 @@ export class DatabaseStorage implements IStorage {
 
   async deleteSessao(id: number): Promise<void> {
     await db.delete(sessoes).where(eq(sessoes.id, id));
+  }
+
+  async createAnexo(data: InsertAnexo): Promise<Anexo> {
+    const [anexo] = await db.insert(anexos).values(data).returning();
+    return anexo;
+  }
+
+  async getAnexo(id: number): Promise<Anexo | undefined> {
+    const [anexo] = await db.select().from(anexos).where(eq(anexos.id, id));
+    return anexo || undefined;
+  }
+
+  async getAnexosByTarefa(tarefaId: string, empresaId: number): Promise<Anexo[]> {
+    return await db.select().from(anexos).where(
+      and(
+        eq(anexos.tarefa_id, tarefaId),
+        eq(anexos.empresa_id, empresaId)
+      )
+    ).orderBy(desc(anexos.created_at));
+  }
+
+  async deleteAnexo(id: number): Promise<void> {
+    await db.delete(anexos).where(eq(anexos.id, id));
   }
 
   async isEmpresaPlanActive(empresaId: number): Promise<boolean> {

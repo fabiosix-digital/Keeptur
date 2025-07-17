@@ -53,7 +53,7 @@ export default function Dashboard() {
   // Função para carregar anexos da tarefa
   const loadTaskAttachments = async (taskId: string) => {
     try {
-      const response = await fetch(`/api/monde/tarefas/${taskId}/anexos`, {
+      const response = await fetch(`/api/monde/anexos/${taskId}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
         }
@@ -61,7 +61,7 @@ export default function Dashboard() {
       
       if (response.ok) {
         const data = await response.json();
-        setTaskAttachments(data.data || []);
+        setTaskAttachments(data.attachments || []);
       }
     } catch (error) {
       console.error('Erro ao carregar anexos:', error);
@@ -725,6 +725,9 @@ export default function Dashboard() {
     // Sempre recarregar histórico da tarefa ao abrir modal
     const history = await loadTaskHistory(task.id);
     setTaskHistory(history);
+
+    // Carregar anexos da tarefa
+    loadTaskAttachments(task.id);
   };
 
   // Funções de ação das tarefas
@@ -2802,22 +2805,30 @@ export default function Dashboard() {
                           <div className="flex items-center space-x-2">
                             <i className="ri-file-line text-blue-600"></i>
                             <a
-                              href={attachment.url}
+                              href={`/api/monde/anexos/${selectedTask.id}/${attachment.nome_arquivo}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-sm text-blue-600 hover:underline"
                             >
-                              {attachment.name || attachment.filename}
+                              {attachment.nome_original || attachment.nome_arquivo}
                             </a>
                           </div>
                           <div className="flex items-center justify-between">
                             <span className="text-sm text-gray-600">
-                              {attachment.size ? `${(attachment.size / 1024).toFixed(1)} KB` : 'N/A'}
+                              {attachment.tamanho ? `${(attachment.tamanho / 1024).toFixed(1)} KB` : 'N/A'}
                             </span>
                             <button
                               onClick={async () => {
                                 if (confirm('Tem certeza que deseja excluir este anexo?')) {
                                   try {
+                                    // Excluir anexo do banco de dados
+                                    await fetch(`/api/monde/anexos/${selectedTask.id}/${attachment.id}`, {
+                                      method: 'DELETE',
+                                      headers: {
+                                        'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+                                      }
+                                    });
+                                    
                                     // Remover anexo da lista
                                     const newAttachments = taskAttachments.filter((_, i) => i !== index);
                                     setTaskAttachments(newAttachments);
@@ -2830,9 +2841,12 @@ export default function Dashboard() {
                                         'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
                                       },
                                       body: JSON.stringify({
-                                        description: `Anexo excluído: ${attachment.name || attachment.filename}`
+                                        description: `Anexo excluído: ${attachment.nome_original || attachment.nome_arquivo}`
                                       })
                                     });
+                                    
+                                    // Recarregar histórico
+                                    loadTaskHistory(selectedTask.id);
                                     
                                     alert('Anexo excluído com sucesso!');
                                   } catch (error) {

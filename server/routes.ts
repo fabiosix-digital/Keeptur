@@ -1272,7 +1272,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       for (const file of files) {
         const fileBase64 = file.buffer.toString('base64');
         const attachmentData = {
-          empresa_id: req.user.empresa_id,
+          empresa_id: req.user.empresa_info.id,
           tarefa_id: taskId,
           nome_arquivo: `${Date.now()}_${file.originalname}`,
           nome_original: file.originalname,
@@ -1343,7 +1343,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Fallback: buscar anexos no banco de dados PostgreSQL
       try {
-        const attachments = await storage.getAnexosByTarefa(taskId, req.user.empresa_id);
+        const attachments = await storage.getAnexosByTarefa(taskId, req.user.empresa_info.id);
         
         const formattedAttachments = attachments.map(attachment => ({
           id: attachment.id,
@@ -1358,7 +1358,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`✅ Encontrados ${formattedAttachments.length} anexos no banco de dados`);
         
         res.json({
-          data: formattedAttachments
+          attachments: formattedAttachments
         });
       } catch (error) {
         console.error('Erro ao buscar anexos no banco:', error);
@@ -1380,7 +1380,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verificar se o anexo existe e pertence à empresa
       const attachment = await storage.getAnexo(parseInt(attachmentId));
       
-      if (!attachment || attachment.empresa_id !== req.user.empresa_id) {
+      if (!attachment || attachment.empresa_id !== req.user.empresa_info.id) {
         return res.status(404).json({ message: "Anexo não encontrado" });
       }
       
@@ -1402,7 +1402,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { taskId, filename } = req.params;
       
       // Buscar anexo no banco
-      const attachments = await storage.getAnexosByTarefa(taskId, req.user.empresa_id);
+      const attachments = await storage.getAnexosByTarefa(taskId, req.user.empresa_info.id);
       const attachment = attachments.find(att => att.nome_arquivo === filename);
       
       if (!attachment) {

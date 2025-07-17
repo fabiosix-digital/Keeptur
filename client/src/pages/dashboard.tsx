@@ -1932,14 +1932,50 @@ export default function Dashboard() {
     
     // Buscar dados da tarefa incluindo pessoa e assignee
     const getPersonName = (personId: string) => {
+      if (!personId) return 'Nenhuma pessoa selecionada';
       const task = allTasks.find((t: any) => t.relationships?.person?.data?.id === personId);
-      const included = task?.included?.find((inc: any) => inc.type === 'people' && inc.id === personId);
-      return included?.attributes?.name || included?.attributes?.['company-name'] || 'Cliente não encontrado';
+      if (task?.included) {
+        const included = task.included.find((inc: any) => inc.type === 'people' && inc.id === personId);
+        if (included?.attributes) {
+          return included.attributes.name || included.attributes['company-name'] || 'Nome não encontrado';
+        }
+      }
+      return 'Cliente não encontrado';
     };
     
     const getAssigneeName = (assigneeId: string) => {
+      if (!assigneeId) return 'Nenhum responsável';
       const user = users.find((u: any) => u.id === assigneeId);
-      return user?.attributes?.name || user?.name || 'Usuário não encontrado';
+      if (user?.attributes) {
+        return user.attributes.name || user.name || 'Nome não encontrado';
+      }
+      return 'Usuário não encontrado';
+    };
+    
+    // Função para salvar alterações da tarefa
+    const saveTaskChanges = async (formData: any) => {
+      if (!selectedTask) return;
+      
+      try {
+        const response = await fetch(`/api/monde/tarefas/${selectedTask.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+          },
+          body: JSON.stringify(formData)
+        });
+        
+        if (response.ok) {
+          // Recarregar dados
+          loadTasks();
+          console.log('Tarefa atualizada com sucesso');
+        } else {
+          console.error('Erro ao salvar alterações da tarefa');
+        }
+      } catch (error) {
+        console.error('Erro na requisição:', error);
+      }
     };
     
     // Função para salvar histórico
@@ -2028,7 +2064,7 @@ export default function Dashboard() {
       <div
         className={`fixed inset-0 modal-overlay flex items-center justify-center z-50 ${showTaskModal ? "" : "hidden"}`}
       >
-        <div className="modal-content rounded-xl shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto" style={{ backgroundColor: "var(--bg-primary)" }}>
+        <div className="modal-content rounded-xl shadow-xl max-w-5xl w-full mx-4 max-h-[95vh] overflow-y-auto" style={{ backgroundColor: "var(--bg-primary)" }}>
           <div className="border-0 p-4 pb-0">
             <div className="flex items-center justify-between">
               <h3
@@ -2157,25 +2193,33 @@ export default function Dashboard() {
                         className="form-input w-full px-3 py-2 text-sm"
                         defaultValue={selectedTask?.attributes?.title || ''}
                         style={{ backgroundColor: "var(--bg-secondary)" }}
+                        onChange={(e) => saveTaskChanges({ title: e.target.value })}
                       />
                     </div>
                   </div>
 
-                  {/* Segunda linha - Categoria e Responsável */}
+                  {/* Segunda linha - Categoria, Responsável e Prioridade */}
                   <div className="grid grid-cols-12 gap-4">
-                    <div className="col-span-6">
+                    <div className="col-span-5">
                       <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
                         Categoria:
                       </label>
-                      <input
-                        type="text"
+                      <select
+                        name="category"
                         className="form-input w-full px-3 py-2 text-sm"
                         style={{ backgroundColor: "var(--bg-secondary)" }}
-                        value={selectedTask?.relationships?.category?.data?.id || 'Nenhuma categoria'}
-                        disabled
-                      />
+                        defaultValue={selectedTask?.relationships?.category?.data?.id || ''}
+                        onChange={(e) => saveTaskChanges({ category: e.target.value })}
+                      >
+                        <option value="">Selecione uma categoria</option>
+                        {categories.map((category: any) => (
+                          <option key={category.id} value={category.id}>
+                            {category.attributes?.name || category.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
-                    <div className="col-span-6">
+                    <div className="col-span-5">
                       <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
                         Responsável:
                       </label>
@@ -2184,6 +2228,7 @@ export default function Dashboard() {
                         className="form-input w-full px-3 py-2 text-sm"
                         style={{ backgroundColor: "var(--bg-secondary)" }}
                         defaultValue={selectedTask?.relationships?.assignee?.data?.id || ''}
+                        onChange={(e) => saveTaskChanges({ assignee_id: e.target.value })}
                       >
                         <option value="">Selecione um responsável</option>
                         {users.map((user: any) => (
@@ -2193,32 +2238,29 @@ export default function Dashboard() {
                         ))}
                       </select>
                     </div>
-                  </div>
-
-                  {/* Terceira linha - Empresa */}
-                  <div className="grid grid-cols-12 gap-4">
-                    <div className="col-span-12">
+                    <div className="col-span-2">
                       <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                        Empresa:
+                        Prioridade:
                       </label>
-                      <input
-                        type="text"
+                      <select 
+                        name="priority"
                         className="form-input w-full px-3 py-2 text-sm"
                         style={{ backgroundColor: "var(--bg-secondary)" }}
-                        value={selectedTask?.relationships?.person?.data?.id ? 
-                          getPersonName(selectedTask.relationships.person.data.id) : 
-                          'Nenhuma empresa selecionada'
-                        }
-                        disabled
-                      />
+                        defaultValue="normal"
+                        onChange={(e) => saveTaskChanges({ priority: e.target.value })}
+                      >
+                        <option value="low">Baixa</option>
+                        <option value="normal">Normal</option>
+                        <option value="high">Alta</option>
+                      </select>
                     </div>
                   </div>
 
-                  {/* Quarta linha - Pessoa e CPF */}
+                  {/* Terceira linha - Pessoa/Cliente */}
                   <div className="grid grid-cols-12 gap-4">
-                    <div className="col-span-8">
+                    <div className="col-span-12">
                       <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                        Pessoa:
+                        Pessoa/Cliente:
                       </label>
                       <input
                         type="text"
@@ -2228,24 +2270,12 @@ export default function Dashboard() {
                           getPersonName(selectedTask.relationships.person.data.id) : 
                           'Nenhuma pessoa selecionada'
                         }
-                        disabled
-                      />
-                    </div>
-                    <div className="col-span-4">
-                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                        CPF:
-                      </label>
-                      <input
-                        type="text"
-                        className="form-input w-full px-3 py-2 text-sm"
-                        value="369.295.728-96"
-                        disabled
-                        style={{ backgroundColor: "var(--bg-secondary)" }}
+                        readOnly
                       />
                     </div>
                   </div>
 
-                  {/* Quinta linha - E-mail, Telefone e Celular */}
+                  {/* Quarta linha - E-mail, Telefone e Celular */}
                   <div className="grid grid-cols-12 gap-4">
                     <div className="col-span-4">
                       <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
@@ -2253,9 +2283,11 @@ export default function Dashboard() {
                       </label>
                       <input
                         type="email"
+                        name="email"
                         className="form-input w-full px-3 py-2 text-sm text-blue-600 underline"
-                        defaultValue="fabio.digital@ocloud.com.br"
+                        defaultValue=""
                         style={{ backgroundColor: "var(--bg-secondary)" }}
+                        onChange={(e) => saveTaskChanges({ email: e.target.value })}
                       />
                     </div>
                     <div className="col-span-4">
@@ -2294,11 +2326,13 @@ export default function Dashboard() {
                         </label>
                         <input
                           type="datetime-local"
+                          name="due"
                           className="form-input w-full px-3 py-2 text-sm"
                           defaultValue={selectedTask?.attributes?.due ? 
                             new Date(selectedTask.attributes.due).toISOString().slice(0, 16) : ''
                           }
                           style={{ backgroundColor: "var(--bg-secondary)" }}
+                          onChange={(e) => saveTaskChanges({ due: e.target.value })}
                         />
                       </div>
                       <div className="col-span-6 flex items-end">
@@ -2505,33 +2539,12 @@ export default function Dashboard() {
                 >
                   Salvar
                 </button>
-              </div>
-
-              {/* Botões de Ação */}
-              <div className="flex justify-end space-x-3 mt-6 pt-4 border-t">
                 <button
                   type="button"
-                  onClick={deleteTask}
-                  className="px-4 py-2 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+                  onClick={completeTask}
+                  className="px-4 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700"
                 >
-                  Excluir
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowTaskModal(false);
-                    setSelectedTask(null);
-                  }}
-                  className="px-4 py-2 bg-gray-600 text-white rounded text-sm hover:bg-gray-700"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="button"
-                  onClick={saveTaskHistory}
-                  className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-                >
-                  Salvar
+                  Concluída
                 </button>
               </div>
             </form>

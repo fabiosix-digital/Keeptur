@@ -361,6 +361,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               if (personData) {
                 processedTask.client_name = personData.attributes.name;
                 processedTask.client_email = personData.attributes.email;
+                processedTask.client_phone = personData.attributes.phone || personData.attributes['business-phone'] || '';
+                processedTask.client_mobile = personData.attributes['mobile-phone'] || '';
+                processedTask.client_company = personData.attributes['company-name'] || '';
               }
             }
             
@@ -561,7 +564,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   item.type === 'people' && item.id === history.relationships.person.data.id
                 );
                 if (userData) {
-                  processedHistory.attributes.person = userData.attributes;
+                  // Adicionar dados do usuário ao atributo person
+                  processedHistory.attributes.person = {
+                    name: userData.attributes.name,
+                    email: userData.attributes.email
+                  };
+                  // Também adicionar campos separados para fácil acesso
+                  processedHistory.author_name = userData.attributes.name;
+                  processedHistory.author_email = userData.attributes.email;
                 }
               }
             }

@@ -2475,21 +2475,17 @@ export default function Dashboard() {
                         value={selectedTask?.client_name || 'Cliente não encontrado'}
                         readOnly
                       />
-                      {selectedTask?.relationships?.person?.data?.id && (
+                      {selectedTask?.client_name && (
                         <div className="text-xs text-gray-500 mt-1">
-                          ID: {selectedTask.relationships.person.data.id}
+                          <strong>Cliente:</strong> {selectedTask.client_name}
                           <br />
-                          <button 
-                            onClick={() => {
-                              console.log('🔍 Debugging pessoa:', selectedTask.relationships.person.data.id);
-                              console.log('🔍 Tarefa completa:', selectedTask);
-                              const result = getPersonName(selectedTask.relationships.person.data.id);
-                              console.log('🔍 Resultado:', result);
-                            }}
-                            className="text-blue-500 underline"
-                          >
-                            Debug pessoa
-                          </button>
+                          <strong>Email:</strong> {selectedTask.client_email || 'Não informado'}
+                          <br />
+                          <strong>Telefone:</strong> {selectedTask.client_phone || 'Não informado'}
+                          <br />
+                          <strong>Celular:</strong> {selectedTask.client_mobile || 'Não informado'}
+                          <br />
+                          <strong>Empresa:</strong> {selectedTask.client_company || 'Não informado'}
                         </div>
                       )}
                     </div>
@@ -2501,10 +2497,7 @@ export default function Dashboard() {
                         type="text"
                         className="form-input w-full px-3 py-2 text-sm"
                         style={{ backgroundColor: "var(--bg-secondary)" }}
-                        value={selectedTask?.relationships?.person?.data?.id ? 
-                          (getPersonCompany(selectedTask.relationships.person.data.id) || 'Sem empresa') : 
-                          'Empresa não encontrada'
-                        }
+                        value={selectedTask?.client_company || 'Empresa não encontrada'}
                         readOnly
                       />
                     </div>
@@ -2532,9 +2525,7 @@ export default function Dashboard() {
                       <input
                         type="text"
                         className="form-input w-full px-3 py-2 text-sm"
-                        value={selectedTask?.relationships?.person?.data?.id ? 
-                          getPersonPhone(selectedTask.relationships.person.data.id) : ''
-                        }
+                        value={selectedTask?.client_phone || ''}
                         style={{ backgroundColor: "var(--bg-secondary)" }}
                         readOnly
                       />
@@ -2547,9 +2538,7 @@ export default function Dashboard() {
                         <input
                           type="text"
                           className="form-input flex-1 px-3 py-2 text-sm"
-                          value={selectedTask?.relationships?.person?.data?.id ? 
-                            getPersonMobile(selectedTask.relationships.person.data.id) : ''
-                          }
+                          value={selectedTask?.client_mobile || ''}
                           style={{ backgroundColor: "var(--bg-secondary)" }}
                           readOnly
                         />
@@ -2587,16 +2576,16 @@ export default function Dashboard() {
                           {taskHistory.map((entry: any, index: number) => (
                             <div key={index} className="border-b pb-3">
                               <div className="text-sm font-medium text-purple-600">
-                                {new Date(entry.attributes?.['registered-at']).toLocaleDateString('pt-BR', {
+                                {new Date(entry.attributes?.['date-time'] || entry.attributes?.['registered-at']).toLocaleDateString('pt-BR', {
                                   day: '2-digit',
                                   month: '2-digit',
                                   year: 'numeric',
                                   hour: '2-digit',
                                   minute: '2-digit'
-                                })} - {entry.attributes?.person?.name || 'Usuário'}
+                                })} - {entry.author_name || entry.attributes?.person?.name || 'Usuário'}
                               </div>
                               <div className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
-                                {entry.attributes?.description || 'Sem descrição'}
+                                {entry.attributes?.text || entry.attributes?.description || 'Sem descrição'}
                               </div>
                             </div>
                           ))}

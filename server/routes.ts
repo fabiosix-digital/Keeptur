@@ -530,7 +530,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Tentando buscar histórico para task ID:', taskId);
       
       // Usar filtro task_id conforme documentação
-      const mondeUrl = `https://web.monde.com.br/api/v2/task_historics?task_id=${taskId}&include=person&page[size]=50`;
+      const mondeUrl = `https://web.monde.com.br/api/v2/task-historics?task_id=${taskId}&include=person&page[size]=50`;
       console.log('URL do histórico:', mondeUrl);
       console.log('Token sendo usado:', req.sessao.access_token ? 'Token presente' : 'Token ausente');
       
@@ -593,7 +593,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('Criando histórico para task ID:', taskId, 'com descrição:', description);
       
-      const mondeUrl = `https://web.monde.com.br/api/v2/task_historics`;
+      const mondeUrl = `https://web.monde.com.br/api/v2/task-historics`;
       
       const requestBody = {
         data: {

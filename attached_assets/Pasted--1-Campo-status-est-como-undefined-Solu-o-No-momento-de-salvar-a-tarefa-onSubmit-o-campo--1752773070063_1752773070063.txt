@@ -1,0 +1,137 @@
+✅ 1. Campo status está como undefined
+🔧 Solução:
+No momento de salvar a tarefa (onSubmit), o campo status precisa estar com o ID válido de um status cadastrado. Corrija o trecho onde mapeia a tarefa antes de fazer o PUT.
+
+ts
+Copiar
+Editar
+const payload = {
+  status: tarefa.status?.id || 'status_padrao_id', // insira o ID padrão aqui
+  ...
+}
+✅ 2. Empresa não aparece / mostra "Sem empresa"
+🔧 Solução:
+Você precisa garantir que a tarefa tenha um company_id válido. Certifique-se de que o carregamento da empresa esteja correto:
+
+ts
+Copiar
+Editar
+const empresaSelecionada = empresas.find(e => e.id === tarefa.company_id);
+No payload:
+
+ts
+Copiar
+Editar
+company_id: tarefa.company?.id || usuario.company_id
+✅ 3. Pessoa (cliente) não aparece
+🔧 Solução:
+Verifique se está mapeando o campo person_id no payload da tarefa:
+
+ts
+Copiar
+Editar
+person_id: tarefa.person?.id
+E certifique-se de que está buscando corretamente as pessoas:
+
+ts
+Copiar
+Editar
+await fetch('/api/v2/people?include=phones')
+✅ 4. Telefone e celular não aparecem
+🔧 Solução:
+O endpoint de /people precisa vir com include=phones. Exemplo:
+
+ts
+Copiar
+Editar
+const pessoa = tarefa.person;
+const telefones = pessoa?.phones?.map(p => p.number).join(' / ');
+✅ 5. Categorias não aparecem ou lista incompleta
+🔧 Solução:
+O endpoint correto para categorias é:
+
+ts
+Copiar
+Editar
+GET /api/v2/task_categories
+Com filtro:
+
+ts
+Copiar
+Editar
+GET /api/v2/task_categories?filter[company_id]=ID_DA_EMPRESA
+Verifique se está salvando o category_id corretamente no payload.
+
+✅ 6. Botão “Concluir” duplicado e fora do lugar
+🔧 Solução:
+No modal de edição da tarefa (ModalTask ou equivalente), verifique se você não está renderizando o botão duas vezes por erro de condição ou falta de key.
+
+Corrija o estilo:
+
+jsx
+Copiar
+Editar
+<Button className="bg-blue-500 absolute left-4 bottom-4">Concluir</Button>
+<Button className="bg-green-500 absolute right-4 bottom-4">Salvar</Button>
+✅ 7. Histórico da tarefa não salva nem aparece
+❌ Erro atual:
+
+bash
+Copiar
+Editar
+POST /api/monde/tarefas/:id/historico → 404 Not Found
+✅ Solução correta:
+Use o endpoint:
+
+ts
+Copiar
+Editar
+POST /api/v2/task_historics
+Payload:
+
+ts
+Copiar
+Editar
+{
+  "task_id": tarefa.id,
+  "description": tarefa.historico
+}
+✅ 8. Salvamento da tarefa não fecha a modal
+🔧 Solução:
+Após o PUT, verifique se está fazendo:
+
+ts
+Copiar
+Editar
+setModalAberta(false);
+E limpar os estados:
+
+ts
+Copiar
+Editar
+setTarefaSelecionada(null);
+setHistorico('');
+✅ 9. Modal não se adapta corretamente à tela
+🔧 Solução:
+Garanta que o Modal esteja usando max-height: 90vh e overflow-y: auto em apenas no conteúdo interno da seção de histórico:
+
+css
+Copiar
+Editar
+.modal-container {
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.historico-scroll {
+  max-height: 200px;
+  overflow-y: scroll;
+}
+✅ 10. Todos os históricos estão iguais
+🔧 Solução:
+Na hora de buscar histórico da tarefa, use o ID correto:
+
+ts
+Copiar
+Editar
+await fetch(`/api/v2/task_historics?filter[task_id]=${tarefa.id}`)
+Evite reaproveitar a mesma lista de históricos entre tarefas.

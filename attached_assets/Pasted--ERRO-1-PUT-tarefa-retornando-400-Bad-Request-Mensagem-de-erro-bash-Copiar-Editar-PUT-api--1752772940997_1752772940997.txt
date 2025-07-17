@@ -1,0 +1,89 @@
+❌ ERRO 1 – PUT tarefa retornando 400 (Bad Request)
+🔍 Mensagem de erro:
+bash
+Copiar
+Editar
+PUT /api/monde/tarefas/{id} → 400 Bad Request
+📌 Causa:
+A requisição está enviando dados incompletos ou malformados.
+
+🛠️ Verificações e Correções:
+status está undefined:
+
+js
+Copiar
+Editar
+status: undefined,
+Esse campo é obrigatório e precisa estar definido. Corrija o mapeamento para garantir que o campo status_id esteja sendo passado corretamente no body.
+
+completed está como false mas sem status correspondente:
+Se a tarefa não estiver concluída, certifique-se de que está passando o status_id correto que represente “pendente”, “em andamento” ou outro estado válido.
+
+Possível payload inválido (corrigido):
+
+ts
+Copiar
+Editar
+const payload = {
+  title: tarefa.title,
+  description: tarefa.description,
+  due: tarefa.due,
+  status: tarefa.status, // Certifique-se que isso seja o ID correto do status
+  person_id: tarefa.person?.id,
+  company_id: tarefa.company?.id,
+  responsible_user_id: tarefa.responsible_user?.id,
+  priority_id: tarefa.priority?.id,
+  category_id: tarefa.category?.id,
+  situation_id: tarefa.situation?.id,
+  completed: tarefa.completed ?? false
+}
+Dica útil:
+Faça um console.log(payload) antes do fetch para garantir que tudo está preenchido corretamente.
+
+❌ ERRO 2 – POST histórico 404 (Not Found)
+🔍 Mensagem de erro:
+bash
+Copiar
+Editar
+POST /api/monde/tarefas/{id}/historico → 404 Not Found
+📌 Causa:
+O endpoint está errado. Ele não existe nesse formato.
+
+🛠️ Correção:
+O endpoint correto para criar histórico de tarefa é:
+
+bash
+Copiar
+Editar
+POST /api/v2/task_historics
+🧾 Payload correto esperado pela API:
+json
+Copiar
+Editar
+{
+  "task_id": "e77068cc-3a6a-4bb8-aa1a-370a77869bd3",
+  "description": "Texto do histórico atualizado"
+}
+✅ Exemplo no código:
+ts
+Copiar
+Editar
+await fetch('/api/v2/task_historics', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`
+  },
+  body: JSON.stringify({
+    task_id: tarefa.id,
+    description: tarefa.historico
+  })
+});
+✅ Checklist Final de Correção
+Item	Status Esperado
+status_id	Obrigatório e válido
+completed	true/false
+company_id	ID da empresa (não null)
+person_id, responsible_user_id	IDs válidos
+Endpoint do histórico correto	/api/v2/task_historics
+

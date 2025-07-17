@@ -97,39 +97,18 @@ export default function Dashboard() {
   const getPersonName = (personId: string) => {
     if (!personId) return 'Cliente não encontrado';
     
-    console.log('🔍 Buscando pessoa com ID:', personId);
-    console.log('📋 Clientes disponíveis:', clients.length);
-    
-    // Procurar nos dados incluídos das tarefas (included) primeiro
-    const response = JSON.parse(localStorage.getItem('lastTasksResponse') || '{}');
-    if (response.included) {
-      console.log('📋 Dados incluídos:', response.included.length, 'itens');
-      console.log('🔍 Procurando por ID:', personId);
-      
-      const person = response.included.find((item: any) => item.type === 'people' && item.id === personId);
-      if (person) {
-        console.log('✅ Pessoa encontrada nos includes:', person);
-        return person.attributes?.name || person.attributes?.['company-name'] || 'Cliente não encontrado';
-      } else {
-        console.log('❌ Pessoa não encontrada nos includes');
-        // Mostrar IDs disponíveis para debug
-        const peopleIds = response.included.filter((item: any) => item.type === 'people').map((p: any) => p.id);
-        console.log('📋 IDs de pessoas disponíveis:', peopleIds);
-        
-        // Mostrar dados detalhados dos primeiros 3 people para debug
-        const peopleData = response.included.filter((item: any) => item.type === 'people').slice(0, 3);
-        console.log('📋 Primeiros 3 people nos includes:', peopleData);
-      }
-    }
-    
-    // Depois, procurar nos clientes carregados
+    // Buscar primeiro nos clientes carregados
     const client = clients.find((client: any) => client.id === personId);
     if (client) {
-      console.log('✅ Cliente encontrado:', client.attributes?.name);
       return client.attributes?.name || client.attributes?.['company-name'] || client.name || 'Cliente não encontrado';
     }
     
-    console.log('❌ Cliente não encontrado para ID:', personId);
+    // Buscar nos usuários carregados
+    const user = users.find((user: any) => user.id === personId);
+    if (user) {
+      return user.attributes?.name || user.name || 'Cliente não encontrado';
+    }
+    
     return 'Cliente não encontrado';
   };
 
@@ -137,19 +116,16 @@ export default function Dashboard() {
   const getPersonEmail = (personId: string) => {
     if (!personId) return '';
     
-    // Primeiro, procurar nos clientes carregados
+    // Buscar primeiro nos clientes carregados
     const client = clients.find((client: any) => client.id === personId);
     if (client) {
       return client.attributes?.email || client.email || '';
     }
     
-    // Procurar nos dados incluídos das tarefas
-    const response = JSON.parse(localStorage.getItem('lastTasksResponse') || '{}');
-    if (response.included) {
-      const person = response.included.find((item: any) => item.type === 'people' && item.id === personId);
-      if (person) {
-        return person.attributes?.email || '';
-      }
+    // Buscar nos usuários carregados
+    const user = users.find((user: any) => user.id === personId);
+    if (user) {
+      return user.attributes?.email || '';
     }
     
     return '';
@@ -159,18 +135,16 @@ export default function Dashboard() {
   const getPersonPhone = (personId: string) => {
     if (!personId) return '';
     
+    // Buscar primeiro nos clientes carregados
     const client = clients.find((client: any) => client.id === personId);
     if (client) {
       return client.attributes?.phone || client.attributes?.['business-phone'] || client.phone || '';
     }
     
-    // Procurar nos dados incluídos das tarefas
-    const response = JSON.parse(localStorage.getItem('lastTasksResponse') || '{}');
-    if (response.included) {
-      const person = response.included.find((item: any) => item.type === 'people' && item.id === personId);
-      if (person) {
-        return person.attributes?.phone || person.attributes?.['business-phone'] || '';
-      }
+    // Buscar nos usuários carregados
+    const user = users.find((user: any) => user.id === personId);
+    if (user) {
+      return user.attributes?.phone || user.attributes?.['business-phone'] || '';
     }
     
     return '';
@@ -180,18 +154,16 @@ export default function Dashboard() {
   const getPersonMobile = (personId: string) => {
     if (!personId) return '';
     
+    // Buscar primeiro nos clientes carregados
     const client = clients.find((client: any) => client.id === personId);
     if (client) {
       return client.attributes?.['mobile-phone'] || client.attributes?.mobile || client.mobile || '';
     }
     
-    // Procurar nos dados incluídos das tarefas
-    const response = JSON.parse(localStorage.getItem('lastTasksResponse') || '{}');
-    if (response.included) {
-      const person = response.included.find((item: any) => item.type === 'people' && item.id === personId);
-      if (person) {
-        return person.attributes?.['mobile-phone'] || person.attributes?.mobile || '';
-      }
+    // Buscar nos usuários carregados
+    const user = users.find((user: any) => user.id === personId);
+    if (user) {
+      return user.attributes?.['mobile-phone'] || user.attributes?.mobile || '';
     }
     
     return '';
@@ -203,19 +175,16 @@ export default function Dashboard() {
   const getPersonCompany = (personId: string) => {
     if (!personId) return 'Sem empresa';
     
-    // Procurar nos dados incluídos das tarefas primeiro
-    const response = JSON.parse(localStorage.getItem('lastTasksResponse') || '{}');
-    if (response.included) {
-      const person = response.included.find((item: any) => item.type === 'people' && item.id === personId);
-      if (person) {
-        console.log('✅ Empresa encontrada para pessoa:', person.attributes?.['company-name'] || person.attributes?.company || 'Sem empresa');
-        return person.attributes?.['company-name'] || person.attributes?.company || 'Sem empresa';
-      }
-    }
-    
+    // Buscar primeiro nos clientes carregados
     const client = clients.find((client: any) => client.id === personId);
     if (client) {
       return client.attributes?.['company-name'] || client.attributes?.company || client.company || 'Sem empresa';
+    }
+    
+    // Buscar nos usuários carregados
+    const user = users.find((user: any) => user.id === personId);
+    if (user) {
+      return user.attributes?.['company-name'] || user.attributes?.company || 'Sem empresa';
     }
     
     return 'Sem empresa';

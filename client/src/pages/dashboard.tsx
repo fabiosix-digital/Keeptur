@@ -95,27 +95,38 @@ export default function Dashboard() {
 
   // Função para obter nome da pessoa/cliente
   const getPersonName = (personId: string) => {
+    if (!personId) return 'Cliente não encontrado';
+    
+    console.log('🔍 Buscando pessoa com ID:', personId);
+    console.log('📋 Clientes disponíveis:', clients.length);
+    
     // Primeiro, procurar nos clientes carregados
     const client = clients.find((client: any) => client.id === personId);
     if (client) {
+      console.log('✅ Cliente encontrado:', client.attributes?.name);
       return client.attributes?.name || client.attributes?.['company-name'] || client.name || 'Cliente não encontrado';
     }
     
     // Se não encontrar nos clientes, procurar nas tarefas (dados incluídos)
     for (const task of allTasks) {
       if (task.relationships?.person?.data?.id === personId) {
+        console.log('🔍 Verificando tarefa:', task.id);
         // Verificar se tem dados do cliente no próprio objeto da tarefa
         if (task.client_name) {
+          console.log('✅ Nome do cliente na tarefa:', task.client_name);
           return task.client_name;
         }
       }
     }
     
+    console.log('❌ Cliente não encontrado para ID:', personId);
     return 'Cliente não encontrado';
   };
 
   // Função para obter email da pessoa/cliente
   const getPersonEmail = (personId: string) => {
+    if (!personId) return '';
+    
     // Primeiro, procurar nos clientes carregados
     const client = clients.find((client: any) => client.id === personId);
     if (client) {
@@ -134,6 +145,8 @@ export default function Dashboard() {
 
   // Função para obter telefone da pessoa/cliente
   const getPersonPhone = (personId: string) => {
+    if (!personId) return '';
+    
     const client = clients.find((client: any) => client.id === personId);
     if (client) {
       return client.attributes?.phone || client.attributes?.['business-phone'] || client.phone || '';
@@ -143,6 +156,8 @@ export default function Dashboard() {
 
   // Função para obter celular da pessoa/cliente
   const getPersonMobile = (personId: string) => {
+    if (!personId) return '';
+    
     const client = clients.find((client: any) => client.id === personId);
     if (client) {
       return client.attributes?.['mobile-phone'] || client.attributes?.mobile || client.mobile || '';
@@ -154,6 +169,8 @@ export default function Dashboard() {
   
   // Função para obter empresa da pessoa/cliente
   const getPersonCompany = (personId: string) => {
+    if (!personId) return '';
+    
     const client = clients.find((client: any) => client.id === personId);
     if (client) {
       return client.attributes?.['company-name'] || client.attributes?.company || client.company || '';
@@ -2091,6 +2108,19 @@ export default function Dashboard() {
         console.error('Erro na requisição:', error);
       }
     };
+
+    // Função para salvar e fechar modal
+    const saveAndCloseModal = async () => {
+      // Se há texto de atualização, salva o histórico primeiro
+      if (updateText.trim()) {
+        await saveTaskHistory();
+      }
+      
+      // Fecha o modal
+      setShowTaskModal(false);
+      setSelectedTask(null);
+      setUpdateText('');
+    };
     
     // Função para concluir tarefa
     const completeTask = async () => {
@@ -2368,7 +2398,7 @@ export default function Dashboard() {
                         className="form-input w-full px-3 py-2 text-sm"
                         style={{ backgroundColor: "var(--bg-secondary)" }}
                         value={selectedTask?.relationships?.person?.data?.id ? 
-                          (clients.find((client: any) => client.id === selectedTask.relationships.person.data.id)?.attributes?.['company-name'] || '') : 
+                          (getPersonCompany(selectedTask.relationships.person.data.id) || 'Sem empresa') : 
                           'Empresa não encontrada'
                         }
                         readOnly
@@ -2386,7 +2416,9 @@ export default function Dashboard() {
                         type="email"
                         name="email"
                         className="form-input w-full px-3 py-2 text-sm text-blue-600 underline"
-                        value={getPersonEmail(selectedTask?.relationships?.person?.data?.id)}
+                        value={selectedTask?.relationships?.person?.data?.id ? 
+                          getPersonEmail(selectedTask.relationships.person.data.id) : ''
+                        }
                         style={{ backgroundColor: "var(--bg-secondary)" }}
                         readOnly
                       />
@@ -2398,7 +2430,9 @@ export default function Dashboard() {
                       <input
                         type="text"
                         className="form-input w-full px-3 py-2 text-sm"
-                        value={getPersonPhone(selectedTask?.relationships?.person?.data?.id)}
+                        value={selectedTask?.relationships?.person?.data?.id ? 
+                          getPersonPhone(selectedTask.relationships.person.data.id) : ''
+                        }
                         style={{ backgroundColor: "var(--bg-secondary)" }}
                         readOnly
                       />
@@ -2411,7 +2445,9 @@ export default function Dashboard() {
                         <input
                           type="text"
                           className="form-input flex-1 px-3 py-2 text-sm"
-                          value={getPersonMobile(selectedTask?.relationships?.person?.data?.id)}
+                          value={selectedTask?.relationships?.person?.data?.id ? 
+                            getPersonMobile(selectedTask.relationships.person.data.id) : ''
+                          }
                           style={{ backgroundColor: "var(--bg-secondary)" }}
                           readOnly
                         />
@@ -2637,7 +2673,7 @@ export default function Dashboard() {
                   </button>
                   <button
                     type="button"
-                    onClick={saveTaskHistory}
+                    onClick={saveAndCloseModal}
                     className="px-4 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700"
                   >
                     Salvar

@@ -766,42 +766,7 @@ export default function Dashboard() {
 
           {/* Filtros */}
           <div className="flex flex-wrap gap-3">
-            {/* Radio para tarefas abertas/concluídas */}
-            <div
-              className="flex items-center gap-4 px-4 py-2 rounded-lg"
-              style={{ backgroundColor: "var(--card-bg)" }}
-            >
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  name="taskStatus"
-                  checked={!showCompletedTasks}
-                  onChange={() => setShowCompletedTasks(false)}
-                  className="form-radio"
-                />
-                <span
-                  className="text-sm"
-                  style={{ color: "var(--text-primary)" }}
-                >
-                  Tarefas Abertas
-                </span>
-              </label>
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  name="taskStatus"
-                  checked={showCompletedTasks}
-                  onChange={() => setShowCompletedTasks(true)}
-                  className="form-radio"
-                />
-                <span
-                  className="text-sm"
-                  style={{ color: "var(--text-primary)" }}
-                >
-                  Tarefas Concluídas
-                </span>
-              </label>
-            </div>
+            
 
             <div className="flex gap-2">
               <div className="relative">

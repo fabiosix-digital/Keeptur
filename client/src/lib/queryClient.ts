@@ -1,7 +1,17 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
+// Global state para controlar o modal de token expirado
+let tokenExpiredHandler: (() => void) | null = null;
+
+export function setTokenExpiredHandler(handler: () => void) {
+  tokenExpiredHandler = handler;
+}
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
+    if (res.status === 401 && tokenExpiredHandler) {
+      tokenExpiredHandler();
+    }
     const text = (await res.text()) || res.statusText;
     throw new Error(`${res.status}: ${text}`);
   }

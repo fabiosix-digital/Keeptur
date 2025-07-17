@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../lib/auth';
 import { MondeAPI } from '../lib/monde-api';
 import { useTheme } from '../hooks/use-theme';
+import { TokenExpiredModal } from '../components/TokenExpiredModal';
+import { setTokenExpiredHandler } from '../lib/queryClient';
 import logoFull from '@assets/LOGO Lilas_1752695672079.png';
 import logoIcon from '@assets/ico Lilas_1752695703171.png';
 import '../modal.css';
@@ -33,6 +35,7 @@ export default function Dashboard() {
   const [taskHistoryTab, setTaskHistoryTab] = useState('detalhes');
   const [taskHistory, setTaskHistory] = useState<any[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+  const [showTokenExpiredModal, setShowTokenExpiredModal] = useState(false);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
   useEffect(() => {
@@ -42,6 +45,11 @@ export default function Dashboard() {
   }, [theme]);
 
   useEffect(() => {
+    // Configurar handler global para token expirado
+    setTokenExpiredHandler(() => {
+      setShowTokenExpiredModal(true);
+    });
+    
     const loadData = async () => {
       try {
         setLoading(true);
@@ -135,8 +143,8 @@ export default function Dashboard() {
       
       if (!response.ok) {
         if (response.status === 401) {
-          console.error('Token inválido, fazendo logout');
-          logout();
+          console.error('Token inválido, mostrando modal de re-login');
+          setShowTokenExpiredModal(true);
         }
         throw new Error('Erro ao carregar tarefas');
       }
@@ -244,6 +252,8 @@ export default function Dashboard() {
       if (response.ok) {
         const data = await response.json();
         setClients(data.data || []);
+      } else if (response.status === 401) {
+        setShowTokenExpiredModal(true);
       }
     } catch (error) {
       console.error('Erro ao pesquisar clientes:', error);
@@ -263,6 +273,8 @@ export default function Dashboard() {
       if (response.ok) {
         const data = await response.json();
         return data.data || [];
+      } else if (response.status === 401) {
+        setShowTokenExpiredModal(true);
       }
       return [];
     } catch (error) {
@@ -1799,6 +1811,12 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+      {/* Modal de token expirado */}
+      <TokenExpiredModal
+        isOpen={showTokenExpiredModal}
+        onClose={() => setShowTokenExpiredModal(false)}
+      />
     </div>
   );
 }

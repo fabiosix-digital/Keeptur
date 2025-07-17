@@ -581,8 +581,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const taskId = req.params.id;
       console.log('Tentando buscar histórico para task ID:', taskId);
       
-      // Usar filtro task_id conforme documentação, ordenado por data decrescente
-      const mondeUrl = `https://web.monde.com.br/api/v2/task-historics?task_id=${taskId}&include=person&page[size]=50&sort=-date-time`;
+      // Usar o endpoint específico da tarefa para buscar histórico relacionado
+      const mondeUrl = `https://web.monde.com.br/api/v2/tasks/${taskId}/task-historics?include=person&page[size]=50&sort=-date-time`;
       console.log('URL do histórico:', mondeUrl);
       console.log('Token sendo usado:', req.sessao.access_token ? 'Token presente' : 'Token ausente');
       
@@ -605,16 +605,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Processar dados se existirem
       if (rawData.data && Array.isArray(rawData.data)) {
-        // Filtrar apenas históricos da tarefa específica
-        const filteredData = rawData.data.filter((history: any) => {
-          // Verificar se o histórico pertence à tarefa solicitada
-          const historyTaskId = history.relationships?.task?.data?.id;
-          return historyTaskId === taskId;
-        });
-        
         const processedData = {
           ...rawData,
-          data: filteredData.map((history: any) => {
+          data: rawData.data.map((history: any) => {
             const processedHistory = { ...history };
             
             // Processar relacionamentos se existirem
@@ -641,7 +634,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           })
         };
         
-        console.log('📋 Histórico filtrado:', filteredData.length, 'entradas para tarefa', taskId);
+        console.log('📋 Histórico específico da tarefa:', rawData.data.length, 'entradas para tarefa', taskId);
         res.status(mondeResponse.status).json(processedData);
       } else {
         // Se não há dados, retornar estrutura vazia

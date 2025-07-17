@@ -300,16 +300,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('✅ Filtro categoria aplicado:', req.query.category_id);
       }
       
-      // 👨‍💼 Filtro de responsável (usar assignee_id ao invés de responsible_id)
+      // 👨‍💼 Filtro de responsável (remover filtro pois não é suportado pela API)
+      // A API do Monde não suporta filtro por responsável específico
+      // Vamos filtrar no frontend após receber os dados
       if (req.query.responsible_id) {
-        queryParams.append('filter[assignee_id]', req.query.responsible_id);
-        console.log('✅ Filtro responsável aplicado:', req.query.responsible_id);
+        console.log('⚠️ Filtro responsável será aplicado no frontend:', req.query.responsible_id);
       }
       
-      // 🧾 Filtro de cliente (usar person_id ao invés de client_id)
+      // 🧾 Filtro de cliente (remover filtro pois não é suportado pela API)
+      // A API do Monde não suporta filtro por cliente específico
+      // Vamos filtrar no frontend após receber os dados
       if (req.query.client_id) {
-        queryParams.append('filter[person_id]', req.query.client_id);
-        console.log('✅ Filtro cliente aplicado:', req.query.client_id);
+        console.log('⚠️ Filtro cliente será aplicado no frontend:', req.query.client_id);
       }
       
       // 📅 Filtros de data (usando parâmetros de query start_date e end_date)
@@ -403,7 +405,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }) || []
       };
       
-      res.status(mondeResponse.status).json(processedData);
+      // Filtrar tarefas no backend após processar
+      let filteredTasks = processedData.data;
+      
+      // Filtro de responsável (backend)
+      if (req.query.responsible_id) {
+        filteredTasks = filteredTasks.filter((task: any) => {
+          const assigneeId = task.relationships?.assignee?.data?.id;
+          return assigneeId === req.query.responsible_id;
+        });
+        console.log('✅ Filtro responsável aplicado no backend:', filteredTasks.length, 'tarefas');
+      }
+      
+      // Filtro de cliente (backend)
+      if (req.query.client_id) {
+        filteredTasks = filteredTasks.filter((task: any) => {
+          const personId = task.relationships?.person?.data?.id;
+          return personId === req.query.client_id;
+        });
+        console.log('✅ Filtro cliente aplicado no backend:', filteredTasks.length, 'tarefas');
+      }
+      
+      const finalData = {
+        ...processedData,
+        data: filteredTasks
+      };
+      
+      res.status(mondeResponse.status).json(finalData);
     } catch (error) {
       console.error("Erro ao buscar tarefas:", error);
       res.status(500).json({ message: "Erro ao buscar tarefas" });

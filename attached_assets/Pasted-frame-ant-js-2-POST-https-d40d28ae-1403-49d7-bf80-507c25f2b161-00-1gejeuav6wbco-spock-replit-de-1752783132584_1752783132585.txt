@@ -1,0 +1,66 @@
+frame_ant.js:2 
+ POST https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/monde/tarefas/e77068cc-3a6a-4bb8-aa1a-370a77869bd3/anexos 500 (Internal Server Error)
+window.fetch	@	frame_ant.js:2
+onClick	@	dashboard.tsx:2738
+Console.js:61 Erro ao fazer upload dos anexos
+Mt.forEach.n.<computed>	@	Console.js:61
+onClick	@	dashboard.tsx:2773
+frame_ant.js:2 
+ POST https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/monde/tarefas/e77068cc-3a6a-4bb8-aa1a-370a77869bd3/anexos 500 (Internal Server Error)
+Console.js:61 Erro ao fazer upload dos anexos
+Mt.forEach.n.<computed>	@	Console.js:61
+onClick	@	dashboard.tsx:2773
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.
+e	@	frame_ant.js:2
+s	@	frame_ant.js:2
+Promise.then		
+e	@	frame_ant.js:2
+u	@	frame_ant.js:2
+Promise.then		
+e	@	frame_ant.js:2
+u	@	frame_ant.js:2
+(anônimo)	@	frame_ant.js:2
+(anônimo)	@	frame_ant.js:2
+s	@	frame_ant.js:2
+window.fetch	@	frame_ant.js:2
+(anônimo)	@	_app-c8f6cc98a14c1088.js:38
+(anônimo)	@	_app-c8f6cc98a14c1088.js:25
+e	@	_app-c8f6cc98a14c1088.js:14
+t.subscribe	@	_app-c8f6cc98a14c1088.js:14
+e.consumeQueue	@	_app-c8f6cc98a14c1088.js:25
+(anônimo)	@	_app-c8f6cc98a14c1088.js:25
+n	@	_app-c8f6cc98a14c1088.js:38
+setTimeout		
+(anônimo)	@	_app-c8f6cc98a14c1088.js:38
+e.scheduleQueueConsumption	@	_app-c8f6cc98a14c1088.js:25
+(anônimo)	@	_app-c8f6cc98a14c1088.js:25
+e	@	_app-c8f6cc98a14c1088.js:14
+t.subscribe	@	_app-c8f6cc98a14c1088.js:14
+(anônimo)	@	_app-c8f6cc98a14c1088.js:25
+e	@	_app-c8f6cc98a14c1088.js:14
+t.subscribe	@	_app-c8f6cc98a14c1088.js:14
+e.try	@	_app-c8f6cc98a14c1088.js:25
+e.start	@	_app-c8f6cc98a14c1088.js:25
+t.request	@	_app-c8f6cc98a14c1088.js:25
+(anônimo)	@	_app-c8f6cc98a14c1088.js:14
+(anônimo)	@	_app-c8f6cc98a14c1088.js:14
+(anônimo)	@	_app-c8f6cc98a14c1088.js:25
+(anônimo)	@	_app-c8f6cc98a14c1088.js:14
+e.execute	@	_app-c8f6cc98a14c1088.js:14
+e.getObservableFromLink	@	_app-c8f6cc98a14c1088.js:11
+(anônimo)	@	_app-c8f6cc98a14c1088.js:11
+(anônimo)	@	_app-c8f6cc98a14c1088.js:11
+(anônimo)	@	_app-c8f6cc98a14c1088.js:11
+(anônimo)	@	_app-c8f6cc98a14c1088.js:11
+s	@	_app-c8f6cc98a14c1088.js:11
+e.mutate	@	_app-c8f6cc98a14c1088.js:11
+e.mutate	@	_app-c8f6cc98a14c1088.js:11
+(anônimo)	@	_app-c8f6cc98a14c1088.js:14
+(anônimo)	@	_app-c8f6cc98a14c1088.js:40
+(anônimo)	@	main-665079992d3a61d9.js:1
+n	@	main-665079992d3a61d9.js:1
+u	@	main-665079992d3a61d9.js:1
+(anônimo)	@	main-665079992d3a61d9.js:1
+(anônimo)	@	main-665079992d3a61d9.js:1
+n	@	_app-c8f6cc98a14c1088.js:38
+

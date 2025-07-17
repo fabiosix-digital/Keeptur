@@ -262,13 +262,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Filtro para tarefas criadas pelo usuário
-      if (req.query['filter[created_by]'] === 'me' || req.query.filter?.created_by === 'me') {
+      if (req.query['filter[created_by]'] === 'me') {
         queryParams.append('filter[created_by]', 'me');
       }
       
-      // Se não houver filtro específico e não for 'all', assumir que queremos tarefas do usuário por padrão
-      if (!req.query.assignee && !req.query['filter[created_by]'] && !req.query.filter?.created_by && !req.query.all) {
+      // Se for 'all=true', não adicionar filtros (mostrar todas as tarefas da empresa)
+      if (req.query.all === 'true') {
+        // Não adicionar filtros, deixar API retornar todas as tarefas
+        console.log('Mostrando TODAS as tarefas da empresa');
+      } else if (!req.query.assignee && !req.query['filter[created_by]']) {
+        // Se não houver filtro específico, mostrar tarefas do usuário por padrão
         queryParams.append('filter[assigned]', 'user_tasks');
+        console.log('Aplicando filtro padrão: user_tasks');
       }
       
       // Filtros de status

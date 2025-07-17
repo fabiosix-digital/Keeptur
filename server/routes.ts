@@ -750,11 +750,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   await initializePlans();
 
-  // Endpoint para buscar dados do usuário atual com empresas
+  // Endpoint para buscar dados do usuário atual (usando people endpoint)
   app.get("/api/monde/users/me", authenticateToken, async (req: any, res) => {
     try {
+      // Buscar pessoas (incluindo usuários da empresa)
       const mondeResponse = await fetch(
-        "https://web.monde.com.br/api/v2/users/me",
+        "https://web.monde.com.br/api/v2/people",
         {
           method: "GET",
           headers: {
@@ -768,62 +769,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const data = await mondeResponse.json();
       
       if (data.errors) {
-        console.log("⚠️ Erro na API de usuário atual:", data.errors[0]?.title);
+        console.log("⚠️ Erro na API de people:", data.errors[0]?.title);
         res.json({ user: { companies: [] } });
         return;
       }
       
-      console.log("✅ Dados do usuário atual carregados:", data.user?.name || "Usuário");
-      res.json(data);
+      // Filtrar apenas usuários (não clientes)
+      const users = data.data?.filter((person: any) => 
+        person.attributes?.person_type === 'user'
+      ) || [];
+      
+      // Extrair empresas únicas dos usuários
+      const companiesSet = new Set();
+      users.forEach((user: any) => {
+        if (user.attributes?.company_name) {
+          companiesSet.add(JSON.stringify({
+            id: user.attributes.company_id || user.id,
+            name: user.attributes.company_name
+          }));
+        }
+      });
+      
+      const companies = Array.from(companiesSet).map(c => JSON.parse(c as string));
+      
+      console.log("✅ Usuários encontrados:", users.length);
+      console.log("✅ Empresas extraídas:", companies.length);
+      
+      res.json({ 
+        user: { 
+          companies: companies 
+        },
+        users: users
+      });
     } catch (error) {
       console.error("Erro ao buscar dados do usuário:", error);
       res.status(500).json({ message: "Erro ao buscar dados do usuário" });
     }
   });
 
-  // Endpoint para buscar usuários/agentes por empresa
+  // Endpoint para buscar usuários/agentes (usando people endpoint)
   app.get("/api/monde/users", authenticateToken, async (req: any, res) => {
     try {
-      const companyIds = req.query.companies || [];
-      let url = "https://web.monde.com.br/api/v2/users";
-      
-      // Adicionar filtro por empresas se fornecido
-      if (Array.isArray(companyIds) && companyIds.length > 0) {
-        const params = companyIds.map(id => `companies[]=${id}`).join('&');
-        url += `?${params}`;
-      }
-
-      const mondeResponse = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/vnd.api+json",
-          Accept: "application/vnd.api+json",
-          Authorization: `Bearer ${req.sessao.access_token}`,
-        },
-      });
-
-      const data = await mondeResponse.json();
-      
-      if (data.errors) {
-        console.log("⚠️ Erro na API de usuários:", data.errors[0]?.title);
-        res.json({ data: [] });
-        return;
-      }
-      
-      console.log("✅ Usuários/agentes carregados:", Array.isArray(data) ? data.length : 0);
-      res.json({ data: Array.isArray(data) ? data : [] });
-    } catch (error) {
-      console.error("Erro ao buscar usuários:", error);
-      res.status(500).json({ message: "Erro ao buscar usuários" });
-    }
-  });
-
-  // Endpoint para buscar empresas do usuário (removido - será obtido via /users/me)
-  app.get("/api/monde/empresas", authenticateToken, async (req: any, res) => {
-    try {
-      // Buscar dados do usuário atual com empresas
       const mondeResponse = await fetch(
-        "https://web.monde.com.br/api/v2/users/me",
+        "https://web.monde.com.br/api/v2/people",
         {
           method: "GET",
           headers: {
@@ -837,13 +825,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const data = await mondeResponse.json();
       
       if (data.errors) {
-        console.log("⚠️ Erro na API de usuário atual:", data.errors[0]?.title);
+        console.log("⚠️ Erro na API de people:", data.errors[0]?.title);
         res.json({ data: [] });
         return;
       }
       
-      const companies = data.user?.companies || [];
-      console.log("✅ Empresas do usuário carregadas:", companies.length);
+      // Filtrar apenas usuários (não clientes)
+      const users = data.data?.filter((person: any) => 
+        person.attributes?.person_type === 'user'
+      ) || [];
+      
+      console.log("✅ Usuários/agentes carregados:", users.length);
+      res.json({ data: users });
+    } catch (error) {
+      console.error("Erro ao buscar usuários:", error);
+      res.status(500).json({ message: "Erro ao buscar usuários" });
+    }
+  });
+
+  // Endpoint para buscar empresas (usando people endpoint)
+  app.get("/api/monde/empresas", authenticateToken, async (req: any, res) => {
+    try {
+      const mondeResponse = await fetch(
+        "https://web.monde.com.br/api/v2/people",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/vnd.api+json",
+            Accept: "application/vnd.api+json",
+            Authorization: `Bearer ${req.sessao.access_token}`,
+          },
+        }
+      );
+
+      const data = await mondeResponse.json();
+      
+      if (data.errors) {
+        console.log("⚠️ Erro na API de people:", data.errors[0]?.title);
+        res.json({ data: [] });
+        return;
+      }
+      
+      // Filtrar apenas empresas/clientes
+      const companies = data.data?.filter((person: any) => 
+        person.attributes?.person_type === 'company'
+      ) || [];
+      
+      console.log("✅ Empresas/clientes carregadas:", companies.length);
       res.json({ data: companies });
     } catch (error) {
       console.error("Erro ao buscar empresas:", error);

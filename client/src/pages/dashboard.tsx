@@ -30,7 +30,7 @@ export default function Dashboard() {
   const [taskSearchTerm, setTaskSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedPriority, setSelectedPriority] = useState("");
-  const [selectedAssignee, setSelectedAssignee] = useState("");
+  
   const [showTaskDetails, setShowTaskDetails] = useState(false);
   const [selectedTaskDetails, setSelectedTaskDetails] = useState<any>(null);
   const [taskHistoryTab, setTaskHistoryTab] = useState("detalhes");
@@ -335,7 +335,6 @@ export default function Dashboard() {
     taskSearchTerm,
     selectedCategory,
     selectedPriority,
-    selectedAssignee,
     searchTerm,
   ]);
 
@@ -378,12 +377,6 @@ export default function Dashboard() {
     if (selectedCategory) {
       filtered = filtered.filter((task: any) =>
         task.relationships?.category?.data?.id === selectedCategory,
-      );
-    }
-
-    if (selectedAssignee) {
-      filtered = filtered.filter((task: any) =>
-        task.relationships?.assignee?.data?.id === selectedAssignee,
       );
     }
 
@@ -518,9 +511,6 @@ export default function Dashboard() {
         break;
       case "priority":
         setSelectedPriority(value);
-        break;
-      case "assignee":
-        setSelectedAssignee(value);
         break;
       case "taskFilter":
         setTaskFilter(value);
@@ -883,17 +873,7 @@ export default function Dashboard() {
               <option value="medium">Média</option>
               <option value="high">Alta</option>
             </select>
-            <select
-              className="form-input px-3 py-2 rounded-lg text-sm"
-              value={selectedAssignee}
-              onChange={(e) => {
-                setSelectedAssignee(e.target.value);
-                setTimeout(reloadTasks, 100);
-              }}
-            >
-              <option value="">Todos os Responsáveis</option>
-              <option value="me">Minhas Tarefas</option>
-            </select>
+            
           </div>
 
           {/* Lista View */}

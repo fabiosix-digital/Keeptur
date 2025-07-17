@@ -372,17 +372,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 
                 processedTask.client_company = companyName;
                 
-                // Debug do cliente para verificar campos disponíveis
-                if (personData.id === '9c409497-5b93-49fa-b6c2-f8381bc880d5') {
-                  console.log('🔍 Debug cliente Fabio Silva:', {
-                    id: personData.id,
-                    attributes: personData.attributes,
+                // Debug para identificar campos disponíveis apenas para a tarefa específica
+                if (task.id === 'e77068cc-3a6a-4bb8-aa1a-370a77869bd3') {
+                  console.log('🔍 Debug cliente da tarefa específica:', {
+                    task_id: task.id,
+                    client_id: personData.id,
+                    name: personData.attributes.name,
                     company_fields: {
                       'company-name': personData.attributes['company-name'],
                       'company': personData.attributes.company,
                       'company_name': personData.attributes['company_name'],
                       'companyName': personData.attributes.companyName
-                    }
+                    },
+                    all_attributes: Object.keys(personData.attributes)
                   });
                 }
               }

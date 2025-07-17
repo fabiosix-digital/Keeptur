@@ -2349,19 +2349,24 @@ export default function Dashboard() {
                       
                       if (historyResponse.ok) {
                         console.log('✅ Histórico salvo com sucesso');
+                        // Recarregar histórico após salvar
+                        loadTaskHistory(selectedTask.id);
                       } else {
                         console.warn('⚠️ Erro ao salvar histórico, mas tarefa foi salva');
                       }
                     } catch (historyError) {
                       console.warn('⚠️ Erro ao salvar histórico:', historyError);
                     }
+                  } else {
+                    // Se não há histórico para salvar, ainda assim recarregar
+                    loadTaskHistory(selectedTask.id);
                   }
                   
                   // Fechar modal e recarregar dados
                   setShowTaskModal(false);
                   setSelectedTask(null);
                   setNewHistoryText('');
-                  window.location.reload();
+                  loadTasks(); // Recarregar lista de tarefas em vez de reload da página
                 } else {
                   console.error('❌ Erro ao salvar tarefa:', result);
                   alert('Erro ao salvar tarefa. Verifique os dados e tente novamente.');

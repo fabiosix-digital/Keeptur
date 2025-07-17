@@ -1,0 +1,64 @@
+❌ 1. EMPRESA NÃO EXIBIDA
+🧠 Causa provável:
+A empresa associada ao cliente (pessoa) não está sendo corretamente buscada ou vinculada ao objeto da tarefa no momento da renderização do modal.
+
+📍Análise técnica:
+Na função handleOpenTask, você faz a chamada:
+
+ts
+Copiar
+Editar
+const foundPessoa = pessoas.find(p => p.id === task.relationships?.pessoa?.data?.id);
+Mas não há chamada subsequente para buscar a empresa relacionada a essa pessoa (cliente). Ou seja, mesmo que a pessoa tenha uma empresa associada no backend, essa empresa não está sendo carregada nem exibida no modal.
+
+✅ Correção sugerida:
+Após encontrar a pessoa, adicione algo como:
+
+ts
+Copiar
+Editar
+const empresaDaPessoa = foundPessoa?.relationships?.empresa?.data?.id
+  ? empresas.find(e => e.id === foundPessoa.relationships.empresa.data.id)
+  : null;
+E então inclua no seu modal:
+
+tsx
+Copiar
+Editar
+{empresaDaPessoa ? (
+  <p><strong>Empresa:</strong> {empresaDaPessoa.attributes.nome}</p>
+) : (
+  <p><strong>Empresa:</strong> Sem empresa</p>
+)}
+⚠️ Certifique-se de que a lista empresas esteja previamente carregada, assim como pessoas.
+
+❌ 2. HISTÓRICO NÃO REFLETE ATUALIZAÇÕES RECENTES
+🧠 Causa provável:
+O histórico está sendo carregado uma única vez ao abrir a tarefa, e não está sendo recarregado após salvar uma atualização. Além disso, pode estar mostrando históricos de outras tarefas se o filtro por ID não estiver implementado corretamente.
+
+📍Análise técnica:
+Você chama:
+
+ts
+Copiar
+Editar
+const loadHistorico = async (taskId: string) => {
+  // ...
+  const response = await api.get(`/task-historico?filter[tarefa_id]=${taskId}`);
+  setHistorico(response.data);
+};
+Mas essa função precisa ser chamada novamente após o handleSave (salvar a tarefa), senão o histórico exibido continuará o mesmo.
+
+✅ Correção sugerida:
+Dentro da função handleSave ou handleUpdateTask, após o .then(...) da atualização da tarefa, adicione:
+
+ts
+Copiar
+Editar
+await loadHistorico(task.id);
+⚠️ Além disso, verifique se o histórico está realmente sendo salvo com o ID da tarefa atual. No backend, o campo tarefa_id precisa estar sendo corretamente vinculado na hora de salvar o histórico.
+
+✅ Resumo final das correções:
+Problema	Causa	Solução
+Empresa não aparece	Empresa não está sendo buscada nem renderizada	Buscar empresa via foundPessoa.relationships.empresa e renderizar
+Histórico não atualiza	Histórico não é recarregado após Salvar	Chamar loadHistorico(task.id) após salvar

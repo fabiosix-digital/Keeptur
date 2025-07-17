@@ -256,13 +256,9 @@ export default function Dashboard() {
 
   // Recarregar tarefas quando necessário (mantém as existentes)
   const reloadTasks = async () => {
-    const tasksResponse = await loadAllTasks();
-    const tasks = tasksResponse?.data || [];
-
-    setAllTasks(tasks);
-    const filtered = getFilteredTasks();
-    setTasks(filtered);
-    setStats(calculateTaskStats(filtered));
+    const filteredTasks = await loadTasksWithFilter(taskFilter);
+    setTasks(filteredTasks);
+    setStats(calculateTaskStats(filteredTasks));
   };
 
   const handleSearchClients = async () => {
@@ -317,14 +313,9 @@ export default function Dashboard() {
 
   // Função para recarregar dados periodicamente
   const reloadTasksAndClients = async () => {
-    const tasksResponse = await loadAllTasks();
-    const tasks = tasksResponse?.data || [];
-
-    // Atualizar tarefas
-    setAllTasks(tasks);
-    const filtered = getFilteredTasks();
-    setTasks(filtered);
-    setStats(calculateTaskStats(filtered));
+    const filteredTasks = await loadTasksWithFilter(taskFilter);
+    setTasks(filteredTasks);
+    setStats(calculateTaskStats(filteredTasks));
 
     // Recarregar clientes se houver busca ativa
     if (searchTerm.trim()) {
@@ -963,7 +954,7 @@ export default function Dashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {getFilteredTasks().map((task, index) => (
+                    {tasks.map((task, index) => (
                       <tr key={task.id} className="table-row">
                         <td className="py-4 px-4">
                           <span

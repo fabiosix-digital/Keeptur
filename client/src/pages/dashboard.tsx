@@ -441,12 +441,20 @@ export default function Dashboard() {
 
   // Recarregar tarefas quando necessário (mantém as existentes)
   const reloadTasks = async () => {
-    const allTasksData = await loadAllTasks();
-    setAllTasks(allTasksData.data || []);
-    
-    const filteredTasks = getFilteredTasks(taskFilter);
-    setTasks(filteredTasks);
-    setStats(calculateTaskStats(filteredTasks));
+    try {
+      const allTasksData = await loadAllTasks();
+      const newTasks = allTasksData.data || [];
+      
+      // Atualizar estado das tarefas
+      setAllTasks(newTasks);
+      
+      // Aguardar um pouco para o estado ser atualizado
+      setTimeout(() => {
+        // Não chamar getFilteredTasks aqui, deixar o useEffect do taskFilter fazer isso
+      }, 50);
+    } catch (error) {
+      console.error('Erro ao recarregar tarefas:', error);
+    }
   };
 
   const handleSearchClients = async () => {
@@ -630,7 +638,8 @@ export default function Dashboard() {
 
   // Função para organizar tarefas por status no Kanban (mantida para compatibilidade)
   const getTasksByStatus = (status: string) => {
-    const filteredTasks = getFilteredTasksWithStatus();
+    // Usar as tarefas filtradas normalmente, não usar getFilteredTasksWithStatus
+    const filteredTasks = tasks;
 
     switch (status) {
       case "A Fazer":
@@ -648,7 +657,7 @@ export default function Dashboard() {
             task.attributes.status === "in_progress",
         );
       case "Concluído":
-        // Tarefas marcadas como concluídas
+        // Tarefas marcadas como concluídas - usar mesma lógica do filtro situação
         return filteredTasks.filter(
           (task: any) => task.attributes.completed === true,
         );
@@ -1012,7 +1021,6 @@ export default function Dashboard() {
                   value={startDate}
                   onChange={(e) => {
                     setStartDate(e.target.value);
-                    setTimeout(reloadTasks, 100);
                   }}
                 />
                 <span
@@ -1027,7 +1035,6 @@ export default function Dashboard() {
                   value={endDate}
                   onChange={(e) => {
                     setEndDate(e.target.value);
-                    setTimeout(reloadTasks, 100);
                   }}
                 />
               </div>
@@ -1048,14 +1055,14 @@ export default function Dashboard() {
             <button
               onClick={() => {
                 setTaskFilter('assigned_to_me');
-                setSelectedSituation('all');
-                setSelectedCategory('all');
-                setSelectedAssignee('all');
-                setSelectedClient('all');
+                setSelectedSituation('');
+                setSelectedCategory('');
+                setSelectedAssignee('');
+                setSelectedClient('');
                 setStartDate('');
                 setEndDate('');
                 setTaskSearchTerm('');
-                setTimeout(reloadTasks, 100);
+                // Não chamar reloadTasks, o useEffect do taskFilter irá recarregar
               }}
               className="form-input px-3 py-2 rounded-lg text-sm bg-gray-100 hover:bg-gray-200 transition-colors"
             >
@@ -1067,7 +1074,6 @@ export default function Dashboard() {
               value={selectedClient}
               onChange={(e) => {
                 setSelectedClient(e.target.value);
-                setTimeout(reloadTasks, 100);
               }}
             >
               <option value="">Todas as Empresas</option>
@@ -1084,7 +1090,6 @@ export default function Dashboard() {
               value={selectedSituation}
               onChange={(e) => {
                 setSelectedSituation(e.target.value);
-                setTimeout(reloadTasks, 100);
               }}
             >
               <option value="">Todas as Situações</option>
@@ -1364,45 +1369,7 @@ export default function Dashboard() {
                           </div>
                         </div>
                       ))}
-                    <div
-                      className="kanban-card rounded-lg p-4 cursor-move"
-                      draggable={true}
-                      onDragStart={(e) => handleDragStart(e, 2, "A Fazer")}
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <h4
-                          className="font-medium text-sm"
-                          style={{ color: "var(--text-primary)" }}
-                        >
-                          Ligação de Follow-up
-                        </h4>
-                        <span className="priority-badge-medium px-2 py-1 rounded-full text-xs font-medium">
-                          Média
-                        </span>
-                      </div>
-                      <p
-                        className="text-xs mb-3"
-                        style={{ color: "var(--text-tertiary)" }}
-                      >
-                        João Silva
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <span
-                          className="text-xs"
-                          style={{ color: "var(--text-secondary)" }}
-                        >
-                          16/07 09:00
-                        </span>
-                        <div className="flex space-x-1">
-                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
-                            <i className="ri-eye-line text-xs"></i>
-                          </button>
-                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
-                            <i className="ri-edit-line text-xs"></i>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+
                   </div>
                   <button className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
                     <i className="ri-add-line mr-2"></i>Nova Tarefa

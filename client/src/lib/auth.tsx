@@ -113,8 +113,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("keeptur-monde-token");
     localStorage.removeItem("keeptur-server-url");
     
-    // Force page reload to clear any cached data
-    window.location.reload();
+    // Force redirect to login
+    window.location.replace("/login");
   };
 
   return (

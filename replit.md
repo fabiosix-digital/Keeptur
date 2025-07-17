@@ -40,6 +40,13 @@ Preferred communication style: Simple, everyday language in Portuguese.
 - ✅ Implementação do endpoint /api/v2/companies-user para empresas associadas ao usuário
 - ✅ Sistema de identificação de usuário por UUID funcionando corretamente
 - ✅ Filtros agora funcionam perfeitamente com dados reais da API do Monde
+- ✅ Logout agora redireciona corretamente para a tela de login
+- ✅ Filtros do Kanban corrigidos e funcionando corretamente
+- ✅ Problema de tarefas desaparecendo após limpar filtros resolvido
+- ✅ Conteúdo mockado "Ligação de Follow-up" removido completamente
+- ✅ Coluna "Concluídas" do Kanban agora puxa tarefas concluídas corretamente
+- ✅ Sistema de filtros otimizado para não disparar requisições desnecessárias
+- ✅ Endpoint de categorias corrigido para usar /api/v2/task_categories com suporte a múltiplos formatos
 
 ## System Architecture
 

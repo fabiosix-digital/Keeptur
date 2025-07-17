@@ -638,32 +638,32 @@ export default function Dashboard() {
 
   // Função para organizar tarefas por status no Kanban (mantida para compatibilidade)
   const getTasksByStatus = (status: string) => {
-    // Usar as tarefas filtradas normalmente, não usar getFilteredTasksWithStatus
-    const filteredTasks = tasks;
+    // Usar TODAS as tarefas combinadas (ativas + excluídas) para o Kanban
+    const allCombinedTasks = allTasks;
 
     switch (status) {
       case "A Fazer":
         // Tarefas não concluídas e sem status específico
-        return filteredTasks.filter(
+        return allCombinedTasks.filter(
           (task: any) =>
             !task.attributes.completed &&
             (!task.attributes.status || task.attributes.status === "pending"),
         );
       case "Em Andamento":
         // Tarefas com status in_progress
-        return filteredTasks.filter(
+        return allCombinedTasks.filter(
           (task: any) =>
             !task.attributes.completed &&
             task.attributes.status === "in_progress",
         );
       case "Concluído":
-        // Tarefas marcadas como concluídas - usar mesma lógica do filtro situação
-        return filteredTasks.filter(
+        // Tarefas marcadas como concluídas - usar todas as tarefas combinadas
+        return allCombinedTasks.filter(
           (task: any) => task.attributes.completed === true,
         );
       case "Cancelado":
         // Tarefas com status cancelled
-        return filteredTasks.filter(
+        return allCombinedTasks.filter(
           (task: any) => task.attributes.status === "cancelled",
         );
       default:

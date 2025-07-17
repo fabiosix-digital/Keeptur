@@ -280,22 +280,35 @@ export default function Dashboard() {
     // Filtro por situação
     if (selectedSituation && selectedSituation !== 'all') {
       const now = new Date();
+      console.log(`🔍 Aplicando filtro de situação: ${selectedSituation}`);
+      console.log(`📅 Data atual: ${now.toISOString()}`);
+      
       filtered = filtered.filter((task: any) => {
         const isCompleted = task.attributes.completed;
         const dueDate = task.attributes.due ? new Date(task.attributes.due) : null;
         
+        console.log(`📋 Tarefa #${task.attributes.number}: completed=${isCompleted}, due=${dueDate?.toISOString()}`);
+        
+        let shouldInclude = false;
+        
         switch (selectedSituation) {
           case 'pendentes':
             // Pendentes = não concluídas E não atrasadas (dentro do prazo ou sem prazo)
-            return !isCompleted && (!dueDate || dueDate >= now);
+            shouldInclude = !isCompleted && (!dueDate || dueDate >= now);
+            break;
           case 'concluidas':
-            return isCompleted;
+            shouldInclude = isCompleted;
+            break;
           case 'atrasadas':
             // Atrasadas = não concluídas E com prazo vencido
-            return !isCompleted && dueDate && dueDate < now;
+            shouldInclude = !isCompleted && dueDate && dueDate < now;
+            break;
           default:
-            return true;
+            shouldInclude = true;
         }
+        
+        console.log(`➡️ Incluir tarefa #${task.attributes.number}: ${shouldInclude}`);
+        return shouldInclude;
       });
     }
     

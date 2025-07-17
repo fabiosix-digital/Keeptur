@@ -256,25 +256,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Adicionar filtros da query string
       const queryParams = new URLSearchParams();
       
-      // Filtro de assignee (responsável pela tarefa)
+      // ✅ Implementar filtros exatos da API do Monde
+      
+      // Filtro para tarefas atribuídas ao usuário (Minhas Tarefas)
       if (req.query.assignee === 'me') {
         queryParams.append('filter[assigned]', 'user_tasks');
+        console.log('✅ Filtro "Minhas Tarefas" aplicado: filter[assigned]=user_tasks');
       }
       
-      // Filtro para tarefas criadas pelo usuário
-      if (req.query['filter[created_by]'] === 'me' || (req.query.filter && req.query.filter.created_by === 'me')) {
+      // Filtro para tarefas criadas pelo usuário (Criadas por Mim)
+      else if (req.query['filter[created_by]'] === 'me' || (req.query.filter && req.query.filter.created_by === 'me')) {
         queryParams.append('filter[assigned]', 'author');
-        console.log('Filtro "Criadas por Mim" aplicado (filter[assigned]=author)');
+        console.log('✅ Filtro "Criadas por Mim" aplicado: filter[assigned]=author');
       }
       
       // Se for 'all=true', não adicionar filtros (mostrar todas as tarefas da empresa)
-      if (req.query.all === 'true') {
+      else if (req.query.all === 'true') {
         // Não adicionar filtros, deixar API retornar todas as tarefas
-        console.log('Mostrando TODAS as tarefas da empresa');
-      } else if (!req.query.assignee && !req.query['filter[created_by]'] && !(req.query.filter && req.query.filter.created_by)) {
-        // Se não houver filtro específico e não for "all", mostrar tarefas do usuário por padrão
+        console.log('✅ Mostrando TODAS as tarefas da empresa (sem filtros)');
+      } 
+      
+      // Filtro padrão se nenhum especificado
+      else {
         queryParams.append('filter[assigned]', 'user_tasks');
-        console.log('Aplicando filtro padrão: user_tasks');
+        console.log('✅ Aplicando filtro padrão: filter[assigned]=user_tasks');
       }
       
       // Filtros de status

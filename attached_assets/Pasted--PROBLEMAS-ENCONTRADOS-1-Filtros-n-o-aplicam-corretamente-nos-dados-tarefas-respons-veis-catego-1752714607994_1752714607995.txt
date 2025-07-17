@@ -1,0 +1,101 @@
+❌ PROBLEMAS ENCONTRADOS
+1. Filtros não aplicam corretamente nos dados (tarefas, responsáveis, categorias, status)
+No trecho:
+
+tsx
+Copiar
+Editar
+const tarefasFiltradas = tarefas?.filter((tarefa) => {
+  return (
+    (!responsavelSelecionado || tarefa.usuario_id === responsavelSelecionado) &&
+    (!categoriaSelecionada || tarefa.categoria_id === categoriaSelecionada) &&
+    (!statusSelecionado || tarefa.status === statusSelecionado)
+  );
+});
+Problema:
+Os estados responsavelSelecionado, categoriaSelecionada e statusSelecionado nunca são atualizados corretamente porque:
+
+Não vi useState ou onChange corretos associados aos selects.
+
+Não há controle real do valor que o usuário seleciona.
+
+Correção necessária:
+Certifique-se de que os setResponsavelSelecionado, setCategoriaSelecionada, etc., estão sendo chamados corretamente ao mudar os valores nos selects.
+
+2. O filtro “Somente minhas tarefas” não funciona
+tsx
+Copiar
+Editar
+const minhasTarefas = tarefas?.filter(
+  (tarefa) => tarefa.usuario_id === usuario?.id
+);
+Problema:
+Esse filtro é criado mas não é usado em lugar nenhum — o sistema continua renderizando tarefasFiltradas.
+
+Correção:
+Substitua tarefasFiltradas por minhasTarefas quando a flag somenteMinhasTarefas estiver ativada:
+
+tsx
+Copiar
+Editar
+const tarefasExibidas = somenteMinhasTarefas ? minhasTarefas : tarefasFiltradas;
+E use tarefasExibidas nas visualizações (Kanban, Lista, Calendário).
+
+3. Kanban exibe colunas fixas, mas não agrupa tarefas corretamente
+tsx
+Copiar
+Editar
+categorias?.map((categoria) => (
+  <div key={categoria.id}>
+    {tarefasFiltradas?.map((tarefa) =>
+      tarefa.categoria_id === categoria.id ? (
+        <TarefaCard key={tarefa.id} tarefa={tarefa} />
+      ) : null
+    )}
+  </div>
+));
+Problema:
+O map percorre TODAS as tarefas por categoria, mas sem verificar se o filtro ativo é por usuário ou status. E se a categoriaSelecionada estiver setada, continua mostrando todas.
+
+Correção:
+Use o tarefasExibidas (com os filtros aplicados corretamente) dentro do map.
+
+4. Calendário não exibe dados filtrados
+No componente Calendario, está passando:
+
+tsx
+Copiar
+Editar
+<Calendario tarefas={tarefas} />
+Correção:
+Passe o array tarefasExibidas corretamente:
+
+tsx
+Copiar
+Editar
+<Calendario tarefas={tarefasExibidas} />
+✅ RECOMENDAÇÕES DE REESTRUTURAÇÃO
+Crie um único array final com as tarefas visíveis após todos os filtros:
+
+tsx
+Copiar
+Editar
+const tarefasFiltradas = tarefas?.filter((tarefa) => {
+  return (
+    (!responsavelSelecionado || tarefa.usuario_id === responsavelSelecionado) &&
+    (!categoriaSelecionada || tarefa.categoria_id === categoriaSelecionada) &&
+    (!statusSelecionado || tarefa.status === statusSelecionado)
+  );
+});
+
+const tarefasExibidas = somenteMinhasTarefas
+  ? tarefasFiltradas?.filter((t) => t.usuario_id === usuario?.id)
+  : tarefasFiltradas;
+E use sempre tarefasExibidas para:
+
+Kanban
+
+Lista
+
+Calendário
+

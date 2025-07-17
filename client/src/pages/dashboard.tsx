@@ -1,38 +1,39 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../lib/auth';
-import { MondeAPI } from '../lib/monde-api';
-import { useTheme } from '../hooks/use-theme';
-import { TokenExpiredModal } from '../components/TokenExpiredModal';
-import { setTokenExpiredHandler } from '../lib/queryClient';
-import logoFull from '@assets/LOGO Lilas_1752695672079.png';
-import logoIcon from '@assets/ico Lilas_1752695703171.png';
-import '../modal.css';
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../lib/auth";
+import { MondeAPI } from "../lib/monde-api";
+import { useTheme } from "../hooks/use-theme";
+import { TokenExpiredModal } from "../components/TokenExpiredModal";
+import { setTokenExpiredHandler } from "../lib/queryClient";
+import logoFull from "@assets/LOGO Lilas_1752695672079.png";
+import logoIcon from "@assets/ico Lilas_1752695703171.png";
+import "../modal.css";
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [activeTab, setActiveTab] = useState('tarefas');
-  const [activeView, setActiveView] = useState('lista');
+  const [activeTab, setActiveTab] = useState("tarefas");
+  const [activeView, setActiveView] = useState("lista");
   const [tasks, setTasks] = useState<any[]>([]);
+  const [allTasks, setAllTasks] = useState<any[]>([]); // Todas as tarefas carregadas
   const [clients, setClients] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [stats, setStats] = useState<any>({});
   const [loading, setLoading] = useState(true);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
-  const [calendarView, setCalendarView] = useState('mes');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [calendarView, setCalendarView] = useState("mes");
+  const [searchTerm, setSearchTerm] = useState("");
   const [searchingClients, setSearchingClients] = useState(false);
   const [showCompletedTasks, setShowCompletedTasks] = useState(false);
-  const [taskFilter, setTaskFilter] = useState('assigned_to_me');
-  const [taskSearchTerm, setTaskSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedPriority, setSelectedPriority] = useState('');
-  const [selectedAssignee, setSelectedAssignee] = useState('');
+  const [taskFilter, setTaskFilter] = useState("assigned_to_me");
+  const [taskSearchTerm, setTaskSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedPriority, setSelectedPriority] = useState("");
+  const [selectedAssignee, setSelectedAssignee] = useState("");
   const [showTaskDetails, setShowTaskDetails] = useState(false);
   const [selectedTaskDetails, setSelectedTaskDetails] = useState<any>(null);
-  const [taskHistoryTab, setTaskHistoryTab] = useState('detalhes');
+  const [taskHistoryTab, setTaskHistoryTab] = useState("detalhes");
   const [taskHistory, setTaskHistory] = useState<any[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [showTokenExpiredModal, setShowTokenExpiredModal] = useState(false);
@@ -40,8 +41,8 @@ export default function Dashboard() {
 
   useEffect(() => {
     // Aplicar tema no body
-    document.body.className = 'theme-transition';
-    document.body.setAttribute('data-theme', theme);
+    document.body.className = "theme-transition";
+    document.body.setAttribute("data-theme", theme);
   }, [theme]);
 
   useEffect(() => {
@@ -49,15 +50,17 @@ export default function Dashboard() {
     setTokenExpiredHandler(() => {
       setShowTokenExpiredModal(true);
     });
-    
+
     const loadData = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem('keeptur-token');
-        const serverUrl = localStorage.getItem('keeptur-server-url') || 'http://allanacaires.monde.com.br';
-        
+        const token = localStorage.getItem("keeptur-token");
+        const serverUrl =
+          localStorage.getItem("keeptur-server-url") ||
+          "http://allanacaires.monde.com.br";
+
         if (!token || !serverUrl) {
-          console.error('Token ou servidor não encontrado');
+          console.error("Token ou servidor não encontrado");
           return;
         }
 
@@ -65,27 +68,28 @@ export default function Dashboard() {
         const api = new MondeAPI(serverUrl);
         api.setToken(token);
 
-        // Carregar tarefas com filtros aplicados
-        const tasksResponse = await loadTasks();
+        // Carregar TODAS as tarefas da empresa (uma vez só)
+        const tasksResponse = await loadAllTasks();
 
         // Carregar categorias
-        const categoriesResponse = await fetch('/api/monde/categorias', {
-          headers: { 'Authorization': `Bearer ${token}` }
+        const categoriesResponse = await fetch("/api/monde/categorias", {
+          headers: { Authorization: `Bearer ${token}` },
         });
         const categoriesData = await categoriesResponse.json();
 
         // Processar dados do formato JSON:API do Monde
         const tasks = tasksResponse?.data || [];
-        
+
         // Calcular estatísticas reais das tarefas
         const realStats = calculateTaskStats(tasks);
 
+        setAllTasks(tasks);
         setTasks(tasks);
         setClients([]); // Não carregar clientes na inicialização
         setCategories(categoriesData?.data || []);
         setStats(realStats);
       } catch (error) {
-        console.error('Erro ao carregar dados:', error);
+        console.error("Erro ao carregar dados:", error);
       } finally {
         setLoading(false);
       }
@@ -94,54 +98,45 @@ export default function Dashboard() {
     loadData();
   }, []);
 
-  // Função para carregar tarefas com filtros
-  const loadTasks = async () => {
+  // Aplicar filtros dinamicamente quando taskFilter mudar
+  useEffect(() => {
+    if (allTasks.length > 0) {
+      const filtered = getFilteredTasks();
+      setTasks(filtered);
+      setStats(calculateTaskStats(filtered));
+    }
+  }, [taskFilter, allTasks]);
+
+  // Função para carregar TODAS as tarefas da empresa (uma vez só)
+  const loadAllTasks = async () => {
     try {
-      const token = localStorage.getItem('keeptur-token');
-      const serverUrl = localStorage.getItem('keeptur-server-url');
-      
+      const token = localStorage.getItem("keeptur-token");
+      const serverUrl = localStorage.getItem("keeptur-server-url");
+
       if (!token || !serverUrl) {
-        console.error('Token ou servidor não encontrado');
+        console.error("Token ou servidor não encontrado");
         logout();
         return { data: [] };
       }
-      
-      const params = new URLSearchParams();
-      
-      // Aplicar filtros baseados no taskFilter
-      if (taskFilter === 'assigned_to_me') {
-        params.append('assignee', 'me');
-      } else if (taskFilter === 'created_by_me') {
-        params.append('filter[created_by]', 'me');
-      } else if (taskFilter === 'all') {
-        params.append('all', 'true'); // Sinalizar que queremos todas as tarefas
-      }
-      
-      // Aplicar outros filtros se existirem
-      if (taskSearchTerm) params.append('search', taskSearchTerm);
-      if (selectedCategory) params.append('category', selectedCategory);
-      if (selectedPriority) params.append('priority', selectedPriority);
-      if (selectedAssignee && selectedAssignee !== 'all') {
-        params.append('assignee', selectedAssignee);
-      }
-      
-      const url = `/api/monde/tarefas${params.toString() ? `?${params.toString()}` : ''}`;
-      
+
+      // Carregar todas as tarefas da empresa
+      const url = `/api/monde/tarefas?all=true`;
+
       const response = await fetch(url, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       if (!response.ok) {
         if (response.status === 401) {
-          console.error('Token inválido, mostrando modal de re-login');
+          console.error("Token inválido, mostrando modal de re-login");
           setShowTokenExpiredModal(true);
         }
-        throw new Error('Erro ao carregar tarefas');
+        throw new Error("Erro ao carregar tarefas");
       }
-      
+
       return await response.json();
     } catch (error) {
-      console.error('Erro ao carregar tarefas:', error);
+      console.error("Erro ao carregar tarefas:", error);
       return { data: [] };
     }
   };
@@ -149,7 +144,7 @@ export default function Dashboard() {
   // Função para calcular estatísticas das tarefas
   const calculateTaskStats = (tasks: any[]) => {
     const now = new Date();
-    
+
     const stats = {
       total: tasks.length,
       pendentes: tasks.filter((t: any) => !t.attributes.completed).length,
@@ -158,40 +153,49 @@ export default function Dashboard() {
         if (!t.attributes.due || t.attributes.completed) return false;
         const dueDate = new Date(t.attributes.due);
         return dueDate < now;
-      }).length
+      }).length,
     };
-    
+
     // Calcular variações reais baseadas no mês anterior
     const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    
+
     const lastMonthTasks = tasks.filter((t: any) => {
-      const taskDate = new Date(t.attributes['registered-at'] || t.attributes.created_at);
+      const taskDate = new Date(
+        t.attributes["registered-at"] || t.attributes.created_at,
+      );
       return taskDate >= lastMonth && taskDate < thisMonth;
     });
-    
+
     const thisMonthTasks = tasks.filter((t: any) => {
-      const taskDate = new Date(t.attributes['registered-at'] || t.attributes.created_at);
+      const taskDate = new Date(
+        t.attributes["registered-at"] || t.attributes.created_at,
+      );
       return taskDate >= thisMonth;
     });
-    
+
     // Calcular percentuais de variação
     const calculateVariation = (current: number, previous: number) => {
-      if (previous === 0) return current > 0 ? '+100%' : '0%';
+      if (previous === 0) return current > 0 ? "+100%" : "0%";
       const variation = ((current - previous) / previous) * 100;
-      return variation >= 0 ? `+${variation.toFixed(0)}%` : `${variation.toFixed(0)}%`;
+      return variation >= 0
+        ? `+${variation.toFixed(0)}%`
+        : `${variation.toFixed(0)}%`;
     };
-    
+
     return {
       ...stats,
-      totalVariation: calculateVariation(thisMonthTasks.length, lastMonthTasks.length),
+      totalVariation: calculateVariation(
+        thisMonthTasks.length,
+        lastMonthTasks.length,
+      ),
       pendentesVariation: calculateVariation(
-        thisMonthTasks.filter(t => !t.attributes.completed).length,
-        lastMonthTasks.filter(t => !t.attributes.completed).length
+        thisMonthTasks.filter((t) => !t.attributes.completed).length,
+        lastMonthTasks.filter((t) => !t.attributes.completed).length,
       ),
       concluidasVariation: calculateVariation(
-        thisMonthTasks.filter(t => t.attributes.completed).length,
-        lastMonthTasks.filter(t => t.attributes.completed).length
+        thisMonthTasks.filter((t) => t.attributes.completed).length,
+        lastMonthTasks.filter((t) => t.attributes.completed).length,
       ),
       atrasadasVariation: calculateVariation(
         stats.atrasadas,
@@ -199,31 +203,43 @@ export default function Dashboard() {
           if (!t.attributes.due || t.attributes.completed) return false;
           const dueDate = new Date(t.attributes.due);
           return dueDate < lastMonth;
-        }).length
-      )
+        }).length,
+      ),
     };
   };
 
-  // Recarregar tarefas quando filtros mudarem
+  // Filtrar tarefas dinamicamente sem recarregar da API
+  const getFilteredTasks = () => {
+    if (!allTasks.length) return [];
+    
+    const userEmail = user?.email || '';
+    
+    // Aplicar filtro principal
+    let filteredTasks = allTasks;
+    
+    if (taskFilter === 'assigned_to_me') {
+      filteredTasks = allTasks.filter((task: any) => 
+        task.relationships?.assignee?.data?.attributes?.email === userEmail
+      );
+    } else if (taskFilter === 'created_by_me') {
+      filteredTasks = allTasks.filter((task: any) => 
+        task.relationships?.author?.data?.attributes?.email === userEmail
+      );
+    }
+    // Para 'all', usar todas as tarefas
+    
+    return filteredTasks;
+  };
+
+  // Recarregar tarefas quando necessário (mantém as existentes)
   const reloadTasks = async () => {
-    setLoading(true);
-    const tasksResponse = await loadTasks();
+    const tasksResponse = await loadAllTasks();
     const tasks = tasksResponse?.data || [];
-    
-    // Ordenar tarefas: usuário logado primeiro, depois outras
-    const sortedTasks = tasks.sort((a: any, b: any) => {
-      const userEmail = user?.email || '';
-      const aIsUser = a.relationships?.assignee?.data?.attributes?.email === userEmail;
-      const bIsUser = b.relationships?.assignee?.data?.attributes?.email === userEmail;
-      
-      if (aIsUser && !bIsUser) return -1;
-      if (!aIsUser && bIsUser) return 1;
-      return 0;
-    });
-    
-    setTasks(sortedTasks);
-    setStats(calculateTaskStats(sortedTasks));
-    setLoading(false);
+
+    setAllTasks(tasks);
+    const filtered = getFilteredTasks();
+    setTasks(filtered);
+    setStats(calculateTaskStats(filtered));
   };
 
   const handleSearchClients = async () => {
@@ -234,11 +250,14 @@ export default function Dashboard() {
 
     try {
       setSearchingClients(true);
-      const token = localStorage.getItem('keeptur-token');
-      const response = await fetch(`/api/monde/clientes?filter[search]=${encodeURIComponent(searchTerm)}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
+      const token = localStorage.getItem("keeptur-token");
+      const response = await fetch(
+        `/api/monde/clientes?filter[search]=${encodeURIComponent(searchTerm)}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
       if (response.ok) {
         const data = await response.json();
         setClients(data.data || []);
@@ -246,7 +265,7 @@ export default function Dashboard() {
         setShowTokenExpiredModal(true);
       }
     } catch (error) {
-      console.error('Erro ao pesquisar clientes:', error);
+      console.error("Erro ao pesquisar clientes:", error);
     } finally {
       setSearchingClients(false);
     }
@@ -255,11 +274,11 @@ export default function Dashboard() {
   // Função para carregar histórico de uma tarefa
   const loadTaskHistory = async (taskId: string) => {
     try {
-      const token = localStorage.getItem('keeptur-token');
+      const token = localStorage.getItem("keeptur-token");
       const response = await fetch(`/api/monde/tarefas/${taskId}/historico`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         return data.data || [];
@@ -268,20 +287,22 @@ export default function Dashboard() {
       }
       return [];
     } catch (error) {
-      console.error('Erro ao carregar histórico:', error);
+      console.error("Erro ao carregar histórico:", error);
       return [];
     }
   };
 
   // Função para recarregar dados periodicamente
   const reloadTasksAndClients = async () => {
-    const tasksResponse = await loadTasks();
+    const tasksResponse = await loadAllTasks();
     const tasks = tasksResponse?.data || [];
-    
+
     // Atualizar tarefas
-    setTasks(tasks);
-    setStats(calculateTaskStats(tasks));
-    
+    setAllTasks(tasks);
+    const filtered = getFilteredTasks();
+    setTasks(filtered);
+    setStats(calculateTaskStats(filtered));
+
     // Recarregar clientes se houver busca ativa
     if (searchTerm.trim()) {
       await handleSearchClients();
@@ -295,14 +316,21 @@ export default function Dashboard() {
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [taskFilter, taskSearchTerm, selectedCategory, selectedPriority, selectedAssignee, searchTerm]);
+  }, [
+    taskFilter,
+    taskSearchTerm,
+    selectedCategory,
+    selectedPriority,
+    selectedAssignee,
+    searchTerm,
+  ]);
 
   // Função para visualizar detalhes da tarefa
   const handleViewTask = async (task: any) => {
     setSelectedTaskDetails(task);
     setShowTaskDetails(true);
-    setTaskHistoryTab('detalhes');
-    
+    setTaskHistoryTab("detalhes");
+
     // Carregar histórico da tarefa
     const history = await loadTaskHistory(task.id);
     setTaskHistory(history);
@@ -310,19 +338,19 @@ export default function Dashboard() {
 
   // Funções de ação das tarefas
   const handleCompleteTask = (taskId: string) => {
-    console.log('Completar tarefa:', taskId);
+    console.log("Completar tarefa:", taskId);
   };
 
   const handleTransferTask = (taskId: string) => {
-    console.log('Transferir tarefa:', taskId);
+    console.log("Transferir tarefa:", taskId);
   };
 
   const handleDeleteTask = (taskId: string) => {
-    console.log('Deletar tarefa:', taskId);
+    console.log("Deletar tarefa:", taskId);
   };
 
-  // Filtrar tarefas baseado no status e filtros
-  const getFilteredTasks = () => {
+  // Filtrar tarefas baseado no status e filtros (função principal)
+  const getFilteredTasksWithStatus = () => {
     let filtered = tasks;
 
     // Filtrar por status concluído/aberto
@@ -332,19 +360,23 @@ export default function Dashboard() {
       filtered = filtered.filter((task: any) => task.attributes.completed);
     }
 
-    // Aplicar outros filtros
-    if (taskFilter !== 'all') {
-      const userEmail = user?.email || '';
-      filtered = filtered.filter((task: any) => {
-        switch (taskFilter) {
-          case 'created_by_me':
-            return task.attributes.creator_email === userEmail;
-          case 'assigned_to_me':
-            return task.relationships?.assignee?.data?.attributes?.email === userEmail;
-          default:
-            return true;
-        }
-      });
+    // Aplicar outros filtros secundários
+    if (selectedCategory) {
+      filtered = filtered.filter((task: any) =>
+        task.relationships?.category?.data?.id === selectedCategory,
+      );
+    }
+
+    if (selectedAssignee) {
+      filtered = filtered.filter((task: any) =>
+        task.relationships?.assignee?.data?.id === selectedAssignee,
+      );
+    }
+
+    if (selectedPriority) {
+      filtered = filtered.filter((task: any) =>
+        task.attributes.priority === selectedPriority,
+      );
     }
 
     return filtered;
@@ -352,43 +384,47 @@ export default function Dashboard() {
 
   // Função para organizar tarefas por categoria (colunas do Kanban)
   const getTasksByCategory = (categoryId: string) => {
-    const filteredTasks = getFilteredTasks();
-    
-    if (categoryId === 'sem-categoria') {
-      return filteredTasks.filter((task: any) => !task.relationships?.category?.data);
+    const filteredTasks = getFilteredTasksWithStatus();
+
+    if (categoryId === "sem-categoria") {
+      return filteredTasks.filter(
+        (task: any) => !task.relationships?.category?.data,
+      );
     }
-    
-    return filteredTasks.filter((task: any) => 
-      task.relationships?.category?.data?.id === categoryId
+
+    return filteredTasks.filter(
+      (task: any) => task.relationships?.category?.data?.id === categoryId,
     );
   };
 
   // Função para organizar tarefas por status no Kanban (mantida para compatibilidade)
   const getTasksByStatus = (status: string) => {
-    const filteredTasks = getFilteredTasks();
-    
+    const filteredTasks = getFilteredTasksWithStatus();
+
     switch (status) {
-      case 'A Fazer':
+      case "A Fazer":
         // Tarefas não concluídas e sem status específico
-        return filteredTasks.filter((task: any) => 
-          !task.attributes.completed && 
-          (!task.attributes.status || task.attributes.status === 'pending')
+        return filteredTasks.filter(
+          (task: any) =>
+            !task.attributes.completed &&
+            (!task.attributes.status || task.attributes.status === "pending"),
         );
-      case 'Em Andamento':
+      case "Em Andamento":
         // Tarefas com status in_progress
-        return filteredTasks.filter((task: any) => 
-          !task.attributes.completed && 
-          task.attributes.status === 'in_progress'
+        return filteredTasks.filter(
+          (task: any) =>
+            !task.attributes.completed &&
+            task.attributes.status === "in_progress",
         );
-      case 'Concluído':
+      case "Concluído":
         // Tarefas marcadas como concluídas
-        return filteredTasks.filter((task: any) => 
-          task.attributes.completed === true
+        return filteredTasks.filter(
+          (task: any) => task.attributes.completed === true,
         );
-      case 'Cancelado':
+      case "Cancelado":
         // Tarefas com status cancelled
-        return filteredTasks.filter((task: any) => 
-          task.attributes.status === 'cancelled'
+        return filteredTasks.filter(
+          (task: any) => task.attributes.status === "cancelled",
         );
       default:
         return [];
@@ -397,7 +433,7 @@ export default function Dashboard() {
 
   // Função para organizar tarefas por data (para calendário)
   const getTasksByDate = (date: Date) => {
-    const filteredTasks = getFilteredTasks();
+    const filteredTasks = getFilteredTasksWithStatus();
     return filteredTasks.filter((task: any) => {
       if (!task.attributes.due) return false;
       const taskDate = new Date(task.attributes.due);
@@ -411,28 +447,28 @@ export default function Dashboard() {
 
   // Funções auxiliares para o Kanban
   const getPriorityClass = (task: any) => {
-    const priority = task.attributes.priority || 'medium';
+    const priority = task.attributes.priority || "medium";
     return priority.toLowerCase();
   };
 
   const getPriorityLabel = (task: any) => {
-    const priority = task.attributes.priority || 'medium';
+    const priority = task.attributes.priority || "medium";
     const labels: any = {
-      low: 'Baixa',
-      medium: 'Média',
-      high: 'Alta'
+      low: "Baixa",
+      medium: "Média",
+      high: "Alta",
     };
-    return labels[priority.toLowerCase()] || 'Média';
+    return labels[priority.toLowerCase()] || "Média";
   };
 
   const formatTaskDate = (dateString: string) => {
-    if (!dateString) return 'Sem data';
+    if (!dateString) return "Sem data";
     const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR', { 
-      day: '2-digit', 
-      month: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
+    return date.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -460,28 +496,26 @@ export default function Dashboard() {
   // Função para lidar com mudanças de filtro
   const handleFilterChange = (filterType: string, value: string) => {
     switch (filterType) {
-      case 'search':
+      case "search":
         setTaskSearchTerm(value);
         break;
-      case 'category':
+      case "category":
         setSelectedCategory(value);
         break;
-      case 'priority':
+      case "priority":
         setSelectedPriority(value);
         break;
-      case 'assignee':
+      case "assignee":
         setSelectedAssignee(value);
         break;
-      case 'taskFilter':
+      case "taskFilter":
         setTaskFilter(value);
         break;
     }
-    
+
     // Usar debounce para evitar múltiplas chamadas
     debouncedReloadTasks();
   };
-
-
 
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
@@ -491,76 +525,76 @@ export default function Dashboard() {
     logout();
   };
 
-  const handleDragStart = (e: React.DragEvent, taskId: number, status: string) => {
-    e.dataTransfer.setData('text/plain', JSON.stringify({ taskId, status }));
+  const handleDragStart = (
+    e: React.DragEvent,
+    taskId: number,
+    status: string,
+  ) => {
+    e.dataTransfer.setData("text/plain", JSON.stringify({ taskId, status }));
   };
 
   const handleDrop = async (e: React.DragEvent, newStatus: string) => {
     e.preventDefault();
-    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-    
+    const data = JSON.parse(e.dataTransfer.getData("text/plain"));
+
     try {
-      const token = localStorage.getItem('keeptur-token');
+      const token = localStorage.getItem("keeptur-token");
       if (!token) return;
-      
+
       // Mapear status do Kanban para status da API
       const statusMap: any = {
-        'A Fazer': 'pending',
-        'Em Andamento': 'in_progress',
-        'Concluído': 'completed',
-        'Cancelado': 'cancelled'
+        "A Fazer": "pending",
+        "Em Andamento": "in_progress",
+        Concluído: "completed",
+        Cancelado: "cancelled",
       };
-      
-      const apiStatus = statusMap[newStatus] || 'pending';
-      
+
+      const apiStatus = statusMap[newStatus] || "pending";
+
       // Se for "Concluído", marcar completed como true
       const requestBody: any = {
-        status: apiStatus
+        status: apiStatus,
       };
-      
-      if (apiStatus === 'completed') {
+
+      if (apiStatus === "completed") {
         requestBody.completed = true;
       }
 
       // Atualizar tarefa via API
       await fetch(`/api/monde/tarefas/${data.taskId}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(requestBody),
       });
-      
+
       // Recarregar tarefas
       await reloadTasks();
-      
     } catch (error) {
-      console.error('Erro ao atualizar tarefa:', error);
-      alert('Erro ao mover tarefa. Tente novamente.');
+      console.error("Erro ao atualizar tarefa:", error);
+      alert("Erro ao mover tarefa. Tente novamente.");
     }
   };
-
-
-
-
-
-
-
 
   const renderTasksView = () => (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Welcome Section */}
       <div className="mb-8">
-        <h2 className="text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+        <h2
+          className="text-2xl font-semibold"
+          style={{ color: "var(--text-primary)" }}
+        >
           Bem-vindo, {user?.name}! 👋
         </h2>
-        <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
-          Aqui está um resumo das suas tarefas para hoje, {new Date().toLocaleDateString('pt-BR', { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
+        <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
+          Aqui está um resumo das suas tarefas para hoje,{" "}
+          {new Date().toLocaleDateString("pt-BR", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
           })}
         </p>
       </div>
@@ -570,8 +604,12 @@ export default function Dashboard() {
         <div className="card rounded-xl p-6 stats-card">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-white/80 text-sm font-medium">Total de Tarefas</p>
-              <p className="text-white text-2xl font-bold">{stats.total || 0}</p>
+              <p className="text-white/80 text-sm font-medium">
+                Total de Tarefas
+              </p>
+              <p className="text-white text-2xl font-bold">
+                {stats.total || 0}
+              </p>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
               <i className="ri-task-line text-white text-xl"></i>
@@ -579,15 +617,21 @@ export default function Dashboard() {
           </div>
           <div className="mt-4 flex items-center">
             <i className="ri-arrow-up-line text-white/80 text-sm"></i>
-            <span className="text-white/80 text-sm ml-1">{stats.totalVariation || "+0%"}</span>
+            <span className="text-white/80 text-sm ml-1">
+              {stats.totalVariation || "+0%"}
+            </span>
           </div>
         </div>
 
         <div className="card rounded-xl p-6 stats-card-secondary">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-white/80 text-sm font-medium">Tarefas Pendentes</p>
-              <p className="text-white text-2xl font-bold">{stats.pendentes || 0}</p>
+              <p className="text-white/80 text-sm font-medium">
+                Tarefas Pendentes
+              </p>
+              <p className="text-white text-2xl font-bold">
+                {stats.pendentes || 0}
+              </p>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
               <i className="ri-time-line text-white text-xl"></i>
@@ -595,15 +639,21 @@ export default function Dashboard() {
           </div>
           <div className="mt-4 flex items-center">
             <i className="ri-arrow-down-line text-white/80 text-sm"></i>
-            <span className="text-white/80 text-sm ml-1">{stats.pendentesVariation || "+0%"}</span>
+            <span className="text-white/80 text-sm ml-1">
+              {stats.pendentesVariation || "+0%"}
+            </span>
           </div>
         </div>
 
         <div className="card rounded-xl p-6 stats-card-success">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-white/80 text-sm font-medium">Tarefas Concluídas</p>
-              <p className="text-white text-2xl font-bold">{stats.concluidas || 0}</p>
+              <p className="text-white/80 text-sm font-medium">
+                Tarefas Concluídas
+              </p>
+              <p className="text-white text-2xl font-bold">
+                {stats.concluidas || 0}
+              </p>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
               <i className="ri-checkbox-circle-line text-white text-xl"></i>
@@ -618,7 +668,9 @@ export default function Dashboard() {
         <div className="card rounded-xl p-6 stats-card-danger">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-white/80 text-sm font-medium">Tarefas Atrasadas</p>
+              <p className="text-white/80 text-sm font-medium">
+                Tarefas Atrasadas
+              </p>
               <p className="text-white text-2xl font-bold">26</p>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
@@ -638,26 +690,26 @@ export default function Dashboard() {
           {/* Tabs */}
           <div className="flex items-center justify-between">
             <div className="flex space-x-1">
-              <button 
-                onClick={() => setActiveView('lista')}
-                className={`tab-button ${activeView === 'lista' ? 'active' : ''} px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap`}
+              <button
+                onClick={() => setActiveView("lista")}
+                className={`tab-button ${activeView === "lista" ? "active" : ""} px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap`}
               >
                 <i className="ri-list-check mr-2"></i>Lista
               </button>
-              <button 
-                onClick={() => setActiveView('kanban')}
-                className={`tab-button ${activeView === 'kanban' ? 'active' : ''} px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap`}
+              <button
+                onClick={() => setActiveView("kanban")}
+                className={`tab-button ${activeView === "kanban" ? "active" : ""} px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap`}
               >
                 <i className="ri-kanban-view mr-2"></i>Kanban
               </button>
-              <button 
-                onClick={() => setActiveView('calendario')}
-                className={`tab-button ${activeView === 'calendario' ? 'active' : ''} px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap`}
+              <button
+                onClick={() => setActiveView("calendario")}
+                className={`tab-button ${activeView === "calendario" ? "active" : ""} px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap`}
               >
                 <i className="ri-calendar-line mr-2"></i>Calendário
               </button>
             </div>
-            <button 
+            <button
               onClick={() => setShowTaskModal(true)}
               className="primary-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
             >
@@ -668,37 +720,50 @@ export default function Dashboard() {
           {/* Filtros */}
           <div className="flex flex-wrap gap-3">
             {/* Radio para tarefas abertas/concluídas */}
-            <div className="flex items-center gap-4 px-4 py-2 rounded-lg" style={{ backgroundColor: 'var(--card-bg)' }}>
+            <div
+              className="flex items-center gap-4 px-4 py-2 rounded-lg"
+              style={{ backgroundColor: "var(--card-bg)" }}
+            >
               <label className="flex items-center gap-2">
-                <input 
-                  type="radio" 
-                  name="taskStatus" 
+                <input
+                  type="radio"
+                  name="taskStatus"
                   checked={!showCompletedTasks}
                   onChange={() => setShowCompletedTasks(false)}
-                  className="form-radio" 
+                  className="form-radio"
                 />
-                <span className="text-sm" style={{ color: 'var(--text-primary)' }}>Tarefas Abertas</span>
+                <span
+                  className="text-sm"
+                  style={{ color: "var(--text-primary)" }}
+                >
+                  Tarefas Abertas
+                </span>
               </label>
               <label className="flex items-center gap-2">
-                <input 
-                  type="radio" 
-                  name="taskStatus" 
+                <input
+                  type="radio"
+                  name="taskStatus"
                   checked={showCompletedTasks}
                   onChange={() => setShowCompletedTasks(true)}
-                  className="form-radio" 
+                  className="form-radio"
                 />
-                <span className="text-sm" style={{ color: 'var(--text-primary)' }}>Tarefas Concluídas</span>
+                <span
+                  className="text-sm"
+                  style={{ color: "var(--text-primary)" }}
+                >
+                  Tarefas Concluídas
+                </span>
               </label>
             </div>
-            
+
             <div className="flex gap-2">
               <div className="relative">
-                <input 
-                  type="text" 
-                  placeholder="Buscar tarefas..." 
+                <input
+                  type="text"
+                  placeholder="Buscar tarefas..."
                   value={taskSearchTerm}
                   onChange={(e) => setTaskSearchTerm(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && reloadTasks()}
+                  onKeyPress={(e) => e.key === "Enter" && reloadTasks()}
                   className="search-input pl-10 pr-4 py-2 rounded-lg text-sm w-64"
                 />
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
@@ -735,17 +800,27 @@ export default function Dashboard() {
                 <option value="vencimento">Vencimento</option>
               </select>
               <div className="flex items-center gap-2">
-                <input type="date" className="form-input px-3 py-2 rounded-lg text-sm" />
-                <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>até</span>
-                <input type="date" className="form-input px-3 py-2 rounded-lg text-sm" />
+                <input
+                  type="date"
+                  className="form-input px-3 py-2 rounded-lg text-sm"
+                />
+                <span
+                  className="text-sm"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  até
+                </span>
+                <input
+                  type="date"
+                  className="form-input px-3 py-2 rounded-lg text-sm"
+                />
               </div>
             </div>
-            <select 
+            <select
               className="form-input px-3 py-2 rounded-lg text-sm"
               value={taskFilter}
               onChange={(e) => {
                 setTaskFilter(e.target.value);
-                setTimeout(reloadTasks, 100);
               }}
             >
               <option value="assigned_to_me">Minhas Tarefas</option>
@@ -767,7 +842,7 @@ export default function Dashboard() {
               <option value="maria">Maria Santos</option>
               <option value="pedro">Pedro Costa</option>
             </select>
-            <select 
+            <select
               className="form-input px-3 py-2 rounded-lg text-sm"
               value={selectedCategory}
               onChange={(e) => {
@@ -781,7 +856,7 @@ export default function Dashboard() {
               <option value="email">E-mail</option>
               <option value="visita">Visita</option>
             </select>
-            <select 
+            <select
               className="form-input px-3 py-2 rounded-lg text-sm"
               value={selectedPriority}
               onChange={(e) => {
@@ -794,7 +869,7 @@ export default function Dashboard() {
               <option value="medium">Média</option>
               <option value="high">Alta</option>
             </select>
-            <select 
+            <select
               className="form-input px-3 py-2 rounded-lg text-sm"
               value={selectedAssignee}
               onChange={(e) => {
@@ -808,54 +883,134 @@ export default function Dashboard() {
           </div>
 
           {/* Lista View */}
-          {activeView === 'lista' && (
+          {activeView === "lista" && (
             <div className="view-content">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="table-row">
-                      <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>Nº</th>
-                      <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>Cliente</th>
-                      <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>Título</th>
-                      <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>Responsável</th>
-                      <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>Data/Hora</th>
-                      <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>Status</th>
-                      <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>Prioridade</th>
-                      <th className="text-right py-3 px-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>Ações</th>
+                      <th
+                        className="text-left py-3 px-4 font-medium text-sm"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
+                        Nº
+                      </th>
+                      <th
+                        className="text-left py-3 px-4 font-medium text-sm"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
+                        Cliente
+                      </th>
+                      <th
+                        className="text-left py-3 px-4 font-medium text-sm"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
+                        Título
+                      </th>
+                      <th
+                        className="text-left py-3 px-4 font-medium text-sm"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
+                        Responsável
+                      </th>
+                      <th
+                        className="text-left py-3 px-4 font-medium text-sm"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
+                        Data/Hora
+                      </th>
+                      <th
+                        className="text-left py-3 px-4 font-medium text-sm"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
+                        Status
+                      </th>
+                      <th
+                        className="text-left py-3 px-4 font-medium text-sm"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
+                        Prioridade
+                      </th>
+                      <th
+                        className="text-right py-3 px-4 font-medium text-sm"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
+                        Ações
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {getFilteredTasks().map((task, index) => (
                       <tr key={task.id} className="table-row">
                         <td className="py-4 px-4">
-                          <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>#{String(task.attributes.number).padStart(3, '0')}</span>
+                          <span
+                            className="text-sm font-medium"
+                            style={{ color: "var(--text-primary)" }}
+                          >
+                            #{String(task.attributes.number).padStart(3, "0")}
+                          </span>
                         </td>
                         <td className="py-4 px-4">
-                          <p className={`text-sm font-medium ${
-                            !task.client_name ? 'text-red-600' : ''
-                          }`} style={{ color: !task.client_name ? '#dc2626' : 'var(--text-primary)' }}>
-                            {task.client_name || 'Sem cliente'}
+                          <p
+                            className={`text-sm font-medium ${
+                              !task.client_name ? "text-red-600" : ""
+                            }`}
+                            style={{
+                              color: !task.client_name
+                                ? "#dc2626"
+                                : "var(--text-primary)",
+                            }}
+                          >
+                            {task.client_name || "Sem cliente"}
                           </p>
                         </td>
                         <td className="py-4 px-4">
-                          <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{task.attributes.title}</p>
-                          <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{task.attributes.description || 'Sem descrição'}</p>
-                        </td>
-                        <td className="py-4 px-4">
-                          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                            {task.assignee_name || 'Sem responsável'}
+                          <p
+                            className="text-sm font-medium"
+                            style={{ color: "var(--text-primary)" }}
+                          >
+                            {task.attributes.title}
+                          </p>
+                          <p
+                            className="text-xs"
+                            style={{ color: "var(--text-tertiary)" }}
+                          >
+                            {task.attributes.description || "Sem descrição"}
                           </p>
                         </td>
                         <td className="py-4 px-4">
-                          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                            {new Date(task.attributes.due).toLocaleDateString('pt-BR')} {new Date(task.attributes.due).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}
+                          <p
+                            className="text-sm"
+                            style={{ color: "var(--text-secondary)" }}
+                          >
+                            {task.assignee_name || "Sem responsável"}
                           </p>
                         </td>
                         <td className="py-4 px-4">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            task.attributes.completed ? 'status-badge-completed' : 'status-badge-pending'
-                          }`}>
-                            {task.attributes.completed ? 'Concluída' : 'Pendente'}
+                          <p
+                            className="text-sm"
+                            style={{ color: "var(--text-secondary)" }}
+                          >
+                            {new Date(task.attributes.due).toLocaleDateString(
+                              "pt-BR",
+                            )}{" "}
+                            {new Date(task.attributes.due).toLocaleTimeString(
+                              "pt-BR",
+                              { hour: "2-digit", minute: "2-digit" },
+                            )}
+                          </p>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              task.attributes.completed
+                                ? "status-badge-completed"
+                                : "status-badge-pending"
+                            }`}
+                          >
+                            {task.attributes.completed
+                              ? "Concluída"
+                              : "Pendente"}
                           </span>
                         </td>
                         <td className="py-4 px-4">
@@ -865,28 +1020,28 @@ export default function Dashboard() {
                         </td>
                         <td className="py-4 px-4">
                           <div className="flex items-center justify-end space-x-2">
-                            <button 
+                            <button
                               onClick={() => handleViewTask(task)}
                               className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap"
                               title="Visualizar tarefa"
                             >
                               <i className="ri-eye-line text-sm"></i>
                             </button>
-                            <button 
+                            <button
                               onClick={() => handleCompleteTask(task.id)}
                               className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap"
                               title="Concluir tarefa"
                             >
                               <i className="ri-checkbox-circle-line text-sm"></i>
                             </button>
-                            <button 
+                            <button
                               onClick={() => handleTransferTask(task.id)}
                               className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap"
                               title="Transferir atendimento"
                             >
                               <i className="ri-user-shared-line text-sm"></i>
                             </button>
-                            <button 
+                            <button
                               onClick={() => handleDeleteTask(task.id)}
                               className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap"
                               title="Deletar tarefa"
@@ -904,32 +1059,56 @@ export default function Dashboard() {
           )}
 
           {/* Kanban View */}
-          {activeView === 'kanban' && (
+          {activeView === "kanban" && (
             <div className="view-content">
               <div className="flex space-x-6 overflow-x-auto pb-4">
                 {/* A Fazer */}
                 <div className="kanban-column rounded-lg p-4 min-w-80">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>A Fazer</h3>
-                    <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">8</span>
+                    <h3
+                      className="font-semibold text-sm"
+                      style={{ color: "var(--text-primary)" }}
+                    >
+                      A Fazer
+                    </h3>
+                    <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
+                      8
+                    </span>
                   </div>
-                  <div 
+                  <div
                     className="space-y-3"
-                    onDrop={(e) => handleDrop(e, 'A Fazer')}
+                    onDrop={(e) => handleDrop(e, "A Fazer")}
                     onDragOver={(e) => e.preventDefault()}
                   >
-                    <div 
+                    <div
                       className="kanban-card rounded-lg p-4 cursor-move"
                       draggable={true}
-                      onDragStart={(e) => handleDragStart(e, 1, 'A Fazer')}
+                      onDragStart={(e) => handleDragStart(e, 1, "A Fazer")}
                     >
                       <div className="flex items-start justify-between mb-2">
-                        <h4 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>Reunião de Planejamento</h4>
-                        <span className="priority-badge-high px-2 py-1 rounded-full text-xs font-medium">Alta</span>
+                        <h4
+                          className="font-medium text-sm"
+                          style={{ color: "var(--text-primary)" }}
+                        >
+                          Reunião de Planejamento
+                        </h4>
+                        <span className="priority-badge-high px-2 py-1 rounded-full text-xs font-medium">
+                          Alta
+                        </span>
                       </div>
-                      <p className="text-xs mb-3" style={{ color: 'var(--text-tertiary)' }}>Maria Rodrigues</p>
+                      <p
+                        className="text-xs mb-3"
+                        style={{ color: "var(--text-tertiary)" }}
+                      >
+                        Maria Rodrigues
+                      </p>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>15/07 14:30</span>
+                        <span
+                          className="text-xs"
+                          style={{ color: "var(--text-secondary)" }}
+                        >
+                          15/07 14:30
+                        </span>
                         <div className="flex space-x-1">
                           <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
                             <i className="ri-eye-line text-xs"></i>
@@ -940,18 +1119,35 @@ export default function Dashboard() {
                         </div>
                       </div>
                     </div>
-                    <div 
+                    <div
                       className="kanban-card rounded-lg p-4 cursor-move"
                       draggable={true}
-                      onDragStart={(e) => handleDragStart(e, 2, 'A Fazer')}
+                      onDragStart={(e) => handleDragStart(e, 2, "A Fazer")}
                     >
                       <div className="flex items-start justify-between mb-2">
-                        <h4 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>Ligação de Follow-up</h4>
-                        <span className="priority-badge-medium px-2 py-1 rounded-full text-xs font-medium">Média</span>
+                        <h4
+                          className="font-medium text-sm"
+                          style={{ color: "var(--text-primary)" }}
+                        >
+                          Ligação de Follow-up
+                        </h4>
+                        <span className="priority-badge-medium px-2 py-1 rounded-full text-xs font-medium">
+                          Média
+                        </span>
                       </div>
-                      <p className="text-xs mb-3" style={{ color: 'var(--text-tertiary)' }}>João Silva</p>
+                      <p
+                        className="text-xs mb-3"
+                        style={{ color: "var(--text-tertiary)" }}
+                      >
+                        João Silva
+                      </p>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>16/07 09:00</span>
+                        <span
+                          className="text-xs"
+                          style={{ color: "var(--text-secondary)" }}
+                        >
+                          16/07 09:00
+                        </span>
                         <div className="flex space-x-1">
                           <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
                             <i className="ri-eye-line text-xs"></i>
@@ -971,26 +1167,50 @@ export default function Dashboard() {
                 {/* Em Andamento */}
                 <div className="kanban-column rounded-lg p-4 min-w-80">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>Em Andamento</h3>
-                    <span className="bg-blue-200 text-blue-700 px-2 py-1 rounded-full text-xs">3</span>
+                    <h3
+                      className="font-semibold text-sm"
+                      style={{ color: "var(--text-primary)" }}
+                    >
+                      Em Andamento
+                    </h3>
+                    <span className="bg-blue-200 text-blue-700 px-2 py-1 rounded-full text-xs">
+                      3
+                    </span>
                   </div>
-                  <div 
+                  <div
                     className="space-y-3"
-                    onDrop={(e) => handleDrop(e, 'Em Andamento')}
+                    onDrop={(e) => handleDrop(e, "Em Andamento")}
                     onDragOver={(e) => e.preventDefault()}
                   >
-                    <div 
+                    <div
                       className="kanban-card rounded-lg p-4 cursor-move"
                       draggable={true}
-                      onDragStart={(e) => handleDragStart(e, 3, 'Em Andamento')}
+                      onDragStart={(e) => handleDragStart(e, 3, "Em Andamento")}
                     >
                       <div className="flex items-start justify-between mb-2">
-                        <h4 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>Análise de Requisitos</h4>
-                        <span className="priority-badge-medium px-2 py-1 rounded-full text-xs font-medium">Média</span>
+                        <h4
+                          className="font-medium text-sm"
+                          style={{ color: "var(--text-primary)" }}
+                        >
+                          Análise de Requisitos
+                        </h4>
+                        <span className="priority-badge-medium px-2 py-1 rounded-full text-xs font-medium">
+                          Média
+                        </span>
                       </div>
-                      <p className="text-xs mb-3" style={{ color: 'var(--text-tertiary)' }}>Lucia Santos</p>
+                      <p
+                        className="text-xs mb-3"
+                        style={{ color: "var(--text-tertiary)" }}
+                      >
+                        Lucia Santos
+                      </p>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>17/07 10:00</span>
+                        <span
+                          className="text-xs"
+                          style={{ color: "var(--text-secondary)" }}
+                        >
+                          17/07 10:00
+                        </span>
                         <div className="flex space-x-1">
                           <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
                             <i className="ri-eye-line text-xs"></i>
@@ -1002,7 +1222,7 @@ export default function Dashboard() {
                       </div>
                     </div>
                   </div>
-                  <button 
+                  <button
                     onClick={() => setShowTaskModal(true)}
                     className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
                   >
@@ -1013,26 +1233,50 @@ export default function Dashboard() {
                 {/* Concluído */}
                 <div className="kanban-column rounded-lg p-4 min-w-80">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>Concluído</h3>
-                    <span className="bg-green-200 text-green-700 px-2 py-1 rounded-full text-xs">12</span>
+                    <h3
+                      className="font-semibold text-sm"
+                      style={{ color: "var(--text-primary)" }}
+                    >
+                      Concluído
+                    </h3>
+                    <span className="bg-green-200 text-green-700 px-2 py-1 rounded-full text-xs">
+                      12
+                    </span>
                   </div>
-                  <div 
+                  <div
                     className="space-y-3"
-                    onDrop={(e) => handleDrop(e, 'Concluído')}
+                    onDrop={(e) => handleDrop(e, "Concluído")}
                     onDragOver={(e) => e.preventDefault()}
                   >
-                    <div 
+                    <div
                       className="kanban-card rounded-lg p-4 cursor-move"
                       draggable={true}
-                      onDragStart={(e) => handleDragStart(e, 4, 'Concluído')}
+                      onDragStart={(e) => handleDragStart(e, 4, "Concluído")}
                     >
                       <div className="flex items-start justify-between mb-2">
-                        <h4 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>Envio de Proposta</h4>
-                        <span className="priority-badge-low px-2 py-1 rounded-full text-xs font-medium">Baixa</span>
+                        <h4
+                          className="font-medium text-sm"
+                          style={{ color: "var(--text-primary)" }}
+                        >
+                          Envio de Proposta
+                        </h4>
+                        <span className="priority-badge-low px-2 py-1 rounded-full text-xs font-medium">
+                          Baixa
+                        </span>
                       </div>
-                      <p className="text-xs mb-3" style={{ color: 'var(--text-tertiary)' }}>Ana Costa</p>
+                      <p
+                        className="text-xs mb-3"
+                        style={{ color: "var(--text-tertiary)" }}
+                      >
+                        Ana Costa
+                      </p>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>14/07 16:00</span>
+                        <span
+                          className="text-xs"
+                          style={{ color: "var(--text-secondary)" }}
+                        >
+                          14/07 16:00
+                        </span>
                         <div className="flex space-x-1">
                           <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
                             <i className="ri-eye-line text-xs"></i>
@@ -1044,7 +1288,7 @@ export default function Dashboard() {
                       </div>
                     </div>
                   </div>
-                  <button 
+                  <button
                     onClick={() => setShowTaskModal(true)}
                     className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
                   >
@@ -1055,26 +1299,50 @@ export default function Dashboard() {
                 {/* Cancelado */}
                 <div className="kanban-column rounded-lg p-4 min-w-80">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>Cancelado</h3>
-                    <span className="bg-red-200 text-red-700 px-2 py-1 rounded-full text-xs">2</span>
+                    <h3
+                      className="font-semibold text-sm"
+                      style={{ color: "var(--text-primary)" }}
+                    >
+                      Cancelado
+                    </h3>
+                    <span className="bg-red-200 text-red-700 px-2 py-1 rounded-full text-xs">
+                      2
+                    </span>
                   </div>
-                  <div 
+                  <div
                     className="space-y-3"
-                    onDrop={(e) => handleDrop(e, 'Cancelado')}
+                    onDrop={(e) => handleDrop(e, "Cancelado")}
                     onDragOver={(e) => e.preventDefault()}
                   >
-                    <div 
+                    <div
                       className="kanban-card rounded-lg p-4 cursor-move"
                       draggable={true}
-                      onDragStart={(e) => handleDragStart(e, 5, 'Cancelado')}
+                      onDragStart={(e) => handleDragStart(e, 5, "Cancelado")}
                     >
                       <div className="flex items-start justify-between mb-2">
-                        <h4 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>Reunião Cancelada</h4>
-                        <span className="priority-badge-low px-2 py-1 rounded-full text-xs font-medium">Baixa</span>
+                        <h4
+                          className="font-medium text-sm"
+                          style={{ color: "var(--text-primary)" }}
+                        >
+                          Reunião Cancelada
+                        </h4>
+                        <span className="priority-badge-low px-2 py-1 rounded-full text-xs font-medium">
+                          Baixa
+                        </span>
                       </div>
-                      <p className="text-xs mb-3" style={{ color: 'var(--text-tertiary)' }}>Roberto Ferreira</p>
+                      <p
+                        className="text-xs mb-3"
+                        style={{ color: "var(--text-tertiary)" }}
+                      >
+                        Roberto Ferreira
+                      </p>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>13/07 15:00</span>
+                        <span
+                          className="text-xs"
+                          style={{ color: "var(--text-secondary)" }}
+                        >
+                          13/07 15:00
+                        </span>
                         <div className="flex space-x-1">
                           <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
                             <i className="ri-eye-line text-xs"></i>
@@ -1086,7 +1354,7 @@ export default function Dashboard() {
                       </div>
                     </div>
                   </div>
-                  <button 
+                  <button
                     onClick={() => setShowTaskModal(true)}
                     className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
                   >
@@ -1098,11 +1366,16 @@ export default function Dashboard() {
           )}
 
           {/* Calendário View */}
-          {activeView === 'calendario' && (
+          {activeView === "calendario" && (
             <div className="view-content">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-4">
-                  <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>Julho 2025</h3>
+                  <h3
+                    className="text-lg font-semibold"
+                    style={{ color: "var(--text-primary)" }}
+                  >
+                    Julho 2025
+                  </h3>
                   <div className="flex space-x-1">
                     <button className="action-button px-3 py-1 rounded-lg text-sm !rounded-button whitespace-nowrap">
                       <i className="ri-arrow-left-line"></i>
@@ -1113,48 +1386,103 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <div className="flex space-x-1">
-                  <button 
-                    onClick={() => setCalendarView('mes')}
-                    className={`tab-button ${calendarView === 'mes' ? 'active' : ''} px-3 py-1 rounded-lg text-sm !rounded-button whitespace-nowrap`}
+                  <button
+                    onClick={() => setCalendarView("mes")}
+                    className={`tab-button ${calendarView === "mes" ? "active" : ""} px-3 py-1 rounded-lg text-sm !rounded-button whitespace-nowrap`}
                   >
                     Mês
                   </button>
-                  <button 
-                    onClick={() => setCalendarView('semana')}
-                    className={`tab-button ${calendarView === 'semana' ? 'active' : ''} px-3 py-1 rounded-lg text-sm !rounded-button whitespace-nowrap`}
+                  <button
+                    onClick={() => setCalendarView("semana")}
+                    className={`tab-button ${calendarView === "semana" ? "active" : ""} px-3 py-1 rounded-lg text-sm !rounded-button whitespace-nowrap`}
                   >
                     Semana
                   </button>
-                  <button 
-                    onClick={() => setCalendarView('dia')}
-                    className={`tab-button ${calendarView === 'dia' ? 'active' : ''} px-3 py-1 rounded-lg text-sm !rounded-button whitespace-nowrap`}
+                  <button
+                    onClick={() => setCalendarView("dia")}
+                    className={`tab-button ${calendarView === "dia" ? "active" : ""} px-3 py-1 rounded-lg text-sm !rounded-button whitespace-nowrap`}
                   >
                     Dia
                   </button>
                 </div>
               </div>
-              {calendarView === 'mes' && (
+              {calendarView === "mes" && (
                 <div className="grid grid-cols-7 gap-1">
-                  <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Dom</div>
-                  <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Seg</div>
-                  <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Ter</div>
-                  <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Qua</div>
-                  <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Qui</div>
-                  <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Sex</div>
-                  <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Sáb</div>
-                  
+                  <div
+                    className="p-2 text-center text-sm font-medium"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
+                    Dom
+                  </div>
+                  <div
+                    className="p-2 text-center text-sm font-medium"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
+                    Seg
+                  </div>
+                  <div
+                    className="p-2 text-center text-sm font-medium"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
+                    Ter
+                  </div>
+                  <div
+                    className="p-2 text-center text-sm font-medium"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
+                    Qua
+                  </div>
+                  <div
+                    className="p-2 text-center text-sm font-medium"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
+                    Qui
+                  </div>
+                  <div
+                    className="p-2 text-center text-sm font-medium"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
+                    Sex
+                  </div>
+                  <div
+                    className="p-2 text-center text-sm font-medium"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
+                    Sáb
+                  </div>
+
                   {/* Dias do mês */}
                   {[...Array(31)].map((_, i) => (
-                    <div key={i} className={`calendar-day rounded-lg p-2 ${i === 15 ? 'bg-blue-50' : ''}`}>
-                      <div className={`text-sm font-medium mb-1 ${i === 15 ? 'text-blue-600' : ''}`} style={{ color: i === 15 ? undefined : 'var(--text-primary)' }}>
+                    <div
+                      key={i}
+                      className={`calendar-day rounded-lg p-2 ${i === 15 ? "bg-blue-50" : ""}`}
+                    >
+                      <div
+                        className={`text-sm font-medium mb-1 ${i === 15 ? "text-blue-600" : ""}`}
+                        style={{
+                          color: i === 15 ? undefined : "var(--text-primary)",
+                        }}
+                      >
                         {i + 1}
                       </div>
-                      {i === 11 && <div className="calendar-event">10:00 - Visita Técnica</div>}
-                      {i === 13 && <div className="calendar-event">16:00 - Envio Proposta</div>}
-                      {i === 14 && <div className="calendar-event">14:30 - Reunião</div>}
+                      {i === 11 && (
+                        <div className="calendar-event">
+                          10:00 - Visita Técnica
+                        </div>
+                      )}
+                      {i === 13 && (
+                        <div className="calendar-event">
+                          16:00 - Envio Proposta
+                        </div>
+                      )}
+                      {i === 14 && (
+                        <div className="calendar-event">14:30 - Reunião</div>
+                      )}
                       {i === 15 && (
                         <>
-                          <div className="calendar-event">09:00 - Follow-up</div>
+                          <div className="calendar-event">
+                            09:00 - Follow-up
+                          </div>
                           <div className="calendar-event">15:00 - Análise</div>
                         </>
                       )}
@@ -1162,48 +1490,80 @@ export default function Dashboard() {
                   ))}
                 </div>
               )}
-              
-              {calendarView === 'semana' && (
+
+              {calendarView === "semana" && (
                 <div className="grid grid-cols-8 gap-1">
-                  <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+                  <div
+                    className="p-2 text-center text-sm font-medium"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
                     Horário
                   </div>
-                  {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => (
-                    <div key={day} className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
-                      {day}
-                    </div>
-                  ))}
+                  {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map(
+                    (day) => (
+                      <div
+                        key={day}
+                        className="p-2 text-center text-sm font-medium"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
+                        {day}
+                      </div>
+                    ),
+                  )}
                   {Array.from({ length: 24 }, (_, hour) => (
                     <React.Fragment key={hour}>
-                      <div className="p-2 text-center text-xs border" style={{ borderColor: 'var(--border-color)' }}>
-                        {hour.toString().padStart(2, '0')}:00
+                      <div
+                        className="p-2 text-center text-xs border"
+                        style={{ borderColor: "var(--border-color)" }}
+                      >
+                        {hour.toString().padStart(2, "0")}:00
                       </div>
                       {Array.from({ length: 7 }, (_, day) => (
-                        <div key={day} className="calendar-day p-2 text-center text-xs min-h-[40px] border" style={{ borderColor: 'var(--border-color)' }}>
-                          {hour === 9 && day === 1 ? 'Reunião' : ''}
-                          {hour === 14 && day === 3 ? 'Proposta' : ''}
+                        <div
+                          key={day}
+                          className="calendar-day p-2 text-center text-xs min-h-[40px] border"
+                          style={{ borderColor: "var(--border-color)" }}
+                        >
+                          {hour === 9 && day === 1 ? "Reunião" : ""}
+                          {hour === 14 && day === 3 ? "Proposta" : ""}
                         </div>
                       ))}
                     </React.Fragment>
                   ))}
                 </div>
               )}
-              
-              {calendarView === 'dia' && (
+
+              {calendarView === "dia" && (
                 <div className="grid grid-cols-2 gap-1">
-                  <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+                  <div
+                    className="p-2 text-center text-sm font-medium"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
                     Horário
                   </div>
-                  <div className="p-2 text-center text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+                  <div
+                    className="p-2 text-center text-sm font-medium"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
                     Tarefas
                   </div>
                   {Array.from({ length: 24 }, (_, hour) => (
                     <React.Fragment key={hour}>
-                      <div className="p-2 text-center text-xs border" style={{ borderColor: 'var(--border-color)' }}>
-                        {hour.toString().padStart(2, '0')}:00
+                      <div
+                        className="p-2 text-center text-xs border"
+                        style={{ borderColor: "var(--border-color)" }}
+                      >
+                        {hour.toString().padStart(2, "0")}:00
                       </div>
-                      <div className="calendar-day p-2 text-center text-xs min-h-[40px] border" style={{ borderColor: 'var(--border-color)' }}>
-                        {hour === 9 ? 'Reunião com cliente' : hour === 14 ? 'Desenvolver proposta' : ''}
+                      <div
+                        className="calendar-day p-2 text-center text-xs min-h-[40px] border"
+                        style={{ borderColor: "var(--border-color)" }}
+                      >
+                        {hour === 9
+                          ? "Reunião com cliente"
+                          : hour === 14
+                            ? "Desenvolver proposta"
+                            : ""}
                       </div>
                     </React.Fragment>
                   ))}
@@ -1218,11 +1578,18 @@ export default function Dashboard() {
 
   // Modal de Nova Tarefa
   const TaskModal = () => (
-    <div className={`fixed inset-0 modal-overlay flex items-center justify-center z-50 ${showTaskModal ? '' : 'hidden'}`}>
+    <div
+      className={`fixed inset-0 modal-overlay flex items-center justify-center z-50 ${showTaskModal ? "" : "hidden"}`}
+    >
       <div className="modal-content rounded-xl shadow-xl p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>Nova Tarefa</h3>
-          <button 
+          <h3
+            className="text-xl font-semibold"
+            style={{ color: "var(--text-primary)" }}
+          >
+            Nova Tarefa
+          </h3>
+          <button
             onClick={() => setShowTaskModal(false)}
             className="theme-toggle p-2 rounded-lg !rounded-button whitespace-nowrap"
           >
@@ -1243,18 +1610,24 @@ export default function Dashboard() {
         <form>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+              <label
+                className="block text-sm font-medium mb-2"
+                style={{ color: "var(--text-secondary)" }}
+              >
                 Título da Tarefa *
               </label>
-              <input 
-                type="text" 
-                className="form-input w-full px-3 py-2 rounded-lg text-sm" 
+              <input
+                type="text"
+                className="form-input w-full px-3 py-2 rounded-lg text-sm"
                 placeholder="Digite o título da tarefa"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+              <label
+                className="block text-sm font-medium mb-2"
+                style={{ color: "var(--text-secondary)" }}
+              >
                 Categoria
               </label>
               <select className="form-input w-full px-3 py-2 rounded-lg text-sm">
@@ -1265,7 +1638,10 @@ export default function Dashboard() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+              <label
+                className="block text-sm font-medium mb-2"
+                style={{ color: "var(--text-secondary)" }}
+              >
                 Responsável
               </label>
               <select className="form-input w-full px-3 py-2 rounded-lg text-sm">
@@ -1277,7 +1653,10 @@ export default function Dashboard() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+              <label
+                className="block text-sm font-medium mb-2"
+                style={{ color: "var(--text-secondary)" }}
+              >
                 Cliente
               </label>
               <select className="form-input w-full px-3 py-2 rounded-lg text-sm">
@@ -1288,7 +1667,10 @@ export default function Dashboard() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+              <label
+                className="block text-sm font-medium mb-2"
+                style={{ color: "var(--text-secondary)" }}
+              >
                 Prioridade
               </label>
               <select className="form-input w-full px-3 py-2 rounded-lg text-sm">
@@ -1298,16 +1680,22 @@ export default function Dashboard() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+              <label
+                className="block text-sm font-medium mb-2"
+                style={{ color: "var(--text-secondary)" }}
+              >
                 Data de Vencimento
               </label>
-              <input 
-                type="datetime-local" 
+              <input
+                type="datetime-local"
                 className="form-input w-full px-3 py-2 rounded-lg text-sm"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+              <label
+                className="block text-sm font-medium mb-2"
+                style={{ color: "var(--text-secondary)" }}
+              >
                 Tipo de Tarefa
               </label>
               <select className="form-input w-full px-3 py-2 rounded-lg text-sm">
@@ -1318,24 +1706,27 @@ export default function Dashboard() {
               </select>
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+              <label
+                className="block text-sm font-medium mb-2"
+                style={{ color: "var(--text-secondary)" }}
+              >
                 Descrição
               </label>
-              <textarea 
+              <textarea
                 className="form-input w-full px-3 py-2 rounded-lg text-sm h-32"
                 placeholder="Descreva os detalhes da tarefa..."
               ></textarea>
             </div>
           </div>
           <div className="flex justify-end space-x-3 mt-6">
-            <button 
+            <button
               type="button"
               onClick={() => setShowTaskModal(false)}
               className="action-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
             >
               Cancelar
             </button>
-            <button 
+            <button
               type="submit"
               className="primary-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
             >
@@ -1354,7 +1745,9 @@ export default function Dashboard() {
         <div className="card rounded-xl p-6 stats-card">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-white/80 text-sm font-medium">Total de Clientes</p>
+              <p className="text-white/80 text-sm font-medium">
+                Total de Clientes
+              </p>
               <p className="text-white text-2xl font-bold">1,247</p>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
@@ -1370,7 +1763,9 @@ export default function Dashboard() {
         <div className="card rounded-xl p-6 stats-card-secondary">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-white/80 text-sm font-medium">Clientes com Tarefas</p>
+              <p className="text-white/80 text-sm font-medium">
+                Clientes com Tarefas
+              </p>
               <p className="text-white text-2xl font-bold">892</p>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
@@ -1386,7 +1781,9 @@ export default function Dashboard() {
         <div className="card rounded-xl p-6 stats-card-success">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-white/80 text-sm font-medium">Novos Clientes (30 dias)</p>
+              <p className="text-white/80 text-sm font-medium">
+                Novos Clientes (30 dias)
+              </p>
               <p className="text-white text-2xl font-bold">156</p>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
@@ -1403,24 +1800,27 @@ export default function Dashboard() {
       {/* Clients Table */}
       <div className="card rounded-xl p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <h2 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+          <h2
+            className="text-xl font-semibold"
+            style={{ color: "var(--text-primary)" }}
+          >
             Lista de Clientes
           </h2>
           <div className="flex items-center space-x-3">
             <div className="relative">
-              <input 
-                type="text" 
-                placeholder="Buscar clientes..." 
+              <input
+                type="text"
+                placeholder="Buscar clientes..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearchClients()}
+                onKeyPress={(e) => e.key === "Enter" && handleSearchClients()}
                 className="search-input pl-10 pr-4 py-2 rounded-lg text-sm w-64"
               />
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
                 <i className="ri-search-line text-gray-400"></i>
               </div>
             </div>
-            <button 
+            <button
               onClick={handleSearchClients}
               className="action-button px-4 py-2 rounded-lg text-sm font-medium rounded-button"
             >
@@ -1428,9 +1828,9 @@ export default function Dashboard() {
               Buscar
             </button>
             {searchTerm && (
-              <button 
+              <button
                 onClick={() => {
-                  setSearchTerm('');
+                  setSearchTerm("");
                   setClients([]);
                 }}
                 className="action-button px-4 py-2 rounded-lg text-sm font-medium rounded-button"
@@ -1450,32 +1850,68 @@ export default function Dashboard() {
           <table className="w-full">
             <thead>
               <tr className="table-row">
-                <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>Cliente</th>
-                <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>Email</th>
-                <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>Telefone</th>
-                <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>Status</th>
-                <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>Ações</th>
+                <th
+                  className="text-left py-3 px-4 font-medium text-sm"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  Cliente
+                </th>
+                <th
+                  className="text-left py-3 px-4 font-medium text-sm"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  Email
+                </th>
+                <th
+                  className="text-left py-3 px-4 font-medium text-sm"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  Telefone
+                </th>
+                <th
+                  className="text-left py-3 px-4 font-medium text-sm"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  Status
+                </th>
+                <th
+                  className="text-left py-3 px-4 font-medium text-sm"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  Ações
+                </th>
               </tr>
             </thead>
             <tbody>
-              {clients.map(client => (
+              {clients.map((client) => (
                 <tr key={client.id} className="table-row">
                   <td className="py-3 px-4">
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 rounded-full client-avatar flex items-center justify-center text-white font-medium text-sm">
-                        {(client.attributes?.name || client.nome)?.charAt(0).toUpperCase()}
+                        {(client.attributes?.name || client.nome)
+                          ?.charAt(0)
+                          .toUpperCase()}
                       </div>
                       <div>
-                        <p className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>
+                        <p
+                          className="font-medium text-sm"
+                          style={{ color: "var(--text-primary)" }}
+                        >
                           {client.attributes?.name || client.nome}
                         </p>
                       </div>
                     </div>
                   </td>
-                  <td className="py-3 px-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  <td
+                    className="py-3 px-4 text-sm"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
                     {client.attributes?.email || client.email}
                   </td>
-                  <td className="py-3 px-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  <td
+                    className="py-3 px-4 text-sm"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
                     {client.attributes?.phone || client.telefone}
                   </td>
                   <td className="py-3 px-4">
@@ -1513,8 +1949,13 @@ export default function Dashboard() {
   return (
     <div className="flex h-screen overflow-hidden theme-transition">
       {/* Sidebar */}
-      <aside className={`sidebar ${sidebarCollapsed ? 'sidebar-collapsed' : 'sidebar-expanded'} sidebar-transition fixed inset-y-0 left-0 z-50 flex flex-col`}>
-        <div className="flex items-center h-16 px-4 border-b" style={{ borderColor: 'var(--border-color)' }}>
+      <aside
+        className={`sidebar ${sidebarCollapsed ? "sidebar-collapsed" : "sidebar-expanded"} sidebar-transition fixed inset-y-0 left-0 z-50 flex flex-col`}
+      >
+        <div
+          className="flex items-center h-16 px-4 border-b"
+          style={{ borderColor: "var(--border-color)" }}
+        >
           <div className="flex items-center">
             {sidebarCollapsed ? (
               <img src={logoIcon} alt="Keeptur" className="w-6 h-6" />
@@ -1526,8 +1967,8 @@ export default function Dashboard() {
 
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           <button
-            onClick={() => setActiveTab('tarefas')}
-            className={`menu-item flex items-center px-3 py-2.5 text-sm font-medium w-full ${activeTab === 'tarefas' ? 'active' : ''}`}
+            onClick={() => setActiveTab("tarefas")}
+            className={`menu-item flex items-center px-3 py-2.5 text-sm font-medium w-full ${activeTab === "tarefas" ? "active" : ""}`}
           >
             <div className="w-5 h-5 flex items-center justify-center">
               <i className="ri-task-line"></i>
@@ -1535,10 +1976,10 @@ export default function Dashboard() {
             {!sidebarCollapsed && <span className="ml-3">Tarefas</span>}
             {sidebarCollapsed && <span className="tooltip">Tarefas</span>}
           </button>
-          
+
           <button
-            onClick={() => setActiveTab('clientes')}
-            className={`menu-item flex items-center px-3 py-2.5 text-sm font-medium w-full ${activeTab === 'clientes' ? 'active' : ''}`}
+            onClick={() => setActiveTab("clientes")}
+            className={`menu-item flex items-center px-3 py-2.5 text-sm font-medium w-full ${activeTab === "clientes" ? "active" : ""}`}
           >
             <div className="w-5 h-5 flex items-center justify-center">
               <i className="ri-user-3-line"></i>
@@ -1548,7 +1989,10 @@ export default function Dashboard() {
           </button>
         </nav>
 
-        <div className="mt-auto px-3 py-4 border-t" style={{ borderColor: 'var(--border-color)' }}>
+        <div
+          className="mt-auto px-3 py-4 border-t"
+          style={{ borderColor: "var(--border-color)" }}
+        >
           <button className="menu-item flex items-center px-3 py-2.5 text-sm font-medium w-full">
             <div className="w-5 h-5 flex items-center justify-center">
               <i className="ri-settings-3-line"></i>
@@ -1556,18 +2000,28 @@ export default function Dashboard() {
             {!sidebarCollapsed && <span className="ml-3">Configurações</span>}
             {sidebarCollapsed && <span className="tooltip">Configurações</span>}
           </button>
-          
-          <button onClick={handleLogout} className="menu-item flex items-center px-3 py-2.5 text-sm font-medium w-full bg-red-500 hover:bg-red-600 text-white">
+
+          <button
+            onClick={handleLogout}
+            className="menu-item flex items-center px-3 py-2.5 text-sm font-medium w-full bg-red-500 hover:bg-red-600 text-white"
+          >
             <div className="w-5 h-5 flex items-center justify-center">
               <i className="ri-logout-box-line text-white"></i>
             </div>
             {!sidebarCollapsed && <span className="ml-3 text-white">Sair</span>}
             {sidebarCollapsed && <span className="tooltip">Sair</span>}
           </button>
-          
-          <button onClick={toggleSidebar} className="menu-item flex items-center px-3 py-2.5 text-sm font-medium w-full">
+
+          <button
+            onClick={toggleSidebar}
+            className="menu-item flex items-center px-3 py-2.5 text-sm font-medium w-full"
+          >
             <div className="w-5 h-5 flex items-center justify-center">
-              <i className={sidebarCollapsed ? 'ri-menu-unfold-line' : 'ri-menu-fold-line'}></i>
+              <i
+                className={
+                  sidebarCollapsed ? "ri-menu-unfold-line" : "ri-menu-fold-line"
+                }
+              ></i>
             </div>
             {!sidebarCollapsed && <span className="ml-3">Recolher Menu</span>}
             {sidebarCollapsed && <span className="tooltip">Expandir Menu</span>}
@@ -1578,20 +2032,33 @@ export default function Dashboard() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className={`header flex items-center justify-between h-16 px-6 content-transition`} style={{ marginLeft: sidebarCollapsed ? '4rem' : '16rem' }}>
+        <header
+          className={`header flex items-center justify-between h-16 px-6 content-transition`}
+          style={{ marginLeft: sidebarCollapsed ? "4rem" : "16rem" }}
+        >
           <div className="flex items-center">
-            <h1 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
-              {activeTab === 'tarefas' ? 'Gestão de Tarefas' : 'Gestão de Clientes'}
+            <h1
+              className="text-xl font-semibold"
+              style={{ color: "var(--text-primary)" }}
+            >
+              {activeTab === "tarefas"
+                ? "Gestão de Tarefas"
+                : "Gestão de Clientes"}
             </h1>
           </div>
-          
+
           <div className="flex items-center space-x-4">
-            <button onClick={toggleTheme} className="theme-toggle p-2 rounded-lg rounded-button">
+            <button
+              onClick={toggleTheme}
+              className="theme-toggle p-2 rounded-lg rounded-button"
+            >
               <div className="w-5 h-5 flex items-center justify-center">
-                <i className={theme === 'light' ? 'ri-moon-line' : 'ri-sun-line'}></i>
+                <i
+                  className={theme === "light" ? "ri-moon-line" : "ri-sun-line"}
+                ></i>
               </div>
             </button>
-            
+
             <div className="relative">
               <button className="theme-toggle p-2 rounded-lg relative rounded-button">
                 <div className="w-5 h-5 flex items-center justify-center">
@@ -1602,17 +2069,23 @@ export default function Dashboard() {
                 </span>
               </button>
             </div>
-            
+
             <div className="relative">
               <button className="flex items-center space-x-3 p-1 rounded-lg theme-toggle rounded-button">
                 <div className="w-8 h-8 rounded-full stats-card flex items-center justify-center text-white font-medium text-sm">
-                  {user?.name?.charAt(0).toUpperCase() || 'U'}
+                  {user?.name?.charAt(0).toUpperCase() || "U"}
                 </div>
                 <div className="hidden md:block text-left">
-                  <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                  <p
+                    className="text-sm font-medium"
+                    style={{ color: "var(--text-primary)" }}
+                  >
                     {user?.name}
                   </p>
-                  <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                  <p
+                    className="text-xs"
+                    style={{ color: "var(--text-tertiary)" }}
+                  >
                     {user?.role}
                   </p>
                 </div>
@@ -1625,19 +2098,22 @@ export default function Dashboard() {
         </header>
 
         {/* Main Content Area */}
-        <main className={`flex-1 overflow-auto content-area content-transition p-6`} style={{ marginLeft: sidebarCollapsed ? '4rem' : '16rem' }}>
-          {activeTab === 'tarefas' ? renderTasksView() : renderClientsView()}
+        <main
+          className={`flex-1 overflow-auto content-area content-transition p-6`}
+          style={{ marginLeft: sidebarCollapsed ? "4rem" : "16rem" }}
+        >
+          {activeTab === "tarefas" ? renderTasksView() : renderClientsView()}
         </main>
       </div>
 
       {/* Floating Action Button */}
-      <button 
+      <button
         onClick={() => setShowTaskModal(true)}
         className="floating-button"
       >
         <i className="ri-add-line text-xl"></i>
       </button>
-      
+
       {/* Modal de Nova Tarefa */}
       <TaskModal />
 
@@ -1645,103 +2121,188 @@ export default function Dashboard() {
       {showTaskDetails && selectedTaskDetails && (
         <div className="fixed inset-0 modal-overlay flex items-center justify-center z-50">
           <div className="modal-content rounded-xl shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b" style={{ borderColor: 'var(--border-color)' }}>
+            <div
+              className="flex items-center justify-between p-6 border-b"
+              style={{ borderColor: "var(--border-color)" }}
+            >
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
-                  <span className="text-xs font-medium" style={{ color: 'var(--text-tertiary)' }}>
+                  <span
+                    className="text-xs font-medium"
+                    style={{ color: "var(--text-tertiary)" }}
+                  >
                     #{selectedTaskDetails.id}
                   </span>
-                  <span className={`status-badge-${selectedTaskDetails.attributes.completed ? 'completed' : 'pending'} px-3 py-1 rounded-full text-sm font-medium`}>
-                    {selectedTaskDetails.attributes.completed ? 'Concluído' : 'Pendente'}
+                  <span
+                    className={`status-badge-${selectedTaskDetails.attributes.completed ? "completed" : "pending"} px-3 py-1 rounded-full text-sm font-medium`}
+                  >
+                    {selectedTaskDetails.attributes.completed
+                      ? "Concluído"
+                      : "Pendente"}
                   </span>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => setShowTaskDetails(false)}
                 className="theme-toggle p-2 rounded-lg !rounded-button whitespace-nowrap"
               >
                 <i className="ri-close-line text-lg"></i>
               </button>
             </div>
-            
+
             <div className="p-6">
               <div className="mb-6">
-                <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                <h2
+                  className="text-xl font-semibold mb-2"
+                  style={{ color: "var(--text-primary)" }}
+                >
                   {selectedTaskDetails.attributes.title}
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="font-medium" style={{ color: 'var(--text-secondary)' }}>Cliente:</span>
-                    <span className={`ml-2 ${!selectedTaskDetails.client_name ? 'text-red-600' : ''}`} 
-                          style={{ color: !selectedTaskDetails.client_name ? '#dc2626' : 'var(--text-primary)' }}>
-                      {selectedTaskDetails.client_name || 'Sem cliente'}
+                    <span
+                      className="font-medium"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
+                      Cliente:
+                    </span>
+                    <span
+                      className={`ml-2 ${!selectedTaskDetails.client_name ? "text-red-600" : ""}`}
+                      style={{
+                        color: !selectedTaskDetails.client_name
+                          ? "#dc2626"
+                          : "var(--text-primary)",
+                      }}
+                    >
+                      {selectedTaskDetails.client_name || "Sem cliente"}
                     </span>
                   </div>
                   <div>
-                    <span className="font-medium" style={{ color: 'var(--text-secondary)' }}>Responsável:</span>
-                    <span className="ml-2" style={{ color: 'var(--text-primary)' }}>
-                      {selectedTaskDetails.assignee_name || 'Não informado'}
+                    <span
+                      className="font-medium"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
+                      Responsável:
+                    </span>
+                    <span
+                      className="ml-2"
+                      style={{ color: "var(--text-primary)" }}
+                    >
+                      {selectedTaskDetails.assignee_name || "Não informado"}
                     </span>
                   </div>
                   <div>
-                    <span className="font-medium" style={{ color: 'var(--text-secondary)' }}>Data/Hora:</span>
-                    <span className="ml-2" style={{ color: 'var(--text-primary)' }}>
-                      {selectedTaskDetails.attributes.due ? new Date(selectedTaskDetails.attributes.due).toLocaleString() : 'Não informado'}
+                    <span
+                      className="font-medium"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
+                      Data/Hora:
+                    </span>
+                    <span
+                      className="ml-2"
+                      style={{ color: "var(--text-primary)" }}
+                    >
+                      {selectedTaskDetails.attributes.due
+                        ? new Date(
+                            selectedTaskDetails.attributes.due,
+                          ).toLocaleString()
+                        : "Não informado"}
                     </span>
                   </div>
                   <div>
-                    <span className="font-medium" style={{ color: 'var(--text-secondary)' }}>Categoria:</span>
-                    <span className="ml-2" style={{ color: 'var(--text-primary)' }}>
-                      {selectedTaskDetails.category_name || 'Não informado'}
+                    <span
+                      className="font-medium"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
+                      Categoria:
+                    </span>
+                    <span
+                      className="ml-2"
+                      style={{ color: "var(--text-primary)" }}
+                    >
+                      {selectedTaskDetails.category_name || "Não informado"}
                     </span>
                   </div>
                 </div>
               </div>
-              
+
               <div className="mb-6">
                 <div className="flex space-x-1 mb-4">
-                  <button 
+                  <button
                     className={`tab-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap ${
-                      taskHistoryTab === 'detalhes' ? 'active' : ''
+                      taskHistoryTab === "detalhes" ? "active" : ""
                     }`}
-                    onClick={() => setTaskHistoryTab('detalhes')}
+                    onClick={() => setTaskHistoryTab("detalhes")}
                   >
                     Detalhes
                   </button>
-                  <button 
+                  <button
                     className={`tab-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap ${
-                      taskHistoryTab === 'historico' ? 'active' : ''
+                      taskHistoryTab === "historico" ? "active" : ""
                     }`}
-                    onClick={() => setTaskHistoryTab('historico')}
+                    onClick={() => setTaskHistoryTab("historico")}
                   >
                     Histórico
                   </button>
                 </div>
-                
+
                 <div className="tab-content">
-                  {taskHistoryTab === 'detalhes' && (
+                  {taskHistoryTab === "detalhes" && (
                     <>
                       <div className="mb-4">
-                        <h3 className="text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Descrição</h3>
-                        <p className="text-sm p-3 rounded-lg" style={{ color: 'var(--text-primary)', backgroundColor: 'var(--bg-tertiary)' }}>
-                          {selectedTaskDetails.attributes.description || 'Sem descrição'}
+                        <h3
+                          className="text-sm font-medium mb-2"
+                          style={{ color: "var(--text-secondary)" }}
+                        >
+                          Descrição
+                        </h3>
+                        <p
+                          className="text-sm p-3 rounded-lg"
+                          style={{
+                            color: "var(--text-primary)",
+                            backgroundColor: "var(--bg-tertiary)",
+                          }}
+                        >
+                          {selectedTaskDetails.attributes.description ||
+                            "Sem descrição"}
                         </p>
                       </div>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <h3 className="text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Informações Adicionais</h3>
+                          <h3
+                            className="text-sm font-medium mb-2"
+                            style={{ color: "var(--text-secondary)" }}
+                          >
+                            Informações Adicionais
+                          </h3>
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
-                              <span style={{ color: 'var(--text-tertiary)' }}>Data de Criação:</span>
-                              <span style={{ color: 'var(--text-primary)' }}>
-                                {selectedTaskDetails.attributes['registered-at'] ? new Date(selectedTaskDetails.attributes['registered-at']).toLocaleString() : 'Não informado'}
+                              <span style={{ color: "var(--text-tertiary)" }}>
+                                Data de Criação:
+                              </span>
+                              <span style={{ color: "var(--text-primary)" }}>
+                                {selectedTaskDetails.attributes["registered-at"]
+                                  ? new Date(
+                                      selectedTaskDetails.attributes[
+                                        "registered-at"
+                                      ],
+                                    ).toLocaleString()
+                                  : "Não informado"}
                               </span>
                             </div>
                             <div className="flex justify-between">
-                              <span style={{ color: 'var(--text-tertiary)' }}>Última Atualização:</span>
-                              <span style={{ color: 'var(--text-primary)' }}>
-                                {selectedTaskDetails.attributes['completed-at'] ? new Date(selectedTaskDetails.attributes['completed-at']).toLocaleString() : 'Não informado'}
+                              <span style={{ color: "var(--text-tertiary)" }}>
+                                Última Atualização:
+                              </span>
+                              <span style={{ color: "var(--text-primary)" }}>
+                                {selectedTaskDetails.attributes["completed-at"]
+                                  ? new Date(
+                                      selectedTaskDetails.attributes[
+                                        "completed-at"
+                                      ],
+                                    ).toLocaleString()
+                                  : "Não informado"}
                               </span>
                             </div>
                           </div>
@@ -1749,28 +2310,56 @@ export default function Dashboard() {
                       </div>
                     </>
                   )}
-                  
-                  {taskHistoryTab === 'historico' && (
+
+                  {taskHistoryTab === "historico" && (
                     <div className="max-h-96 overflow-y-auto">
-                      <h3 className="text-sm font-medium mb-4" style={{ color: 'var(--text-secondary)' }}>Histórico da Tarefa</h3>
+                      <h3
+                        className="text-sm font-medium mb-4"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
+                        Histórico da Tarefa
+                      </h3>
                       {taskHistory.length === 0 ? (
-                        <p className="text-sm text-center py-8" style={{ color: 'var(--text-tertiary)' }}>
+                        <p
+                          className="text-sm text-center py-8"
+                          style={{ color: "var(--text-tertiary)" }}
+                        >
                           Nenhum histórico disponível
                         </p>
                       ) : (
                         <div className="space-y-3">
                           {taskHistory.map((item: any, index: number) => (
-                            <div key={index} className="p-3 rounded-lg border" style={{ backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border-color)' }}>
+                            <div
+                              key={index}
+                              className="p-3 rounded-lg border"
+                              style={{
+                                backgroundColor: "var(--bg-tertiary)",
+                                borderColor: "var(--border-color)",
+                              }}
+                            >
                               <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                                  {item.user_name || 'Usuário'}
+                                <span
+                                  className="text-sm font-medium"
+                                  style={{ color: "var(--text-primary)" }}
+                                >
+                                  {item.user_name || "Usuário"}
                                 </span>
-                                <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
-                                  {item.attributes['date-time'] ? new Date(item.attributes['date-time']).toLocaleString() : 'Data não disponível'}
+                                <span
+                                  className="text-xs"
+                                  style={{ color: "var(--text-tertiary)" }}
+                                >
+                                  {item.attributes["date-time"]
+                                    ? new Date(
+                                        item.attributes["date-time"],
+                                      ).toLocaleString()
+                                    : "Data não disponível"}
                                 </span>
                               </div>
-                              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                                {item.attributes.text || 'Sem texto'}
+                              <p
+                                className="text-sm"
+                                style={{ color: "var(--text-secondary)" }}
+                              >
+                                {item.attributes.text || "Sem texto"}
                               </p>
                             </div>
                           ))}
@@ -1780,15 +2369,18 @@ export default function Dashboard() {
                   )}
                 </div>
               </div>
-              
-              <div className="flex items-center justify-end space-x-3 pt-4 border-t" style={{ borderColor: 'var(--border-color)' }}>
-                <button 
+
+              <div
+                className="flex items-center justify-end space-x-3 pt-4 border-t"
+                style={{ borderColor: "var(--border-color)" }}
+              >
+                <button
                   onClick={() => setShowTaskDetails(false)}
                   className="action-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
                 >
                   Fechar
                 </button>
-                <button 
+                <button
                   onClick={() => {
                     setShowTaskDetails(false);
                     setSelectedTask(selectedTaskDetails);

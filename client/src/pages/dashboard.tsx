@@ -2687,7 +2687,7 @@ export default function Dashboard() {
                           }
                         }).catch(err => console.log('Erro ao acessar clipboard:', err));
                       }}
-                      className="flex items-center space-x-2 px-4 py-2 bg-gray-600 text-white rounded text-sm hover:bg-gray-700"
+                      className="flex items-center space-x-2 px-4 py-2 text-white rounded text-sm hover:bg-gray-700 bg-[#949cb0]"
                     >
                       <i className="ri-folder-line"></i>
                       <span>Colar</span>

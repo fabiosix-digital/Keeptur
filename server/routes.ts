@@ -942,12 +942,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para buscar empresas (buscar especificamente empresas da API do Monde)
+  // Endpoint para buscar empresas associadas ao usuário autenticado
   app.get("/api/monde/empresas", authenticateToken, async (req: any, res) => {
     try {
-      // Buscar informações do usuário atual para identificar sua empresa
-      const userResponse = await fetch(
-        "https://web.monde.com.br/api/v2/me",
+      // Usar o endpoint específico para empresas associadas ao usuário
+      const companiesResponse = await fetch(
+        "https://web.monde.com.br/api/v2/companies-user",
         {
           method: "GET",
           headers: {
@@ -958,136 +958,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       );
 
-      let userCompany = null;
-      
-      if (userResponse.ok) {
-        const userData = await userResponse.json();
-        console.log("👤 Dados do usuário atual:", JSON.stringify(userData, null, 2));
+      if (companiesResponse.ok) {
+        const companiesData = await companiesResponse.json();
         
-        // Extrair empresa do usuário
-        if (userData.data?.attributes?.['company-name']) {
-          userCompany = {
-            id: 'user-company',
-            name: userData.data.attributes['company-name'],
-            attributes: {
-              name: userData.data.attributes['company-name'],
-              person_type: 'company',
-              kind: 'user-company'
-            }
-          };
-        }
-      }
-      
-      // Buscar empresas corporativas da API
-      const corporateResponse = await fetch(
-        "https://web.monde.com.br/api/v2/people?filter[kind]=corporate&page[limit]=100&sort=name",
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/vnd.api+json",
-            Accept: "application/vnd.api+json",
-            Authorization: `Bearer ${req.sessao.access_token}`,
-          },
-        }
-      );
-
-      let companies = [];
-      
-      if (corporateResponse.ok) {
-        const corporateData = await corporateResponse.json();
-        
-        companies = (corporateData.data || []).map((item: any) => ({
-          id: item.id,
-          name: item.attributes.name || item.attributes['company-name'],
+        // Transformar para o formato esperado pelo frontend
+        const companies = companiesData.map((company: any) => ({
+          id: company.id,
+          name: company.name,
           attributes: {
-            name: item.attributes.name || item.attributes['company-name'],
+            name: company.name,
             person_type: 'company',
-            cnpj: item.attributes?.cnpj,
-            kind: item.attributes?.kind
+            kind: 'user-associated',
+            created_at: company.created_at,
+            updated_at: company.updated_at
           }
         }));
         
-        console.log("🏢 Empresas corporativas encontradas:", companies.length);
-      }
-      
-      // Buscar pessoas com CNPJ ou company-name
-      const peopleResponse = await fetch(
-        "https://web.monde.com.br/api/v2/people?page[limit]=200&sort=name",
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/vnd.api+json",
-            Accept: "application/vnd.api+json",
-            Authorization: `Bearer ${req.sessao.access_token}`,
-          },
-        }
-      );
-
-      if (peopleResponse.ok) {
-        const peopleData = await peopleResponse.json();
+        console.log("🏢 Empresas associadas ao usuário encontradas:", companies.length);
+        console.log("📋 Empresas:", companies.map(e => e.name).join(", "));
         
-        // Filtrar pessoas que podem ser empresas
-        const additionalCompanies = (peopleData.data || [])
-          .filter((item: any) => {
-            const name = item.attributes?.name || '';
-            return item.attributes?.cnpj || 
-                   item.attributes?.['company-name'] ||
-                   name.toLowerCase().includes('empresa') || 
-                   name.toLowerCase().includes('cvc') ||
-                   name.toLowerCase().includes('teste') ||
-                   name.toLowerCase().includes('corp') ||
-                   name.toLowerCase().includes('ltda') ||
-                   name.toLowerCase().includes('s.a') ||
-                   name.toLowerCase().includes('agência') ||
-                   name.toLowerCase().includes('agencia');
-          })
-          .map((item: any) => ({
+        res.json({ data: companies });
+      } else {
+        console.log("⚠️ Endpoint companies-user não disponível, usando fallback");
+        
+        // Fallback: buscar empresas corporativas da API
+        const corporateResponse = await fetch(
+          "https://web.monde.com.br/api/v2/people?filter[kind]=corporate&page[limit]=100&sort=name",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/vnd.api+json",
+              Accept: "application/vnd.api+json",
+              Authorization: `Bearer ${req.sessao.access_token}`,
+            },
+          }
+        );
+
+        let companies = [];
+        
+        if (corporateResponse.ok) {
+          const corporateData = await corporateResponse.json();
+          
+          companies = (corporateData.data || []).map((item: any) => ({
             id: item.id,
             name: item.attributes.name || item.attributes['company-name'],
             attributes: {
               name: item.attributes.name || item.attributes['company-name'],
               person_type: 'company',
               cnpj: item.attributes?.cnpj,
-              kind: item.attributes?.kind || 'filtered-name'
+              kind: item.attributes?.kind
             }
           }));
-        
-        // Adicionar empresas filtradas, evitando duplicatas
-        const existingNames = new Set(companies.map(c => c.name));
-        additionalCompanies.forEach(company => {
-          if (!existingNames.has(company.name)) {
-            companies.push(company);
-          }
-        });
-        
-        console.log("🏢 Empresas adicionais encontradas:", additionalCompanies.length);
-      }
-      
-      // Adicionar empresa do usuário se não estiver na lista
-      if (userCompany && !companies.find(c => c.name === userCompany.name)) {
-        companies.unshift(userCompany); // Adicionar no início
-      }
-      
-      // Adicionar empresas conhecidas como CVC Teste e Empresa Teste se não existirem
-      const knownCompanies = ['CVC Teste', 'Empresa Teste', 'Allana Caires'];
-      knownCompanies.forEach(companyName => {
-        if (!companies.find(c => c.name === companyName)) {
-          companies.push({
-            id: `known-${companyName.toLowerCase().replace(/\s+/g, '-')}`,
-            name: companyName,
-            attributes: {
-              name: companyName,
-              person_type: 'company',
-              kind: 'known-company'
-            }
-          });
         }
-      });
-      
-      console.log("✅ Total de empresas retornadas:", companies.length);
-      console.log("📋 Empresas finais:", companies.map(e => `${e.name} (${e.attributes.kind || 'unknown'})`).join(", "));
-      
-      res.json({ data: companies });
+        
+        console.log("🏢 Empresas corporativas (fallback) encontradas:", companies.length);
+        res.json({ data: companies });
+      }
     } catch (error) {
       console.error("Erro ao buscar empresas:", error);
       res.status(500).json({ message: "Erro ao buscar empresas" });

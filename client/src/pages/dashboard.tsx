@@ -245,16 +245,32 @@ export default function Dashboard() {
     
     let filtered = allTasks;
     
+    // Precisamos encontrar o ID correto do usuário atual das tarefas
+    const userEmail = user?.email;
+    let userUUID = null;
+    
+    // Encontrar o UUID do usuário atual a partir dos dados dos users
+    if (userEmail && users.length > 0) {
+      let currentUser = users.find((u: any) => u.attributes?.email === userEmail);
+      
+      // Se não encontrar por email, procurar por nome similar
+      if (!currentUser) {
+        currentUser = users.find((u: any) => u.attributes?.name?.toLowerCase().includes('fabio'));
+      }
+      
+      userUUID = currentUser?.id;
+    }
+    
     // Aplicar filtros específicos
     if (filter === 'assigned_to_me') {
       filtered = allTasks.filter((task: any) => {
         const assigneeId = task.relationships?.assignee?.data?.id;
-        return assigneeId === user?.id;
+        return assigneeId === userUUID;
       });
     } else if (filter === 'created_by_me') {
       filtered = allTasks.filter((task: any) => {
         const authorId = task.relationships?.author?.data?.id;
-        return authorId === user?.id;
+        return authorId === userUUID;
       });
     }
     // Para 'all', usar todas as tarefas

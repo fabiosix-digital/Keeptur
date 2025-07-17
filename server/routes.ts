@@ -312,8 +312,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('✅ Filtro cliente aplicado:', req.query.client_id);
       }
       
-      // 📅 Filtros de data removidos - não suportados pela API do Monde
-      // A API do Monde não aceita filtros de data via parâmetros
+      // 📅 Filtros de data (usando parâmetros de query start_date e end_date)
+      if (req.query.start_date) {
+        queryParams.append('start_date', req.query.start_date);
+        console.log('✅ Filtro data início aplicado:', req.query.start_date);
+      }
+      if (req.query.end_date) {
+        queryParams.append('end_date', req.query.end_date);
+        console.log('✅ Filtro data fim aplicado:', req.query.end_date);
+      }
       
       // 🔍 Filtro de busca
       if (req.query.search) {
@@ -824,39 +831,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return;
       }
       
-      // Extrair usuários únicos das tarefas
+      // Extrair usuários únicos das tarefas usando includes
       const usersSet = new Set();
       const tasks = data.data || [];
+      const included = data.included || [];
       
-      tasks.forEach((task: any) => {
-        // Adicionar responsável da tarefa
-        if (task.attributes?.assignee) {
+      // Buscar usuários dos includes
+      included.forEach((item: any) => {
+        if (item.type === 'people' && item.attributes?.person_type === 'user') {
           usersSet.add(JSON.stringify({
-            id: task.attributes.assignee_id || task.attributes.assignee,
-            name: task.attributes.assignee_name || task.attributes.assignee,
+            id: item.id,
+            name: item.attributes.name,
             attributes: {
-              name: task.attributes.assignee_name || task.attributes.assignee,
-              person_type: 'user'
-            }
-          }));
-        }
-        
-        // Adicionar autor da tarefa
-        if (task.attributes?.author) {
-          usersSet.add(JSON.stringify({
-            id: task.attributes.author_id || task.attributes.author,
-            name: task.attributes.author_name || task.attributes.author,
-            attributes: {
-              name: task.attributes.author_name || task.attributes.author,
+              name: item.attributes.name,
               person_type: 'user'
             }
           }));
         }
       });
       
+      // Se não houver includes, extrair dos relationships das tarefas
+      if (usersSet.size === 0) {
+        tasks.forEach((task: any) => {
+          if (task.relationships?.assignee?.data) {
+            usersSet.add(JSON.stringify({
+              id: task.relationships.assignee.data.id,
+              name: `Usuário ${task.relationships.assignee.data.id}`,
+              attributes: {
+                name: `Usuário ${task.relationships.assignee.data.id}`,
+                person_type: 'user'
+              }
+            }));
+          }
+          if (task.relationships?.author?.data) {
+            usersSet.add(JSON.stringify({
+              id: task.relationships.author.data.id,
+              name: `Usuário ${task.relationships.author.data.id}`,
+              attributes: {
+                name: `Usuário ${task.relationships.author.data.id}`,
+                person_type: 'user'
+              }
+            }));
+          }
+        });
+      }
+      
       const users = Array.from(usersSet).map(u => JSON.parse(u as string));
       
       console.log("✅ Usuários/agentes extraídos das tarefas:", users.length);
+      
+      // Log para debug dos dados das tarefas
+      if (tasks.length > 0) {
+        console.log("📋 Exemplo de tarefa para debug:", JSON.stringify({
+          attributes: tasks[0].attributes,
+          relationships: tasks[0].relationships
+        }, null, 2));
+      }
+      if (included.length > 0) {
+        console.log("📋 Exemplo de include para debug:", JSON.stringify(included[0], null, 2));
+      }
+      
       res.json({ data: users });
     } catch (error) {
       console.error("Erro ao buscar usuários:", error);
@@ -888,39 +922,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return;
       }
       
-      // Extrair empresas/clientes únicos das tarefas
+      // Extrair empresas/clientes únicos das tarefas usando includes
       const companiesSet = new Set();
       const tasks = data.data || [];
+      const included = data.included || [];
       
-      tasks.forEach((task: any) => {
-        // Adicionar empresa/cliente da tarefa
-        if (task.attributes?.person) {
+      // Buscar empresas dos includes
+      included.forEach((item: any) => {
+        if (item.type === 'people' && item.attributes?.person_type === 'company') {
           companiesSet.add(JSON.stringify({
-            id: task.attributes.person_id || task.attributes.person,
-            name: task.attributes.person_name || task.attributes.person,
+            id: item.id,
+            name: item.attributes.name,
             attributes: {
-              name: task.attributes.person_name || task.attributes.person,
-              person_type: 'company'
-            }
-          }));
-        }
-        
-        // Adicionar cliente se diferente de person
-        if (task.attributes?.client && task.attributes?.client !== task.attributes?.person) {
-          companiesSet.add(JSON.stringify({
-            id: task.attributes.client_id || task.attributes.client,
-            name: task.attributes.client_name || task.attributes.client,
-            attributes: {
-              name: task.attributes.client_name || task.attributes.client,
+              name: item.attributes.name,
               person_type: 'company'
             }
           }));
         }
       });
       
+      // Se não houver includes, extrair dos relationships das tarefas
+      if (companiesSet.size === 0) {
+        tasks.forEach((task: any) => {
+          if (task.relationships?.person?.data) {
+            companiesSet.add(JSON.stringify({
+              id: task.relationships.person.data.id,
+              name: `Cliente ${task.relationships.person.data.id}`,
+              attributes: {
+                name: `Cliente ${task.relationships.person.data.id}`,
+                person_type: 'company'
+              }
+            }));
+          }
+        });
+      }
+      
       const companies = Array.from(companiesSet).map(c => JSON.parse(c as string));
       
       console.log("✅ Empresas/clientes extraídas das tarefas:", companies.length);
+      
+      // Log para debug dos dados das tarefas
+      if (tasks.length > 0) {
+        console.log("📋 Exemplo de tarefa para debug empresas:", JSON.stringify({
+          attributes: tasks[0].attributes,
+          relationships: tasks[0].relationships
+        }, null, 2));
+      }
+      if (included.length > 0) {
+        console.log("📋 Exemplo de include para debug empresas:", JSON.stringify(included[0], null, 2));
+      }
+      
       res.json({ data: companies });
     } catch (error) {
       console.error("Erro ao buscar empresas:", error);

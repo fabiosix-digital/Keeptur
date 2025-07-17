@@ -292,6 +292,30 @@ body {
   background-color: var(--bg-primary);
   border: 1px solid var(--border-color);
   box-shadow: 0 20px 25px -5px var(--shadow-color);
+  min-height: 600px;
+}
+
+/* Discrete button styles */
+.discrete-button {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid;
+  background-color: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border-color: var(--border-color);
+  transition: all 0.2s ease;
+}
+
+.discrete-button:hover {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.discrete-button.active {
+  background-color: #6366f1;
+  color: white;
+  border-color: #6366f1;
 }
 
 .form-input {

@@ -49,6 +49,8 @@ export default function Dashboard() {
   const [newHistoryText, setNewHistoryText] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);
   const [taskAttachments, setTaskAttachments] = useState<any[]>([]);
+  const [showDeleted, setShowDeleted] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Função para carregar anexos da tarefa
   const loadTaskAttachments = async (taskId: string) => {
@@ -61,10 +63,11 @@ export default function Dashboard() {
       
       if (response.ok) {
         const data = await response.json();
-        setTaskAttachments(data.attachments || []);
+        setTaskAttachments(data.data || []);
       }
     } catch (error) {
       console.error('Erro ao carregar anexos:', error);
+      setTaskAttachments([]);
     }
   };
   
@@ -304,6 +307,9 @@ export default function Dashboard() {
         // Log para debug
         console.log("📋 Usuários carregados:", usersData?.data?.length || 0);
         console.log("📋 Pessoas/clientes carregadas:", pessoasData?.data?.length || 0);
+        
+        // Marcar como inicializado
+        setIsInitialized(true);
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
       } finally {
@@ -326,6 +332,13 @@ export default function Dashboard() {
 
     applyFilter();
   }, [taskFilter, allTasks, user?.id, selectedSituation, selectedCategory, selectedAssignee, selectedClient, startDate, endDate, taskSearchTerm]);
+
+  // Recarregar tarefas quando showDeleted mudar
+  useEffect(() => {
+    if (isInitialized) {
+      reloadTasks();
+    }
+  }, [showDeleted]);
 
   // Função para carregar TODAS as tarefas da empresa (uma vez só)
   const loadAllTasks = async () => {
@@ -1142,12 +1155,20 @@ export default function Dashboard() {
                 <i className="ri-calendar-line mr-2"></i>Calendário
               </button>
             </div>
-            <button
-              onClick={() => setShowTaskModal(true)}
-              className="primary-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
-            >
-              <i className="ri-add-line mr-2"></i>Nova Tarefa
-            </button>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setShowDeleted(!showDeleted)}
+                className={`discrete-button ${showDeleted ? "active" : ""}`}
+              >
+                {showDeleted ? 'Ocultar Excluídas' : 'Mostrar Excluídas'}
+              </button>
+              <button
+                onClick={() => setShowTaskModal(true)}
+                className="primary-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
+              >
+                <i className="ri-add-line mr-2"></i>Nova Tarefa
+              </button>
+            </div>
           </div>
 
           {/* Filtros */}
@@ -2776,15 +2797,15 @@ export default function Dashboard() {
                             console.error('Erro na requisição:', error);
                           }
                         }}
-                        className="mt-2 px-4 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+                        className="mt-2 px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
                       >
-                        <i className="ri-upload-line mr-2"></i>
-                        Fazer Upload
+                        <i className="ri-upload-line mr-1"></i>
+                        Upload
                       </button>
                     </div>
                   )}
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
                         Nome do Arquivo
@@ -2795,28 +2816,36 @@ export default function Dashboard() {
                         Tamanho
                       </label>
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                        Ações
+                      </label>
+                    </div>
                   </div>
 
                   {/* Lista de anexos existentes */}
                   {taskAttachments.length > 0 ? (
                     <div className="space-y-2">
                       {taskAttachments.map((attachment, index) => (
-                        <div key={index} className="grid grid-cols-2 gap-4 p-2 border rounded hover:bg-gray-50">
+                        <div key={index} className="grid grid-cols-3 gap-4 p-3 border rounded hover:bg-gray-50">
                           <div className="flex items-center space-x-2">
                             <i className="ri-file-line text-blue-600"></i>
                             <a
                               href={`/api/monde/anexos/${selectedTask?.id}/${attachment.nome_arquivo}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-sm text-blue-600 hover:underline"
+                              className="text-sm text-blue-600 hover:underline truncate"
+                              title={attachment.nome_original || attachment.nome_arquivo}
                             >
                               {attachment.nome_original || attachment.nome_arquivo}
                             </a>
                           </div>
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center">
                             <span className="text-sm text-gray-600">
                               {attachment.tamanho ? `${(attachment.tamanho / 1024).toFixed(1)} KB` : 'N/A'}
                             </span>
+                          </div>
+                          <div className="flex items-center justify-start">
                             <button
                               onClick={async () => {
                                 if (confirm('Tem certeza que deseja excluir este anexo?')) {
@@ -2856,7 +2885,8 @@ export default function Dashboard() {
                                   }
                                 }
                               }}
-                              className="text-red-600 hover:text-red-800 p-1"
+                              className="text-red-600 hover:text-red-800 px-2 py-1 rounded hover:bg-red-50 text-xs"
+                              title="Excluir anexo"
                             >
                               <i className="ri-delete-bin-line"></i>
                             </button>
@@ -3366,7 +3396,7 @@ export default function Dashboard() {
       {/* Modal de Visualização de Tarefa */}
       {showTaskDetails && selectedTaskDetails && (
         <div className="fixed inset-0 modal-overlay flex items-center justify-center z-50">
-          <div className="modal-content rounded-xl shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="modal-content rounded-xl shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto min-h-[600px]">
             <div
               className="flex items-center justify-between p-6 border-b"
               style={{ borderColor: "var(--border-color)" }}

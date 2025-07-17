@@ -1238,44 +1238,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`📎 Enviando ${files.length} anexo(s) para tarefa ${taskId}`);
 
-      // Tentar integrar com API do Monde se houver endpoint específico
+      // Integrar com API do Monde através do histórico (método disponível)
       try {
-        // Primeiro, tentar endpoint específico de anexos do Monde (se existir)
-        const mondeAttachmentUrl = `https://web.monde.com.br/api/v2/tasks/${taskId}/attachments`;
+        const fileNames = files.map(file => file.originalname).join(', ');
         
-        const formData = new FormData();
-        files.forEach(file => {
-          const blob = new Blob([file.buffer], { type: file.mimetype });
-          formData.append('files', blob, file.originalname);
-        });
-
-        const attachmentResponse = await fetch(mondeAttachmentUrl, {
+        // Registrar no histórico do Monde que anexos foram adicionados
+        console.log('📎 Registrando anexos no histórico do Monde...');
+        const historicoResponse = await fetch(`https://web.monde.com.br/api/v2/task-historics`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${req.mondeToken}`,
-            'Accept': 'application/vnd.api+json'
+            'Content-Type': 'application/vnd.api+json'
           },
-          body: formData
+          body: JSON.stringify({
+            data: {
+              type: 'task-historics',
+              attributes: {
+                text: `Anexo(s) adicionado(s): ${fileNames}`,
+                'date-time': new Date().toISOString()
+              },
+              relationships: {
+                task: {
+                  data: {
+                    id: taskId,
+                    type: 'tasks'
+                  }
+                }
+              }
+            }
+          })
         });
 
-        if (attachmentResponse.ok) {
-          const attachmentData = await attachmentResponse.json();
-          console.log('✅ Anexos enviados com sucesso para o Monde');
-          return res.json({
-            message: "Arquivos anexados com sucesso no Monde",
-            data: attachmentData.data || []
-          });
+        if (historicoResponse.ok) {
+          console.log('✅ Histórico de anexos registrado no Monde');
         } else {
-          console.log('⚠️ Endpoint de anexos não disponível no Monde, criando localmente');
+          console.log('❌ Erro ao registrar histórico no Monde:', await historicoResponse.text());
         }
       } catch (error) {
-        console.log('⚠️ Erro ao tentar enviar anexos para o Monde:', error);
+        console.log('❌ Erro ao integrar com API do Monde:', error);
       }
 
       // Fallback: salvar anexos no banco de dados PostgreSQL
       const attachments = [];
-      
-
       
       for (const file of files) {
         const fileBase64 = file.buffer.toString('base64');
@@ -1325,7 +1329,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`📎 Buscando anexos para tarefa ${taskId}`);
 
-      // Tentar buscar anexos da API do Monde
+      // Tentar buscar anexos da API do Monde (se disponível)
       try {
         const mondeAttachmentUrl = `https://web.monde.com.br/api/v2/tasks/${taskId}/attachments`;
         

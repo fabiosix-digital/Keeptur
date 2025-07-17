@@ -56,6 +56,12 @@ Preferred communication style: Simple, everyday language in Portuguese.
 - ✅ Sincronização bidirecional com API do Monde implementada para anexos
 - ✅ Histórico de anexos aparece automaticamente na seção de detalhes após upload
 - ✅ Sistema de fallback para anexos quando API do Monde não suporta endpoint específico
+- ✅ Modal de tarefas com tamanho consistente (min-height: 600px) entre todas as abas
+- ✅ Botão "Mostrar Excluídas" implementado com estilo discreto no canto direito
+- ✅ Sistema de recarregamento automático quando o estado showDeleted muda
+- ✅ Integração com API do Monde através do histórico para registro de anexos
+- ✅ Correção de erro de carregamento de anexos (data.data em vez de data.attachments)
+- ✅ Estilo CSS para botões discretos com hover e estado ativo
 
 ## System Architecture
 

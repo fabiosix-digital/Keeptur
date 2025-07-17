@@ -675,16 +675,7 @@ export default function Dashboard() {
 
   // Função para determinar o status da tarefa
   const getTaskStatus = (task: any) => {
-    // Log para debug
-    console.log('Debug tarefa:', task.attributes.title, {
-      completed: task.attributes.completed,
-      status: task.attributes.status,
-      deleted: task.attributes.deleted,
-      is_deleted: task.attributes.is_deleted,
-      due: task.attributes.due
-    });
-    
-    // Verificar se a tarefa foi excluída (assumindo que tarefas excluídas têm um atributo deleted ou similar)
+    // Verificar se a tarefa foi excluída
     if (task.attributes.deleted || task.attributes.is_deleted) {
       return { status: "deleted", label: "Excluída", class: "status-badge-deleted" };
     }
@@ -693,6 +684,7 @@ export default function Dashboard() {
       return { status: "completed", label: "Concluída", class: "status-badge-completed" };
     }
     
+    // Usar a data de vencimento (due) para verificar se está atrasada
     const now = new Date();
     const dueDate = task.attributes.due ? new Date(task.attributes.due) : null;
     
@@ -2554,7 +2546,12 @@ export default function Dashboard() {
                           name="due"
                           className="form-input w-full px-3 py-2 text-sm"
                           defaultValue={selectedTask?.attributes?.due ? 
-                            new Date(selectedTask.attributes.due).toISOString().slice(0, 16) : ''
+                            (() => {
+                              const date = new Date(selectedTask.attributes.due);
+                              // Converter para o fuso horário local
+                              const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+                              return localDate.toISOString().slice(0, 16);
+                            })() : ''
                           }
                           style={{ backgroundColor: "var(--bg-secondary)" }}
                           onChange={(e) => saveTaskChanges({ due: e.target.value })}

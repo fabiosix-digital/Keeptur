@@ -124,16 +124,16 @@ export default function Dashboard() {
 
   // Aplicar filtros dinamicamente quando taskFilter mudar
   useEffect(() => {
-    const applyFilter = async () => {
+    const applyFilter = () => {
       console.log('📋 Aplicando filtro:', taskFilter);
-      const filteredTasks = await loadTasksWithFilter(taskFilter);
+      const filteredTasks = getFilteredTasks(taskFilter);
       setTasks(filteredTasks);
       setStats(calculateTaskStats(filteredTasks));
       console.log('✅ Filtros aplicados. Tarefas exibidas:', filteredTasks.length);
     };
 
     applyFilter();
-  }, [taskFilter]);
+  }, [taskFilter, allTasks, user?.id]);
 
   // Função para carregar TODAS as tarefas da empresa (uma vez só)
   const loadAllTasks = async () => {
@@ -239,62 +239,35 @@ export default function Dashboard() {
     };
   };
 
-  // Carregar tarefas com filtros específicos da API
-  const loadTasksWithFilter = async (filter: string) => {
-    try {
-      const token = localStorage.getItem("keeptur-token");
-      if (!token) return [];
-
-      let url = `/api/monde/tarefas`;
-      
-      // Aplicar filtros específicos
-      if (filter === 'assigned_to_me') {
-        url += `?assignee=me`;
-      } else if (filter === 'created_by_me') {
-        url += `?filter[created_by]=me`;
-      } else {
-        url += `?all=true`;
-      }
-
-      // Adicionar filtros adicionais se configurados
-      const params = new URLSearchParams();
-      if (selectedSituation) params.append('situation', selectedSituation);
-      if (selectedCategory) params.append('category_id', selectedCategory);
-      if (selectedResponsible) params.append('responsible_id', selectedResponsible);
-      if (selectedClient) params.append('client_id', selectedClient);
-      if (startDate) params.append('start_date', startDate);
-      if (endDate) params.append('end_date', endDate);
-
-      if (params.toString()) {
-        url += url.includes('?') ? '&' : '?';
-        url += params.toString();
-      }
-
-      console.log('🔄 Carregando tarefas com filtro:', filter, 'URL:', url);
-
-      const response = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
+  // Filtrar tarefas no frontend baseado no filtro selecionado
+  const getFilteredTasks = (filter: string) => {
+    if (!allTasks || allTasks.length === 0) return [];
+    
+    let filtered = allTasks;
+    
+    // Aplicar filtros específicos
+    if (filter === 'assigned_to_me') {
+      filtered = allTasks.filter((task: any) => {
+        const assigneeId = task.relationships?.assignee?.data?.id;
+        return assigneeId === user?.id;
       });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          setShowTokenExpiredModal(true);
-        }
-        throw new Error("Erro ao carregar tarefas");
-      }
-
-      const data = await response.json();
-      console.log('✅ Tarefas carregadas com filtro:', data.data?.length || 0);
-      return data.data || [];
-    } catch (error) {
-      console.error("Erro ao carregar tarefas:", error);
-      return [];
+    } else if (filter === 'created_by_me') {
+      filtered = allTasks.filter((task: any) => {
+        const authorId = task.relationships?.author?.data?.id;
+        return authorId === user?.id;
+      });
     }
+    // Para 'all', usar todas as tarefas
+    
+    return filtered;
   };
 
   // Recarregar tarefas quando necessário (mantém as existentes)
   const reloadTasks = async () => {
-    const filteredTasks = await loadTasksWithFilter(taskFilter);
+    const allTasksData = await loadAllTasks();
+    setAllTasks(allTasksData.data || []);
+    
+    const filteredTasks = getFilteredTasks(taskFilter);
     setTasks(filteredTasks);
     setStats(calculateTaskStats(filteredTasks));
   };

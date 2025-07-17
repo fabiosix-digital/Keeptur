@@ -622,7 +622,12 @@ export default function Dashboard() {
 
       if (response.ok) {
         const data = await response.json();
-        return data.data || [];
+        // Filtrar apenas os históricos dessa tarefa específica
+        const filteredHistory = data.data?.filter((entry: any) => {
+          return entry.relationships?.task?.data?.id === taskId;
+        }) || [];
+        console.log('📋 Histórico filtrado para tarefa', taskId, ':', filteredHistory.length, 'entradas');
+        return filteredHistory;
       } else if (response.status === 401) {
         setShowTokenExpiredModal(true);
       }
@@ -2467,10 +2472,7 @@ export default function Dashboard() {
                         type="text"
                         className="form-input w-full px-3 py-2 text-sm"
                         style={{ backgroundColor: "var(--bg-secondary)" }}
-                        value={selectedTask?.relationships?.person?.data?.id ? 
-                          getPersonName(selectedTask.relationships.person.data.id) : 
-                          'Cliente não encontrado'
-                        }
+                        value={selectedTask?.client_name || 'Cliente não encontrado'}
                         readOnly
                       />
                       {selectedTask?.relationships?.person?.data?.id && (
@@ -2518,9 +2520,7 @@ export default function Dashboard() {
                         type="email"
                         name="email"
                         className="form-input w-full px-3 py-2 text-sm text-blue-600 underline"
-                        value={selectedTask?.relationships?.person?.data?.id ? 
-                          getPersonEmail(selectedTask.relationships.person.data.id) : ''
-                        }
+                        value={selectedTask?.client_email || ''}
                         style={{ backgroundColor: "var(--bg-secondary)" }}
                         readOnly
                       />

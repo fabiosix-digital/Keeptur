@@ -536,6 +536,15 @@ export default function Dashboard() {
 
   // Função para determinar o status da tarefa
   const getTaskStatus = (task: any) => {
+    // Log para debug
+    console.log('Debug tarefa:', task.attributes.title, {
+      completed: task.attributes.completed,
+      status: task.attributes.status,
+      deleted: task.attributes.deleted,
+      is_deleted: task.attributes.is_deleted,
+      due: task.attributes.due
+    });
+    
     // Verificar se a tarefa foi excluída (assumindo que tarefas excluídas têm um atributo deleted ou similar)
     if (task.attributes.deleted || task.attributes.is_deleted) {
       return { status: "deleted", label: "Excluída", class: "status-badge-deleted" };
@@ -1300,7 +1309,8 @@ export default function Dashboard() {
                     {getFilteredTasksWithStatus()
                       .filter(task => {
                         const { status } = getTaskStatus(task);
-                        return status === "pending";
+                        // Filtrar apenas tarefas reais (não mockadas)
+                        return status === "pending" && task.id && !task.attributes.title?.includes("Follow-up");
                       })
                       .map((task: any) => (
                         <div
@@ -1466,9 +1476,9 @@ export default function Dashboard() {
                               </button>
                             </div>
                           </div>
-                          <div className="flex items-center justify-center">
-                            <span className="category-badge px-2 py-1 rounded-full text-xs font-medium w-full text-center">
-                              {getCategoryName(task)}
+                          <div className="flex items-start justify-end">
+                            <span className="priority-badge-medium px-2 py-1 rounded-full text-xs font-medium">
+                              {getCategoryName(task).toUpperCase()}
                             </span>
                           </div>
                         </div>
@@ -1505,7 +1515,11 @@ export default function Dashboard() {
                     {getFilteredTasksWithStatus()
                       .filter(task => {
                         // Usar tanto o status quanto o atributo completed
-                        return task.attributes.completed === true || task.attributes.status === "completed";
+                        const isCompleted = task.attributes.completed === true || task.attributes.status === "completed";
+                        if (isCompleted) {
+                          console.log('Tarefa concluída encontrada:', task.attributes.title, 'completed:', task.attributes.completed, 'status:', task.attributes.status);
+                        }
+                        return isCompleted;
                       })
                       .map((task: any) => (
                         <div
@@ -1550,9 +1564,9 @@ export default function Dashboard() {
                               </button>
                             </div>
                           </div>
-                          <div className="flex items-center justify-center">
-                            <span className="category-badge px-2 py-1 rounded-full text-xs font-medium w-full text-center">
-                              {getCategoryName(task)}
+                          <div className="flex items-start justify-end">
+                            <span className="priority-badge-medium px-2 py-1 rounded-full text-xs font-medium">
+                              {getCategoryName(task).toUpperCase()}
                             </span>
                           </div>
                         </div>
@@ -1627,9 +1641,9 @@ export default function Dashboard() {
                               </button>
                             </div>
                           </div>
-                          <div className="flex items-center justify-center">
-                            <span className="category-badge px-2 py-1 rounded-full text-xs font-medium w-full text-center">
-                              {getCategoryName(task)}
+                          <div className="flex items-start justify-end">
+                            <span className="priority-badge-medium px-2 py-1 rounded-full text-xs font-medium">
+                              {getCategoryName(task).toUpperCase()}
                             </span>
                           </div>
                         </div>

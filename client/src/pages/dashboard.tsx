@@ -81,7 +81,11 @@ export default function Dashboard() {
     
     const categoryId = task.relationships.category.data.id;
     const category = categories.find(cat => cat.id === categoryId);
-    return category ? category.attributes.name : categoryId;
+    
+    // Se não encontrou a categoria, retornar o ID da categoria (que já é um nome descritivo)
+    const categoryName = category ? category.attributes.name : categoryId;
+    
+    return categoryName || 'Sem categoria';
   };
 
   useEffect(() => {
@@ -121,6 +125,8 @@ export default function Dashboard() {
           headers: { Authorization: `Bearer ${token}` },
         });
         const categoriesData = await categoriesResponse.json();
+        console.log('📋 Categorias carregadas:', categoriesData.data?.length || 0);
+        console.log('📋 Primeira categoria:', categoriesData.data?.[0]);
 
         // Carregar usuários/agentes diretamente
         const usersResponse = await fetch("/api/monde/users", {
@@ -1487,8 +1493,7 @@ export default function Dashboard() {
                     </h3>
                     <span className="bg-green-200 text-green-700 px-2 py-1 rounded-full text-xs">
                       {getFilteredTasksWithStatus().filter(task => {
-                        const { status } = getTaskStatus(task);
-                        return status === "completed";
+                        return task.attributes.completed === true || task.attributes.status === "completed";
                       }).length}
                     </span>
                   </div>
@@ -1499,8 +1504,8 @@ export default function Dashboard() {
                   >
                     {getFilteredTasksWithStatus()
                       .filter(task => {
-                        const { status } = getTaskStatus(task);
-                        return status === "completed";
+                        // Usar tanto o status quanto o atributo completed
+                        return task.attributes.completed === true || task.attributes.status === "completed";
                       })
                       .map((task: any) => (
                         <div

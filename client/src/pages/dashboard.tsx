@@ -1511,9 +1511,18 @@ export default function Dashboard() {
                       Concluídas
                     </h3>
                     <span className="bg-green-200 text-green-700 px-2 py-1 rounded-full text-xs">
-                      {getFilteredTasksWithStatus().filter(task => {
+                      {combineAllTasks().filter(task => {
+                        // Primeiro filtra por status concluído
                         const { status } = getTaskStatus(task);
-                        return status === "completed";
+                        if (status !== "completed") return false;
+                        
+                        // Depois aplica filtros de busca, categoria, responsável e cliente
+                        if (selectedCategory && getCategoryName(task) !== selectedCategory) return false;
+                        if (selectedAssignee && getAssigneeName(task) !== selectedAssignee) return false;
+                        if (selectedClient && getClientName(task) !== selectedClient) return false;
+                        if (taskSearchTerm && !task.attributes.title.toLowerCase().includes(taskSearchTerm.toLowerCase())) return false;
+                        
+                        return true;
                       }).length}
                     </span>
                   </div>
@@ -1522,10 +1531,19 @@ export default function Dashboard() {
                     onDrop={(e) => handleDrop(e, "Concluídas")}
                     onDragOver={(e) => e.preventDefault()}
                   >
-                    {getFilteredTasksWithStatus()
+                    {combineAllTasks()
                       .filter(task => {
+                        // Primeiro filtra por status concluído
                         const { status } = getTaskStatus(task);
-                        return status === "completed";
+                        if (status !== "completed") return false;
+                        
+                        // Depois aplica filtros de busca, categoria, responsável e cliente
+                        if (selectedCategory && getCategoryName(task) !== selectedCategory) return false;
+                        if (selectedAssignee && getAssigneeName(task) !== selectedAssignee) return false;
+                        if (selectedClient && getClientName(task) !== selectedClient) return false;
+                        if (taskSearchTerm && !task.attributes.title.toLowerCase().includes(taskSearchTerm.toLowerCase())) return false;
+                        
+                        return true;
                       })
                       .map((task: any) => (
                         <div

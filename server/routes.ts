@@ -1275,8 +1275,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Fallback: salvar anexos no banco de dados PostgreSQL
       const attachments = [];
       
-      console.log('📋 Debug req.user:', req.user);
-      console.log('📋 Debug req.empresaId:', req.empresaId);
+
       
       for (const file of files) {
         const fileBase64 = file.buffer.toString('base64');

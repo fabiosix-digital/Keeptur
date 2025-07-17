@@ -1,0 +1,75 @@
+Console.js:61 The above error occurred in the <TaskModal> component:
+
+    at TaskModal (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/pages/dashboard.tsx:3481:43)
+    at div
+    at Dashboard (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/pages/dashboard.tsx:30:28)
+    at Route (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:323:16)
+    at Switch (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:379:17)
+    at Router
+    at Provider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.…unner/workspace/node_modules/.vite/deps/chunk-KVC5H6OX.js?v=3af817f4:25:15)
+    at TooltipProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.…space/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=3af817f4:2219:5)
+    at AuthProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/lib/auth.tsx:21:32)
+    at ThemeProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/hooks/use-theme.ts:3:33)
+    at QueryClientProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.…rkspace/node_modules/.vite/deps/@tanstack_react-query.js?v=3af817f4:2805:3)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+chunk-WERSD76P.js?v=3af817f4:9129 Uncaught TypeError: Cannot read properties of null (reading 'id')
+    at dashboard.tsx:2808:71
+    at Array.map (<anonymous>)
+    at TaskModal (dashboard.tsx:2803:40)
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.
+e	@	frame_ant.js:2
+s	@	frame_ant.js:2
+Promise.then		
+e	@	frame_ant.js:2
+u	@	frame_ant.js:2
+Promise.then		
+e	@	frame_ant.js:2
+u	@	frame_ant.js:2
+(anônimo)	@	frame_ant.js:2
+(anônimo)	@	frame_ant.js:2
+s	@	frame_ant.js:2
+window.fetch	@	frame_ant.js:2
+(anônimo)	@	_app-c8f6cc98a14c1088.js:38
+(anônimo)	@	_app-c8f6cc98a14c1088.js:25
+e	@	_app-c8f6cc98a14c1088.js:14
+t.subscribe	@	_app-c8f6cc98a14c1088.js:14
+e.consumeQueue	@	_app-c8f6cc98a14c1088.js:25
+(anônimo)	@	_app-c8f6cc98a14c1088.js:25
+n	@	_app-c8f6cc98a14c1088.js:38
+setTimeout		
+(anônimo)	@	_app-c8f6cc98a14c1088.js:38
+e.scheduleQueueConsumption	@	_app-c8f6cc98a14c1088.js:25
+(anônimo)	@	_app-c8f6cc98a14c1088.js:25
+e	@	_app-c8f6cc98a14c1088.js:14
+t.subscribe	@	_app-c8f6cc98a14c1088.js:14
+(anônimo)	@	_app-c8f6cc98a14c1088.js:25
+e	@	_app-c8f6cc98a14c1088.js:14
+t.subscribe	@	_app-c8f6cc98a14c1088.js:14
+e.try	@	_app-c8f6cc98a14c1088.js:25
+e.start	@	_app-c8f6cc98a14c1088.js:25
+t.request	@	_app-c8f6cc98a14c1088.js:25
+(anônimo)	@	_app-c8f6cc98a14c1088.js:14
+(anônimo)	@	_app-c8f6cc98a14c1088.js:14
+(anônimo)	@	_app-c8f6cc98a14c1088.js:25
+(anônimo)	@	_app-c8f6cc98a14c1088.js:14
+e.execute	@	_app-c8f6cc98a14c1088.js:14
+e.getObservableFromLink	@	_app-c8f6cc98a14c1088.js:11
+(anônimo)	@	_app-c8f6cc98a14c1088.js:11
+(anônimo)	@	_app-c8f6cc98a14c1088.js:11
+(anônimo)	@	_app-c8f6cc98a14c1088.js:11
+(anônimo)	@	_app-c8f6cc98a14c1088.js:11
+s	@	_app-c8f6cc98a14c1088.js:11
+e.mutate	@	_app-c8f6cc98a14c1088.js:11
+e.mutate	@	_app-c8f6cc98a14c1088.js:11
+(anônimo)	@	_app-c8f6cc98a14c1088.js:14
+(anônimo)	@	_app-c8f6cc98a14c1088.js:40
+(anônimo)	@	main-665079992d3a61d9.js:1
+n	@	main-665079992d3a61d9.js:1
+u	@	main-665079992d3a61d9.js:1
+(anônimo)	@	main-665079992d3a61d9.js:1
+(anônimo)	@	main-665079992d3a61d9.js:1
+n	@	_app-c8f6cc98a14c1088.js:38
+

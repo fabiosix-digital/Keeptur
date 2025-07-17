@@ -2805,7 +2805,7 @@ export default function Dashboard() {
                           <div className="flex items-center space-x-2">
                             <i className="ri-file-line text-blue-600"></i>
                             <a
-                              href={`/api/monde/anexos/${selectedTask.id}/${attachment.nome_arquivo}`}
+                              href={`/api/monde/anexos/${selectedTask?.id}/${attachment.nome_arquivo}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-sm text-blue-600 hover:underline"
@@ -2822,7 +2822,7 @@ export default function Dashboard() {
                                 if (confirm('Tem certeza que deseja excluir este anexo?')) {
                                   try {
                                     // Excluir anexo do banco de dados
-                                    await fetch(`/api/monde/anexos/${selectedTask.id}/${attachment.id}`, {
+                                    await fetch(`/api/monde/anexos/${selectedTask?.id}/${attachment.id}`, {
                                       method: 'DELETE',
                                       headers: {
                                         'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
@@ -2834,7 +2834,7 @@ export default function Dashboard() {
                                     setTaskAttachments(newAttachments);
                                     
                                     // Registrar no histórico do Monde
-                                    await fetch(`/api/monde/tarefas/${selectedTask.id}/historico`, {
+                                    await fetch(`/api/monde/tarefas/${selectedTask?.id}/historico`, {
                                       method: 'POST',
                                       headers: {
                                         'Content-Type': 'application/json',
@@ -2846,7 +2846,9 @@ export default function Dashboard() {
                                     });
                                     
                                     // Recarregar histórico
-                                    loadTaskHistory(selectedTask.id);
+                                    if (selectedTask?.id) {
+                                      loadTaskHistory(selectedTask.id);
+                                    }
                                     
                                     alert('Anexo excluído com sucesso!');
                                   } catch (error) {

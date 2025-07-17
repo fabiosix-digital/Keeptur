@@ -1117,20 +1117,22 @@ export default function Dashboard() {
               ))}
             </select>
 
-            {/* Filtro de Situação */}
-            <select
-              className="form-input px-3 py-2 rounded-lg text-sm"
-              value={selectedSituation}
-              onChange={(e) => {
-                setSelectedSituation(e.target.value);
-              }}
-            >
-              <option value="">Todas as Situações</option>
-              <option value="pendentes">Pendentes</option>
-              <option value="concluidas">Concluídas</option>
-              <option value="atrasadas">Atrasadas</option>
-              <option value="excluidas">Excluídas</option>
-            </select>
+            {/* Filtro de Situação - apenas para Lista e Calendário */}
+            {activeView !== "kanban" && (
+              <select
+                className="form-input px-3 py-2 rounded-lg text-sm"
+                value={selectedSituation}
+                onChange={(e) => {
+                  setSelectedSituation(e.target.value);
+                }}
+              >
+                <option value="">Todas as Situações</option>
+                <option value="pendentes">Pendentes</option>
+                <option value="concluidas">Concluídas</option>
+                <option value="atrasadas">Atrasadas</option>
+                <option value="excluidas">Excluídas</option>
+              </select>
+            )}
 
             {/* Filtro de Categoria */}
             <select
@@ -1163,13 +1165,13 @@ export default function Dashboard() {
                   <thead>
                     <tr className="table-row">
                       <th
-                        className="text-left py-3 px-4 font-medium text-sm"
+                        className="text-left py-3 px-4 font-medium text-sm w-16"
                         style={{ color: "var(--text-secondary)" }}
                       >
                         Nº
                       </th>
                       <th
-                        className="text-left py-3 px-4 font-medium text-sm"
+                        className="text-left py-3 px-4 font-medium text-sm w-48"
                         style={{ color: "var(--text-secondary)" }}
                       >
                         Cliente
@@ -1181,26 +1183,25 @@ export default function Dashboard() {
                         Título
                       </th>
                       <th
-                        className="text-left py-3 px-4 font-medium text-sm"
+                        className="text-left py-3 px-4 font-medium text-sm w-36"
                         style={{ color: "var(--text-secondary)" }}
                       >
                         Responsável
                       </th>
                       <th
-                        className="text-left py-3 px-4 font-medium text-sm"
+                        className="text-left py-3 px-4 font-medium text-sm w-32"
                         style={{ color: "var(--text-secondary)" }}
                       >
                         Data/Hora
                       </th>
                       <th
-                        className="text-left py-3 px-4 font-medium text-sm"
+                        className="text-left py-3 px-4 font-medium text-sm w-24"
                         style={{ color: "var(--text-secondary)" }}
                       >
                         Status
                       </th>
-                      {/* Coluna Prioridade removida - não existe na API do Monde */}
                       <th
-                        className="text-right py-3 px-4 font-medium text-sm"
+                        className="text-right py-3 px-4 font-medium text-sm w-24"
                         style={{ color: "var(--text-secondary)" }}
                       >
                         Ações
@@ -1210,7 +1211,7 @@ export default function Dashboard() {
                   <tbody>
                     {tasks.map((task, index) => (
                       <tr key={task.id} className="table-row">
-                        <td className="py-4 px-4">
+                        <td className="py-4 px-4 w-16">
                           <span
                             className="text-sm font-medium"
                             style={{ color: "var(--text-primary)" }}
@@ -1218,7 +1219,7 @@ export default function Dashboard() {
                             #{String(task.attributes.number).padStart(3, "0")}
                           </span>
                         </td>
-                        <td className="py-4 px-4">
+                        <td className="py-4 px-4 w-48">
                           <p
                             className={`text-sm font-medium ${
                               !task.client_name ? "text-red-600" : ""
@@ -1246,7 +1247,7 @@ export default function Dashboard() {
                             {task.attributes.description || "Sem descrição"}
                           </p>
                         </td>
-                        <td className="py-4 px-4">
+                        <td className="py-4 px-4 w-36">
                           <p
                             className="text-sm"
                             style={{ color: "var(--text-secondary)" }}
@@ -1254,7 +1255,7 @@ export default function Dashboard() {
                             {task.assignee_name || "Sem responsável"}
                           </p>
                         </td>
-                        <td className="py-4 px-4">
+                        <td className="py-4 px-4 w-32">
                           <p
                             className="text-sm"
                             style={{ color: "var(--text-secondary)" }}
@@ -1268,7 +1269,7 @@ export default function Dashboard() {
                             )}
                           </p>
                         </td>
-                        <td className="py-4 px-4">
+                        <td className="py-4 px-4 w-24">
                           {(() => {
                             const statusInfo = getTaskStatus(task);
                             return (
@@ -1281,7 +1282,7 @@ export default function Dashboard() {
                           })()}
                         </td>
                         {/* Coluna de prioridade removida - não existe na API do Monde */}
-                        <td className="py-4 px-4">
+                        <td className="py-4 px-4 w-24">
                           <div className="flex items-center justify-end space-x-2">
                             <button
                               onClick={() => handleViewTask(task)}
@@ -1510,7 +1511,13 @@ export default function Dashboard() {
                       Concluídas
                     </h3>
                     <span className="bg-green-200 text-green-700 px-2 py-1 rounded-full text-xs">
-                      {getTasksByStatus("Concluído").length}
+                      {getTasksByStatus("Concluído").filter(task => {
+                        if (selectedCategory && getCategoryName(task) !== selectedCategory) return false;
+                        if (selectedAssignee && getAssigneeName(task) !== selectedAssignee) return false;
+                        if (selectedClient && getClientName(task) !== selectedClient) return false;
+                        if (taskSearchTerm && !task.attributes.title.toLowerCase().includes(taskSearchTerm.toLowerCase())) return false;
+                        return true;
+                      }).length}
                     </span>
                   </div>
                   <div
@@ -1519,6 +1526,14 @@ export default function Dashboard() {
                     onDragOver={(e) => e.preventDefault()}
                   >
                     {getTasksByStatus("Concluído")
+                      .filter(task => {
+                        // Aplicar os mesmos filtros que são aplicados às outras colunas
+                        if (selectedCategory && getCategoryName(task) !== selectedCategory) return false;
+                        if (selectedAssignee && getAssigneeName(task) !== selectedAssignee) return false;
+                        if (selectedClient && getClientName(task) !== selectedClient) return false;
+                        if (taskSearchTerm && !task.attributes.title.toLowerCase().includes(taskSearchTerm.toLowerCase())) return false;
+                        return true;
+                      })
                       .map((task: any) => (
                         <div
                           key={task.id}

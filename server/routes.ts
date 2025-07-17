@@ -274,6 +274,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       else if (req.query.all === 'true') {
         // Não adicionar filtros, deixar API retornar todas as tarefas
         console.log('✅ Mostrando TODAS as tarefas da empresa (sem filtros)');
+      }
+      
+      // Para incluir tarefas excluídas, adicionar parâmetro is_deleted=true
+      if (req.query.include_deleted === 'true') {
+        queryParams.append('is_deleted', 'true');
+        console.log('✅ Incluindo tarefas excluídas (is_deleted=true)');
       } 
       
       // Filtro padrão se nenhum especificado

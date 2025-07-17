@@ -147,7 +147,7 @@ export default function Dashboard() {
         return { data: [] };
       }
 
-      // Carregar todas as tarefas da empresa
+      // Carregar todas as tarefas da empresa (ativas)
       const url = `/api/monde/tarefas?all=true`;
       console.log('🔄 Carregando todas as tarefas da empresa...');
 
@@ -165,7 +165,26 @@ export default function Dashboard() {
 
       const data = await response.json();
       console.log('✅ Tarefas carregadas:', data.data?.length || 0);
-      return data;
+      
+      // Agora carregar tarefas excluídas separadamente
+      const deletedUrl = `/api/monde/tarefas?all=true&include_deleted=true`;
+      console.log('🗑️ Carregando tarefas excluídas...');
+
+      const deletedResponse = await fetch(deletedUrl, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (deletedResponse.ok) {
+        const deletedData = await deletedResponse.json();
+        console.log('✅ Tarefas excluídas carregadas:', deletedData.data?.length || 0);
+        
+        // Combinar tarefas ativas e excluídas
+        const allTasks = [...(data.data || []), ...(deletedData.data || [])];
+        return { data: allTasks };
+      } else {
+        console.warn('⚠️ Erro ao carregar tarefas excluídas, continuando apenas com ativas');
+        return data;
+      }
     } catch (error) {
       console.error("Erro ao carregar tarefas:", error);
       return { data: [] };

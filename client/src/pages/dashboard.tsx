@@ -1511,12 +1511,9 @@ export default function Dashboard() {
                       Concluídas
                     </h3>
                     <span className="bg-green-200 text-green-700 px-2 py-1 rounded-full text-xs">
-                      {getTasksByStatus("Concluído").filter(task => {
-                        if (selectedCategory && getCategoryName(task) !== selectedCategory) return false;
-                        if (selectedAssignee && getAssigneeName(task) !== selectedAssignee) return false;
-                        if (selectedClient && getClientName(task) !== selectedClient) return false;
-                        if (taskSearchTerm && !task.attributes.title.toLowerCase().includes(taskSearchTerm.toLowerCase())) return false;
-                        return true;
+                      {getFilteredTasksWithStatus().filter(task => {
+                        const { status } = getTaskStatus(task);
+                        return status === "completed";
                       }).length}
                     </span>
                   </div>
@@ -1525,14 +1522,10 @@ export default function Dashboard() {
                     onDrop={(e) => handleDrop(e, "Concluídas")}
                     onDragOver={(e) => e.preventDefault()}
                   >
-                    {getTasksByStatus("Concluído")
+                    {getFilteredTasksWithStatus()
                       .filter(task => {
-                        // Aplicar os mesmos filtros que são aplicados às outras colunas
-                        if (selectedCategory && getCategoryName(task) !== selectedCategory) return false;
-                        if (selectedAssignee && getAssigneeName(task) !== selectedAssignee) return false;
-                        if (selectedClient && getClientName(task) !== selectedClient) return false;
-                        if (taskSearchTerm && !task.attributes.title.toLowerCase().includes(taskSearchTerm.toLowerCase())) return false;
-                        return true;
+                        const { status } = getTaskStatus(task);
+                        return status === "completed";
                       })
                       .map((task: any) => (
                         <div

@@ -149,7 +149,18 @@ export default function Dashboard() {
     }
     return '';
   };
+
+
   
+  // Função para obter empresa da pessoa/cliente
+  const getPersonCompany = (personId: string) => {
+    const client = clients.find((client: any) => client.id === personId);
+    if (client) {
+      return client.attributes?.['company-name'] || client.attributes?.company || client.company || '';
+    }
+    return '';
+  };
+
   // Função para obter nome do cliente da tarefa
   const getClientName = (task: any) => {
     if (!task) return 'Sem cliente';
@@ -213,11 +224,11 @@ export default function Dashboard() {
         });
         const usersData = await usersResponse.json();
         
-        // Carregar empresas/clientes
-        const empresasResponse = await fetch("/api/monde/empresas", {
+        // Carregar pessoas/clientes
+        const pessoasResponse = await fetch("/api/monde/clientes", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const empresasData = await empresasResponse.json();
+        const pessoasData = await pessoasResponse.json();
 
         // Processar dados do formato JSON:API do Monde
         const tasks = tasksResponse?.data || [];
@@ -231,12 +242,12 @@ export default function Dashboard() {
         setCategories(categoriesData?.data || []);
         setUsers(Array.isArray(usersData?.data) ? usersData.data : []);
 
-        // Usar empresas/clientes carregadas
-        setClients(empresasData?.data || []);
+        // Usar pessoas/clientes carregadas
+        setClients(pessoasData?.data || []);
         
         // Log para debug
         console.log("📋 Usuários carregados:", usersData?.data?.length || 0);
-        console.log("📋 Empresas carregadas:", empresasData?.data?.length || 0);;
+        console.log("📋 Pessoas/clientes carregadas:", pessoasData?.data?.length || 0);
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
       } finally {
@@ -2253,7 +2264,7 @@ export default function Dashboard() {
                       <input
                         type="text"
                         className="form-input w-full px-3 py-2 text-sm"
-                        value={selectedTask?.id?.slice(-4) || '24'}
+                        value={selectedTask?.attributes?.number || '0'}
                         disabled
                         style={{ backgroundColor: "var(--bg-secondary)" }}
                       />
@@ -2331,9 +2342,9 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  {/* Terceira linha - Pessoa/Cliente */}
+                  {/* Terceira linha - Pessoa/Cliente e Empresa */}
                   <div className="grid grid-cols-12 gap-4">
-                    <div className="col-span-12">
+                    <div className="col-span-6">
                       <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
                         Pessoa/Cliente:
                       </label>
@@ -2344,6 +2355,21 @@ export default function Dashboard() {
                         value={selectedTask?.relationships?.person?.data?.id ? 
                           getPersonName(selectedTask.relationships.person.data.id) : 
                           'Cliente não encontrado'
+                        }
+                        readOnly
+                      />
+                    </div>
+                    <div className="col-span-6">
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                        Empresa:
+                      </label>
+                      <input
+                        type="text"
+                        className="form-input w-full px-3 py-2 text-sm"
+                        style={{ backgroundColor: "var(--bg-secondary)" }}
+                        value={selectedTask?.relationships?.person?.data?.id ? 
+                          (clients.find((client: any) => client.id === selectedTask.relationships.person.data.id)?.attributes?.['company-name'] || '') : 
+                          'Empresa não encontrada'
                         }
                         readOnly
                       />

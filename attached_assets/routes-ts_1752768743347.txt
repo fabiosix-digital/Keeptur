@@ -1,0 +1,65 @@
+  // Endpoint para criar histórico de uma tarefa
+  app.post("/api/monde/tarefas/:id/historico", authenticateToken, async (req: any, res) => {
+    try {
+      const taskId = req.params.id;
+      const { description } = req.body;
+      
+      if (!description) {
+        return res.status(400).json({ message: "Descrição é obrigatória" });
+      }
+      
+      console.log('Criando histórico para task ID:', taskId, 'com descrição:', description);
+      
+      const mondeUrl = `https://web.monde.com.br/api/v2/task_historics`;
+      
+      const requestBody = {
+        data: {
+          type: "task-historics",
+          attributes: {
+            description: description,
+            text: description,
+            "date-time": new Date().toISOString()
+          },
+          relationships: {
+            task: {
+              data: {
+                type: "tasks",
+                id: taskId
+              }
+            }
+          }
+        }
+      };
+      
+      console.log('Request body:', JSON.stringify(requestBody, null, 2));
+      
+      const mondeResponse = await fetch(mondeUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/vnd.api+json",
+          "Accept": "application/vnd.api+json",
+          "Authorization": `Bearer ${req.sessao.access_token}`,
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      const responseText = await mondeResponse.text();
+      console.log('Response status:', mondeResponse.status);
+      console.log('Response body:', responseText);
+      
+      if (mondeResponse.ok) {
+        const data = JSON.parse(responseText);
+        res.status(mondeResponse.status).json(data);
+      } else {
+        res.status(mondeResponse.status).json({ 
+          message: "Erro ao criar histórico", 
+          details: responseText 
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao criar histórico:", error);
+      res.status(500).json({ message: "Erro ao criar histórico" });
+    }
+  });
+
+  // Manter compatibilidade com nome clientes

@@ -410,11 +410,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Filtro de responsável (backend)
       if (req.query.responsible_id) {
+        const originalCount = filteredTasks.length;
         filteredTasks = filteredTasks.filter((task: any) => {
           const assigneeId = task.relationships?.assignee?.data?.id;
-          return assigneeId === req.query.responsible_id;
+          const match = assigneeId === req.query.responsible_id;
+          if (match) {
+            console.log('🎯 Tarefa correspondente encontrada:', task.attributes.title, 'assignee:', assigneeId);
+          }
+          return match;
         });
-        console.log('✅ Filtro responsável aplicado no backend:', filteredTasks.length, 'tarefas');
+        console.log('✅ Filtro responsável aplicado no backend:', filteredTasks.length, 'de', originalCount, 'tarefas');
       }
       
       // Filtro de cliente (backend)
@@ -864,9 +869,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tasks = data.data || [];
       const included = data.included || [];
       
-      // Buscar usuários dos includes (pessoas sem CNPJ são usuários)
+      // Buscar usuários dos includes (pessoas sem CNPJ E kind='individual' são usuários)
       included.forEach((item: any) => {
-        if (item.type === 'people' && !item.attributes?.cnpj) {
+        if (item.type === 'people' && !item.attributes?.cnpj && item.attributes?.kind === 'individual') {
           usersSet.add(JSON.stringify({
             id: item.id,
             name: item.attributes.name,
@@ -955,9 +960,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tasks = data.data || [];
       const included = data.included || [];
       
-      // Buscar empresas dos includes (pessoas com CNPJ são empresas)
+      // Buscar empresas dos includes (pessoas com CNPJ OU kind='corporate' são empresas)
       included.forEach((item: any) => {
-        if (item.type === 'people' && item.attributes?.cnpj) {
+        if (item.type === 'people' && (item.attributes?.cnpj || item.attributes?.kind === 'corporate')) {
           companiesSet.add(JSON.stringify({
             id: item.id,
             name: item.attributes.name,

@@ -945,7 +945,7 @@ export default function Dashboard() {
               ))}
             </select>
 
-            {/* Filtro de Responsável */}
+            {/* Filtro de Agente */}
             <select
               className="form-input px-3 py-2 rounded-lg text-sm text-gray-800"
               value={selectedResponsible}
@@ -954,7 +954,7 @@ export default function Dashboard() {
                 setTimeout(reloadTasks, 100);
               }}
             >
-              <option value="">Todos os Responsáveis</option>
+              <option value="">Todos os Agentes</option>
               {users.map((user) => (
                 <option key={user.id} value={user.id} className="text-gray-800">
                   {user.attributes?.name || user.name}

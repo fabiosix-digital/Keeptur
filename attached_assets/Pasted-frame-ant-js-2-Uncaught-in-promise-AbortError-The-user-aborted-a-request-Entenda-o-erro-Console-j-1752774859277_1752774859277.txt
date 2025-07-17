@@ -1,0 +1,48 @@
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.Entenda o erro
+Console.js:61 [vite] connecting...
+Console.js:61 [vite] connected.
+d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/:1 [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.Entenda o erro
+Console.js:61 🔄 Carregando todas as tarefas da empresa...
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 0
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 0
+Console.js:61 ✅ Tarefas carregadas: 1
+Console.js:61 🗑️ Carregando tarefas excluídas...
+Console.js:61 ✅ Tarefas excluídas carregadas: 32
+Console.js:61 📊 Total de tarefas combinadas: 32 (ativas: 1 + excluídas: 32 )
+Console.js:61 📋 Categorias carregadas: 10
+Console.js:61 📋 Primeira categoria: [object Object]
+Console.js:61 📋 Usuários carregados: 14
+Console.js:61 📋 Pessoas/clientes carregadas: 50
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 1
+Console.js:61 Debug tarefa: Teste nome novo [object Object]
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.Entenda o erro
+Console.js:61 Debug tarefa: Teste nome novo [object Object]
+Console.js:61 📋 Histórico filtrado para tarefa e77068cc-3a6a-4bb8-aa1a-370a77869bd3 : 0 entradas
+Console.js:61 Debug tarefa: Teste nome novo [object Object]
+Console.js:61 ✅ Histórico salvo com sucesso
+Console.js:61 Debug tarefa: Teste nome novo [object Object]
+Console.js:61 [vite] connecting...
+Console.js:61 [vite] connected.
+Console.js:61 🔄 Carregando todas as tarefas da empresa...
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 0
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 0
+Console.js:61 ✅ Tarefas carregadas: 1
+Console.js:61 🗑️ Carregando tarefas excluídas...
+Console.js:61 ✅ Tarefas excluídas carregadas: 32
+Console.js:61 📊 Total de tarefas combinadas: 32 (ativas: 1 + excluídas: 32 )
+Console.js:61 📋 Categorias carregadas: 10
+Console.js:61 📋 Primeira categoria: Object
+Console.js:61 📋 Usuários carregados: 14
+Console.js:61 📋 Pessoas/clientes carregadas: 50
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 1
+Console.js:61 Debug tarefa: Teste nome novo Object
+Console.js:61 Debug tarefa: Teste nome novo Object
+Console.js:61 📋 Histórico filtrado para tarefa e77068cc-3a6a-4bb8-aa1a-370a77869bd3 : 0 entradas
+Console.js:61 Debug tarefa: Teste nome novo Object

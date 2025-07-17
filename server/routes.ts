@@ -365,28 +365,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 processedTask.client_mobile = personData.attributes['mobile-phone'] || '';
                 
                 // Tentar múltiplos campos para empresa
-                const companyName = personData.attributes['company-name'] || 
-                                  personData.attributes.company || 
-                                  personData.attributes['company_name'] || 
-                                  personData.attributes.companyName || '';
+                let companyName = personData.attributes['company-name'] || 
+                                personData.attributes.company || 
+                                personData.attributes['company_name'] || 
+                                personData.attributes.companyName || '';
                 
-                processedTask.client_company = companyName;
-                
-                // Debug para identificar campos disponíveis apenas para a tarefa específica
-                if (task.id === 'e77068cc-3a6a-4bb8-aa1a-370a77869bd3') {
-                  console.log('🔍 Debug cliente da tarefa específica:', {
-                    task_id: task.id,
-                    client_id: personData.id,
-                    name: personData.attributes.name,
-                    company_fields: {
-                      'company-name': personData.attributes['company-name'],
-                      'company': personData.attributes.company,
-                      'company_name': personData.attributes['company_name'],
-                      'companyName': personData.attributes.companyName
-                    },
-                    all_attributes: Object.keys(personData.attributes)
-                  });
+                // Se não encontrou empresa no cliente, verificar se é pessoa física e buscar empresa associada
+                if (!companyName && personData.attributes.kind === 'individual') {
+                  // Para pessoas físicas, a empresa pode estar em um relacionamento ou campo específico
+                  // Vamos buscar na lista de empresas usando o CNPJ ou outros identificadores
+                  if (personData.attributes.cnpj) {
+                    companyName = 'Empresa (CNPJ: ' + personData.attributes.cnpj + ')';
+                  } else {
+                    companyName = 'Pessoa Física';
+                  }
                 }
+                
+                processedTask.client_company = companyName || 'Não informado';
+                
+                // Debug removido - empresa processada com fallback adequado
               }
             }
             

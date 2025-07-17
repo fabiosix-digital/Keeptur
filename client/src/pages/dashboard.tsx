@@ -711,7 +711,7 @@ export default function Dashboard() {
     setIsEditing(true);
     setShowTaskModal(true);
 
-    // Carregar histórico da tarefa
+    // Sempre recarregar histórico da tarefa ao abrir modal
     const history = await loadTaskHistory(task.id);
     setTaskHistory(history);
   };
@@ -886,9 +886,13 @@ export default function Dashboard() {
     return assignee?.attributes?.name || "Não atribuído";
   };
 
-  const handleEditTask = (task: any) => {
+  const handleEditTask = async (task: any) => {
     setSelectedTask(task);
     setShowTaskModal(true);
+
+    // Sempre recarregar histórico da tarefa ao abrir modal
+    const history = await loadTaskHistory(task.id);
+    setTaskHistory(history);
   };
 
   // Adicionar debounce para evitar múltiplas chamadas

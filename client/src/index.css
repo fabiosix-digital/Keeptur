@@ -363,6 +363,31 @@ body {
   min-height: 500px;
 }
 
+.status-badge-deleted {
+  background-color: #6b7280;
+  color: white;
+}
+
+.kanban-card {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.kanban-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.kanban-card.dragging {
+  opacity: 0.5;
+  transform: rotate(5deg);
+}
+
+.kanban-column.drag-over {
+  background-color: var(--bg-secondary);
+  border-color: #6366f1;
+}
+
 .kanban-card {
   background-color: var(--bg-primary);
   border: 1px solid var(--border-color);

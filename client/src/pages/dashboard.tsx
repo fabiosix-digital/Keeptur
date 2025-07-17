@@ -2293,11 +2293,15 @@ export default function Dashboard() {
               
               const formData = new FormData(e.target as HTMLFormElement);
               const taskData = {
-                title: formData.get('title'),
-                description: formData.get('description'),
-                priority: formData.get('priority'),
-                assignee_id: formData.get('assignee_id'),
-                person_id: formData.get('person_id'),
+                title: formData.get('title') || selectedTask?.attributes?.title,
+                description: formData.get('description') || selectedTask?.attributes?.description,
+                due: selectedTask?.attributes?.due,
+                priority: formData.get('priority') || 'normal',
+                assignee_id: formData.get('assignee_id') || selectedTask?.relationships?.assignee?.data?.id,
+                person_id: formData.get('person_id') || selectedTask?.relationships?.person?.data?.id,
+                category_id: formData.get('category') || selectedTask?.relationships?.category?.data?.id,
+                status: selectedTask?.attributes?.completed ? 'concluida' : 'pendente',
+                completed: selectedTask?.attributes?.completed || false
               };
               
               try {

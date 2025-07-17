@@ -537,8 +537,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const mondeResponse = await fetch(mondeUrl, {
         method: "GET",
         headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
+          "Content-Type": "application/vnd.api+json",
+          "Accept": "application/vnd.api+json",
           "Authorization": `Bearer ${req.sessao.access_token}`,
         },
       });
@@ -596,21 +596,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const mondeUrl = `https://web.monde.com.br/api/v2/task-historics`;
       
       const requestBody = {
-        data: {
-          type: "task-historics",
-          attributes: {
-            text: description,
-            "date-time": new Date().toISOString()
-          },
-          relationships: {
-            task: {
-              data: {
-                type: "tasks",
-                id: taskId
-              }
-            }
-          }
-        }
+        task_id: taskId,
+        description: description
       };
       
       console.log('Request body:', JSON.stringify(requestBody, null, 2));
@@ -618,8 +605,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const mondeResponse = await fetch(mondeUrl, {
         method: "POST",
         headers: {
-          "Content-Type": "application/vnd.api+json",
-          "Accept": "application/vnd.api+json",
+          "Content-Type": "application/json",
+          "Accept": "application/json",
           "Authorization": `Bearer ${req.sessao.access_token}`,
         },
         body: JSON.stringify(requestBody),
@@ -682,8 +669,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           type: "tasks",
           id: taskId,
           attributes: {
+            title: req.body.title,
+            description: req.body.description,
+            due: req.body.due,
             completed: req.body.status === 'concluida' ? true : false,
-            ...req.body
+            status: req.body.status || 'pending',
+            person_id: req.body.person_id,
+            company_id: req.body.company_id,
+            responsible_user_id: req.body.responsible_user_id,
+            priority_id: req.body.priority_id,
+            category_id: req.body.category_id,
+            situation_id: req.body.situation_id
           }
         }
       };

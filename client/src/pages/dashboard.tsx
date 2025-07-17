@@ -2479,7 +2479,7 @@ export default function Dashboard() {
                         name="person_id"
                         className="form-input w-full px-3 py-2 text-sm"
                         style={{ backgroundColor: "var(--bg-secondary)" }}
-                        defaultValue={selectedTask?.relationships?.person?.data?.id || ''}
+                        value={selectedTask?.relationships?.person?.data?.id || ''}
                         onChange={(e) => saveTaskChanges({ person_id: e.target.value })}
                       >
                         <option value="">Selecione uma pessoa</option>
@@ -2494,13 +2494,20 @@ export default function Dashboard() {
                       <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
                         Empresa:
                       </label>
-                      <input
-                        type="text"
+                      <select
+                        name="company_id"
                         className="form-input w-full px-3 py-2 text-sm"
                         style={{ backgroundColor: "var(--bg-secondary)" }}
-                        value={selectedTask?.client_company || 'Empresa não encontrada'}
-                        readOnly
-                      />
+                        value={selectedTask?.client_company || ''}
+                        onChange={(e) => saveTaskChanges({ company_id: e.target.value })}
+                      >
+                        <option value="">Selecione uma empresa</option>
+                        {clients.filter((client: any) => client.attributes?.kind === 'company').map((company: any) => (
+                          <option key={company.id} value={company.attributes?.name || company.name}>
+                            {company.attributes?.name || company.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
 

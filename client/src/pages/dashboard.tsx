@@ -2475,39 +2475,26 @@ export default function Dashboard() {
                       <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
                         Pessoa/Cliente:
                       </label>
-                      <select
-                        name="person_id"
+                      <input
+                        type="text"
                         className="form-input w-full px-3 py-2 text-sm"
                         style={{ backgroundColor: "var(--bg-secondary)" }}
-                        value={selectedTask?.relationships?.person?.data?.id || ''}
-                        onChange={(e) => saveTaskChanges({ person_id: e.target.value })}
-                      >
-                        <option value="">Selecione uma pessoa</option>
-                        {clients.map((client: any) => (
-                          <option key={client.id} value={client.id}>
-                            {client.attributes?.name || client.name}
-                          </option>
-                        ))}
-                      </select>
+                        value={selectedTask?.client_name || 'Cliente não encontrado'}
+                        readOnly
+                      />
+
                     </div>
                     <div className="col-span-6">
                       <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
                         Empresa:
                       </label>
-                      <select
-                        name="company_id"
+                      <input
+                        type="text"
                         className="form-input w-full px-3 py-2 text-sm"
                         style={{ backgroundColor: "var(--bg-secondary)" }}
-                        value={selectedTask?.client_company || ''}
-                        onChange={(e) => saveTaskChanges({ company_id: e.target.value })}
-                      >
-                        <option value="">Selecione uma empresa</option>
-                        {clients.filter((client: any) => client.attributes?.kind === 'company').map((company: any) => (
-                          <option key={company.id} value={company.attributes?.name || company.name}>
-                            {company.attributes?.name || company.name}
-                          </option>
-                        ))}
-                      </select>
+                        value={selectedTask?.client_company || 'Empresa não encontrada'}
+                        readOnly
+                      />
                     </div>
                   </div>
 

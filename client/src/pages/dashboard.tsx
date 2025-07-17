@@ -258,8 +258,7 @@ export default function Dashboard() {
       if (selectedCategory) params.append('category_id', selectedCategory);
       if (selectedResponsible) params.append('responsible_id', selectedResponsible);
       if (selectedClient) params.append('client_id', selectedClient);
-      if (startDate) params.append('start_date', startDate);
-      if (endDate) params.append('end_date', endDate);
+      // Filtros de data removidos - não suportados pela API do Monde
 
       if (params.toString()) {
         url += url.includes('?') ? '&' : '?';
@@ -835,40 +834,9 @@ export default function Dashboard() {
                 <option value="vencimento">Vencimento</option>
               </select>
             </div>
-            {/* Filtros de Data Unificados */}
-            <div className="flex gap-2">
-              <select className="form-input px-3 py-2 rounded-lg text-sm">
-                <option value="">Data de:</option>
-                <option value="cadastro">Cadastro</option>
-                <option value="conclusao">Conclusão</option>
-                <option value="vencimento">Vencimento</option>
-              </select>
-              <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  className="form-input px-3 py-2 rounded-lg text-sm"
-                  value={startDate}
-                  onChange={(e) => {
-                    setStartDate(e.target.value);
-                    setTimeout(reloadTasks, 100);
-                  }}
-                />
-                <span
-                  className="text-sm"
-                  style={{ color: "var(--text-secondary)" }}
-                >
-                  até
-                </span>
-                <input
-                  type="date"
-                  className="form-input px-3 py-2 rounded-lg text-sm"
-                  value={endDate}
-                  onChange={(e) => {
-                    setEndDate(e.target.value);
-                    setTimeout(reloadTasks, 100);
-                  }}
-                />
-              </div>
+            {/* Filtros de Data Removidos - Não suportados pela API do Monde */}
+            <div className="text-sm text-gray-500 italic">
+              Filtros de data não disponíveis na API do Monde
             </div>
             <select
               className="form-input px-3 py-2 rounded-lg text-sm"

@@ -312,15 +312,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('✅ Filtro cliente aplicado:', req.query.client_id);
       }
       
-      // 📅 Filtros de data
-      if (req.query.start_date) {
-        queryParams.append('filter[start_date]', req.query.start_date);
-        console.log('✅ Filtro data início aplicado:', req.query.start_date);
-      }
-      if (req.query.end_date) {
-        queryParams.append('filter[end_date]', req.query.end_date);
-        console.log('✅ Filtro data fim aplicado:', req.query.end_date);
-      }
+      // 📅 Filtros de data removidos - não suportados pela API do Monde
+      // A API do Monde não aceita filtros de data via parâmetros
       
       // 🔍 Filtro de busca
       if (req.query.search) {
@@ -807,11 +800,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para buscar usuários/agentes (usando people endpoint)
+  // Endpoint para buscar usuários/agentes (extrair das tarefas)
   app.get("/api/monde/users", authenticateToken, async (req: any, res) => {
     try {
-      const mondeResponse = await fetch(
-        "https://web.monde.com.br/api/v2/people",
+      // Buscar tarefas que contêm informações de usuários
+      const tasksResponse = await fetch(
+        "https://web.monde.com.br/api/v2/tasks?include=assignee,person,category,author",
         {
           method: "GET",
           headers: {
@@ -822,20 +816,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       );
 
-      const data = await mondeResponse.json();
+      const data = await tasksResponse.json();
       
       if (data.errors) {
-        console.log("⚠️ Erro na API de people:", data.errors[0]?.title);
+        console.log("⚠️ Erro na API de tasks:", data.errors[0]?.title);
         res.json({ data: [] });
         return;
       }
       
-      // Filtrar apenas usuários (não clientes)
-      const users = data.data?.filter((person: any) => 
-        person.attributes?.person_type === 'user'
-      ) || [];
+      // Extrair usuários únicos das tarefas
+      const usersSet = new Set();
+      const tasks = data.data || [];
       
-      console.log("✅ Usuários/agentes carregados:", users.length);
+      tasks.forEach((task: any) => {
+        // Adicionar responsável da tarefa
+        if (task.attributes?.assignee) {
+          usersSet.add(JSON.stringify({
+            id: task.attributes.assignee_id || task.attributes.assignee,
+            name: task.attributes.assignee_name || task.attributes.assignee,
+            attributes: {
+              name: task.attributes.assignee_name || task.attributes.assignee,
+              person_type: 'user'
+            }
+          }));
+        }
+        
+        // Adicionar autor da tarefa
+        if (task.attributes?.author) {
+          usersSet.add(JSON.stringify({
+            id: task.attributes.author_id || task.attributes.author,
+            name: task.attributes.author_name || task.attributes.author,
+            attributes: {
+              name: task.attributes.author_name || task.attributes.author,
+              person_type: 'user'
+            }
+          }));
+        }
+      });
+      
+      const users = Array.from(usersSet).map(u => JSON.parse(u as string));
+      
+      console.log("✅ Usuários/agentes extraídos das tarefas:", users.length);
       res.json({ data: users });
     } catch (error) {
       console.error("Erro ao buscar usuários:", error);
@@ -843,11 +864,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para buscar empresas (usando people endpoint)
+  // Endpoint para buscar empresas (extrair das tarefas)
   app.get("/api/monde/empresas", authenticateToken, async (req: any, res) => {
     try {
-      const mondeResponse = await fetch(
-        "https://web.monde.com.br/api/v2/people",
+      // Buscar tarefas que contêm informações de empresas/clientes
+      const tasksResponse = await fetch(
+        "https://web.monde.com.br/api/v2/tasks?include=assignee,person,category,author",
         {
           method: "GET",
           headers: {
@@ -858,20 +880,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       );
 
-      const data = await mondeResponse.json();
+      const data = await tasksResponse.json();
       
       if (data.errors) {
-        console.log("⚠️ Erro na API de people:", data.errors[0]?.title);
+        console.log("⚠️ Erro na API de tasks:", data.errors[0]?.title);
         res.json({ data: [] });
         return;
       }
       
-      // Filtrar apenas empresas/clientes
-      const companies = data.data?.filter((person: any) => 
-        person.attributes?.person_type === 'company'
-      ) || [];
+      // Extrair empresas/clientes únicos das tarefas
+      const companiesSet = new Set();
+      const tasks = data.data || [];
       
-      console.log("✅ Empresas/clientes carregadas:", companies.length);
+      tasks.forEach((task: any) => {
+        // Adicionar empresa/cliente da tarefa
+        if (task.attributes?.person) {
+          companiesSet.add(JSON.stringify({
+            id: task.attributes.person_id || task.attributes.person,
+            name: task.attributes.person_name || task.attributes.person,
+            attributes: {
+              name: task.attributes.person_name || task.attributes.person,
+              person_type: 'company'
+            }
+          }));
+        }
+        
+        // Adicionar cliente se diferente de person
+        if (task.attributes?.client && task.attributes?.client !== task.attributes?.person) {
+          companiesSet.add(JSON.stringify({
+            id: task.attributes.client_id || task.attributes.client,
+            name: task.attributes.client_name || task.attributes.client,
+            attributes: {
+              name: task.attributes.client_name || task.attributes.client,
+              person_type: 'company'
+            }
+          }));
+        }
+      });
+      
+      const companies = Array.from(companiesSet).map(c => JSON.parse(c as string));
+      
+      console.log("✅ Empresas/clientes extraídas das tarefas:", companies.length);
       res.json({ data: companies });
     } catch (error) {
       console.error("Erro ao buscar empresas:", error);

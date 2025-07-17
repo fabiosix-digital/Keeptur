@@ -1,0 +1,59 @@
+2frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.Understand this error
+13Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.Understand this error
+68frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.Understand this error
+d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/monde/tarefas?all=true&start_date=0002-01-01:1  Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this error
+Console.js:61 Erro ao carregar tarefas: Error: Erro ao carregar tarefas
+    at loadTasksWithFilter (dashboard.tsx:279:15)
+    at async reloadTasks (dashboard.tsx:293:27)
+Mt.forEach.n.<computed> @ Console.js:61Understand this error
+d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/monde/tarefas?all=true&start_date=0020-01-01:1  Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this error
+Console.js:61 Erro ao carregar tarefas: Error: Erro ao carregar tarefas
+    at loadTasksWithFilter (dashboard.tsx:279:15)
+    at async reloadTasks (dashboard.tsx:293:27)
+Mt.forEach.n.<computed> @ Console.js:61Understand this error
+d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/monde/tarefas?all=true&start_date=0202-01-01:1  Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this error
+Console.js:61 Erro ao carregar tarefas: Error: Erro ao carregar tarefas
+    at loadTasksWithFilter (dashboard.tsx:279:15)
+    at async reloadTasks (dashboard.tsx:293:27)
+Mt.forEach.n.<computed> @ Console.js:61Understand this error
+d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/monde/tarefas?all=true&start_date=2025-01-01&end_date=0002-06-10:1  Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this error
+Console.js:61 Erro ao carregar tarefas: Error: Erro ao carregar tarefas
+    at loadTasksWithFilter (dashboard.tsx:279:15)
+    at async reloadTasks (dashboard.tsx:293:27)
+Mt.forEach.n.<computed> @ Console.js:61Understand this error
+d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/monde/tarefas?all=true&start_date=2025-01-01:1  Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this error
+Console.js:61 Erro ao carregar tarefas: Error: Erro ao carregar tarefas
+    at loadTasksWithFilter (dashboard.tsx:279:15)
+    at async reloadTasks (dashboard.tsx:293:27)
+Mt.forEach.n.<computed> @ Console.js:61Understand this error
+d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/monde/tarefas?all=true&start_date=2025-01-01&end_date=0020-06-10:1  Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this error
+Console.js:61 Erro ao carregar tarefas: Error: Erro ao carregar tarefas
+    at loadTasksWithFilter (dashboard.tsx:279:15)
+    at async reloadTasks (dashboard.tsx:293:27)
+Mt.forEach.n.<computed> @ Console.js:61Understand this error
+d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/monde/tarefas?all=true&start_date=2025-01-01&end_date=0202-06-10:1  Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this error
+Console.js:61 Erro ao carregar tarefas: Error: Erro ao carregar tarefas
+    at loadTasksWithFilter (dashboard.tsx:279:15)
+    at async reloadTasks (dashboard.tsx:293:27)
+Mt.forEach.n.<computed> @ Console.js:61Understand this error
+d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/monde/tarefas?all=true&start_date=2025-01-01&end_date=2025-06-10:1  Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this error
+Console.js:61 Erro ao carregar tarefas: Error: Erro ao carregar tarefas
+    at loadTasksWithFilter (dashboard.tsx:279:15)
+    at async reloadTasks (dashboard.tsx:293:27)
+Mt.forEach.n.<computed> @ Console.js:61Understand this error
+d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/monde/tarefas?all=true&start_date=0020-01-01&end_date=2025-06-10:1  Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this error
+Console.js:61 Erro ao carregar tarefas: Error: Erro ao carregar tarefas
+    at loadTasksWithFilter (dashboard.tsx:279:15)
+    at async reloadTasks (dashboard.tsx:293:27)
+Mt.forEach.n.<computed> @ Console.js:61Understand this error
+d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/monde/tarefas?all=true&start_date=0002-01-01&end_date=2025-06-10:1  Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this error
+Console.js:61 Erro ao carregar tarefas: Error: Erro ao carregar tarefas
+    at loadTasksWithFilter (dashboard.tsx:279:15)
+    at async reloadTasks (dashboard.tsx:293:27)
+Mt.forEach.n.<computed> @ Console.js:61Understand this error
+d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/monde/tarefas?all=true&start_date=0200-01-01&end_date=2025-06-10:1  Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this error
+Console.js:61 Erro ao carregar tarefas: Error: Erro ao carregar tarefas
+    at loadTasksWithFilter (dashboard.tsx:279:15)
+    at async reloadTasks (dashboard.tsx:293:27)
+Mt.forEach.n.<computed> @ Console.js:61Understand this error
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.

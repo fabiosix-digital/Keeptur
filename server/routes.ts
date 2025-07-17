@@ -470,19 +470,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint para buscar categorias
   app.get("/api/monde/categorias", authenticateToken, async (req: any, res) => {
     try {
-      const mondeUrl = `https://web.monde.com.br/api/v2/task-categories`;
+      const mondeUrl = `https://web.monde.com.br/api/v2/task_categories`;
       
       const mondeResponse = await fetch(mondeUrl, {
         method: "GET",
         headers: {
-          "Content-Type": "application/vnd.api+json",
-          "Accept": "application/vnd.api+json",
+          "Content-Type": "application/json",
+          "Accept": "application/json",
           "Authorization": `Bearer ${req.sessao.access_token}`,
         },
       });
 
       const data = await mondeResponse.json();
-      res.status(mondeResponse.status).json(data);
+      console.log('📋 Categorias recebidas da API:', data);
+      
+      // Verificar se a resposta é um array (formato novo mencionado pelo usuário)
+      if (Array.isArray(data)) {
+        // Transformar para formato esperado pelo frontend
+        const formattedData = {
+          data: data.map(category => ({
+            id: category.id,
+            type: "task-categories",
+            attributes: {
+              name: category.name,
+              description: category.name,
+              color: category.color || '#007bff',
+              position: category.position || 1
+            }
+          }))
+        };
+        res.status(mondeResponse.status).json(formattedData);
+      } else {
+        // Formato antigo (JSON:API)
+        res.status(mondeResponse.status).json(data);
+      }
     } catch (error) {
       console.error("Erro ao buscar categorias:", error);
       res.status(500).json({ message: "Erro ao buscar categorias" });

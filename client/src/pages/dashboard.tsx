@@ -83,7 +83,9 @@ export default function Dashboard() {
     const category = categories.find(cat => cat.id === categoryId);
     
     // Se não encontrou a categoria, retornar o ID da categoria (que já é um nome descritivo)
-    const categoryName = category ? category.attributes.name : categoryId;
+    const categoryName = category ? 
+      (category.attributes.name || category.attributes.description) : 
+      categoryId;
     
     return categoryName || 'Sem categoria';
   };

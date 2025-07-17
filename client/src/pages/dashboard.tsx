@@ -82,11 +82,22 @@ export default function Dashboard() {
         });
         const categoriesData = await categoriesResponse.json();
 
-        // Carregar usuários/agentes
-        const usersResponse = await fetch("/api/monde/users", {
+        // Carregar dados do usuário atual para obter empresas
+        const userMeResponse = await fetch("/api/monde/users/me", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const usersData = await usersResponse.json();
+        const userMeData = await userMeResponse.json();
+        const userCompanies = userMeData.user?.companies || [];
+        
+        // Carregar usuários/agentes baseado nas empresas do usuário
+        let usersData = { data: [] };
+        if (userCompanies.length > 0) {
+          const companyIds = userCompanies.map((c: any) => c.id);
+          const usersResponse = await fetch(`/api/monde/users?companies=${companyIds.join(',')}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          usersData = await usersResponse.json();
+        }
 
         // Processar dados do formato JSON:API do Monde
         const tasks = tasksResponse?.data || [];
@@ -100,14 +111,8 @@ export default function Dashboard() {
         setCategories(categoriesData?.data || []);
         setUsers(Array.isArray(usersData?.data) ? usersData.data : []);
 
-        // Carregar dados das empresas
-        const empresasResponse = await fetch("/api/monde/empresas", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (empresasResponse.ok) {
-          const empresasData = await empresasResponse.json();
-          setClients(empresasData.data || []);
-        }
+        // Usar empresas do usuário atual
+        setClients(userCompanies);
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
       } finally {

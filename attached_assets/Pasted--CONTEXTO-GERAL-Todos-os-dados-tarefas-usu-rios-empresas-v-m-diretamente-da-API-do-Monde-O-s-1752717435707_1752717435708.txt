@@ -1,0 +1,139 @@
+🧠 CONTEXTO GERAL
+Todos os dados (tarefas, usuários, empresas) vêm diretamente da API do Monde.
+
+O sistema deve respeitar os perfis e permissões do usuário logado.
+
+O usuário pode estar associado a uma ou mais empresas, e só deve ver dados dessas empresas.
+
+Todo filtro precisa funcionar com base nos dados recebidos da API, sem acessar o banco local.
+
+1️⃣ FILTRO "EMPRESA"
+📌 OBJETIVO:
+Exibir no filtro de "Empresa" (dropdown) apenas as empresas associadas ao usuário logado.
+
+✅ AÇÃO:
+Chamar o endpoint:
+
+http
+Copiar
+Editar
+GET /api/v2/users/me
+🔄 RESPOSTA ESPERADA:
+json
+Copiar
+Editar
+{
+  "user": {
+    "id": 1,
+    "name": "João",
+    "companies": [
+      { "id": 10, "name": "CVC Matriz" },
+      { "id": 11, "name": "CVC Filial" }
+    ]
+  }
+}
+✅ COMO MONTAR O DROPDOWN:
+Iterar sobre user.companies[]
+
+Para cada item, montar uma <option> com:
+
+value = company.id
+
+label = company.name
+
+Adicionar também uma opção [ Todas ] com value="" (sem filtro).
+
+2️⃣ FILTRO "AGENTE" (USUÁRIO)
+📌 OBJETIVO:
+Exibir apenas os usuários (agentes) da(s) empresa(s) associada(s) ao usuário logado.
+
+✅ AÇÃO:
+Para cada empresa associada, chamar:
+
+http
+Copiar
+Editar
+GET /api/v2/users?companies[]=10&companies[]=11
+(substituir os IDs pelas empresas do usuário logado)
+
+🔄 RESPOSTA ESPERADA:
+json
+Copiar
+Editar
+[
+  { "id": 201, "name": "Allana Caires" },
+  { "id": 202, "name": "Giovanna Guindo" },
+  { "id": 203, "name": "Bruno Zanetti" }
+]
+✅ COMO MONTAR O DROPDOWN:
+Iterar sobre o array de usuários retornado.
+
+Exibir user.name como label.
+
+Usar user.id como value.
+
+3️⃣ FILTRO "MINHAS TAREFAS"
+📌 OBJETIVO:
+Listar somente tarefas onde o usuário atual é o responsável.
+
+✅ AÇÃO:
+Quando o usuário marcar a opção "Minhas Tarefas", adicionar o parâmetro:
+
+h
+Copiar
+Editar
+GET /api/v2/tasks?me=true
+4️⃣ COMPORTAMENTO DOS FILTROS COMBINADOS
+🔗 Filtros combináveis:
+Quando o usuário selecionar uma empresa no filtro, o sistema deve:
+
+Refiltrar os agentes com ?companies[]=ID_SELECIONADO
+
+Refiltrar as tarefas com ?companies[]=ID_SELECIONADO
+
+Se o usuário também marcar “Minhas Tarefas”, adicionar me=true no mesmo request:
+
+http
+Copiar
+Editar
+GET /api/v2/tasks?companies[]=10&me=true
+Para buscar tarefas por agente:
+
+http
+Copiar
+Editar
+GET /api/v2/tasks?companies[]=10&responsible_user_id=201
+5️⃣ PADRÃO VISUAL DOS DROPDOWNS (FRONTEND)
+EMPRESAS:
+html
+Copiar
+Editar
+<select id="filtro-empresa">
+  <option value="">[ Todas ]</option>
+  <option value="10">CVC Matriz</option>
+  <option value="11">CVC Filial</option>
+</select>
+AGENTES:
+html
+Copiar
+Editar
+<select id="filtro-agente">
+  <option value="">[ Todos ]</option>
+  <option value="201">Allana Caires</option>
+  <option value="202">Giovanna Guindo</option>
+</select>
+6️⃣ FLUXO DE IMPLEMENTAÇÃO
+Ao logar, chame /users/me e salve:
+
+user_id
+
+companies[]
+
+Com os companies[], chame /users?companies[]=... para popular o filtro de agentes.
+
+Ao alterar qualquer filtro, envie a chamada para /tasks com os parâmetros adequados combinados:
+
+http
+Copiar
+Editar
+GET /api/v2/tasks?companies[]=10&responsible_user_id=201&me=true&status=pending

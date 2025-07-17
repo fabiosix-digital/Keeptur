@@ -2673,7 +2673,7 @@ export default function Dashboard() {
               {/* Aba Anexos */}
               {activeModalTab === "anexos" && (
                 <div className="space-y-4">
-                  <div className="flex items-center space-x-4 mb-4">
+                  <div className="flex items-center space-x-4 mb-4 bg-[#f1f5f9] pt-[8px] pb-[8px]">
                     <input
                       type="file"
                       id="file-upload"

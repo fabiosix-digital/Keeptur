@@ -29,7 +29,12 @@ export default function Dashboard() {
   const [taskFilter, setTaskFilter] = useState("assigned_to_me");
   const [taskSearchTerm, setTaskSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedPriority, setSelectedPriority] = useState("");
+  const [selectedSituation, setSelectedSituation] = useState("");
+  const [selectedResponsible, setSelectedResponsible] = useState("");
+  const [selectedClient, setSelectedClient] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [users, setUsers] = useState([]);
   
   const [showTaskDetails, setShowTaskDetails] = useState(false);
   const [selectedTaskDetails, setSelectedTaskDetails] = useState<any>(null);
@@ -77,6 +82,12 @@ export default function Dashboard() {
         });
         const categoriesData = await categoriesResponse.json();
 
+        // Carregar usuários/agentes
+        const usersResponse = await fetch("/api/monde/users", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const usersData = await usersResponse.json();
+
         // Processar dados do formato JSON:API do Monde
         const tasks = tasksResponse?.data || [];
 
@@ -88,6 +99,7 @@ export default function Dashboard() {
         // Aplicar filtro inicial será feito pelo useEffect do taskFilter
         setClients([]); // Não carregar clientes na inicialização
         setCategories(categoriesData?.data || []);
+        setUsers(usersData?.data || []);
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
       } finally {
@@ -232,6 +244,20 @@ export default function Dashboard() {
         url += `?all=true`;
       }
 
+      // Adicionar filtros adicionais se configurados
+      const params = new URLSearchParams();
+      if (selectedSituation) params.append('situation', selectedSituation);
+      if (selectedCategory) params.append('category_id', selectedCategory);
+      if (selectedResponsible) params.append('responsible_id', selectedResponsible);
+      if (selectedClient) params.append('client_id', selectedClient);
+      if (startDate) params.append('start_date', startDate);
+      if (endDate) params.append('end_date', endDate);
+
+      if (params.toString()) {
+        url += url.includes('?') ? '&' : '?';
+        url += params.toString();
+      }
+
       console.log('🔄 Carregando tarefas com filtro:', filter, 'URL:', url);
 
       const response = await fetch(url, {
@@ -334,7 +360,12 @@ export default function Dashboard() {
     taskFilter,
     taskSearchTerm,
     selectedCategory,
-    selectedPriority,
+    // selectedPriority removido - não existe na API do Monde
+    selectedSituation,
+    selectedResponsible,
+    selectedClient,
+    startDate,
+    endDate,
     searchTerm,
   ]);
 
@@ -380,11 +411,7 @@ export default function Dashboard() {
       );
     }
 
-    if (selectedPriority) {
-      filtered = filtered.filter((task: any) =>
-        task.attributes.priority === selectedPriority,
-      );
-    }
+    // Prioridade removida - não existe na API do Monde
 
     return filtered;
   };
@@ -675,7 +702,9 @@ export default function Dashboard() {
               <p className="text-white/80 text-sm font-medium">
                 Tarefas Atrasadas
               </p>
-              <p className="text-white text-2xl font-bold">26</p>
+              <p className="text-white text-2xl font-bold">
+                {stats.atrasadas || 0}
+              </p>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
               <i className="ri-alarm-warning-line text-white text-xl"></i>
@@ -683,7 +712,9 @@ export default function Dashboard() {
           </div>
           <div className="mt-4 flex items-center">
             <i className="ri-arrow-up-line text-white/80 text-sm"></i>
-            <span className="text-white/80 text-sm ml-1">+12% este mês</span>
+            <span className="text-white/80 text-sm ml-1">
+              {stats.atrasadasVariation || "+0%"}
+            </span>
           </div>
         </div>
       </div>
@@ -846,6 +877,22 @@ export default function Dashboard() {
               <option value="maria">Maria Santos</option>
               <option value="pedro">Pedro Costa</option>
             </select>
+            {/* Filtro de Situação */}
+            <select
+              className="form-input px-3 py-2 rounded-lg text-sm"
+              value={selectedSituation}
+              onChange={(e) => {
+                setSelectedSituation(e.target.value);
+                setTimeout(reloadTasks, 100);
+              }}
+            >
+              <option value="">Todas as Situações</option>
+              <option value="open">Abertas</option>
+              <option value="concluded">Concluídas</option>
+              <option value="archived">Arquivadas</option>
+            </select>
+
+            {/* Filtro de Categoria */}
             <select
               className="form-input px-3 py-2 rounded-lg text-sm"
               value={selectedCategory}
@@ -855,24 +902,51 @@ export default function Dashboard() {
               }}
             >
               <option value="">Todas as Categorias</option>
-              <option value="reuniao">Reunião</option>
-              <option value="ligacao">Ligação</option>
-              <option value="email">E-mail</option>
-              <option value="visita">Visita</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.attributes.name}
+                </option>
+              ))}
             </select>
+
+            {/* Filtro de Responsável */}
             <select
               className="form-input px-3 py-2 rounded-lg text-sm"
-              value={selectedPriority}
+              value={selectedResponsible}
               onChange={(e) => {
-                setSelectedPriority(e.target.value);
+                setSelectedResponsible(e.target.value);
                 setTimeout(reloadTasks, 100);
               }}
             >
-              <option value="">Todas as Prioridades</option>
-              <option value="low">Baixa</option>
-              <option value="medium">Média</option>
-              <option value="high">Alta</option>
+              <option value="">Todos os Responsáveis</option>
+              {users.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.attributes.name}
+                </option>
+              ))}
             </select>
+
+            {/* Filtro de Data */}
+            <input
+              type="date"
+              className="form-input px-3 py-2 rounded-lg text-sm"
+              value={startDate}
+              onChange={(e) => {
+                setStartDate(e.target.value);
+                setTimeout(reloadTasks, 100);
+              }}
+              placeholder="Data início"
+            />
+            <input
+              type="date"
+              className="form-input px-3 py-2 rounded-lg text-sm"
+              value={endDate}
+              onChange={(e) => {
+                setEndDate(e.target.value);
+                setTimeout(reloadTasks, 100);
+              }}
+              placeholder="Data fim"
+            />
             
           </div>
 
@@ -919,12 +993,7 @@ export default function Dashboard() {
                       >
                         Status
                       </th>
-                      <th
-                        className="text-left py-3 px-4 font-medium text-sm"
-                        style={{ color: "var(--text-secondary)" }}
-                      >
-                        Prioridade
-                      </th>
+                      {/* Coluna Prioridade removida - não existe na API do Monde */}
                       <th
                         className="text-right py-3 px-4 font-medium text-sm"
                         style={{ color: "var(--text-secondary)" }}
@@ -1007,11 +1076,7 @@ export default function Dashboard() {
                               : "Pendente"}
                           </span>
                         </td>
-                        <td className="py-4 px-4">
-                          <span className="priority-badge-medium px-2 py-1 rounded-full text-xs font-medium">
-                            Média
-                          </span>
-                        </td>
+                        {/* Coluna de prioridade removida - não existe na API do Monde */}
                         <td className="py-4 px-4">
                           <div className="flex items-center justify-end space-x-2">
                             <button
@@ -1660,19 +1725,7 @@ export default function Dashboard() {
                 <option value="ana">Ana Costa</option>
               </select>
             </div>
-            <div>
-              <label
-                className="block text-sm font-medium mb-2"
-                style={{ color: "var(--text-secondary)" }}
-              >
-                Prioridade
-              </label>
-              <select className="form-input w-full px-3 py-2 rounded-lg text-sm">
-                <option value="low">Baixa</option>
-                <option value="medium">Média</option>
-                <option value="high">Alta</option>
-              </select>
-            </div>
+            {/* Campo de prioridade removido - não existe na API do Monde */}
             <div>
               <label
                 className="block text-sm font-medium mb-2"

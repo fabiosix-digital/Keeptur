@@ -282,32 +282,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('✅ Aplicando filtro padrão: filter[assigned]=user_tasks');
       }
       
-      // Filtros de status
-      if (req.query.status) {
-        queryParams.append('filter[status]', req.query.status);
+      // 🎯 Filtro de situação (situation)
+      if (req.query.situation) {
+        queryParams.append('filter[situation]', req.query.situation);
+        console.log('✅ Filtro situação aplicado:', req.query.situation);
       }
       
-      // Filtros de categoria
-      if (req.query.category) {
-        queryParams.append('filter[category]', req.query.category);
+      // 📂 Filtro de categoria
+      if (req.query.category_id) {
+        queryParams.append('filter[category_id]', req.query.category_id);
+        console.log('✅ Filtro categoria aplicado:', req.query.category_id);
       }
       
-      // Filtros de data
-      if (req.query.date_from) {
-        queryParams.append('filter[date_from]', req.query.date_from);
-      }
-      if (req.query.date_to) {
-        queryParams.append('filter[date_to]', req.query.date_to);
+      // 👨‍💼 Filtro de responsável
+      if (req.query.responsible_id) {
+        queryParams.append('filter[responsible_id]', req.query.responsible_id);
+        console.log('✅ Filtro responsável aplicado:', req.query.responsible_id);
       }
       
-      // Filtros de prioridade
-      if (req.query.priority) {
-        queryParams.append('filter[priority]', req.query.priority);
+      // 🧾 Filtro de cliente
+      if (req.query.client_id) {
+        queryParams.append('filter[client_id]', req.query.client_id);
+        console.log('✅ Filtro cliente aplicado:', req.query.client_id);
       }
       
-      // Filtros de busca
+      // 📅 Filtros de data
+      if (req.query.start_date) {
+        queryParams.append('filter[start_date]', req.query.start_date);
+        console.log('✅ Filtro data início aplicado:', req.query.start_date);
+      }
+      if (req.query.end_date) {
+        queryParams.append('filter[end_date]', req.query.end_date);
+        console.log('✅ Filtro data fim aplicado:', req.query.end_date);
+      }
+      
+      // 🔍 Filtro de busca
       if (req.query.search) {
         queryParams.append('filter[search]', req.query.search);
+        console.log('✅ Filtro busca aplicado:', req.query.search);
       }
       
       // Adicionar parâmetros à URL se existirem
@@ -731,6 +743,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
 
   await initializePlans();
+
+  // Endpoint para buscar usuários/agentes
+  app.get("/api/monde/users", authenticateToken, async (req: any, res) => {
+    try {
+      const mondeResponse = await fetch(
+        "https://web.monde.com.br/api/v2/users",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/vnd.api+json",
+            Accept: "application/vnd.api+json",
+            Authorization: `Bearer ${req.sessao.access_token}`,
+          },
+        }
+      );
+
+      const data = await mondeResponse.json();
+      res.json(data);
+    } catch (error) {
+      console.error("Erro ao buscar usuários:", error);
+      res.status(500).json({ message: "Erro ao buscar usuários" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

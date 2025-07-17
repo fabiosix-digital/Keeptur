@@ -585,11 +585,13 @@ export default function Dashboard() {
 
   // Funções auxiliares para o Kanban
   const getPriorityClass = (task: any) => {
+    if (!task || !task.attributes) return "medium";
     const priority = task.attributes.priority || "medium";
     return priority.toLowerCase();
   };
 
   const getPriorityLabel = (task: any) => {
+    if (!task || !task.attributes) return "Média";
     const priority = task.attributes.priority || "medium";
     const labels: any = {
       low: "Baixa",
@@ -608,6 +610,14 @@ export default function Dashboard() {
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  const getAssigneeName = (task: any) => {
+    if (!task || !task.relationships || !task.relationships.assignee) return "Não atribuído";
+    const assigneeId = task.relationships.assignee.data?.id;
+    if (!assigneeId) return "Não atribuído";
+    const assignee = users.find((user: any) => user.id === assigneeId);
+    return assignee?.attributes?.name || "Não atribuído";
   };
 
   const handleEditTask = (task: any) => {

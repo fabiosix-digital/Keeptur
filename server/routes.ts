@@ -248,6 +248,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoints específicos para tarefas - usando endpoint correto da API v2 com filtros
   app.get("/api/monde/tarefas", authenticateToken, async (req: any, res) => {
     try {
+      console.log('Filtros recebidos:', req.query);
+      
       // Incluir relacionamentos essenciais
       let mondeUrl = `https://web.monde.com.br/api/v2/tasks?include=assignee,person,category,author`;
       
@@ -264,7 +266,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         queryParams.append('filter[created_by]', 'me');
       }
       
-      // Se não houver filtro específico, assumir que queremos tarefas do usuário por padrão
+      // Se não houver filtro específico e não for 'all', assumir que queremos tarefas do usuário por padrão
       if (!req.query.assignee && !req.query['filter[created_by]'] && !req.query.all) {
         queryParams.append('filter[assigned]', 'user_tasks');
       }
@@ -301,6 +303,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (queryParams.toString()) {
         mondeUrl += `&${queryParams.toString()}`;
       }
+      
+      console.log('URL final da API do Monde:', mondeUrl);
       
       const mondeResponse = await fetch(mondeUrl, {
         method: "GET",

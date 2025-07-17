@@ -115,6 +115,10 @@ export default function Dashboard() {
         // Mostrar IDs disponíveis para debug
         const peopleIds = response.included.filter((item: any) => item.type === 'people').map((p: any) => p.id);
         console.log('📋 IDs de pessoas disponíveis:', peopleIds);
+        
+        // Mostrar dados detalhados dos primeiros 3 people para debug
+        const peopleData = response.included.filter((item: any) => item.type === 'people').slice(0, 3);
+        console.log('📋 Primeiros 3 people nos includes:', peopleData);
       }
     }
     
@@ -204,6 +208,7 @@ export default function Dashboard() {
     if (response.included) {
       const person = response.included.find((item: any) => item.type === 'people' && item.id === personId);
       if (person) {
+        console.log('✅ Empresa encontrada para pessoa:', person.attributes?.['company-name'] || person.attributes?.company || 'Sem empresa');
         return person.attributes?.['company-name'] || person.attributes?.company || 'Sem empresa';
       }
     }

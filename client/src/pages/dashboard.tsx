@@ -1511,7 +1511,7 @@ export default function Dashboard() {
                       Concluídas
                     </h3>
                     <span className="bg-green-200 text-green-700 px-2 py-1 rounded-full text-xs">
-                      {combineAllTasks().filter(task => {
+                      {allTasks.filter(task => {
                         // Primeiro filtra por status concluído
                         const { status } = getTaskStatus(task);
                         if (status !== "completed") return false;
@@ -1531,7 +1531,7 @@ export default function Dashboard() {
                     onDrop={(e) => handleDrop(e, "Concluídas")}
                     onDragOver={(e) => e.preventDefault()}
                   >
-                    {combineAllTasks()
+                    {allTasks
                       .filter(task => {
                         // Primeiro filtra por status concluído
                         const { status } = getTaskStatus(task);

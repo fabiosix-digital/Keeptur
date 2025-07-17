@@ -599,7 +599,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         data: {
           type: "task-historics",
           attributes: {
-            description: description,
             text: description,
             "date-time": new Date().toISOString()
           },

@@ -2457,6 +2457,16 @@ export default function Dashboard() {
                       {selectedTask?.relationships?.person?.data?.id && (
                         <div className="text-xs text-gray-500 mt-1">
                           ID: {selectedTask.relationships.person.data.id}
+                          <br />
+                          <button 
+                            onClick={() => {
+                              console.log('🔍 Debugging pessoa:', selectedTask.relationships.person.data.id);
+                              getPersonName(selectedTask.relationships.person.data.id);
+                            }}
+                            className="text-blue-500 underline"
+                          >
+                            Debug pessoa
+                          </button>
                         </div>
                       )}
                     </div>

@@ -178,12 +178,18 @@ export default function Dashboard() {
 
     const stats = {
       total: tasks.length,
-      pendentes: tasks.filter((t: any) => !t.attributes.completed).length,
+      // Pendentes = não concluídas E não atrasadas (dentro do prazo ou sem prazo)
+      pendentes: tasks.filter((t: any) => {
+        if (t.attributes.completed) return false;
+        const dueDate = t.attributes.due ? new Date(t.attributes.due) : null;
+        return !dueDate || dueDate >= now;
+      }).length,
       concluidas: tasks.filter((t: any) => t.attributes.completed).length,
+      // Atrasadas = não concluídas E com prazo vencido
       atrasadas: tasks.filter((t: any) => {
-        if (!t.attributes.due || t.attributes.completed) return false;
-        const dueDate = new Date(t.attributes.due);
-        return dueDate < now;
+        if (t.attributes.completed) return false;
+        const dueDate = t.attributes.due ? new Date(t.attributes.due) : null;
+        return dueDate && dueDate < now;
       }).length,
     };
 
@@ -280,35 +286,23 @@ export default function Dashboard() {
     // Filtro por situação
     if (selectedSituation && selectedSituation !== 'all') {
       const now = new Date();
-      console.log(`🔍 Aplicando filtro de situação: ${selectedSituation}`);
-      console.log(`📅 Data atual: ${now.toISOString()}`);
       
       filtered = filtered.filter((task: any) => {
         const isCompleted = task.attributes.completed;
         const dueDate = task.attributes.due ? new Date(task.attributes.due) : null;
         
-        console.log(`📋 Tarefa #${task.attributes.number}: completed=${isCompleted}, due=${dueDate?.toISOString()}`);
-        
-        let shouldInclude = false;
-        
         switch (selectedSituation) {
           case 'pendentes':
             // Pendentes = não concluídas E não atrasadas (dentro do prazo ou sem prazo)
-            shouldInclude = !isCompleted && (!dueDate || dueDate >= now);
-            break;
+            return !isCompleted && (!dueDate || dueDate >= now);
           case 'concluidas':
-            shouldInclude = isCompleted;
-            break;
+            return isCompleted;
           case 'atrasadas':
             // Atrasadas = não concluídas E com prazo vencido
-            shouldInclude = !isCompleted && dueDate && dueDate < now;
-            break;
+            return !isCompleted && dueDate && dueDate < now;
           default:
-            shouldInclude = true;
+            return true;
         }
-        
-        console.log(`➡️ Incluir tarefa #${task.attributes.number}: ${shouldInclude}`);
-        return shouldInclude;
       });
     }
     

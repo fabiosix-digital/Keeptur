@@ -907,7 +907,7 @@ export default function Dashboard() {
               <option value="">Todos os Agentes</option>
               {users.map((user) => (
                 <option key={user.id} value={user.id} className="text-gray-800">
-                  {user.attributes?.name || user.name}
+                  {user.name}
                 </option>
               ))}
             </select>

@@ -1,0 +1,76 @@
+1. A API não tem um endpoint que retorna diretamente "empresas do usuário"
+Então você pode fazer o seguinte workaround:
+
+🔄 Opção 1: Modo automático — com base nas tarefas
+Se você já estiver buscando as tarefas com:
+
+http
+Copiar
+Editar
+GET /api/v2/tasks
+Authorization: Bearer <token>
+O retorno da tarefa inclui (conforme seu dump):
+
+json
+Copiar
+Editar
+{
+  "company": {
+    "id": 123,
+    "name": "Empresa CVC Matriz"
+  }
+}
+✨ O que fazer:
+Após o GET /tasks, extraia todas as empresas distintas dos campos .company.id e .company.name.
+
+Monte o filtro <select> de empresas baseado nisso.
+
+Quando o usuário escolher uma, você filtra as tarefas localmente (front-end) por company.id.
+
+Isso é o mesmo que o Monde faz na prática: ele só exibe as empresas onde o usuário tem tarefas.
+
+🔐 Opção 2: Modo manual (melhor experiência)
+Quando o usuário fizer login no seu sistema com o Monde, ele poderá autenticar mais de uma vez, informando os dados de cada empresa que ele tem acesso.
+
+✍️ Como implementar:
+Crie uma tabela local de empresas associadas ao usuário logado (armazenadas no IndexedDB ou localStorage):
+
+json
+Copiar
+Editar
+[
+  {
+    "empresa_nome": "CVC Matriz",
+    "url": "https://matriz.monde.com.br",
+    "token": "JWT1",
+    "id_empresa": 1
+  },
+  {
+    "empresa_nome": "CVC Filial",
+    "url": "https://filial.monde.com.br",
+    "token": "JWT2",
+    "id_empresa": 2
+  }
+]
+No select de empresas, você exibe o nome de cada empresa.
+
+Ao trocar de empresa no filtro, você muda:
+
+o token
+
+a baseURL da API
+
+refaz os GET /tasks com o token dessa empresa
+
+Isso mantém a consistência com o que o Monde realmente exige.
+
+⚠️ Considerações importantes:
+Isso só funciona porque o JWT gerado é por empresa.
+
+Cada empresa tem um servidor diferente. Portanto, ao alternar entre empresas, você está mudando de servidor e token (simulando o comportamento real do Monde).
+
+Se quiser manter isso fluido, sugiro que o sistema permita o usuário adicionar várias conexões Monde e mantenha todas salvas com nome + token + URL.
+
+✅ Se a API te der tarefas apenas da empresa atual
+Você não precisa de endpoint exclusivo de empresas. Basta pegar a lista de tarefas e extrair as empresas presentes ali.
+

@@ -750,11 +750,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   await initializePlans();
 
-  // Endpoint para buscar usuários/agentes reais
+  // Endpoint para buscar usuários/agentes da empresa
   app.get("/api/monde/users", authenticateToken, async (req: any, res) => {
     try {
       const mondeResponse = await fetch(
-        "https://web.monde.com.br/api/v2/people",
+        "https://web.monde.com.br/api/v2/users",
         {
           method: "GET",
           headers: {
@@ -766,19 +766,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       const data = await mondeResponse.json();
-      console.log("✅ Usuários/agentes carregados:", data.data?.length || 0);
-      res.json(data);
+      console.log("✅ Usuários/agentes da empresa carregados:", data.length || 0);
+      res.json({ data: data });
     } catch (error) {
       console.error("Erro ao buscar usuários:", error);
       res.status(500).json({ message: "Erro ao buscar usuários" });
     }
   });
 
-  // Endpoint para buscar empresas reais
+  // Endpoint para buscar empresas através das tarefas
   app.get("/api/monde/empresas", authenticateToken, async (req: any, res) => {
     try {
+      // Buscar todas as tarefas para extrair empresas
       const mondeResponse = await fetch(
-        "https://web.monde.com.br/api/v2/people",
+        "https://web.monde.com.br/api/v2/tasks",
         {
           method: "GET",
           headers: {
@@ -791,12 +792,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const data = await mondeResponse.json();
       
-      // Filtrar apenas empresas (person_type='company')
-      const empresas = data.data?.filter((person: any) => 
-        person.attributes?.person_type === 'company'
-      ) || [];
+      // Extrair empresas únicas das tarefas
+      const empresasMap = new Map();
       
-      console.log("✅ Empresas carregadas:", empresas.length);
+      data.data?.forEach((task: any) => {
+        if (task.attributes?.company) {
+          const company = task.attributes.company;
+          if (!empresasMap.has(company.id)) {
+            empresasMap.set(company.id, {
+              id: company.id,
+              attributes: {
+                name: company.name
+              }
+            });
+          }
+        }
+      });
+      
+      const empresas = Array.from(empresasMap.values());
+      
+      console.log("✅ Empresas extraídas das tarefas:", empresas.length);
       res.json({ data: empresas });
     } catch (error) {
       console.error("Erro ao buscar empresas:", error);

@@ -1920,155 +1920,175 @@ export default function Dashboard() {
     </div>
   );
 
-  // Modal de Nova Tarefa
-  const TaskModal = () => (
-    <div
-      className={`fixed inset-0 modal-overlay flex items-center justify-center z-50 ${showTaskModal ? "" : "hidden"}`}
-    >
-      <div className="modal-content rounded-xl shadow-xl p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h3
-            className="text-xl font-semibold"
-            style={{ color: "var(--text-primary)" }}
-          >
-            Nova Tarefa
-          </h3>
-          <button
-            onClick={() => setShowTaskModal(false)}
-            className="theme-toggle p-2 rounded-lg !rounded-button whitespace-nowrap"
-          >
-            <i className="ri-close-line text-lg"></i>
-          </button>
-        </div>
-        <div className="flex space-x-1 mb-6">
-          <button className="tab-button active px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
-            Detalhes
-          </button>
-          <button className="tab-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
-            Anexos
-          </button>
-          <button className="tab-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
-            Campos Personalizados
-          </button>
-        </div>
-        <form>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="md:col-span-2">
-              <label
-                className="block text-sm font-medium mb-2"
-                style={{ color: "var(--text-secondary)" }}
+  // Modal de Nova Tarefa/Editar Tarefa
+  const TaskModal = () => {
+    const isEditing = selectedTask !== null;
+    const modalTitle = isEditing ? 'Editar Tarefa' : 'Criar Tarefa';
+    const buttonText = isEditing ? 'Salvar Alterações' : 'Salvar Tarefa';
+    
+    return (
+      <div
+        className={`fixed inset-0 modal-overlay flex items-center justify-center z-50 ${showTaskModal ? "" : "hidden"}`}
+      >
+        <div className="modal-content rounded-xl shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="border-0 p-6 pb-0">
+            <div className="flex items-center justify-between">
+              <h3
+                className="text-xl font-semibold"
+                style={{ color: "var(--text-primary)" }}
               >
-                Título da Tarefa *
-              </label>
-              <input
-                type="text"
-                className="form-input w-full px-3 py-2 rounded-lg text-sm"
-                placeholder="Digite o título da tarefa"
-                required
-              />
-            </div>
-            <div>
-              <label
-                className="block text-sm font-medium mb-2"
-                style={{ color: "var(--text-secondary)" }}
+                {modalTitle}
+              </h3>
+              <button
+                onClick={() => {
+                  setShowTaskModal(false);
+                  setSelectedTask(null);
+                }}
+                className="theme-toggle p-2 rounded-lg !rounded-button whitespace-nowrap"
               >
-                Categoria
-              </label>
-              <select className="form-input w-full px-3 py-2 rounded-lg text-sm">
-                <option value="todo">A Fazer</option>
-                <option value="progress">Em Andamento</option>
-                <option value="completed">Concluído</option>
-                <option value="cancelled">Cancelado</option>
-              </select>
-            </div>
-            <div>
-              <label
-                className="block text-sm font-medium mb-2"
-                style={{ color: "var(--text-secondary)" }}
-              >
-                Responsável
-              </label>
-              <select className="form-input w-full px-3 py-2 rounded-lg text-sm">
-                <option value="">Selecione o responsável</option>
-                <option value="ana">Ana Marques</option>
-                <option value="joao">João Silva</option>
-                <option value="maria">Maria Santos</option>
-                <option value="pedro">Pedro Costa</option>
-              </select>
-            </div>
-            <div>
-              <label
-                className="block text-sm font-medium mb-2"
-                style={{ color: "var(--text-secondary)" }}
-              >
-                Cliente
-              </label>
-              <select className="form-input w-full px-3 py-2 rounded-lg text-sm">
-                <option value="">Selecione o cliente</option>
-                <option value="maria">Maria Rodrigues</option>
-                <option value="joao">João Silva</option>
-                <option value="ana">Ana Costa</option>
-              </select>
-            </div>
-            {/* Campo de prioridade removido - não existe na API do Monde */}
-            <div>
-              <label
-                className="block text-sm font-medium mb-2"
-                style={{ color: "var(--text-secondary)" }}
-              >
-                Data de Vencimento
-              </label>
-              <input
-                type="datetime-local"
-                className="form-input w-full px-3 py-2 rounded-lg text-sm"
-              />
-            </div>
-            <div>
-              <label
-                className="block text-sm font-medium mb-2"
-                style={{ color: "var(--text-secondary)" }}
-              >
-                Tipo de Tarefa
-              </label>
-              <select className="form-input w-full px-3 py-2 rounded-lg text-sm">
-                <option value="reuniao">Reunião</option>
-                <option value="ligacao">Ligação</option>
-                <option value="email">E-mail</option>
-                <option value="visita">Visita</option>
-              </select>
-            </div>
-            <div className="md:col-span-2">
-              <label
-                className="block text-sm font-medium mb-2"
-                style={{ color: "var(--text-secondary)" }}
-              >
-                Descrição
-              </label>
-              <textarea
-                className="form-input w-full px-3 py-2 rounded-lg text-sm h-32"
-                placeholder="Descreva os detalhes da tarefa..."
-              ></textarea>
+                <i className="ri-close-line text-lg"></i>
+              </button>
             </div>
           </div>
-          <div className="flex justify-end space-x-3 mt-6">
-            <button
-              type="button"
-              onClick={() => setShowTaskModal(false)}
-              className="action-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="primary-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
-            >
-              Criar Tarefa
-            </button>
+          <div className="p-6">
+            <form onSubmit={(e) => e.preventDefault()}>
+              <div className="mb-4">
+                <label
+                  className="block text-sm font-semibold mb-2"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  Título
+                </label>
+                <input
+                  type="text"
+                  className="form-input w-full px-3 py-2 rounded-lg text-sm"
+                  placeholder="Ex: Confirmar pacote com cliente"
+                  defaultValue={isEditing ? selectedTask?.attributes?.title : ''}
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label
+                    className="block text-sm font-semibold mb-2"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
+                    Cliente
+                  </label>
+                  <select className="form-input w-full px-3 py-2 rounded-lg text-sm">
+                    <option value="">Selecione um cliente</option>
+                    {clients.map((client: any) => (
+                      <option key={client.id} value={client.id}>
+                        {client.attributes?.name || client.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label
+                    className="block text-sm font-semibold mb-2"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
+                    Responsável
+                  </label>
+                  <select className="form-input w-full px-3 py-2 rounded-lg text-sm">
+                    <option value="">Selecione um usuário</option>
+                    {users.map((user: any) => (
+                      <option key={user.id} value={user.id}>
+                        {user.attributes?.name || user.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label
+                    className="block text-sm font-semibold mb-2"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
+                    Situação
+                  </label>
+                  <select className="form-input w-full px-3 py-2 rounded-lg text-sm">
+                    <option value="open">Aberta</option>
+                    <option value="concluded">Concluída</option>
+                    <option value="archived">Arquivada</option>
+                  </select>
+                </div>
+                <div>
+                  <label
+                    className="block text-sm font-semibold mb-2"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
+                    Categoria
+                  </label>
+                  <select className="form-input w-full px-3 py-2 rounded-lg text-sm">
+                    <option value="">Selecione</option>
+                    {categories.map((category: any) => (
+                      <option key={category.id} value={category.id}>
+                        {category.attributes?.name || category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label
+                  className="block text-sm font-semibold mb-2"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  Data de Vencimento
+                </label>
+                <input
+                  type="date"
+                  className="form-input w-full px-3 py-2 rounded-lg text-sm"
+                  defaultValue={isEditing && selectedTask?.attributes?.due ? 
+                    new Date(selectedTask.attributes.due).toISOString().split('T')[0] : ''}
+                />
+              </div>
+
+              <div className="mb-4">
+                <label
+                  className="block text-sm font-semibold mb-2"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  Descrição
+                </label>
+                <textarea
+                  className="form-input w-full px-3 py-2 rounded-lg text-sm h-32"
+                  placeholder="Descreva os detalhes da tarefa..."
+                  defaultValue={isEditing ? selectedTask?.attributes?.description || '' : ''}
+                  rows={4}
+                ></textarea>
+              </div>
+
+              <div className="flex justify-end space-x-3 mt-6 border-0 pt-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowTaskModal(false);
+                    setSelectedTask(null);
+                  }}
+                  className="action-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="primary-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
+                >
+                  {buttonText}
+                </button>
+              </div>
+            </form>
           </div>
-        </form>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderClientsView = () => (
     <div className="max-w-7xl mx-auto space-y-6">

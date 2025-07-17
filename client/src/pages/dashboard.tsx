@@ -2475,13 +2475,19 @@ export default function Dashboard() {
                       <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
                         Pessoa/Cliente:
                       </label>
-                      <input
-                        type="text"
+                      <select
                         className="form-input w-full px-3 py-2 text-sm"
                         style={{ backgroundColor: "var(--bg-secondary)" }}
-                        value={selectedTask?.client_name || 'Cliente não encontrado'}
-                        readOnly
-                      />
+                        value={selectedTask?.relationships?.person?.data?.id || ''}
+                        onChange={(e) => saveTaskChanges({ person_id: e.target.value })}
+                      >
+                        <option value="">Selecione um cliente...</option>
+                        {clients.map((client: any) => (
+                          <option key={client.id} value={client.id}>
+                            {client.attributes.name}
+                          </option>
+                        ))}
+                      </select>
 
                     </div>
                     <div className="col-span-6">

@@ -2065,6 +2065,107 @@ export default function Dashboard() {
                 ></textarea>
               </div>
 
+              {/* Seção de Atualizações/Histórico */}
+              {isEditing && (
+                <div className="mb-4">
+                  <h6 className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>
+                    Atualizações
+                  </h6>
+                  
+                  {/* Campo para nova atualização */}
+                  <div className="mb-4">
+                    <textarea
+                      className="form-input w-full px-3 py-2 rounded-lg text-sm h-20"
+                      placeholder="Adicione uma nova atualização..."
+                      rows={3}
+                    ></textarea>
+                  </div>
+
+                  {/* Campos de data e hora do próximo retorno */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label
+                        className="block text-xs font-medium mb-1"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
+                        Data do Próximo Retorno
+                      </label>
+                      <input
+                        type="date"
+                        className="form-input w-full px-3 py-2 rounded-lg text-sm"
+                        placeholder="dd/mm/aaaa"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        className="block text-xs font-medium mb-1"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
+                        Hora do Próximo Retorno
+                      </label>
+                      <input
+                        type="time"
+                        className="form-input w-full px-3 py-2 rounded-lg text-sm"
+                        placeholder="--:--"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Botão Adicionar */}
+                  <div className="flex justify-end mb-4">
+                    <button
+                      type="button"
+                      className="primary-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
+                    >
+                      + Adicionar
+                    </button>
+                  </div>
+
+                  {/* Histórico de atualizações */}
+                  <div className="space-y-3 max-h-64 overflow-y-auto">
+                    {taskHistory.map((entry: any, index: number) => (
+                      <div key={index} className="flex items-start space-x-3 p-3 rounded-lg" style={{ backgroundColor: "var(--bg-tertiary)" }}>
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-medium stats-card">
+                          {entry.attributes?.person?.name?.charAt(0).toUpperCase() || 'U'}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                              {entry.attributes?.person?.name || 'Usuário'}
+                            </p>
+                            <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
+                              {entry.attributes?.['registered-at'] ? 
+                                new Date(entry.attributes['registered-at']).toLocaleDateString('pt-BR', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                }) : ''
+                              }
+                            </p>
+                          </div>
+                          <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
+                            {entry.attributes?.description || 'Sem descrição'}
+                          </p>
+                          {entry.attributes?.['next-return'] && (
+                            <p className="text-xs mt-1" style={{ color: "var(--text-tertiary)" }}>
+                              Próximo retorno: {new Date(entry.attributes['next-return']).toLocaleDateString('pt-BR', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="flex justify-end space-x-3 mt-6 border-0 pt-0">
                 <button
                   type="button"

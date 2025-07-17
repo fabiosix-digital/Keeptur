@@ -471,7 +471,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/monde/categorias", authenticateToken, async (req: any, res) => {
     try {
       // Extrair categorias das próprias tarefas (pois endpoint task_categories retorna 404)
-      const mondeUrl = `https://web.monde.com.br/api/v2/tasks?include=category&page[size]=100`;
+      const mondeUrl = `https://web.monde.com.br/api/v2/tasks?include=category&page[size]=50`;
       
       const mondeResponse = await fetch(mondeUrl, {
         method: "GET",

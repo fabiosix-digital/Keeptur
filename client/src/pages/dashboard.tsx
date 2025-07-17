@@ -45,6 +45,7 @@ export default function Dashboard() {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [showTokenExpiredModal, setShowTokenExpiredModal] = useState(false);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [updateText, setUpdateText] = useState("");
   
   // Função para obter tarefas do calendário baseada nos dados reais
   const getTasksForCalendar = () => {

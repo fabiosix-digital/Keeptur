@@ -1,0 +1,73 @@
+  // Função para obter nome da pessoa/cliente
+  const getPersonName = (personId: string) => {
+    // Primeiro, procurar nos clientes carregados
+    const client = clients.find((client: any) => client.id === personId);
+    if (client) {
+      return client.attributes?.name || client.attributes?.['company-name'] || client.name || 'Cliente não encontrado';
+    }
+    
+    // Se não encontrar nos clientes, procurar nas tarefas (dados incluídos)
+    for (const task of allTasks) {
+      if (task.relationships?.person?.data?.id === personId) {
+        // Verificar se tem dados do cliente no próprio objeto da tarefa
+        if (task.client_name) {
+          return task.client_name;
+        }
+      }
+    }
+    
+    return 'Cliente não encontrado';
+  };
+
+  // Função para obter email da pessoa/cliente
+  const getPersonEmail = (personId: string) => {
+    // Primeiro, procurar nos clientes carregados
+    const client = clients.find((client: any) => client.id === personId);
+    if (client) {
+      return client.attributes?.email || client.email || '';
+    }
+    
+    // Se não encontrar nos clientes, procurar nas tarefas
+    for (const task of allTasks) {
+      if (task.relationships?.person?.data?.id === personId && task.client_email) {
+        return task.client_email;
+      }
+    }
+    
+    return '';
+  };
+
+  // Função para obter telefone da pessoa/cliente
+  const getPersonPhone = (personId: string) => {
+    const client = clients.find((client: any) => client.id === personId);
+    if (client) {
+      return client.attributes?.phone || client.attributes?.['business-phone'] || client.phone || '';
+    }
+    return '';
+  };
+
+  // Função para obter celular da pessoa/cliente
+  const getPersonMobile = (personId: string) => {
+    const client = clients.find((client: any) => client.id === personId);
+    if (client) {
+      return client.attributes?.['mobile-phone'] || client.attributes?.mobile || client.mobile || '';
+    }
+    return '';
+  };
+  
+  // Função para obter nome do cliente da tarefa
+  const getClientName = (task: any) => {
+    if (!task) return 'Sem cliente';
+    
+    // Primeiro verificar se já tem o nome do cliente processado
+    if (task.client_name) {
+      return task.client_name;
+    }
+    
+    // Buscar pelo ID da pessoa
+    if (task.relationships?.person?.data?.id) {
+      return getPersonName(task.relationships.person.data.id);
+    }
+    
+    return 'Sem cliente';
+  };

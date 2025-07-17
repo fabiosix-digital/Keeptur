@@ -942,12 +942,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para buscar empresas (extrair das tarefas)
+  // Endpoint para buscar empresas (buscar especificamente empresas da API do Monde)
   app.get("/api/monde/empresas", authenticateToken, async (req: any, res) => {
     try {
-      // Buscar tarefas que contêm informações de empresas/clientes
-      const tasksResponse = await fetch(
-        "https://web.monde.com.br/api/v2/tasks?include=assignee,person,category,author",
+      // Primeira tentativa: Buscar pessoas corporativas
+      const corporateResponse = await fetch(
+        "https://web.monde.com.br/api/v2/people?filter[kind]=corporate",
         {
           method: "GET",
           headers: {
@@ -958,67 +958,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       );
 
-      const data = await tasksResponse.json();
+      let companies = [];
       
-      if (data.errors) {
-        console.log("⚠️ Erro na API de tasks:", data.errors[0]?.title);
-        res.json({ data: [] });
-        return;
+      if (corporateResponse.ok) {
+        const corporateData = await corporateResponse.json();
+        
+        companies = (corporateData.data || []).map((item: any) => ({
+          id: item.id,
+          name: item.attributes.name || item.attributes['company-name'],
+          attributes: {
+            name: item.attributes.name || item.attributes['company-name'],
+            person_type: 'company',
+            cnpj: item.attributes?.cnpj,
+            kind: item.attributes?.kind
+          }
+        }));
+        
+        console.log("🏢 Empresas corporativas encontradas:", companies.length);
       }
       
-      // Extrair empresas/clientes únicos das tarefas usando includes
-      const companiesSet = new Set();
-      const tasks = data.data || [];
-      const included = data.included || [];
-      
-      // Buscar empresas dos includes (pessoas com CNPJ, kind='corporate' ou company-name preenchido)
-      included.forEach((item: any) => {
-        if (item.type === 'people' && (
-          item.attributes?.cnpj || 
-          item.attributes?.kind === 'corporate' || 
-          item.attributes?.['company-name']
-        )) {
-          companiesSet.add(JSON.stringify({
-            id: item.id,
-            name: item.attributes.name || item.attributes['company-name'],
-            attributes: {
+      // Segunda tentativa: Buscar pessoas com CNPJ se não houver corporativas
+      if (companies.length === 0) {
+        const cnpjResponse = await fetch(
+          "https://web.monde.com.br/api/v2/people?page[limit]=100&sort=name",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/vnd.api+json",
+              Accept: "application/vnd.api+json",
+              Authorization: `Bearer ${req.sessao.access_token}`,
+            },
+          }
+        );
+
+        if (cnpjResponse.ok) {
+          const cnpjData = await cnpjResponse.json();
+          
+          // Filtrar pessoas com CNPJ
+          companies = (cnpjData.data || [])
+            .filter((item: any) => item.attributes?.cnpj)
+            .map((item: any) => ({
+              id: item.id,
               name: item.attributes.name || item.attributes['company-name'],
-              person_type: 'company'
-            }
-          }));
-        }
-      });
-      
-      // Se não houver includes, extrair dos relationships das tarefas
-      if (companiesSet.size === 0) {
-        tasks.forEach((task: any) => {
-          if (task.relationships?.person?.data) {
-            companiesSet.add(JSON.stringify({
-              id: task.relationships.person.data.id,
-              name: `Cliente ${task.relationships.person.data.id}`,
               attributes: {
-                name: `Cliente ${task.relationships.person.data.id}`,
-                person_type: 'company'
+                name: item.attributes.name || item.attributes['company-name'],
+                person_type: 'company',
+                cnpj: item.attributes?.cnpj,
+                kind: item.attributes?.kind || 'cnpj-based'
               }
             }));
+          
+          console.log("🏢 Empresas com CNPJ encontradas:", companies.length);
+        }
+      }
+      
+      // Se ainda não houver empresas, buscar da lista de pessoas em geral
+      if (companies.length === 0) {
+        const allPeopleResponse = await fetch(
+          "https://web.monde.com.br/api/v2/people?page[limit]=50&sort=name",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/vnd.api+json",
+              Accept: "application/vnd.api+json",
+              Authorization: `Bearer ${req.sessao.access_token}`,
+            },
           }
-        });
+        );
+
+        if (allPeopleResponse.ok) {
+          const allPeopleData = await allPeopleResponse.json();
+          
+          // Filtrar pessoas que podem ser empresas (com "company" no nome, ou palavras-chave corporativas)
+          companies = (allPeopleData.data || [])
+            .filter((item: any) => {
+              const name = item.attributes?.name || '';
+              return name.toLowerCase().includes('empresa') || 
+                     name.toLowerCase().includes('cvc') ||
+                     name.toLowerCase().includes('teste') ||
+                     name.toLowerCase().includes('corp') ||
+                     name.toLowerCase().includes('ltda') ||
+                     name.toLowerCase().includes('s.a') ||
+                     item.attributes?.['company-name'];
+            })
+            .map((item: any) => ({
+              id: item.id,
+              name: item.attributes.name || item.attributes['company-name'],
+              attributes: {
+                name: item.attributes.name || item.attributes['company-name'],
+                person_type: 'company',
+                cnpj: item.attributes?.cnpj,
+                kind: item.attributes?.kind || 'filtered-name'
+              }
+            }));
+          
+          console.log("🏢 Empresas filtradas por nome encontradas:", companies.length);
+        }
       }
       
-      const companies = Array.from(companiesSet).map(c => JSON.parse(c as string));
-      
-      console.log("✅ Empresas/clientes extraídas das tarefas:", companies.length);
-      
-      // Log para debug dos dados das tarefas
-      if (tasks.length > 0) {
-        console.log("📋 Exemplo de tarefa para debug empresas:", JSON.stringify({
-          attributes: tasks[0].attributes,
-          relationships: tasks[0].relationships
-        }, null, 2));
-      }
-      if (included.length > 0) {
-        console.log("📋 Exemplo de include para debug empresas:", JSON.stringify(included[0], null, 2));
-      }
+      console.log("✅ Total de empresas retornadas:", companies.length);
+      console.log("📋 Empresas finais:", companies.map(e => `${e.name} (${e.attributes.kind || 'unknown'})`).join(", "));
       
       res.json({ data: companies });
     } catch (error) {

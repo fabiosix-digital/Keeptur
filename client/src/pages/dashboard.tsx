@@ -30,7 +30,7 @@ export default function Dashboard() {
   const [taskSearchTerm, setTaskSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedSituation, setSelectedSituation] = useState("");
-  const [selectedResponsible, setSelectedResponsible] = useState("");
+
   const [selectedClient, setSelectedClient] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -374,12 +374,28 @@ export default function Dashboard() {
     selectedCategory,
     // selectedPriority removido - não existe na API do Monde
     selectedSituation,
-    selectedResponsible,
+
     selectedClient,
     startDate,
     endDate,
     searchTerm,
   ]);
+
+  // Função para determinar o status da tarefa
+  const getTaskStatus = (task: any) => {
+    if (task.attributes.completed) {
+      return { status: "completed", label: "Concluída", class: "status-badge-completed" };
+    }
+    
+    const now = new Date();
+    const dueDate = new Date(task.attributes.due);
+    
+    if (dueDate < now) {
+      return { status: "overdue", label: "Atrasada", class: "status-badge-overdue" };
+    }
+    
+    return { status: "pending", label: "Pendente", class: "status-badge-pending" };
+  };
 
   // Função para visualizar detalhes da tarefa
   const handleViewTask = async (task: any) => {
@@ -863,21 +879,7 @@ export default function Dashboard() {
                 </option>
               ))}
             </select>
-            <select 
-              className="form-input px-3 py-2 rounded-lg text-sm text-gray-800"
-              value={selectedResponsible}
-              onChange={(e) => {
-                setSelectedResponsible(e.target.value);
-                setTimeout(reloadTasks, 100);
-              }}
-            >
-              <option value="">Todos os Agentes</option>
-              {users.map((user) => (
-                <option key={user.id} value={user.id} className="text-gray-800">
-                  {user.name}
-                </option>
-              ))}
-            </select>
+
             {/* Filtro de Situação */}
             <select
               className="form-input px-3 py-2 rounded-lg text-sm"
@@ -1031,17 +1033,16 @@ export default function Dashboard() {
                           </p>
                         </td>
                         <td className="py-4 px-4">
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              task.attributes.completed
-                                ? "status-badge-completed"
-                                : "status-badge-pending"
-                            }`}
-                          >
-                            {task.attributes.completed
-                              ? "Concluída"
-                              : "Pendente"}
-                          </span>
+                          {(() => {
+                            const statusInfo = getTaskStatus(task);
+                            return (
+                              <span
+                                className={`px-2 py-1 rounded-full text-xs font-medium ${statusInfo.class}`}
+                              >
+                                {statusInfo.label}
+                              </span>
+                            );
+                          })()}
                         </td>
                         {/* Coluna de prioridade removida - não existe na API do Monde */}
                         <td className="py-4 px-4">

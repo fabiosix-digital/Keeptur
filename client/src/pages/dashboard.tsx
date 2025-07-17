@@ -2088,6 +2088,8 @@ export default function Dashboard() {
       if (!selectedTask) return;
       
       try {
+        console.log('💾 Salvando alterações na tarefa:', selectedTask.id, 'dados:', formData);
+        
         const response = await fetch(`/api/monde/tarefas/${selectedTask.id}`, {
           method: 'PUT',
           headers: {
@@ -2098,14 +2100,20 @@ export default function Dashboard() {
         });
         
         if (response.ok) {
-          // Recarregar dados
+          const updatedTask = await response.json();
+          console.log('✅ Tarefa atualizada com sucesso:', updatedTask);
+          
+          // Recarregar dados após sucesso
           loadTasks();
-          console.log('Tarefa atualizada com sucesso');
+          
+          // Mostrar mensagem de sucesso
+          console.log('✅ Alterações salvas automaticamente!');
         } else {
-          console.error('Erro ao salvar alterações da tarefa');
+          const errorData = await response.json();
+          console.error('❌ Erro ao salvar alterações da tarefa:', errorData);
         }
       } catch (error) {
-        console.error('Erro na requisição:', error);
+        console.error('❌ Erro na requisição:', error);
       }
     };
     

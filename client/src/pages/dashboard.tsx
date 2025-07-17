@@ -2090,8 +2090,20 @@ export default function Dashboard() {
         });
         
         if (response.ok) {
-          // Recarregar dados
-          loadTasks();
+          // Recarregar dados completamente para atualizar o status
+          await loadTasks();
+          
+          // Atualizar a tarefa selecionada com os novos dados
+          const updatedAllTasks = await loadAllTasks();
+          const updatedTask = updatedAllTasks.data.find((t: any) => t.id === selectedTask.id);
+          if (updatedTask) {
+            setSelectedTask(updatedTask);
+          }
+          
+          // Recarregar histórico da tarefa
+          const history = await loadTaskHistory(selectedTask.id);
+          setTaskHistory(history);
+          
           console.log('Tarefa atualizada com sucesso');
         } else {
           console.error('Erro ao salvar alterações da tarefa');
@@ -2577,7 +2589,7 @@ export default function Dashboard() {
                                 })} - {entry.author_name || entry.attributes?.person?.name || 'Usuário'}
                               </div>
                               <div className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
-                                {entry.attributes?.text || entry.attributes?.description || 'Sem descrição'}
+                                {entry.attributes?.historic || entry.attributes?.text || entry.attributes?.description || 'Sem descrição'}
                               </div>
                             </div>
                           ))}

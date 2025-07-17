@@ -91,7 +91,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      // Try to invalidate session on server
+      const token = localStorage.getItem("keeptur-token");
+      if (token) {
+        await apiRequest("POST", "/api/auth/logout", {});
+      }
+    } catch (error) {
+      console.log("Erro ao invalidar sessão no servidor:", error);
+    }
+    
     setUser(null);
     setIsAuthenticated(false);
     setHasActivePlan(false);
@@ -102,6 +112,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("keeptur-empresa-id");
     localStorage.removeItem("keeptur-monde-token");
     localStorage.removeItem("keeptur-server-url");
+    
+    // Force page reload to clear any cached data
+    window.location.reload();
   };
 
   return (

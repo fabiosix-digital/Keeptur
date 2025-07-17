@@ -220,6 +220,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (sessao.expires_at && sessao.expires_at < new Date()) {
+        await storage.deleteSessao(decoded.sessaoId);
         return res.status(401).json({ message: "Token expirado" });
       }
 
@@ -227,10 +228,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.empresaId = decoded.empresaId;
       next();
     } catch (error) {
-      console.error('Erro na autenticação:', error);
+      console.error('Erro na autenticação:', error.message);
       return res.status(401).json({ message: "Token inválido" });
     }
   };
+
+  // Logout endpoint
+  app.post("/api/auth/logout", authenticateToken, async (req: any, res) => {
+    try {
+      // Delete session from database
+      await storage.deleteSessao(req.sessao.id);
+      res.json({ message: "Logout realizado com sucesso" });
+    } catch (error) {
+      console.error("Logout error:", error);
+      res.status(500).json({ message: "Erro ao fazer logout" });
+    }
+  });
 
   // Endpoints específicos para tarefas - usando endpoint correto da API v2 com filtros
   app.get("/api/monde/tarefas", authenticateToken, async (req: any, res) => {

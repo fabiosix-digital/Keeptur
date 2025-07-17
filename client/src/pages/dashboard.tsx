@@ -101,6 +101,14 @@ export default function Dashboard() {
   const loadTasks = async () => {
     try {
       const token = localStorage.getItem('keeptur-token');
+      const serverUrl = localStorage.getItem('keeptur-server-url');
+      
+      if (!token || !serverUrl) {
+        console.error('Token ou servidor não encontrado');
+        logout();
+        return { data: [] };
+      }
+      
       const params = new URLSearchParams();
       
       // Aplicar filtros baseados no taskFilter
@@ -126,6 +134,10 @@ export default function Dashboard() {
       });
       
       if (!response.ok) {
+        if (response.status === 401) {
+          console.error('Token inválido, fazendo logout');
+          logout();
+        }
         throw new Error('Erro ao carregar tarefas');
       }
       

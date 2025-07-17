@@ -92,6 +92,30 @@ export default function Dashboard() {
     return categoryName || 'Sem categoria';
   };
 
+  // Função para obter nome da pessoa
+  const getPersonName = (personId: string) => {
+    const person = users.find((user: any) => user.id === personId);
+    return person?.attributes?.name || person?.name || 'Pessoa não encontrada';
+  };
+
+  // Função para obter email da pessoa
+  const getPersonEmail = (personId: string) => {
+    const person = users.find((user: any) => user.id === personId);
+    return person?.attributes?.email || person?.email || '';
+  };
+
+  // Função para obter telefone da pessoa
+  const getPersonPhone = (personId: string) => {
+    const person = users.find((user: any) => user.id === personId);
+    return person?.attributes?.phone || person?.phone || person?.attributes?.['business-phone'] || '';
+  };
+
+  // Função para obter celular da pessoa
+  const getPersonMobile = (personId: string) => {
+    const person = users.find((user: any) => user.id === personId);
+    return person?.attributes?.['mobile-phone'] || person?.mobile || '';
+  };
+
   useEffect(() => {
     // Aplicar tema no body
     document.body.className = "theme-transition";
@@ -2268,7 +2292,7 @@ export default function Dashboard() {
                         style={{ backgroundColor: "var(--bg-secondary)" }}
                         value={selectedTask?.relationships?.person?.data?.id ? 
                           getPersonName(selectedTask.relationships.person.data.id) : 
-                          'Nenhuma pessoa selecionada'
+                          'Cliente não encontrado'
                         }
                         readOnly
                       />
@@ -2285,9 +2309,9 @@ export default function Dashboard() {
                         type="email"
                         name="email"
                         className="form-input w-full px-3 py-2 text-sm text-blue-600 underline"
-                        defaultValue=""
+                        value={getPersonEmail(selectedTask?.relationships?.person?.data?.id)}
                         style={{ backgroundColor: "var(--bg-secondary)" }}
-                        onChange={(e) => saveTaskChanges({ email: e.target.value })}
+                        readOnly
                       />
                     </div>
                     <div className="col-span-4">
@@ -2297,8 +2321,9 @@ export default function Dashboard() {
                       <input
                         type="text"
                         className="form-input w-full px-3 py-2 text-sm"
-                        defaultValue="(19) 9872-2064"
+                        value={getPersonPhone(selectedTask?.relationships?.person?.data?.id)}
                         style={{ backgroundColor: "var(--bg-secondary)" }}
+                        readOnly
                       />
                     </div>
                     <div className="col-span-4">
@@ -2309,8 +2334,9 @@ export default function Dashboard() {
                         <input
                           type="text"
                           className="form-input flex-1 px-3 py-2 text-sm"
-                          defaultValue="(19) 98723-0649"
+                          value={getPersonMobile(selectedTask?.relationships?.person?.data?.id)}
                           style={{ backgroundColor: "var(--bg-secondary)" }}
+                          readOnly
                         />
                         <div className="w-4 h-4 rounded-full bg-green-500"></div>
                       </div>
@@ -2335,22 +2361,14 @@ export default function Dashboard() {
                           onChange={(e) => saveTaskChanges({ due: e.target.value })}
                         />
                       </div>
-                      <div className="col-span-6 flex items-end">
-                        <button
-                          type="button"
-                          onClick={completeTask}
-                          className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-                        >
-                          Concluída
-                        </button>
-                      </div>
+                      <div className="col-span-6"></div>
                     </div>
 
-                    {/* Área de texto para histórico */}
-                    <div className="border rounded-lg p-4 min-h-[200px]" style={{ backgroundColor: "var(--bg-secondary)" }}>
+                    {/* Área de histórico com scroll */}
+                    <div className="border rounded-lg p-4 max-h-[140px] overflow-y-auto mb-4" style={{ backgroundColor: "var(--bg-secondary)" }}>
                       {/* Histórico existente */}
                       {taskHistory.length > 0 ? (
-                        <div className="space-y-3 mb-4">
+                        <div className="space-y-3">
                           {taskHistory.map((entry: any, index: number) => (
                             <div key={index} className="border-b pb-3">
                               <div className="text-sm font-medium text-purple-600">
@@ -2369,7 +2387,7 @@ export default function Dashboard() {
                           ))}
                         </div>
                       ) : (
-                        <div className="space-y-3 mb-4">
+                        <div className="space-y-3">
                           <div className="text-sm font-medium text-purple-600">
                             16/07/2025 15:08:24 - Fabio Silva
                           </div>
@@ -2384,18 +2402,18 @@ export default function Dashboard() {
                           </div>
                         </div>
                       )}
-                      
-                      {/* Campo para nova atualização */}
-                      <div className="border-t pt-3 mt-3">
-                        <textarea
-                          value={updateText}
-                          onChange={(e) => setUpdateText(e.target.value)}
-                          className="w-full px-3 py-2 border rounded-lg text-sm resize-none"
-                          placeholder="Adicione uma atualização..."
-                          rows={3}
-                          style={{ backgroundColor: "var(--bg-primary)", color: "var(--text-primary)" }}
-                        />
-                      </div>
+                    </div>
+                    
+                    {/* Campo para nova atualização */}
+                    <div className="mt-4">
+                      <textarea
+                        value={updateText}
+                        onChange={(e) => setUpdateText(e.target.value)}
+                        className="w-full px-3 py-2 border rounded-lg text-sm resize-none"
+                        placeholder="Adicione uma atualização..."
+                        rows={3}
+                        style={{ backgroundColor: "var(--bg-primary)", color: "var(--text-primary)" }}
+                      />
                     </div>
                   </div>
                 </div>
@@ -2514,38 +2532,40 @@ export default function Dashboard() {
               )}
 
               {/* Botões de Ação */}
-              <div className="flex justify-end space-x-3 mt-6 pt-4 border-t">
-                <button
-                  type="button"
-                  onClick={deleteTask}
-                  className="px-4 py-2 bg-red-600 text-white rounded text-sm hover:bg-red-700"
-                >
-                  Excluir
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowTaskModal(false);
-                    setSelectedTask(null);
-                  }}
-                  className="px-4 py-2 bg-gray-600 text-white rounded text-sm hover:bg-gray-700"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="button"
-                  onClick={saveTaskHistory}
-                  className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-                >
-                  Salvar
-                </button>
+              <div className="flex justify-between items-center mt-6 pt-4 border-t">
                 <button
                   type="button"
                   onClick={completeTask}
-                  className="px-4 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+                  className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
                 >
                   Concluída
                 </button>
+                <div className="flex space-x-3">
+                  <button
+                    type="button"
+                    onClick={deleteTask}
+                    className="px-4 py-2 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+                  >
+                    Excluir
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowTaskModal(false);
+                      setSelectedTask(null);
+                    }}
+                    className="px-4 py-2 bg-gray-600 text-white rounded text-sm hover:bg-gray-700"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={saveTaskHistory}
+                    className="px-4 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+                  >
+                    Salvar
+                  </button>
+                </div>
               </div>
             </form>
           </div>

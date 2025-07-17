@@ -470,40 +470,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint para buscar categorias
   app.get("/api/monde/categorias", authenticateToken, async (req: any, res) => {
     try {
-      const mondeUrl = `https://web.monde.com.br/api/v2/task_categories`;
+      // Extrair categorias das próprias tarefas (pois endpoint task_categories retorna 404)
+      const mondeUrl = `https://web.monde.com.br/api/v2/tasks?include=category&page[size]=100`;
       
       const mondeResponse = await fetch(mondeUrl, {
         method: "GET",
         headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
+          "Content-Type": "application/vnd.api+json",
+          "Accept": "application/vnd.api+json",
           "Authorization": `Bearer ${req.sessao.access_token}`,
         },
       });
 
       const data = await mondeResponse.json();
-      console.log('📋 Categorias recebidas da API:', data);
+      console.log('📋 Dados recebidos para extrair categorias:', data);
       
-      // Verificar se a resposta é um array (formato novo mencionado pelo usuário)
-      if (Array.isArray(data)) {
-        // Transformar para formato esperado pelo frontend
-        const formattedData = {
-          data: data.map(category => ({
-            id: category.id,
-            type: "task-categories",
-            attributes: {
-              name: category.name,
-              description: category.name,
-              color: category.color || '#007bff',
-              position: category.position || 1
+      // Extrair categorias únicas das tarefas
+      const categorias = new Set();
+      const categoriasList = [];
+      
+      if (data.data) {
+        data.data.forEach((task: any) => {
+          if (task.relationships?.category?.data) {
+            const categoryId = task.relationships.category.data.id;
+            if (!categorias.has(categoryId)) {
+              categorias.add(categoryId);
+              categoriasList.push({
+                id: categoryId,
+                type: "task-categories",
+                attributes: {
+                  name: categoryId,
+                  description: categoryId,
+                  color: '#007bff',
+                  position: 1
+                }
+              });
             }
-          }))
-        };
-        res.status(mondeResponse.status).json(formattedData);
-      } else {
-        // Formato antigo (JSON:API)
-        res.status(mondeResponse.status).json(data);
+          }
+        });
       }
+      
+      console.log('📋 Categorias extraídas:', categoriasList.length);
+      
+      const formattedData = {
+        data: categoriasList
+      };
+      
+      res.status(200).json(formattedData);
     } catch (error) {
       console.error("Erro ao buscar categorias:", error);
       res.status(500).json({ message: "Erro ao buscar categorias" });

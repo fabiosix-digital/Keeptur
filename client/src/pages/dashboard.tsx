@@ -2481,7 +2481,6 @@ export default function Dashboard() {
                         value={selectedTask?.relationships?.person?.data?.id || ''}
                         onChange={(e) => saveTaskChanges({ person_id: e.target.value })}
                       >
-                        <option value="">Selecione um cliente...</option>
                         {clients.map((client: any) => (
                           <option key={client.id} value={client.id}>
                             {client.attributes.name}

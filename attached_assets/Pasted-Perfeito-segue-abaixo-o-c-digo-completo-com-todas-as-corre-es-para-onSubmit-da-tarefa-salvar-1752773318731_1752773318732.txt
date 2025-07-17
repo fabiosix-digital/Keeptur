@@ -1,0 +1,105 @@
+Perfeito, segue abaixo o código completo com todas as correções para:
+
+✅ onSubmit da tarefa
+✅ salvarHistorico com tratamento de erro 415
+✅ payload com validações seguras
+✅ Fechamento da modal mesmo com erro no histórico
+📦 Função onSubmit completa (para criação/edição de tarefas):
+ts
+Copiar
+Editar
+const onSubmit = async () => {
+  try {
+    setLoading(true);
+
+    const payload = {
+      name: tarefa.name || 'Tarefa sem nome',
+      description: tarefa.description || '',
+      due: tarefa.due || new Date().toISOString(),
+      completed: tarefa.completed || false,
+      status_id: tarefa.status?.id || statusPadraoId,
+      person_id: tarefa.person?.id || null,
+      company_id: tarefa.company?.id || usuario.company_id,
+      category_id: tarefa.category?.id || null,
+    };
+
+    let response;
+    if (tarefa.id) {
+      // Editar tarefa existente
+      response = await fetch(`/api/monde/tarefas/${tarefa.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+    } else {
+      // Criar nova tarefa
+      response = await fetch('/api/monde/tarefas', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+    }
+
+    const resultado = await response.json();
+
+    if (!response.ok) {
+      console.error('Erro ao salvar tarefa', resultado);
+      alert('Erro ao salvar tarefa. Verifique os campos obrigatórios.');
+      return;
+    }
+
+    const tarefaSalva = resultado?.data || resultado;
+    console.log('🔍 Tarefa salva:', tarefaSalva);
+
+    // Tentar salvar histórico, mesmo que falhe
+    try {
+      if (historicoTexto?.trim()) {
+        await salvarHistorico(tarefaSalva.id, historicoTexto);
+      }
+    } catch (err) {
+      console.warn('⚠️ Histórico não salvo:', err);
+    }
+
+    // Atualiza lista de tarefas após salvar
+    await carregarTarefas();
+    setIsModalAberta(false);
+    setHistoricoTexto('');
+    alert('Tarefa salva com sucesso!');
+  } catch (error) {
+    console.error('❌ Erro inesperado:', error);
+    alert('Erro inesperado ao salvar a tarefa.');
+  } finally {
+    setLoading(false);
+  }
+};
+📘 Função salvarHistorico com header correto
+ts
+Copiar
+Editar
+const salvarHistorico = async (taskId, texto) => {
+  const response = await fetch(`/api/monde/tarefas/${taskId}/historico`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      description: texto,
+    }),
+  });
+
+  if (!response.ok) {
+    const erro = await response.json();
+    throw new Error(`Erro ${response.status}: ${erro.message || 'Erro ao salvar histórico'}`);
+  }
+
+  console.log('✅ Histórico salvo com sucesso');
+};
+✨ Dica extra: status padrão e proteção do status_id
+ts
+Copiar
+Editar
+const statusPadraoId = listaDeStatus.find(s => s.name === 'Novo')?.id || listaDeStatus[0]?.id || null;

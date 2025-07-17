@@ -1,0 +1,151 @@
+✅ 1. Pessoa (cliente) não aparece
+🔍 Erro detectado:
+
+txt
+Copiar
+Editar
+🔍 Resultado: Cliente não encontrado
+🔧 Causa:
+No payload da tarefa, está enviando person_id com undefined ou um ID não cadastrado. Isso quebra o PUT.
+
+✅ Solução:
+Verifique se está enviando assim:
+
+ts
+Copiar
+Editar
+person_id: tarefa.person?.id || null
+E garanta que a lista de pessoas tenha sido carregada corretamente. Use este endpoint com include=phones:
+
+ts
+Copiar
+Editar
+GET /api/v2/people?include=phones
+✅ 2. PUT da tarefa está dando 400 Bad Request
+🔍 Erro detectado:
+
+http
+Copiar
+Editar
+PUT /api/monde/tarefas/e77068cc... → 400 (Bad Request)
+🔧 Causa provável:
+Campos obrigatórios (status_id, person_id, company_id) estão undefined.
+
+✅ Solução:
+Antes de enviar o PUT, monte um payload completo e seguro:
+
+ts
+Copiar
+Editar
+const payload = {
+  name: tarefa.name,
+  description: tarefa.description || '',
+  status_id: tarefa.status?.id || statusPadraoId,
+  person_id: tarefa.person?.id || null,
+  company_id: tarefa.company?.id || usuario.company_id,
+  category_id: tarefa.category?.id || null,
+  due: tarefa.due || new Date().toISOString(),
+  completed: tarefa.completed || false,
+};
+✅ 3. Histórico dá erro 415 (Unsupported Media Type)
+🔍 Erro detectado:
+
+http
+Copiar
+Editar
+POST /api/monde/tarefas/:id/historico → 415 (Unsupported Media Type)
+🔧 Causa:
+Você está enviando o POST sem o header Content-Type: application/json.
+
+✅ Solução:
+Altere sua requisição para:
+
+ts
+Copiar
+Editar
+await fetch(`/api/monde/tarefas/${tarefa.id}/historico`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  },
+  body: JSON.stringify({
+    description: novoHistorico,
+  }),
+});
+✅ 4. status está undefined
+🔍 Log visível:
+
+txt
+Copiar
+Editar
+Debug tarefa: { completed: false, status: undefined }
+🔧 Causa:
+Você não está setando o status ao criar a tarefa ou ao editar se o dropdown não for interagido.
+
+✅ Solução:
+Defina um status padrão no carregamento da tarefa:
+
+ts
+Copiar
+Editar
+if (!tarefa.status && listaDeStatus.length) {
+  tarefa.status = listaDeStatus.find(s => s.name === 'Novo') || listaDeStatus[0];
+}
+✅ 5. A modal não fecha após salvar
+🔍 Causa:
+A função saveAndCloseModal só fecha se tudo der certo, mas está falhando silenciosamente se o histórico der erro.
+
+✅ Solução:
+Adicione try/catch isolado para salvar o histórico e deixe o fechamento da modal acontecer mesmo se o histórico der erro:
+
+ts
+Copiar
+Editar
+try {
+  await salvarHistorico(tarefa.id, historico);
+} catch (err) {
+  console.error("Erro ao salvar histórico:", err);
+}
+// Feche a modal mesmo assim
+setIsModalAberta(false);
+✅ 6. Cliente / Empresa não aparecem no card da tarefa
+🔧 Causa:
+No componente de listagem ou modal, você está acessando tarefa.person.name e tarefa.company.name mas os objetos person e company não estão populados.
+
+✅ Solução:
+Você precisa popular os relacionamentos ao buscar as tarefas:
+
+ts
+Copiar
+Editar
+GET /api/v2/tasks?include=person,company,status,category
+Ou ao carregar a tarefa individual:
+
+ts
+Copiar
+Editar
+GET /api/v2/tasks/:id?include=person,company
+✅ 7. Histórico não aparece
+🔧 Causa:
+Você não está buscando o histórico corretamente (ou não associa com o ID da tarefa).
+
+✅ Solução:
+
+ts
+Copiar
+Editar
+GET /api/v2/task_historics?filter[task_id]=e77068cc...
+E renderize com:
+
+tsx
+Copiar
+Editar
+historicos.map(h => <p key={h.id}>{h.description}</p>)
+✅ 8. PUT está sendo chamado a cada onChange (automático)
+🔧 Causa:
+Você está salvando a tarefa enquanto ainda digita no campo.
+
+✅ Solução:
+Separe handleChange de saveChanges e só envie o PUT quando clicar no botão Salvar.
+

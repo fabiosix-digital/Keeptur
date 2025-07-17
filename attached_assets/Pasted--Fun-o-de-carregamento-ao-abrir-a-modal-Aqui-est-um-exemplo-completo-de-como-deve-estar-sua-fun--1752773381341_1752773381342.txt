@@ -1,0 +1,129 @@
+🔄 Função de carregamento ao abrir a modal
+Aqui está um exemplo completo de como deve estar sua função abrirModalEdicao(tarefaId):
+
+ts
+Copiar
+Editar
+const abrirModalEdicao = async (tarefaId: string) => {
+  try {
+    setLoading(true);
+
+    // Buscar dados da tarefa
+    const response = await fetch(`/api/monde/tarefas/${tarefaId}`);
+    const resultado = await response.json();
+    const dados = resultado.data;
+
+    // Buscar dados da pessoa associada, se houver
+    let pessoaDetalhada = null;
+    if (dados.relationships?.person?.data?.id) {
+      const pessoaId = dados.relationships.person.data.id;
+      const resPessoa = await fetch(`/api/monde/pessoas/${pessoaId}`);
+      const pessoaJson = await resPessoa.json();
+      pessoaDetalhada = pessoaJson.data?.attributes;
+    }
+
+    // Buscar nome da empresa associada
+    let nomeEmpresa = null;
+    if (dados.relationships?.company?.data?.id) {
+      const empresaId = dados.relationships.company.data.id;
+      const resEmpresa = await fetch(`/api/monde/empresas/${empresaId}`);
+      const empresaJson = await resEmpresa.json();
+      nomeEmpresa = empresaJson.data?.attributes?.name;
+    }
+
+    // Buscar categorias disponíveis pro usuário logado
+    const resCategorias = await fetch(`/api/monde/categorias`);
+    const categoriasJson = await resCategorias.json();
+    const categoriasDisponiveis = categoriasJson.data || [];
+
+    // Buscar histórico da tarefa
+    const resHistorico = await fetch(`/api/monde/tarefas/${tarefaId}/historico`);
+    const historicoJson = await resHistorico.json();
+    const historicoFiltrado = historicoJson.data || [];
+
+    // Atualizar estados no React
+    setTarefa({
+      id: dados.id,
+      name: dados.attributes.name,
+      description: dados.attributes.description,
+      due: dados.attributes.due,
+      completed: dados.attributes.completed,
+      person: {
+        id: pessoaDetalhada?.id,
+        name: pessoaDetalhada?.name,
+        email: pessoaDetalhada?.email,
+        telefone: pessoaDetalhada?.phone,
+        celular: pessoaDetalhada?.mobile,
+      },
+      company: {
+        id: dados.relationships?.company?.data?.id,
+        name: nomeEmpresa,
+      },
+      category: {
+        id: dados.relationships?.category?.data?.id,
+      },
+      historico: historicoFiltrado,
+    });
+
+    setCategorias(categoriasDisponiveis);
+    setIsModalAberta(true);
+  } catch (err) {
+    console.error('❌ Erro ao carregar dados da tarefa:', err);
+    alert('Erro ao carregar os dados da tarefa.');
+  } finally {
+    setLoading(false);
+  }
+};
+✅ Dentro do JSX (modal)
+Garanta que:
+
+Pessoa
+tsx
+Copiar
+Editar
+{tarefa?.person?.name && (
+  <>
+    <p><strong>Cliente:</strong> {tarefa.person.name}</p>
+    <p><strong>Email:</strong> {tarefa.person.email || '-'}</p>
+    <p><strong>Telefone:</strong> {tarefa.person.telefone || '-'}</p>
+    <p><strong>Celular:</strong> {tarefa.person.celular || '-'}</p>
+  </>
+)}
+Empresa
+tsx
+Copiar
+Editar
+{tarefa?.company?.name && (
+  <p><strong>Empresa:</strong> {tarefa.company.name}</p>
+)}
+Categorias (dropdown)
+tsx
+Copiar
+Editar
+<select
+  value={tarefa.category?.id || ''}
+  onChange={(e) =>
+    setTarefa((prev) => ({
+      ...prev,
+      category: { id: e.target.value },
+    }))
+  }
+>
+  <option value="">Selecione a categoria</option>
+  {categorias.map((cat) => (
+    <option key={cat.id} value={cat.id}>
+      {cat.attributes?.name}
+    </option>
+  ))}
+</select>
+✅ Estilo da modal
+Defina altura máxima e overflow do histórico:
+
+tsx
+Copiar
+Editar
+<div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+  {tarefa.historico.map((item, i) => (
+    <p key={i}>{item.attributes.description}</p>
+  ))}
+</div>

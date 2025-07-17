@@ -340,7 +340,12 @@ export default function Dashboard() {
 
   // Função para recarregar dados periodicamente
   const reloadTasksAndClients = async () => {
-    const filteredTasks = await loadTasksWithFilter(taskFilter);
+    // Recarregar todas as tarefas
+    const allTasksData = await loadAllTasks();
+    setAllTasks(allTasksData.data || []);
+    
+    // Aplicar filtros
+    const filteredTasks = getFilteredTasks(taskFilter);
     setTasks(filteredTasks);
     setStats(calculateTaskStats(filteredTasks));
 

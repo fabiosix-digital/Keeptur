@@ -36,6 +36,10 @@ Preferred communication style: Simple, everyday language in Portuguese.
 - ✅ Endpoint de empresas implementado com dados reais da API do Monde
 - ✅ Melhoria de contraste para categorias e dropdowns
 - ✅ Todos os filtros conectados à API real do Monde funcionando corretamente
+- ✅ Correção crítica dos filtros "Minhas Tarefas" e "Criadas por Mim" - problema de incompatibilidade de IDs resolvido
+- ✅ Implementação do endpoint /api/v2/companies-user para empresas associadas ao usuário
+- ✅ Sistema de identificação de usuário por UUID funcionando corretamente
+- ✅ Filtros agora funcionam perfeitamente com dados reais da API do Monde
 
 ## System Architecture
 

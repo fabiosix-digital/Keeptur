@@ -1321,48 +1321,62 @@ export default function Dashboard() {
                   </div>
                   <div
                     className="space-y-3"
-                    onDrop={(e) => handleDrop(e, "Em Andamento")}
+                    onDrop={(e) => handleDrop(e, "Atrasadas")}
                     onDragOver={(e) => e.preventDefault()}
                   >
-                    <div
-                      className="kanban-card rounded-lg p-4 cursor-move"
-                      draggable={true}
-                      onDragStart={(e) => handleDragStart(e, 3, "Em Andamento")}
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <h4
-                          className="font-medium text-sm"
-                          style={{ color: "var(--text-primary)" }}
+                    {getFilteredTasksWithStatus()
+                      .filter(task => {
+                        const { status } = getTaskStatus(task);
+                        return status === "overdue";
+                      })
+                      .map((task: any) => (
+                        <div
+                          key={task.id}
+                          className="kanban-card rounded-lg p-4 cursor-move"
+                          draggable={true}
+                          onDragStart={(e) => handleDragStart(e, task.id, "Atrasadas")}
                         >
-                          Análise de Requisitos
-                        </h4>
-                        <span className="priority-badge-medium px-2 py-1 rounded-full text-xs font-medium">
-                          Média
-                        </span>
-                      </div>
-                      <p
-                        className="text-xs mb-3"
-                        style={{ color: "var(--text-tertiary)" }}
-                      >
-                        Lucia Santos
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <span
-                          className="text-xs"
-                          style={{ color: "var(--text-secondary)" }}
-                        >
-                          17/07 10:00
-                        </span>
-                        <div className="flex space-x-1">
-                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
-                            <i className="ri-eye-line text-xs"></i>
-                          </button>
-                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
-                            <i className="ri-edit-line text-xs"></i>
-                          </button>
+                          <div className="flex items-start justify-between mb-2">
+                            <h4
+                              className="font-medium text-sm"
+                              style={{ color: "var(--text-primary)" }}
+                            >
+                              {task.attributes.title}
+                            </h4>
+                            <span className="priority-badge-high px-2 py-1 rounded-full text-xs font-medium">
+                              {getPriorityLabel(task.attributes.priority)}
+                            </span>
+                          </div>
+                          <p
+                            className="text-xs mb-3"
+                            style={{ color: "var(--text-tertiary)" }}
+                          >
+                            {getAssigneeName(task)}
+                          </p>
+                          <div className="flex items-center justify-between">
+                            <span
+                              className="text-xs text-red-600"
+                              style={{ fontWeight: "bold" }}
+                            >
+                              {formatTaskDate(task.attributes.due)}
+                            </span>
+                            <div className="flex space-x-1">
+                              <button 
+                                onClick={() => handleViewTask(task)}
+                                className="action-button p-1 rounded !rounded-button whitespace-nowrap"
+                              >
+                                <i className="ri-eye-line text-xs"></i>
+                              </button>
+                              <button 
+                                onClick={() => handleEditTask(task)}
+                                className="action-button p-1 rounded !rounded-button whitespace-nowrap"
+                              >
+                                <i className="ri-edit-line text-xs"></i>
+                              </button>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
+                      ))}
                   </div>
                   <button
                     onClick={() => setShowTaskModal(true)}
@@ -1372,63 +1386,80 @@ export default function Dashboard() {
                   </button>
                 </div>
 
-                {/* Concluído */}
+                {/* Concluídas */}
                 <div className="kanban-column rounded-lg p-4 min-w-80">
                   <div className="flex items-center justify-between mb-4">
                     <h3
                       className="font-semibold text-sm"
                       style={{ color: "var(--text-primary)" }}
                     >
-                      Concluído
+                      Concluídas
                     </h3>
                     <span className="bg-green-200 text-green-700 px-2 py-1 rounded-full text-xs">
-                      12
+                      {getFilteredTasksWithStatus().filter(task => {
+                        const { status } = getTaskStatus(task);
+                        return status === "completed";
+                      }).length}
                     </span>
                   </div>
                   <div
                     className="space-y-3"
-                    onDrop={(e) => handleDrop(e, "Concluído")}
+                    onDrop={(e) => handleDrop(e, "Concluídas")}
                     onDragOver={(e) => e.preventDefault()}
                   >
-                    <div
-                      className="kanban-card rounded-lg p-4 cursor-move"
-                      draggable={true}
-                      onDragStart={(e) => handleDragStart(e, 4, "Concluído")}
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <h4
-                          className="font-medium text-sm"
-                          style={{ color: "var(--text-primary)" }}
+                    {getFilteredTasksWithStatus()
+                      .filter(task => {
+                        const { status } = getTaskStatus(task);
+                        return status === "completed";
+                      })
+                      .map((task: any) => (
+                        <div
+                          key={task.id}
+                          className="kanban-card rounded-lg p-4 cursor-move"
+                          draggable={true}
+                          onDragStart={(e) => handleDragStart(e, task.id, "Concluídas")}
                         >
-                          Envio de Proposta
-                        </h4>
-                        <span className="priority-badge-low px-2 py-1 rounded-full text-xs font-medium">
-                          Baixa
-                        </span>
-                      </div>
-                      <p
-                        className="text-xs mb-3"
-                        style={{ color: "var(--text-tertiary)" }}
-                      >
-                        Ana Costa
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <span
-                          className="text-xs"
-                          style={{ color: "var(--text-secondary)" }}
-                        >
-                          14/07 16:00
-                        </span>
-                        <div className="flex space-x-1">
-                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
-                            <i className="ri-eye-line text-xs"></i>
-                          </button>
-                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
-                            <i className="ri-edit-line text-xs"></i>
-                          </button>
+                          <div className="flex items-start justify-between mb-2">
+                            <h4
+                              className="font-medium text-sm"
+                              style={{ color: "var(--text-primary)" }}
+                            >
+                              {task.attributes.title}
+                            </h4>
+                            <span className="priority-badge-low px-2 py-1 rounded-full text-xs font-medium">
+                              {getPriorityLabel(task.attributes.priority)}
+                            </span>
+                          </div>
+                          <p
+                            className="text-xs mb-3"
+                            style={{ color: "var(--text-tertiary)" }}
+                          >
+                            {getAssigneeName(task)}
+                          </p>
+                          <div className="flex items-center justify-between">
+                            <span
+                              className="text-xs"
+                              style={{ color: "var(--text-secondary)" }}
+                            >
+                              {formatTaskDate(task.attributes.due)}
+                            </span>
+                            <div className="flex space-x-1">
+                              <button 
+                                onClick={() => handleViewTask(task)}
+                                className="action-button p-1 rounded !rounded-button whitespace-nowrap"
+                              >
+                                <i className="ri-eye-line text-xs"></i>
+                              </button>
+                              <button 
+                                onClick={() => handleEditTask(task)}
+                                className="action-button p-1 rounded !rounded-button whitespace-nowrap"
+                              >
+                                <i className="ri-edit-line text-xs"></i>
+                              </button>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
+                      ))}
                   </div>
                   <button
                     onClick={() => setShowTaskModal(true)}
@@ -1438,63 +1469,72 @@ export default function Dashboard() {
                   </button>
                 </div>
 
-                {/* Cancelado */}
+                {/* Excluídas */}
                 <div className="kanban-column rounded-lg p-4 min-w-80">
                   <div className="flex items-center justify-between mb-4">
                     <h3
                       className="font-semibold text-sm"
                       style={{ color: "var(--text-primary)" }}
                     >
-                      Cancelado
+                      Excluídas
                     </h3>
-                    <span className="bg-red-200 text-red-700 px-2 py-1 rounded-full text-xs">
-                      2
+                    <span className="bg-gray-400 text-gray-700 px-2 py-1 rounded-full text-xs">
+                      {getFilteredTasksWithStatus().filter(task => {
+                        return task && task.attributes && (task.attributes.deleted || task.attributes.status === "deleted");
+                      }).length}
                     </span>
                   </div>
                   <div
                     className="space-y-3"
-                    onDrop={(e) => handleDrop(e, "Cancelado")}
+                    onDrop={(e) => handleDrop(e, "Excluídas")}
                     onDragOver={(e) => e.preventDefault()}
                   >
-                    <div
-                      className="kanban-card rounded-lg p-4 cursor-move"
-                      draggable={true}
-                      onDragStart={(e) => handleDragStart(e, 5, "Cancelado")}
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <h4
-                          className="font-medium text-sm"
-                          style={{ color: "var(--text-primary)" }}
+                    {getFilteredTasksWithStatus()
+                      .filter(task => {
+                        return task && task.attributes && (task.attributes.deleted || task.attributes.status === "deleted");
+                      })
+                      .map((task: any) => (
+                        <div
+                          key={task.id}
+                          className="kanban-card rounded-lg p-4 cursor-move opacity-60"
+                          draggable={true}
+                          onDragStart={(e) => handleDragStart(e, task.id, "Excluídas")}
                         >
-                          Reunião Cancelada
-                        </h4>
-                        <span className="priority-badge-low px-2 py-1 rounded-full text-xs font-medium">
-                          Baixa
-                        </span>
-                      </div>
-                      <p
-                        className="text-xs mb-3"
-                        style={{ color: "var(--text-tertiary)" }}
-                      >
-                        Roberto Ferreira
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <span
-                          className="text-xs"
-                          style={{ color: "var(--text-secondary)" }}
-                        >
-                          13/07 15:00
-                        </span>
-                        <div className="flex space-x-1">
-                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
-                            <i className="ri-eye-line text-xs"></i>
-                          </button>
-                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
-                            <i className="ri-edit-line text-xs"></i>
-                          </button>
+                          <div className="flex items-start justify-between mb-2">
+                            <h4
+                              className="font-medium text-sm"
+                              style={{ color: "var(--text-primary)" }}
+                            >
+                              {task.attributes.title}
+                            </h4>
+                            <span className="priority-badge-low px-2 py-1 rounded-full text-xs font-medium">
+                              {getPriorityLabel(task.attributes.priority)}
+                            </span>
+                          </div>
+                          <p
+                            className="text-xs mb-3"
+                            style={{ color: "var(--text-tertiary)" }}
+                          >
+                            {getAssigneeName(task)}
+                          </p>
+                          <div className="flex items-center justify-between">
+                            <span
+                              className="text-xs"
+                              style={{ color: "var(--text-secondary)" }}
+                            >
+                              {formatTaskDate(task.attributes.due)}
+                            </span>
+                            <div className="flex space-x-1">
+                              <button 
+                                onClick={() => handleViewTask(task)}
+                                className="action-button p-1 rounded !rounded-button whitespace-nowrap"
+                              >
+                                <i className="ri-eye-line text-xs"></i>
+                              </button>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
+                      ))}
                   </div>
                   <button
                     onClick={() => setShowTaskModal(true)}

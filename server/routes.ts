@@ -286,10 +286,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (req.query.situation) {
         // Mapear situações do frontend para API do Monde
         const situationMap = {
-          "pendentes": "pending",
-          "concluidas": "completed", 
+          "pendentes": "open",
+          "concluidas": "concluded", 
           "atrasadas": "overdue",
-          "excluidas": "deleted"
+          "excluidas": "archived"
         };
         const apiSituation = situationMap[req.query.situation] || req.query.situation;
         queryParams.append('filter[situation]', apiSituation);
@@ -946,6 +946,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/monde/empresas", authenticateToken, async (req: any, res) => {
     try {
       // Usar o endpoint específico para empresas associadas ao usuário
+      console.log("🏢 Testando endpoint companies-user...");
       const companiesResponse = await fetch(
         "https://web.monde.com.br/api/v2/companies-user",
         {
@@ -957,6 +958,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
         }
       );
+
+      console.log("📋 Status da resposta companies-user:", companiesResponse.status);
 
       if (companiesResponse.ok) {
         const companiesData = await companiesResponse.json();
@@ -979,10 +982,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         res.json({ data: companies });
       } else {
-        console.log("⚠️ Endpoint companies-user não disponível, usando fallback");
+        console.log("⚠️ Endpoint companies-user retornou erro:", companiesResponse.status);
         
-        // Fallback: buscar empresas corporativas da API
-        const corporateResponse = await fetch(
+        // Buscar empresas através do endpoint de pessoas corporativas
+        const peopleResponse = await fetch(
           "https://web.monde.com.br/api/v2/people?filter[kind]=corporate&page[limit]=100&sort=name",
           {
             method: "GET",
@@ -994,25 +997,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         );
 
-        let companies = [];
-        
-        if (corporateResponse.ok) {
-          const corporateData = await corporateResponse.json();
+        if (peopleResponse.ok) {
+          const peopleData = await peopleResponse.json();
           
-          companies = (corporateData.data || []).map((item: any) => ({
+          const companies = (peopleData.data || []).map((item: any) => ({
             id: item.id,
-            name: item.attributes.name || item.attributes['company-name'],
+            name: item.attributes.name || item.attributes['company-name'] || 'Empresa sem nome',
             attributes: {
-              name: item.attributes.name || item.attributes['company-name'],
+              name: item.attributes.name || item.attributes['company-name'] || 'Empresa sem nome',
               person_type: 'company',
               cnpj: item.attributes?.cnpj,
-              kind: item.attributes?.kind
+              kind: 'corporate-person'
             }
           }));
+          
+          console.log("🏢 Empresas corporativas encontradas:", companies.length);
+          res.json({ data: companies });
+        } else {
+          console.log("⚠️ Ambos endpoints falharam, retornando lista vazia");
+          res.json({ data: [] });
         }
-        
-        console.log("🏢 Empresas corporativas (fallback) encontradas:", companies.length);
-        res.json({ data: companies });
       }
     } catch (error) {
       console.error("Erro ao buscar empresas:", error);

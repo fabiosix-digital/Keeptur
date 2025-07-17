@@ -1,0 +1,71 @@
+frame_ant.js:2  POST https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/auth/login 401 (Unauthorized)
+window.fetch @ frame_ant.js:2
+window.fetch @ Network.js:219
+apiRequest @ queryClient.ts:27
+login @ auth.tsx:64
+handleSubmit @ login.tsx:57
+callCallback2 @ chunk-WERSD76P.js?v=493869d8:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=493869d8:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=493869d8:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=493869d8:3736
+executeDispatch @ chunk-WERSD76P.js?v=493869d8:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=493869d8:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=493869d8:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=493869d8:7051
+(anonymous) @ chunk-WERSD76P.js?v=493869d8:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=493869d8:18913
+batchedUpdates @ chunk-WERSD76P.js?v=493869d8:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=493869d8:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=493869d8:5478
+dispatchEvent @ chunk-WERSD76P.js?v=493869d8:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=493869d8:5449Understand this error
+Console.js:61 Login error: Error: 401: {"message":"Credenciais inválidas ou servidor inacessível","details":"Status: 401"}
+    at throwIfResNotOk (queryClient.ts:16:11)
+    at async apiRequest (queryClient.ts:37:3)
+    at async login (auth.tsx:64:24)
+    at async handleSubmit (login.tsx:57:22)
+Mt.forEach.n.<computed> @ Console.js:61
+login @ auth.tsx:89
+await in login
+handleSubmit @ login.tsx:57
+callCallback2 @ chunk-WERSD76P.js?v=493869d8:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=493869d8:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=493869d8:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=493869d8:3736
+executeDispatch @ chunk-WERSD76P.js?v=493869d8:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=493869d8:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=493869d8:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=493869d8:7051
+(anonymous) @ chunk-WERSD76P.js?v=493869d8:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=493869d8:18913
+batchedUpdates @ chunk-WERSD76P.js?v=493869d8:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=493869d8:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=493869d8:5478
+dispatchEvent @ chunk-WERSD76P.js?v=493869d8:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=493869d8:5449Understand this error
+frame_ant.js:2  POST https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/auth/login 401 (Unauthorized)
+window.fetch @ frame_ant.js:2
+window.fetch @ Network.js:219
+apiRequest @ queryClient.ts:27
+login @ auth.tsx:64
+handleSubmit @ login.tsx:57
+callCallback2 @ chunk-WERSD76P.js?v=493869d8:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=493869d8:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=493869d8:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=493869d8:3736
+executeDispatch @ chunk-WERSD76P.js?v=493869d8:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=493869d8:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=493869d8:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=493869d8:7051
+(anonymous) @ chunk-WERSD76P.js?v=493869d8:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=493869d8:18913
+batchedUpdates @ chunk-WERSD76P.js?v=493869d8:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=493869d8:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=493869d8:5478
+dispatchEvent @ chunk-WERSD76P.js?v=493869d8:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=493869d8:5449Understand this error
+Console.js:61 Login error: Error: 401: {"message":"Credenciais inválidas ou servidor inacessível","details":"Status: 401"}
+    at throwIfResNotOk (queryClient.ts:16:11)
+    at async apiRequest (queryClient.ts:37:3)
+    at async login (auth.tsx:64:24)
+    at async handleSubmit (login.tsx:57:22)

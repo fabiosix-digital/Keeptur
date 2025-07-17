@@ -282,21 +282,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('✅ Aplicando filtro padrão: filter[assigned]=user_tasks');
       }
       
-      // 🎯 Filtro de situação (situation)
-      if (req.query.situation) {
-        // Mapear situações do frontend para API do Monde
-        const situationMap = {
-          "pendentes": "open",
-          "concluidas": "concluded", 
-          "atrasadas": "overdue",
-          "excluidas": "archived"
-        };
-        const apiSituation = situationMap[req.query.situation] || req.query.situation;
-        queryParams.append('filter[situation]', apiSituation);
-        console.log('✅ Filtro situação aplicado:', req.query.situation, '→', apiSituation);
-        console.log('📋 Mapeamento disponível:', JSON.stringify(situationMap));
-        console.log('📋 Situação recebida:', JSON.stringify(req.query.situation));
-      }
+      // 🎯 Filtro de situação - removido pois será feito no frontend
+      // O filtro de situação agora é aplicado no frontend baseado no status completed
       
       // 📂 Filtro de categoria
       if (req.query.category_id) {

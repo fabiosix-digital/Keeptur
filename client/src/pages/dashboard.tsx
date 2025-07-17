@@ -30,7 +30,7 @@ export default function Dashboard() {
   const [taskSearchTerm, setTaskSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedSituation, setSelectedSituation] = useState("");
-
+  const [selectedAssignee, setSelectedAssignee] = useState("");
   const [selectedClient, setSelectedClient] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -133,7 +133,7 @@ export default function Dashboard() {
     };
 
     applyFilter();
-  }, [taskFilter, allTasks, user?.id]);
+  }, [taskFilter, allTasks, user?.id, selectedSituation, selectedCategory, selectedAssignee, selectedClient, startDate, endDate, taskSearchTerm]);
 
   // Função para carregar TODAS as tarefas da empresa (uma vez só)
   const loadAllTasks = async () => {
@@ -274,6 +274,79 @@ export default function Dashboard() {
       });
     }
     // Para 'all', usar todas as tarefas
+    
+    // Aplicar filtros adicionais
+    
+    // Filtro por situação
+    if (selectedSituation && selectedSituation !== 'all') {
+      const now = new Date();
+      filtered = filtered.filter((task: any) => {
+        const isCompleted = task.attributes.completed;
+        const dueDate = task.attributes.due ? new Date(task.attributes.due) : null;
+        
+        switch (selectedSituation) {
+          case 'pendentes':
+            return !isCompleted;
+          case 'concluidas':
+            return isCompleted;
+          case 'atrasadas':
+            return !isCompleted && dueDate && dueDate < now;
+          default:
+            return true;
+        }
+      });
+    }
+    
+    // Filtro por categoria
+    if (selectedCategory && selectedCategory !== 'all') {
+      filtered = filtered.filter((task: any) => {
+        const categoryId = task.relationships?.category?.data?.id;
+        return categoryId === selectedCategory;
+      });
+    }
+    
+    // Filtro por responsável
+    if (selectedAssignee && selectedAssignee !== 'all') {
+      filtered = filtered.filter((task: any) => {
+        const assigneeId = task.relationships?.assignee?.data?.id;
+        return assigneeId === selectedAssignee;
+      });
+    }
+    
+    // Filtro por cliente
+    if (selectedClient && selectedClient !== 'all') {
+      filtered = filtered.filter((task: any) => {
+        const clientId = task.relationships?.person?.data?.id;
+        return clientId === selectedClient;
+      });
+    }
+    
+    // Filtro por data
+    if (startDate || endDate) {
+      filtered = filtered.filter((task: any) => {
+        const taskDate = task.attributes.due ? new Date(task.attributes.due) : null;
+        if (!taskDate) return false;
+        
+        if (startDate && taskDate < new Date(startDate)) return false;
+        if (endDate && taskDate > new Date(endDate)) return false;
+        
+        return true;
+      });
+    }
+    
+    // Filtro por termo de busca
+    if (taskSearchTerm && taskSearchTerm.trim()) {
+      const searchTerm = taskSearchTerm.toLowerCase();
+      filtered = filtered.filter((task: any) => {
+        const title = task.attributes.title?.toLowerCase() || '';
+        const description = task.attributes.description?.toLowerCase() || '';
+        const clientName = task.client_name?.toLowerCase() || '';
+        
+        return title.includes(searchTerm) || 
+               description.includes(searchTerm) || 
+               clientName.includes(searchTerm);
+      });
+    }
     
     return filtered;
   };

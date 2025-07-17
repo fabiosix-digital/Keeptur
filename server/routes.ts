@@ -1396,12 +1396,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (entry.attributes?.historic && entry.attributes.historic.includes('Anexo inserido:')) {
               const filename = entry.attributes.historic.match(/'([^']+)'/)?.[1];
               if (filename) {
+                // Detectar tipo de arquivo pela extensão
+                const extension = filename.split('.').pop()?.toLowerCase();
+                let mimeType = 'application/octet-stream';
+                
+                if (extension) {
+                  const mimeTypes = {
+                    'png': 'image/png',
+                    'jpg': 'image/jpeg',
+                    'jpeg': 'image/jpeg',
+                    'gif': 'image/gif',
+                    'pdf': 'application/pdf',
+                    'doc': 'application/msword',
+                    'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    'xls': 'application/vnd.ms-excel',
+                    'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'txt': 'text/plain',
+                    'zip': 'application/zip',
+                    'rar': 'application/x-rar-compressed'
+                  };
+                  mimeType = mimeTypes[extension] || 'application/octet-stream';
+                }
+                
                 attachmentsFromHistory.push({
                   id: entry.id,
                   name: filename,
                   filename: filename,
                   size: 0,
-                  type: 'application/octet-stream',
+                  type: mimeType,
+                  extension: extension,
                   url: `/api/monde/anexos/${taskId}/${entry.id}`,
                   created_at: entry.attributes['date-time']
                 });

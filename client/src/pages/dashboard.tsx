@@ -100,21 +100,29 @@ export default function Dashboard() {
     console.log('🔍 Buscando pessoa com ID:', personId);
     console.log('📋 Clientes disponíveis:', clients.length);
     
-    // Primeiro, procurar nos clientes carregados
+    // Procurar nos dados incluídos das tarefas (included) primeiro
+    const response = JSON.parse(localStorage.getItem('lastTasksResponse') || '{}');
+    if (response.included) {
+      console.log('📋 Dados incluídos:', response.included.length, 'itens');
+      console.log('🔍 Procurando por ID:', personId);
+      
+      const person = response.included.find((item: any) => item.type === 'people' && item.id === personId);
+      if (person) {
+        console.log('✅ Pessoa encontrada nos includes:', person);
+        return person.attributes?.name || person.attributes?.['company-name'] || 'Cliente não encontrado';
+      } else {
+        console.log('❌ Pessoa não encontrada nos includes');
+        // Mostrar IDs disponíveis para debug
+        const peopleIds = response.included.filter((item: any) => item.type === 'people').map((p: any) => p.id);
+        console.log('📋 IDs de pessoas disponíveis:', peopleIds);
+      }
+    }
+    
+    // Depois, procurar nos clientes carregados
     const client = clients.find((client: any) => client.id === personId);
     if (client) {
       console.log('✅ Cliente encontrado:', client.attributes?.name);
       return client.attributes?.name || client.attributes?.['company-name'] || client.name || 'Cliente não encontrado';
-    }
-    
-    // Procurar nos dados incluídos das tarefas (included)
-    const response = JSON.parse(localStorage.getItem('lastTasksResponse') || '{}');
-    if (response.included) {
-      const person = response.included.find((item: any) => item.type === 'people' && item.id === personId);
-      if (person) {
-        console.log('✅ Pessoa encontrada nos includes:', person.attributes?.name);
-        return person.attributes?.name || person.attributes?.['company-name'] || 'Cliente não encontrado';
-      }
     }
     
     console.log('❌ Cliente não encontrado para ID:', personId);
@@ -189,23 +197,23 @@ export default function Dashboard() {
   
   // Função para obter empresa da pessoa/cliente
   const getPersonCompany = (personId: string) => {
-    if (!personId) return '';
+    if (!personId) return 'Sem empresa';
     
-    const client = clients.find((client: any) => client.id === personId);
-    if (client) {
-      return client.attributes?.['company-name'] || client.attributes?.company || client.company || '';
-    }
-    
-    // Procurar nos dados incluídos das tarefas
+    // Procurar nos dados incluídos das tarefas primeiro
     const response = JSON.parse(localStorage.getItem('lastTasksResponse') || '{}');
     if (response.included) {
       const person = response.included.find((item: any) => item.type === 'people' && item.id === personId);
       if (person) {
-        return person.attributes?.['company-name'] || person.attributes?.company || '';
+        return person.attributes?.['company-name'] || person.attributes?.company || 'Sem empresa';
       }
     }
     
-    return '';
+    const client = clients.find((client: any) => client.id === personId);
+    if (client) {
+      return client.attributes?.['company-name'] || client.attributes?.company || client.company || 'Sem empresa';
+    }
+    
+    return 'Sem empresa';
   };
 
   // Função para obter nome do cliente da tarefa
@@ -2161,9 +2169,12 @@ export default function Dashboard() {
           if (response.ok) {
             console.log('✅ Histórico salvo com sucesso');
             alert('Atualização salva com sucesso!');
+            // Recarregar a página para atualizar os dados
+            window.location.reload();
           } else {
-            console.error('❌ Erro ao salvar histórico');
-            alert('Erro ao salvar atualização');
+            const errorData = await response.json();
+            console.error('❌ Erro ao salvar histórico:', errorData);
+            alert('Erro: Esta tarefa não permite adicionar histórico ou foi excluída');
           }
         } catch (error) {
           console.error('❌ Erro na requisição:', error);

@@ -262,12 +262,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Filtro para tarefas criadas pelo usuário
-      if (req.query['filter[created_by]'] === 'me') {
+      if (req.query['filter[created_by]'] === 'me' || req.query.filter?.created_by === 'me') {
         queryParams.append('filter[created_by]', 'me');
       }
       
       // Se não houver filtro específico e não for 'all', assumir que queremos tarefas do usuário por padrão
-      if (!req.query.assignee && !req.query['filter[created_by]'] && !req.query.all) {
+      if (!req.query.assignee && !req.query['filter[created_by]'] && !req.query.filter?.created_by && !req.query.all) {
         queryParams.append('filter[assigned]', 'user_tasks');
       }
       

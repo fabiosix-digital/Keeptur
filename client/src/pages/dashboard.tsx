@@ -1927,16 +1927,101 @@ export default function Dashboard() {
     const isEditing = selectedTask !== null;
     const modalTitle = 'Tarefa';
     
+    // Estado para campo de atualização
+    const [updateText, setUpdateText] = useState('');
+    
     // Buscar dados da tarefa incluindo pessoa e assignee
     const getPersonName = (personId: string) => {
       const task = allTasks.find((t: any) => t.relationships?.person?.data?.id === personId);
       const included = task?.included?.find((inc: any) => inc.type === 'people' && inc.id === personId);
-      return included?.attributes?.name || 'Cliente não encontrado';
+      return included?.attributes?.name || included?.attributes?.['company-name'] || 'Cliente não encontrado';
     };
     
     const getAssigneeName = (assigneeId: string) => {
       const user = users.find((u: any) => u.id === assigneeId);
       return user?.attributes?.name || user?.name || 'Usuário não encontrado';
+    };
+    
+    // Função para salvar histórico
+    const saveTaskHistory = async () => {
+      if (!updateText.trim() || !selectedTask) return;
+      
+      try {
+        const response = await fetch(`/api/monde/tarefas/${selectedTask.id}/historico`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+          },
+          body: JSON.stringify({
+            description: updateText
+          })
+        });
+        
+        if (response.ok) {
+          setUpdateText('');
+          // Recarregar dados da tarefa
+          window.location.reload();
+        } else {
+          console.error('Erro ao salvar histórico');
+        }
+      } catch (error) {
+        console.error('Erro na requisição:', error);
+      }
+    };
+    
+    // Função para concluir tarefa
+    const completeTask = async () => {
+      if (!selectedTask) return;
+      
+      try {
+        const response = await fetch(`/api/monde/tarefas/${selectedTask.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+          },
+          body: JSON.stringify({
+            completed: true
+          })
+        });
+        
+        if (response.ok) {
+          setShowTaskModal(false);
+          setSelectedTask(null);
+          window.location.reload();
+        } else {
+          console.error('Erro ao concluir tarefa');
+        }
+      } catch (error) {
+        console.error('Erro na requisição:', error);
+      }
+    };
+    
+    // Função para excluir tarefa
+    const deleteTask = async () => {
+      if (!selectedTask) return;
+      
+      if (confirm('Tem certeza que deseja excluir esta tarefa?')) {
+        try {
+          const response = await fetch(`/api/monde/tarefas/${selectedTask.id}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+            }
+          });
+          
+          if (response.ok) {
+            setShowTaskModal(false);
+            setSelectedTask(null);
+            window.location.reload();
+          } else {
+            console.error('Erro ao excluir tarefa');
+          }
+        } catch (error) {
+          console.error('Erro na requisição:', error);
+        }
+      }
     };
     
     return (
@@ -2082,18 +2167,13 @@ export default function Dashboard() {
                       <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
                         Categoria:
                       </label>
-                      <select 
+                      <input
+                        type="text"
                         className="form-input w-full px-3 py-2 text-sm"
                         style={{ backgroundColor: "var(--bg-secondary)" }}
-                        defaultValue={selectedTask?.relationships?.category?.data?.id || ''}
-                      >
-                        <option value="">Selecione uma categoria</option>
-                        {categories.map((cat: any) => (
-                          <option key={cat.id} value={cat.id}>
-                            {cat.attributes?.name || cat.id}
-                          </option>
-                        ))}
-                      </select>
+                        value={selectedTask?.relationships?.category?.data?.id || 'Nenhuma categoria'}
+                        disabled
+                      />
                     </div>
                     <div className="col-span-6">
                       <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
@@ -2121,29 +2201,16 @@ export default function Dashboard() {
                       <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
                         Empresa:
                       </label>
-                      <select 
-                        name="person_id"
+                      <input
+                        type="text"
                         className="form-input w-full px-3 py-2 text-sm"
                         style={{ backgroundColor: "var(--bg-secondary)" }}
-                        defaultValue={selectedTask?.relationships?.person?.data?.id || ''}
-                      >
-                        <option value="">Selecione uma empresa</option>
-                        {Array.from(new Set(allTasks.map((task: any) => {
-                          const person = task.relationships?.person?.data;
-                          return person ? person.id : null;
-                        }).filter(Boolean))).map((personId: string) => {
-                          const task = allTasks.find((t: any) => t.relationships?.person?.data?.id === personId);
-                          const included = task?.included?.find((inc: any) => 
-                            inc.type === 'people' && inc.id === personId
-                          );
-                          
-                          return (
-                            <option key={personId} value={personId}>
-                              {included?.attributes?.name || included?.attributes?.['company-name'] || personId}
-                            </option>
-                          );
-                        })}
-                      </select>
+                        value={selectedTask?.relationships?.person?.data?.id ? 
+                          getPersonName(selectedTask.relationships.person.data.id) : 
+                          'Nenhuma empresa selecionada'
+                        }
+                        disabled
+                      />
                     </div>
                   </div>
 
@@ -2153,28 +2220,16 @@ export default function Dashboard() {
                       <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
                         Pessoa:
                       </label>
-                      <select 
+                      <input
+                        type="text"
                         className="form-input w-full px-3 py-2 text-sm"
                         style={{ backgroundColor: "var(--bg-secondary)" }}
-                        defaultValue={selectedTask?.relationships?.person?.data?.id || ''}
-                      >
-                        <option value="">Selecione uma pessoa</option>
-                        {Array.from(new Set(allTasks.map((task: any) => {
-                          const person = task.relationships?.person?.data;
-                          return person ? person.id : null;
-                        }).filter(Boolean))).map((personId: string) => {
-                          const task = allTasks.find((t: any) => t.relationships?.person?.data?.id === personId);
-                          const included = task?.included?.find((inc: any) => 
-                            inc.type === 'people' && inc.id === personId
-                          );
-                          
-                          return (
-                            <option key={personId} value={personId}>
-                              {included?.attributes?.name || personId}
-                            </option>
-                          );
-                        })}
-                      </select>
+                        value={selectedTask?.relationships?.person?.data?.id ? 
+                          getPersonName(selectedTask.relationships.person.data.id) : 
+                          'Nenhuma pessoa selecionada'
+                        }
+                        disabled
+                      />
                     </div>
                     <div className="col-span-4">
                       <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
@@ -2237,28 +2292,19 @@ export default function Dashboard() {
                         <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
                           Vencimento:
                         </label>
-                        <div className="grid grid-cols-2 gap-2">
-                          <input
-                            type="date"
-                            className="form-input px-3 py-2 text-sm"
-                            defaultValue={selectedTask?.attributes?.due ? 
-                              new Date(selectedTask.attributes.due).toISOString().split('T')[0] : ''
-                            }
-                            style={{ backgroundColor: "var(--bg-secondary)" }}
-                          />
-                          <input
-                            type="time"
-                            className="form-input px-3 py-2 text-sm"
-                            defaultValue={selectedTask?.attributes?.due ? 
-                              new Date(selectedTask.attributes.due).toTimeString().slice(0, 5) : ''
-                            }
-                            style={{ backgroundColor: "var(--bg-secondary)" }}
-                          />
-                        </div>
+                        <input
+                          type="datetime-local"
+                          className="form-input w-full px-3 py-2 text-sm"
+                          defaultValue={selectedTask?.attributes?.due ? 
+                            new Date(selectedTask.attributes.due).toISOString().slice(0, 16) : ''
+                          }
+                          style={{ backgroundColor: "var(--bg-secondary)" }}
+                        />
                       </div>
                       <div className="col-span-6 flex items-end">
                         <button
                           type="button"
+                          onClick={completeTask}
                           className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
                         >
                           Concluída
@@ -2268,8 +2314,9 @@ export default function Dashboard() {
 
                     {/* Área de texto para histórico */}
                     <div className="border rounded-lg p-4 min-h-[200px]" style={{ backgroundColor: "var(--bg-secondary)" }}>
+                      {/* Histórico existente */}
                       {taskHistory.length > 0 ? (
-                        <div className="space-y-3">
+                        <div className="space-y-3 mb-4">
                           {taskHistory.map((entry: any, index: number) => (
                             <div key={index} className="border-b pb-3">
                               <div className="text-sm font-medium text-purple-600">
@@ -2288,7 +2335,7 @@ export default function Dashboard() {
                           ))}
                         </div>
                       ) : (
-                        <div className="space-y-3">
+                        <div className="space-y-3 mb-4">
                           <div className="text-sm font-medium text-purple-600">
                             16/07/2025 15:08:24 - Fabio Silva
                           </div>
@@ -2303,6 +2350,18 @@ export default function Dashboard() {
                           </div>
                         </div>
                       )}
+                      
+                      {/* Campo para nova atualização */}
+                      <div className="border-t pt-3 mt-3">
+                        <textarea
+                          value={updateText}
+                          onChange={(e) => setUpdateText(e.target.value)}
+                          className="w-full px-3 py-2 border rounded-lg text-sm resize-none"
+                          placeholder="Adicione uma atualização..."
+                          rows={3}
+                          style={{ backgroundColor: "var(--bg-primary)", color: "var(--text-primary)" }}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2422,9 +2481,9 @@ export default function Dashboard() {
 
               {/* Botões de Ação */}
               <div className="flex justify-end space-x-3 mt-6 pt-4 border-t">
-                <input type="hidden" name="priority" value="medium" />
                 <button
                   type="button"
+                  onClick={deleteTask}
                   className="px-4 py-2 bg-red-600 text-white rounded text-sm hover:bg-red-700"
                 >
                   Excluir
@@ -2440,10 +2499,11 @@ export default function Dashboard() {
                   Cancelar
                 </button>
                 <button
-                  type="submit"
+                  type="button"
+                  onClick={saveTaskHistory}
                   className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
                 >
-                  OK
+                  Salvar
                 </button>
               </div>
 

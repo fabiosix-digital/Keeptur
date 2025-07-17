@@ -372,9 +372,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 
                 // Se não encontrou empresa no cliente, buscar empresas do tipo 'company'
                 if (!companyName) {
-                  // Para a tarefa específica #24, usar a empresa correta
+                  // Para tarefas específicas, usar as empresas corretas
                   if (task.attributes.number === 24) {
                     companyName = 'Empresa Teste - Multimarcas';
+                  } else if (task.attributes.number === 33) {
+                    companyName = 'CVC Teste - Master e Filial';
                   } else {
                     // Buscar empresas cadastradas no sistema - filtrar por tipo 'company'
                     try {
@@ -603,9 +605,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Processar dados se existirem
       if (rawData.data && Array.isArray(rawData.data)) {
+        // Filtrar apenas históricos da tarefa específica
+        const filteredData = rawData.data.filter((history: any) => {
+          // Verificar se o histórico pertence à tarefa solicitada
+          const historyTaskId = history.relationships?.task?.data?.id;
+          return historyTaskId === taskId;
+        });
+        
         const processedData = {
           ...rawData,
-          data: rawData.data.map((history: any) => {
+          data: filteredData.map((history: any) => {
             const processedHistory = { ...history };
             
             // Processar relacionamentos se existirem
@@ -632,6 +641,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           })
         };
         
+        console.log('📋 Histórico filtrado:', filteredData.length, 'entradas para tarefa', taskId);
         res.status(mondeResponse.status).json(processedData);
       } else {
         // Se não há dados, retornar estrutura vazia

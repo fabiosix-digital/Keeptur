@@ -73,6 +73,17 @@ export default function Dashboard() {
     return tasksByDate;
   };
 
+  // Função para obter o nome da categoria da tarefa
+  const getCategoryName = (task: any) => {
+    if (!task || !task.relationships || !task.relationships.category || !task.relationships.category.data) {
+      return 'Sem categoria';
+    }
+    
+    const categoryId = task.relationships.category.data.id;
+    const category = categories.find(cat => cat.id === categoryId);
+    return category ? category.attributes.name : categoryId;
+  };
+
   useEffect(() => {
     // Aplicar tema no body
     document.body.className = "theme-transition";
@@ -1292,16 +1303,13 @@ export default function Dashboard() {
                           draggable={true}
                           onDragStart={(e) => handleDragStart(e, task.id, "Pendentes")}
                         >
-                          <div className="flex items-start justify-between mb-2">
+                          <div className="mb-2">
                             <h4
                               className="font-medium text-sm"
                               style={{ color: "var(--text-primary)" }}
                             >
                               {task.attributes.title}
                             </h4>
-                            <span className="priority-badge-medium px-2 py-1 rounded-full text-xs font-medium">
-                              {getPriorityLabel(task.attributes.priority)}
-                            </span>
                           </div>
                           <p
                             className="text-xs mb-3"
@@ -1309,7 +1317,7 @@ export default function Dashboard() {
                           >
                             {getAssigneeName(task)}
                           </p>
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between mb-2">
                             <span
                               className="text-xs"
                               style={{ color: "var(--text-secondary)" }}
@@ -1330,6 +1338,11 @@ export default function Dashboard() {
                                 <i className="ri-edit-line text-xs"></i>
                               </button>
                             </div>
+                          </div>
+                          <div className="flex items-center justify-center">
+                            <span className="category-badge px-2 py-1 rounded-full text-xs font-medium w-full text-center">
+                              {getCategoryName(task)}
+                            </span>
                           </div>
                         </div>
                       ))}
@@ -1411,16 +1424,13 @@ export default function Dashboard() {
                           draggable={true}
                           onDragStart={(e) => handleDragStart(e, task.id, "Atrasadas")}
                         >
-                          <div className="flex items-start justify-between mb-2">
+                          <div className="mb-2">
                             <h4
                               className="font-medium text-sm"
                               style={{ color: "var(--text-primary)" }}
                             >
                               {task.attributes.title}
                             </h4>
-                            <span className="priority-badge-high px-2 py-1 rounded-full text-xs font-medium">
-                              {getPriorityLabel(task.attributes.priority)}
-                            </span>
                           </div>
                           <p
                             className="text-xs mb-3"
@@ -1428,7 +1438,7 @@ export default function Dashboard() {
                           >
                             {getAssigneeName(task)}
                           </p>
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between mb-2">
                             <span
                               className="text-xs text-red-600"
                               style={{ fontWeight: "bold" }}
@@ -1449,6 +1459,11 @@ export default function Dashboard() {
                                 <i className="ri-edit-line text-xs"></i>
                               </button>
                             </div>
+                          </div>
+                          <div className="flex items-center justify-center">
+                            <span className="category-badge px-2 py-1 rounded-full text-xs font-medium w-full text-center">
+                              {getCategoryName(task)}
+                            </span>
                           </div>
                         </div>
                       ))}
@@ -1494,16 +1509,13 @@ export default function Dashboard() {
                           draggable={true}
                           onDragStart={(e) => handleDragStart(e, task.id, "Concluídas")}
                         >
-                          <div className="flex items-start justify-between mb-2">
+                          <div className="mb-2">
                             <h4
                               className="font-medium text-sm"
                               style={{ color: "var(--text-primary)" }}
                             >
                               {task.attributes.title}
                             </h4>
-                            <span className="priority-badge-low px-2 py-1 rounded-full text-xs font-medium">
-                              {getPriorityLabel(task.attributes.priority)}
-                            </span>
                           </div>
                           <p
                             className="text-xs mb-3"
@@ -1511,7 +1523,7 @@ export default function Dashboard() {
                           >
                             {getAssigneeName(task)}
                           </p>
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between mb-2">
                             <span
                               className="text-xs"
                               style={{ color: "var(--text-secondary)" }}
@@ -1532,6 +1544,11 @@ export default function Dashboard() {
                                 <i className="ri-edit-line text-xs"></i>
                               </button>
                             </div>
+                          </div>
+                          <div className="flex items-center justify-center">
+                            <span className="category-badge px-2 py-1 rounded-full text-xs font-medium w-full text-center">
+                              {getCategoryName(task)}
+                            </span>
                           </div>
                         </div>
                       ))}
@@ -1575,16 +1592,13 @@ export default function Dashboard() {
                           draggable={true}
                           onDragStart={(e) => handleDragStart(e, task.id, "Excluídas")}
                         >
-                          <div className="flex items-start justify-between mb-2">
+                          <div className="mb-2">
                             <h4
                               className="font-medium text-sm"
                               style={{ color: "var(--text-primary)" }}
                             >
                               {task.attributes.title}
                             </h4>
-                            <span className="priority-badge-low px-2 py-1 rounded-full text-xs font-medium">
-                              {getPriorityLabel(task.attributes.priority)}
-                            </span>
                           </div>
                           <p
                             className="text-xs mb-3"
@@ -1592,7 +1606,7 @@ export default function Dashboard() {
                           >
                             {getAssigneeName(task)}
                           </p>
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between mb-2">
                             <span
                               className="text-xs"
                               style={{ color: "var(--text-secondary)" }}
@@ -1607,6 +1621,11 @@ export default function Dashboard() {
                                 <i className="ri-eye-line text-xs"></i>
                               </button>
                             </div>
+                          </div>
+                          <div className="flex items-center justify-center">
+                            <span className="category-badge px-2 py-1 rounded-full text-xs font-medium w-full text-center">
+                              {getCategoryName(task)}
+                            </span>
                           </div>
                         </div>
                       ))}

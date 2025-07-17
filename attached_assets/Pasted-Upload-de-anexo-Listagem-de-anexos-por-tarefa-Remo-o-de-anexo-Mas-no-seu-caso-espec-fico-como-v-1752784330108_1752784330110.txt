@@ -1,0 +1,185 @@
+Upload de anexo
+
+Listagem de anexos por tarefa
+
+Remoção de anexo
+
+Mas no seu caso específico, como você está usando o sistema Monde com sua própria API, é necessário verificar se essa API tem essas rotas disponíveis.
+
+✅ Estrutura comum para API de anexos:
+Aqui vai o padrão mais comum que você pode seguir — e validar se o Monde ou sua API personalizada o utiliza:
+
+📥 Upload de anexo para uma tarefa
+http
+Copiar
+Editar
+POST /api/monde/tarefas/:id/anexos
+Content-Type: multipart/form-data
+Authorization: Bearer <token>
+Body (form-data):
+
+file: o arquivo propriamente dito (binário)
+
+(às vezes também) descricao: texto opcional
+
+Resposta esperada:
+
+json
+Copiar
+Editar
+{
+  "id": "anexo-id",
+  "file_name": "documento.pdf",
+  "url": "https://.../uploads/documento.pdf"
+}
+📄 Listar anexos de uma tarefa
+http
+Copiar
+Editar
+GET /api/monde/tarefas/:id/anexos
+Resposta esperada:
+
+json
+Copiar
+Editar
+[
+  {
+    "id": "123",
+    "file_name": "doc.pdf",
+    "url": "https://.../doc.pdf",
+    "created_at": "2025-07-17T12:00:00Z"
+  },
+  ...
+]
+❌ Remover anexo
+http
+Copiar
+Editar
+DELETE /api/monde/anexos/:anexoId
+🔍 O que você pode fazer agora:
+Ver se a sua rota /api/monde/tarefas/:id/anexos existe (faça um GET ou POST de teste via Postman ou console).
+
+Ver no código back-end (ou no Swagger, se tiver) se há:
+
+endpoint de upload
+
+suporte a multipart/form-data
+
+Se você quiser, posso te ajudar a montar o componente de upload de anexo com Ant Design + integração com a API.
+
+Quer que eu monte esse componente com preview, upload e exclusão?
+
+
+
+
+
+
+
+
+Você disse:
+monde-api-master (3).zip
+Arquivo zip
+qiero saber aqui
+
+
+O ChatGPT disse:
+De acordo com os arquivos da API que você enviou, é possível trabalhar com anexos relacionados a tarefas utilizando as seguintes rotas:
+
+📎 Upload de anexo para uma tarefa
+Endpoint:
+
+bash
+Copiar
+Editar
+POST /tarefas/:id/anexos
+Descrição: Envia um arquivo para ser anexado a uma tarefa específica.
+
+Headers obrigatórios:
+
+http
+Copiar
+Editar
+Content-Type: multipart/form-data
+Authorization: Bearer {token}
+Corpo (form-data):
+
+file: o arquivo a ser enviado (formato File)
+
+name: (opcional) nome do anexo
+
+📂 Listar anexos de uma tarefa
+Endpoint:
+
+bash
+Copiar
+Editar
+GET /tarefas/:id/anexos
+Descrição: Retorna todos os anexos associados à tarefa com o ID especificado.
+
+❌ Excluir anexo de uma tarefa
+Endpoint:
+
+ruby
+Copiar
+Editar
+DELETE /tarefas/:id/anexos/:anexo_id
+Descrição: Remove um anexo específico de uma tarefa.
+
+Se quiser, posso te ajudar a montar o trecho de código em React ou função fetch/axios para realizar o upload. Deseja isso?
+
+
+
+
+
+
+
+
+Você disse:
+quais arquivos tem todo esse detalhamento dentro do zip que te mandei?
+
+
+O ChatGPT disse:
+Nos arquivos do seu .zip da API do Monde, encontrei detalhes sobre como anexar arquivos a tarefas, incluindo as rotas específicas de upload, listagem e remoção:
+
+📁 Rotas para Anexos de Tarefa
+✅ 1. Upload de Anexo
+Rota: POST /tarefas/:id/anexos
+
+Descrição: Envia um ou mais arquivos para serem anexados à tarefa.
+
+Corpo da requisição: multipart/form-data
+
+Campo: file (ou files[] se múltiplos)
+
+Exemplo:
+
+http
+Copiar
+Editar
+POST /tarefas/123/anexos
+Content-Type: multipart/form-data
+Body:
+  file: [arquivo.pdf]
+📂 2. Listagem de Anexos
+Rota: GET /tarefas/:id/anexos
+
+Descrição: Retorna os metadados e URLs dos arquivos anexados à tarefa.
+
+🗑️ 3. Remoção de Anexo
+Rota: DELETE /tarefas/:id/anexos/:anexo_id
+
+Descrição: Remove um anexo específico da tarefa.
+
+📄 Arquivo de Referência
+Essas informações estão presentes no arquivo:
+
+routes/tarefaAnexos.routes.ts
+Esse arquivo contém o controlador completo dessas rotas de anexos.
+
+Se quiser, posso agora:
+
+Gerar o trecho de código React com input de anexo compatível com essa API.
+
+Criar a chamada Axios (ou fetch) para envio dos arquivos.
+
+Mostrar como listar e remover os anexos no frontend.

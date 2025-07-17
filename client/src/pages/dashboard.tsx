@@ -55,7 +55,7 @@ export default function Dashboard() {
   // Função para carregar anexos da tarefa
   const loadTaskAttachments = async (taskId: string) => {
     try {
-      const response = await fetch(`/api/monde/anexos/${taskId}`, {
+      const response = await fetch(`/api/monde/tarefas/${taskId}/anexos`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
         }
@@ -63,7 +63,11 @@ export default function Dashboard() {
       
       if (response.ok) {
         const data = await response.json();
+        console.log(`📎 Anexos carregados para tarefa ${taskId}:`, data.data);
         setTaskAttachments(data.data || []);
+      } else {
+        console.error('Erro ao carregar anexos:', response.status, response.statusText);
+        setTaskAttachments([]);
       }
     } catch (error) {
       console.error('Erro ao carregar anexos:', error);

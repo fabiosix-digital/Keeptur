@@ -1329,9 +1329,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`📎 Buscando anexos para tarefa ${taskId}`);
 
-      // Tentar buscar anexos da API do Monde (se disponível)
+      // Tentar buscar anexos da API do Monde usando endpoint correto
       try {
-        const mondeAttachmentUrl = `https://web.monde.com.br/api/v2/tasks/${taskId}/attachments`;
+        const mondeAttachmentUrl = `https://web.monde.com.br/api/v2/tarefas/${taskId}/anexos`;
         
         const attachmentResponse = await fetch(mondeAttachmentUrl, {
           headers: {
@@ -1342,12 +1342,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         if (attachmentResponse.ok) {
           const attachmentData = await attachmentResponse.json();
-          console.log(`✅ Encontrados ${attachmentData.data?.length || 0} anexos no Monde`);
+          console.log(`✅ Encontrados ${attachmentData.data?.length || 0} anexos no Monde via endpoint correto`);
+          // Formatar anexos do Monde
+          const formattedAttachments = (attachmentData.data || []).map(attachment => ({
+            id: attachment.id,
+            name: attachment.attributes?.name || attachment.attributes?.filename || attachment.attributes?.original_name || 'Anexo',
+            filename: attachment.attributes?.filename || attachment.attributes?.name || attachment.attributes?.original_name || 'anexo',
+            size: attachment.attributes?.size || attachment.attributes?.file_size || 0,
+            type: attachment.attributes?.content_type || attachment.attributes?.mime_type || 'application/octet-stream',
+            url: attachment.attributes?.url || attachment.attributes?.download_url || `/api/monde/anexos/${taskId}/${attachment.id}`,
+            created_at: attachment.attributes?.created_at || attachment.attributes?.uploaded_at
+          }));
+
+          console.log(`📎 Anexos formatados do Monde:`, formattedAttachments);
+          
           return res.json({
-            data: attachmentData.data || []
+            data: formattedAttachments
           });
         } else {
-          console.log('⚠️ Endpoint de anexos não disponível no Monde');
+          console.log(`⚠️ Endpoint de anexos não disponível no Monde (${attachmentResponse.status})`);
         }
       } catch (error) {
         console.log('⚠️ Erro ao buscar anexos no Monde:', error);

@@ -940,6 +940,25 @@ export default function Dashboard() {
               <option value="created_by_me">Criadas por Mim</option>
               <option value="all">Tarefas: Todas</option>
             </select>
+            
+            {/* Botão Limpar Filtros */}
+            <button
+              onClick={() => {
+                setTaskFilter('assigned_to_me');
+                setSelectedSituation('all');
+                setSelectedCategory('all');
+                setSelectedAssignee('all');
+                setSelectedClient('all');
+                setStartDate('');
+                setEndDate('');
+                setTaskSearchTerm('');
+                setTimeout(reloadTasks, 100);
+              }}
+              className="form-input px-3 py-2 rounded-lg text-sm bg-gray-100 hover:bg-gray-200 transition-colors"
+            >
+              Limpar Filtros
+            </button>
+            
             <select 
               className="form-input px-3 py-2 rounded-lg text-sm text-gray-800"
               value={selectedClient}

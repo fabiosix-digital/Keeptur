@@ -933,15 +933,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/monde/empresas", authenticateToken, async (req: any, res) => {
     try {
       // Usar o endpoint específico para empresas associadas ao usuário
-      console.log("🏢 Testando endpoint companies-user...");
+      console.log("🏢 Carregando empresas do usuário...");
       const companiesResponse = await fetch(
         "https://web.monde.com.br/api/v2/companies-user",
         {
           method: "GET",
           headers: {
-            "Content-Type": "application/vnd.api+json",
-            Accept: "application/vnd.api+json",
-            Authorization: `Bearer ${req.sessao.access_token}`,
+            "Authorization": `Bearer ${req.sessao.access_token}`,
+            "Accept": "application/json",
           },
         }
       );
@@ -970,6 +969,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json({ data: companies });
       } else {
         console.log("⚠️ Endpoint companies-user retornou erro:", companiesResponse.status);
+        const errorText = await companiesResponse.text();
+        console.log("⚠️ Erro detalhado:", errorText);
         
         // Buscar empresas através do endpoint de pessoas corporativas
         const peopleResponse = await fetch(

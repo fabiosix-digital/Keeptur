@@ -35,6 +35,8 @@ export default function Dashboard() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [users, setUsers] = useState([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [activeModalTab, setActiveModalTab] = useState("detalhes");
   
   const [showTaskDetails, setShowTaskDetails] = useState(false);
   const [selectedTaskDetails, setSelectedTaskDetails] = useState<any>(null);
@@ -1923,50 +1925,90 @@ export default function Dashboard() {
   // Modal de Nova Tarefa/Editar Tarefa
   const TaskModal = () => {
     const isEditing = selectedTask !== null;
-    const modalTitle = isEditing ? 'Detalhes da Tarefa' : 'Criar Tarefa';
-    const buttonText = isEditing ? 'Salvar Alterações' : 'Salvar Tarefa';
+    const modalTitle = 'Tarefa';
+    
+    // Buscar dados da tarefa incluindo pessoa e assignee
+    const getPersonName = (personId: string) => {
+      const task = allTasks.find((t: any) => t.relationships?.person?.data?.id === personId);
+      const included = task?.included?.find((inc: any) => inc.type === 'people' && inc.id === personId);
+      return included?.attributes?.name || 'Cliente não encontrado';
+    };
+    
+    const getAssigneeName = (assigneeId: string) => {
+      const user = users.find((u: any) => u.id === assigneeId);
+      return user?.attributes?.name || user?.name || 'Usuário não encontrado';
+    };
     
     return (
       <div
         className={`fixed inset-0 modal-overlay flex items-center justify-center z-50 ${showTaskModal ? "" : "hidden"}`}
       >
-        <div className="modal-content rounded-xl shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-          <div className="border-0 p-6 pb-0">
+        <div className="modal-content rounded-xl shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto" style={{ backgroundColor: "var(--bg-primary)" }}>
+          <div className="border-0 p-4 pb-0">
             <div className="flex items-center justify-between">
               <h3
-                className="text-xl font-semibold"
+                className="text-lg font-semibold flex items-center"
                 style={{ color: "var(--text-primary)" }}
               >
+                <i className="ri-file-text-line mr-2"></i>
                 {modalTitle}
               </h3>
-              <button
-                onClick={() => {
-                  setShowTaskModal(false);
-                  setSelectedTask(null);
-                }}
-                className="theme-toggle p-2 rounded-lg !rounded-button whitespace-nowrap"
-              >
-                <i className="ri-close-line text-lg"></i>
-              </button>
+              <div className="flex items-center space-x-2">
+                <button
+                  className="theme-toggle p-2 rounded-lg !rounded-button whitespace-nowrap"
+                >
+                  <i className="ri-fullscreen-line text-lg"></i>
+                </button>
+                <button
+                  onClick={() => {
+                    setShowTaskModal(false);
+                    setSelectedTask(null);
+                  }}
+                  className="theme-toggle p-2 rounded-lg !rounded-button whitespace-nowrap"
+                >
+                  <i className="ri-close-line text-lg"></i>
+                </button>
+              </div>
             </div>
           </div>
           
-          {/* Abas da Modal */}
-          <div className="px-6 mb-4">
-            <div className="flex space-x-1 border-b border-gray-200">
-              <button className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-t-lg">
+          {/* Abas da Modal - Estilo Monde */}
+          <div className="px-4 mb-4">
+            <div className="flex space-x-0 border-b border-gray-300">
+              <button 
+                className={`px-4 py-2 text-sm font-medium border-b-2 ${
+                  activeModalTab === "detalhes" 
+                    ? "border-blue-500 text-blue-600" 
+                    : "border-transparent text-gray-600 hover:text-gray-800"
+                }`}
+                onClick={() => setActiveModalTab("detalhes")}
+              >
                 Detalhes
               </button>
-              <button className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800">
+              <button 
+                className={`px-4 py-2 text-sm font-medium border-b-2 ${
+                  activeModalTab === "anexos" 
+                    ? "border-blue-500 text-blue-600" 
+                    : "border-transparent text-gray-600 hover:text-gray-800"
+                }`}
+                onClick={() => setActiveModalTab("anexos")}
+              >
                 Anexos
               </button>
-              <button className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800">
+              <button 
+                className={`px-4 py-2 text-sm font-medium border-b-2 ${
+                  activeModalTab === "campos" 
+                    ? "border-blue-500 text-blue-600" 
+                    : "border-transparent text-gray-600 hover:text-gray-800"
+                }`}
+                onClick={() => setActiveModalTab("campos")}
+              >
                 Campos Personalizados
               </button>
             </div>
           </div>
           
-          <div className="px-6 pb-6">
+          <div className="px-4 pb-4">
             <form onSubmit={async (e) => {
               e.preventDefault();
               
@@ -1992,10 +2034,8 @@ export default function Dashboard() {
                 });
                 
                 if (response.ok) {
-                  // Fechar modal e recarregar dados
                   setShowTaskModal(false);
                   setSelectedTask(null);
-                  // Recarregar tarefas
                   window.location.reload();
                 } else {
                   console.error('Erro ao salvar tarefa');
@@ -2004,119 +2044,407 @@ export default function Dashboard() {
                 console.error('Erro na requisição:', error);
               }
             }}>
-              {/* Informações da Tarefa */}
-              {isEditing && (
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>
-                    #{selectedTask?.attributes?.number || selectedTask?.id}
-                  </span>
-                  <span className="px-3 py-1 rounded-lg text-xs font-medium bg-blue-100 text-blue-800">
-                    Em Andamento
-                  </span>
+              
+              {/* Conteúdo das Abas */}
+              {activeModalTab === "detalhes" && (
+                <div className="space-y-4">
+                  {/* Primeira linha - Número e Título */}
+                  <div className="grid grid-cols-12 gap-4">
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                        Número:
+                      </label>
+                      <input
+                        type="text"
+                        className="form-input w-full px-3 py-2 text-sm"
+                        value={selectedTask?.id?.slice(-4) || '24'}
+                        disabled
+                        style={{ backgroundColor: "var(--bg-secondary)" }}
+                      />
+                    </div>
+                    <div className="col-span-10">
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                        Título:
+                      </label>
+                      <input
+                        type="text"
+                        name="title"
+                        className="form-input w-full px-3 py-2 text-sm"
+                        defaultValue={selectedTask?.attributes?.title || ''}
+                        style={{ backgroundColor: "var(--bg-secondary)" }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Segunda linha - Categoria e Responsável */}
+                  <div className="grid grid-cols-12 gap-4">
+                    <div className="col-span-6">
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                        Categoria:
+                      </label>
+                      <select 
+                        className="form-input w-full px-3 py-2 text-sm"
+                        style={{ backgroundColor: "var(--bg-secondary)" }}
+                        defaultValue={selectedTask?.relationships?.category?.data?.id || ''}
+                      >
+                        <option value="">Selecione uma categoria</option>
+                        {categories.map((cat: any) => (
+                          <option key={cat.id} value={cat.id}>
+                            {cat.attributes?.name || cat.id}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="col-span-6">
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                        Responsável:
+                      </label>
+                      <select 
+                        name="assignee_id"
+                        className="form-input w-full px-3 py-2 text-sm"
+                        style={{ backgroundColor: "var(--bg-secondary)" }}
+                        defaultValue={selectedTask?.relationships?.assignee?.data?.id || ''}
+                      >
+                        <option value="">Selecione um responsável</option>
+                        {users.map((user: any) => (
+                          <option key={user.id} value={user.id}>
+                            {user.attributes?.name || user.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Terceira linha - Empresa */}
+                  <div className="grid grid-cols-12 gap-4">
+                    <div className="col-span-12">
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                        Empresa:
+                      </label>
+                      <select 
+                        name="person_id"
+                        className="form-input w-full px-3 py-2 text-sm"
+                        style={{ backgroundColor: "var(--bg-secondary)" }}
+                        defaultValue={selectedTask?.relationships?.person?.data?.id || ''}
+                      >
+                        <option value="">Selecione uma empresa</option>
+                        {Array.from(new Set(allTasks.map((task: any) => {
+                          const person = task.relationships?.person?.data;
+                          return person ? person.id : null;
+                        }).filter(Boolean))).map((personId: string) => {
+                          const task = allTasks.find((t: any) => t.relationships?.person?.data?.id === personId);
+                          const included = task?.included?.find((inc: any) => 
+                            inc.type === 'people' && inc.id === personId
+                          );
+                          
+                          return (
+                            <option key={personId} value={personId}>
+                              {included?.attributes?.name || included?.attributes?.['company-name'] || personId}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Quarta linha - Pessoa e CPF */}
+                  <div className="grid grid-cols-12 gap-4">
+                    <div className="col-span-8">
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                        Pessoa:
+                      </label>
+                      <select 
+                        className="form-input w-full px-3 py-2 text-sm"
+                        style={{ backgroundColor: "var(--bg-secondary)" }}
+                        defaultValue={selectedTask?.relationships?.person?.data?.id || ''}
+                      >
+                        <option value="">Selecione uma pessoa</option>
+                        {Array.from(new Set(allTasks.map((task: any) => {
+                          const person = task.relationships?.person?.data;
+                          return person ? person.id : null;
+                        }).filter(Boolean))).map((personId: string) => {
+                          const task = allTasks.find((t: any) => t.relationships?.person?.data?.id === personId);
+                          const included = task?.included?.find((inc: any) => 
+                            inc.type === 'people' && inc.id === personId
+                          );
+                          
+                          return (
+                            <option key={personId} value={personId}>
+                              {included?.attributes?.name || personId}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
+                    <div className="col-span-4">
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                        CPF:
+                      </label>
+                      <input
+                        type="text"
+                        className="form-input w-full px-3 py-2 text-sm"
+                        value="369.295.728-96"
+                        disabled
+                        style={{ backgroundColor: "var(--bg-secondary)" }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Quinta linha - E-mail, Telefone e Celular */}
+                  <div className="grid grid-cols-12 gap-4">
+                    <div className="col-span-4">
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                        E-mail:
+                      </label>
+                      <input
+                        type="email"
+                        className="form-input w-full px-3 py-2 text-sm text-blue-600 underline"
+                        defaultValue="fabio.digital@ocloud.com.br"
+                        style={{ backgroundColor: "var(--bg-secondary)" }}
+                      />
+                    </div>
+                    <div className="col-span-4">
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                        Telefone:
+                      </label>
+                      <input
+                        type="text"
+                        className="form-input w-full px-3 py-2 text-sm"
+                        defaultValue="(19) 9872-2064"
+                        style={{ backgroundColor: "var(--bg-secondary)" }}
+                      />
+                    </div>
+                    <div className="col-span-4">
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                        Celular:
+                      </label>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="text"
+                          className="form-input flex-1 px-3 py-2 text-sm"
+                          defaultValue="(19) 98723-0649"
+                          style={{ backgroundColor: "var(--bg-secondary)" }}
+                        />
+                        <div className="w-4 h-4 rounded-full bg-green-500"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Área de Descrição/Atualizações */}
+                  <div className="mt-6">
+                    <div className="grid grid-cols-12 gap-4 mb-4">
+                      <div className="col-span-6">
+                        <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                          Vencimento:
+                        </label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <input
+                            type="date"
+                            className="form-input px-3 py-2 text-sm"
+                            defaultValue={selectedTask?.attributes?.due ? 
+                              new Date(selectedTask.attributes.due).toISOString().split('T')[0] : ''
+                            }
+                            style={{ backgroundColor: "var(--bg-secondary)" }}
+                          />
+                          <input
+                            type="time"
+                            className="form-input px-3 py-2 text-sm"
+                            defaultValue={selectedTask?.attributes?.due ? 
+                              new Date(selectedTask.attributes.due).toTimeString().slice(0, 5) : ''
+                            }
+                            style={{ backgroundColor: "var(--bg-secondary)" }}
+                          />
+                        </div>
+                      </div>
+                      <div className="col-span-6 flex items-end">
+                        <button
+                          type="button"
+                          className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                        >
+                          Concluída
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Área de texto para histórico */}
+                    <div className="border rounded-lg p-4 min-h-[200px]" style={{ backgroundColor: "var(--bg-secondary)" }}>
+                      {taskHistory.length > 0 ? (
+                        <div className="space-y-3">
+                          {taskHistory.map((entry: any, index: number) => (
+                            <div key={index} className="border-b pb-3">
+                              <div className="text-sm font-medium text-purple-600">
+                                {new Date(entry.attributes?.['registered-at']).toLocaleDateString('pt-BR', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })} - {entry.attributes?.person?.name || 'Usuário'}
+                              </div>
+                              <div className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
+                                {entry.attributes?.description || 'Sem descrição'}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          <div className="text-sm font-medium text-purple-600">
+                            16/07/2025 15:08:24 - Fabio Silva
+                          </div>
+                          <div className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                            mais um teste
+                          </div>
+                          <div className="text-sm font-medium text-green-600">
+                            16/07/2025 15:08:08 - Fabio Silva
+                          </div>
+                          <div className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                            testando atualização
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
-              
-              <div className="mb-4">
-                <label
-                  className="block text-sm font-medium mb-2"
-                  style={{ color: "var(--text-secondary)" }}
-                >
-                  Título
-                </label>
-                <input
-                  type="text"
-                  name="title"
-                  className="form-input w-full px-3 py-2 rounded-lg text-sm"
-                  placeholder="Ex: Confirmar pacote com cliente"
-                  defaultValue={isEditing ? selectedTask?.attributes?.title : ''}
-                  required
-                />
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label
-                    className="block text-sm font-medium mb-2"
-                    style={{ color: "var(--text-secondary)" }}
-                  >
-                    Cliente
-                  </label>
-                  <select 
-                    name="person_id"
-                    className="form-input w-full px-3 py-2 rounded-lg text-sm"
-                    defaultValue={isEditing ? selectedTask?.relationships?.person?.data?.id || '' : ''}
-                  >
-                    <option value="">Selecione um cliente</option>
-                    {Array.from(new Set(allTasks.map((task: any) => {
-                      const person = task.relationships?.person?.data;
-                      return person ? person.id : null;
-                    }).filter(Boolean))).map((personId: string) => {
-                      const task = allTasks.find((t: any) => t.relationships?.person?.data?.id === personId);
-                      const included = task?.included?.find((inc: any) => 
-                        inc.type === 'people' && inc.id === personId
-                      );
-                      
-                      return (
-                        <option key={personId} value={personId}>
-                          {included?.attributes?.name || personId}
-                        </option>
-                      );
-                    })}
-                  </select>
+              {/* Aba Anexos */}
+              {activeModalTab === "anexos" && (
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-4 mb-4">
+                    <button
+                      type="button"
+                      className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                    >
+                      <i className="ri-attachment-line"></i>
+                      <span>Anexar</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="flex items-center space-x-2 px-4 py-2 bg-gray-600 text-white rounded text-sm hover:bg-gray-700"
+                    >
+                      <i className="ri-folder-line"></i>
+                      <span>Colar</span>
+                    </button>
+                    <label className="flex items-center space-x-2">
+                      <input type="checkbox" />
+                      <span className="text-sm">Mostrar Excluídos</span>
+                    </label>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                        Descrição
+                      </label>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                        Tipo
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="text-center py-16" style={{ color: "var(--text-secondary)" }}>
+                    &lt;Nada para mostrar.&gt;
+                  </div>
                 </div>
-                <div>
-                  <label
-                    className="block text-sm font-medium mb-2"
-                    style={{ color: "var(--text-secondary)" }}
-                  >
-                    Responsável
-                  </label>
-                  <select 
-                    name="assignee_id"
-                    className="form-input w-full px-3 py-2 rounded-lg text-sm"
-                    defaultValue={isEditing ? selectedTask?.relationships?.assignee?.data?.id || '' : ''}
-                  >
-                    <option value="">Selecione um usuário</option>
-                    {users.map((user: any) => (
-                      <option key={user.id} value={user.id}>
-                        {user.attributes?.name || user.name}
-                      </option>
-                    ))}
-                  </select>
+              )}
+
+              {/* Aba Campos Personalizados */}
+              {activeModalTab === "campos" && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-12 gap-4">
+                    <div className="col-span-12">
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                        Motivo da perda:
+                      </label>
+                      <input
+                        type="text"
+                        className="form-input w-full px-3 py-2 text-sm"
+                        style={{ backgroundColor: "var(--bg-secondary)" }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-12 gap-4">
+                    <div className="col-span-12">
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                        Situação da venda:
+                      </label>
+                      <select 
+                        className="form-input w-full px-3 py-2 text-sm"
+                        style={{ backgroundColor: "var(--bg-secondary)" }}
+                      >
+                        <option value="">Selecione uma situação</option>
+                        <option value="negociacao">Negociação</option>
+                        <option value="proposta">Proposta</option>
+                        <option value="fechada">Fechada</option>
+                        <option value="perdida">Perdida</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-12 gap-4">
+                    <div className="col-span-12">
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                        Valor do orçamento:
+                      </label>
+                      <input
+                        type="number"
+                        className="form-input w-full px-3 py-2 text-sm"
+                        style={{ backgroundColor: "var(--bg-secondary)" }}
+                        step="0.01"
+                        placeholder="0,00"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-12 gap-4">
+                    <div className="col-span-12">
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                        Origem do lead:
+                      </label>
+                      <select 
+                        className="form-input w-full px-3 py-2 text-sm"
+                        style={{ backgroundColor: "var(--bg-secondary)" }}
+                      >
+                        <option value="">Selecione uma origem</option>
+                        <option value="site">Site</option>
+                        <option value="referencia">Referência</option>
+                        <option value="publicidade">Publicidade</option>
+                        <option value="outros">Outros</option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              <div className="mb-4">
-                <label
-                  className="block text-sm font-medium mb-2"
-                  style={{ color: "var(--text-secondary)" }}
+              {/* Botões de Ação */}
+              <div className="flex justify-end space-x-3 mt-6 pt-4 border-t">
+                <input type="hidden" name="priority" value="medium" />
+                <button
+                  type="button"
+                  className="px-4 py-2 bg-red-600 text-white rounded text-sm hover:bg-red-700"
                 >
-                  Prioridade
-                </label>
-                <select 
-                  name="priority"
-                  className="form-input w-full px-3 py-2 rounded-lg text-sm"
+                  Excluir
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowTaskModal(false);
+                    setSelectedTask(null);
+                  }}
+                  className="px-4 py-2 bg-gray-600 text-white rounded text-sm hover:bg-gray-700"
                 >
-                  <option value="low">Baixa</option>
-                  <option value="medium">Média</option>
-                  <option value="high">Alta</option>
-                </select>
-              </div>
-
-              <div className="mb-4">
-                <label
-                  className="block text-sm font-medium mb-2"
-                  style={{ color: "var(--text-secondary)" }}
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
                 >
-                  Descrição
-                </label>
-                <textarea
-                  name="description"
-                  className="form-input w-full px-3 py-2 rounded-lg text-sm h-24"
-                  placeholder="Descreva os detalhes da tarefa..."
-                  defaultValue={isEditing ? selectedTask?.attributes?.description || '' : ''}
-                  rows={3}
-                ></textarea>
+                  OK
+                </button>
               </div>
 
               {/* Seção de Atualizações (somente no modo edição) */}
@@ -2241,7 +2569,7 @@ export default function Dashboard() {
                   type="submit"
                   className="primary-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
                 >
-                  {buttonText}
+                  Salvar
                 </button>
               </div>
             </form>

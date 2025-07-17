@@ -215,18 +215,4 @@ export class MondeAPI {
   async getUser(id: number): Promise<MondeUser> {
     return this.request<MondeUser>(`/usuarios/${id}`);
   }
-
-  async updateTaskStatus(taskId: string, completed: boolean, deleted: boolean): Promise<any> {
-    const endpoint = `/tarefas/${taskId}`;
-    const payload = {
-      completed: completed,
-      status: completed ? 'concluida' : 'pendente',
-      ...(deleted && { deleted_at: new Date().toISOString() })
-    };
-
-    return this.request<any>(endpoint, {
-      method: 'PUT',
-      body: JSON.stringify(payload),
-    });
-  }
 }

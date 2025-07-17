@@ -743,7 +743,10 @@ export default function Dashboard() {
             <select 
               className="form-input px-3 py-2 rounded-lg text-sm"
               value={taskFilter}
-              onChange={(e) => setTaskFilter(e.target.value)}
+              onChange={(e) => {
+                setTaskFilter(e.target.value);
+                setTimeout(reloadTasks, 100);
+              }}
             >
               <option value="assigned_to_me">Minhas Tarefas</option>
               <option value="created_by_me">Criadas por Mim</option>

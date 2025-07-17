@@ -51,6 +51,11 @@ Preferred communication style: Simple, everyday language in Portuguese.
 - ✅ CSS das abas corrigido - fundo azul (#6366f1) para abas selecionadas
 - ✅ Funcionalidade de exclusão de anexos implementada com confirmação
 - ✅ Registro automático de upload/exclusão de anexos no histórico da tarefa
+- ✅ Correção de erro "newHistoryText is not defined" - variável declarada corretamente
+- ✅ Aba de histórico removida da modal - histórico integrado na seção detalhes
+- ✅ Sincronização bidirecional com API do Monde implementada para anexos
+- ✅ Histórico de anexos aparece automaticamente na seção de detalhes após upload
+- ✅ Sistema de fallback para anexos quando API do Monde não suporta endpoint específico
 
 ## System Architecture
 

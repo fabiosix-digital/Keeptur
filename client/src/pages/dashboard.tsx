@@ -46,6 +46,7 @@ export default function Dashboard() {
   const [showTokenExpiredModal, setShowTokenExpiredModal] = useState(false);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [updateText, setUpdateText] = useState("");
+  const [newHistoryText, setNewHistoryText] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);
   const [taskAttachments, setTaskAttachments] = useState<any[]>([]);
 
@@ -2299,14 +2300,7 @@ export default function Dashboard() {
               >
                 Detalhes
               </button>
-              <button 
-                className={`tab-button px-4 py-2 rounded-lg text-sm font-medium ${
-                  activeModalTab === "historico" ? "active" : ""
-                }`}
-                onClick={() => setActiveModalTab("historico")}
-              >
-                Histórico
-              </button>
+
               <button 
                 className={`tab-button px-4 py-2 rounded-lg text-sm font-medium ${
                   activeModalTab === "anexos" ? "active" : ""
@@ -2651,51 +2645,6 @@ export default function Dashboard() {
                 </div>
               )}
 
-              {/* Aba Histórico */}
-              {activeModalTab === "historico" && (
-                <div className="space-y-4">
-                  <div className="max-h-96 overflow-y-auto">
-                    <h3 className="text-sm font-medium mb-4" style={{ color: "var(--text-secondary)" }}>
-                      Histórico da Tarefa
-                    </h3>
-                    {taskHistory.length === 0 ? (
-                      <p className="text-sm text-center py-8" style={{ color: "var(--text-tertiary)" }}>
-                        Nenhum histórico disponível
-                      </p>
-                    ) : (
-                      <div className="space-y-3">
-                        {taskHistory.map((item: any, index: number) => (
-                          <div key={index} className="p-3 rounded-lg border" style={{ backgroundColor: "var(--bg-tertiary)", borderColor: "var(--border-color)" }}>
-                            <div className="flex justify-between items-start mb-2">
-                              <span className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
-                                {new Date(item.attributes["registered-at"]).toLocaleString()}
-                              </span>
-                            </div>
-                            <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                              {item.attributes.text || "Sem texto"}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Adicionar novo histórico */}
-                  <div className="border-t pt-4" style={{ borderColor: "var(--border-color)" }}>
-                    <h4 className="text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                      Adicionar atualização
-                    </h4>
-                    <textarea
-                      value={newHistoryText}
-                      onChange={(e) => setNewHistoryText(e.target.value)}
-                      className="w-full px-3 py-2 border rounded-lg text-sm resize-none"
-                      placeholder="Adicione uma atualização..."
-                      rows={3}
-                      style={{ backgroundColor: "var(--bg-primary)", color: "var(--text-primary)" }}
-                    />
-                  </div>
-                </div>
-              )}
 
               {/* Aba Anexos */}
               {activeModalTab === "anexos" && (
@@ -2809,6 +2758,9 @@ export default function Dashboard() {
                                     description: `Anexo(s) adicionado(s): ${fileNames}`
                                   })
                                 });
+                                
+                                // Recarregar histórico para mostrar a nova entrada
+                                loadTaskHistory(selectedTask.id);
                               } catch (error) {
                                 console.error('Erro ao registrar histórico:', error);
                               }

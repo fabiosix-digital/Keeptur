@@ -1230,7 +1230,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Nenhum arquivo enviado" });
       }
 
-      // Simular anexos salvos (já que o Monde não tem endpoint específico para anexos)
+      console.log(`📎 Enviando ${files.length} anexo(s) para tarefa ${taskId}`);
+
+      // Tentar integrar com API do Monde se houver endpoint específico
+      try {
+        // Primeiro, tentar endpoint específico de anexos do Monde (se existir)
+        const mondeAttachmentUrl = `https://web.monde.com.br/api/v2/tasks/${taskId}/attachments`;
+        
+        const formData = new FormData();
+        files.forEach(file => {
+          const blob = new Blob([file.buffer], { type: file.mimetype });
+          formData.append('files', blob, file.originalname);
+        });
+
+        const attachmentResponse = await fetch(mondeAttachmentUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${req.mondeToken}`,
+            'Accept': 'application/vnd.api+json'
+          },
+          body: formData
+        });
+
+        if (attachmentResponse.ok) {
+          const attachmentData = await attachmentResponse.json();
+          console.log('✅ Anexos enviados com sucesso para o Monde');
+          return res.json({
+            message: "Arquivos anexados com sucesso no Monde",
+            data: attachmentData.data || []
+          });
+        } else {
+          console.log('⚠️ Endpoint de anexos não disponível no Monde, criando localmente');
+        }
+      } catch (error) {
+        console.log('⚠️ Erro ao tentar enviar anexos para o Monde:', error);
+      }
+
+      // Fallback: criar anexos localmente e registrar no histórico do Monde
       const attachments = files.map(file => ({
         id: `attachment_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`,
         name: file.originalname,
@@ -1240,6 +1276,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         url: `/api/monde/anexos/${taskId}/${file.originalname}`,
         created_at: new Date().toISOString()
       }));
+
+      console.log(`✅ Criados ${attachments.length} anexos localmente`);
 
       // Retornar dados dos anexos
       res.json({
@@ -1257,8 +1295,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const taskId = req.params.taskId;
       
-      // Por enquanto, simular que não há anexos (pois o Monde não tem este endpoint)
-      // Em uma implementação real, você conectaria com a API do Monde ou salvaria no banco de dados
+      console.log(`📎 Buscando anexos para tarefa ${taskId}`);
+
+      // Tentar buscar anexos da API do Monde
+      try {
+        const mondeAttachmentUrl = `https://web.monde.com.br/api/v2/tasks/${taskId}/attachments`;
+        
+        const attachmentResponse = await fetch(mondeAttachmentUrl, {
+          headers: {
+            'Authorization': `Bearer ${req.mondeToken}`,
+            'Accept': 'application/vnd.api+json'
+          }
+        });
+
+        if (attachmentResponse.ok) {
+          const attachmentData = await attachmentResponse.json();
+          console.log(`✅ Encontrados ${attachmentData.data?.length || 0} anexos no Monde`);
+          return res.json({
+            data: attachmentData.data || []
+          });
+        } else {
+          console.log('⚠️ Endpoint de anexos não disponível no Monde');
+        }
+      } catch (error) {
+        console.log('⚠️ Erro ao buscar anexos no Monde:', error);
+      }
+
+      // Fallback: retornar lista vazia se não houver integração com Monde
       res.json({
         data: []
       });

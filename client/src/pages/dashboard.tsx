@@ -574,11 +574,11 @@ export default function Dashboard() {
     return { status: "pending", label: "Pendente", class: "status-badge-pending" };
   };
 
-  // Função para visualizar detalhes da tarefa
+  // Função para visualizar detalhes da tarefa (agora abre em modo de edição)
   const handleViewTask = async (task: any) => {
-    setSelectedTaskDetails(task);
-    setShowTaskDetails(true);
-    setTaskHistoryTab("detalhes");
+    setSelectedTask(task);
+    setIsEditing(true);
+    setShowTaskModal(true);
 
     // Carregar histórico da tarefa
     const history = await loadTaskHistory(task.id);
@@ -1953,21 +1953,57 @@ export default function Dashboard() {
           
           {/* Abas da Modal */}
           <div className="px-6 mb-4">
-            <div className="flex space-x-1">
-              <button className="tab-button active px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+            <div className="flex space-x-1 border-b border-gray-200">
+              <button className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-t-lg">
                 Detalhes
               </button>
-              <button className="tab-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+              <button className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800">
                 Anexos
               </button>
-              <button className="tab-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+              <button className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800">
                 Campos Personalizados
               </button>
             </div>
           </div>
           
           <div className="px-6 pb-6">
-            <form onSubmit={(e) => e.preventDefault()}>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              
+              if (!isEditing) return;
+              
+              const formData = new FormData(e.target as HTMLFormElement);
+              const taskData = {
+                title: formData.get('title'),
+                description: formData.get('description'),
+                priority: formData.get('priority'),
+                assignee_id: formData.get('assignee_id'),
+                person_id: formData.get('person_id'),
+              };
+              
+              try {
+                const response = await fetch(`/api/monde/tarefas/${selectedTask.id}`, {
+                  method: 'PUT',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+                  },
+                  body: JSON.stringify(taskData)
+                });
+                
+                if (response.ok) {
+                  // Fechar modal e recarregar dados
+                  setShowTaskModal(false);
+                  setSelectedTask(null);
+                  // Recarregar tarefas
+                  window.location.reload();
+                } else {
+                  console.error('Erro ao salvar tarefa');
+                }
+              } catch (error) {
+                console.error('Erro na requisição:', error);
+              }
+            }}>
               {/* Informações da Tarefa */}
               {isEditing && (
                 <div className="flex justify-between items-center mb-4">
@@ -1989,6 +2025,7 @@ export default function Dashboard() {
                 </label>
                 <input
                   type="text"
+                  name="title"
                   className="form-input w-full px-3 py-2 rounded-lg text-sm"
                   placeholder="Ex: Confirmar pacote com cliente"
                   defaultValue={isEditing ? selectedTask?.attributes?.title : ''}
@@ -2004,13 +2041,27 @@ export default function Dashboard() {
                   >
                     Cliente
                   </label>
-                  <select className="form-input w-full px-3 py-2 rounded-lg text-sm">
+                  <select 
+                    name="person_id"
+                    className="form-input w-full px-3 py-2 rounded-lg text-sm"
+                    defaultValue={isEditing ? selectedTask?.relationships?.person?.data?.id || '' : ''}
+                  >
                     <option value="">Selecione um cliente</option>
-                    {clients.map((client: any) => (
-                      <option key={client.id} value={client.id}>
-                        {client.attributes?.name || client.name}
-                      </option>
-                    ))}
+                    {Array.from(new Set(allTasks.map((task: any) => {
+                      const person = task.relationships?.person?.data;
+                      return person ? person.id : null;
+                    }).filter(Boolean))).map((personId: string) => {
+                      const task = allTasks.find((t: any) => t.relationships?.person?.data?.id === personId);
+                      const included = task?.included?.find((inc: any) => 
+                        inc.type === 'people' && inc.id === personId
+                      );
+                      
+                      return (
+                        <option key={personId} value={personId}>
+                          {included?.attributes?.name || personId}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
                 <div>
@@ -2020,7 +2071,11 @@ export default function Dashboard() {
                   >
                     Responsável
                   </label>
-                  <select className="form-input w-full px-3 py-2 rounded-lg text-sm">
+                  <select 
+                    name="assignee_id"
+                    className="form-input w-full px-3 py-2 rounded-lg text-sm"
+                    defaultValue={isEditing ? selectedTask?.relationships?.assignee?.data?.id || '' : ''}
+                  >
                     <option value="">Selecione um usuário</option>
                     {users.map((user: any) => (
                       <option key={user.id} value={user.id}>
@@ -2031,34 +2086,21 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label
-                    className="block text-sm font-medium mb-2"
-                    style={{ color: "var(--text-secondary)" }}
-                  >
-                    Data/Hora
-                  </label>
-                  <input
-                    type="datetime-local"
-                    className="form-input w-full px-3 py-2 rounded-lg text-sm"
-                    defaultValue={isEditing && selectedTask?.attributes?.due ? 
-                      new Date(selectedTask.attributes.due).toISOString().slice(0, 16) : ''}
-                  />
-                </div>
-                <div>
-                  <label
-                    className="block text-sm font-medium mb-2"
-                    style={{ color: "var(--text-secondary)" }}
-                  >
-                    Prioridade
-                  </label>
-                  <select className="form-input w-full px-3 py-2 rounded-lg text-sm">
-                    <option value="low">Baixa</option>
-                    <option value="medium">Média</option>
-                    <option value="high">Alta</option>
-                  </select>
-                </div>
+              <div className="mb-4">
+                <label
+                  className="block text-sm font-medium mb-2"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  Prioridade
+                </label>
+                <select 
+                  name="priority"
+                  className="form-input w-full px-3 py-2 rounded-lg text-sm"
+                >
+                  <option value="low">Baixa</option>
+                  <option value="medium">Média</option>
+                  <option value="high">Alta</option>
+                </select>
               </div>
 
               <div className="mb-4">
@@ -2069,6 +2111,7 @@ export default function Dashboard() {
                   Descrição
                 </label>
                 <textarea
+                  name="description"
                   className="form-input w-full px-3 py-2 rounded-lg text-sm h-24"
                   placeholder="Descreva os detalhes da tarefa..."
                   defaultValue={isEditing ? selectedTask?.attributes?.description || '' : ''}

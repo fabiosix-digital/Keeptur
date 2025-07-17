@@ -284,7 +284,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // 🎯 Filtro de situação (situation)
       if (req.query.situation) {
-        queryParams.append('filter[situation]', req.query.situation);
+        // Mapear situações do frontend para API
+        const situationMap = {
+          "open": "active",
+          "concluded": "completed",
+          "archived": "archived"
+        };
+        queryParams.append('filter[situation]', situationMap[req.query.situation] || req.query.situation);
         console.log('✅ Filtro situação aplicado:', req.query.situation);
       }
       
@@ -744,11 +750,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   await initializePlans();
 
-  // Endpoint para buscar usuários/agentes
+  // Endpoint para buscar usuários/agentes reais
   app.get("/api/monde/users", authenticateToken, async (req: any, res) => {
     try {
       const mondeResponse = await fetch(
-        "https://web.monde.com.br/api/v2/users",
+        "https://web.monde.com.br/api/v2/people",
         {
           method: "GET",
           headers: {
@@ -760,10 +766,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       const data = await mondeResponse.json();
+      console.log("✅ Usuários/agentes carregados:", data.data?.length || 0);
       res.json(data);
     } catch (error) {
       console.error("Erro ao buscar usuários:", error);
       res.status(500).json({ message: "Erro ao buscar usuários" });
+    }
+  });
+
+  // Endpoint para buscar empresas reais
+  app.get("/api/monde/empresas", authenticateToken, async (req: any, res) => {
+    try {
+      const mondeResponse = await fetch(
+        "https://web.monde.com.br/api/v2/people",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/vnd.api+json",
+            Accept: "application/vnd.api+json",
+            Authorization: `Bearer ${req.sessao.access_token}`,
+          },
+        }
+      );
+
+      const data = await mondeResponse.json();
+      
+      // Filtrar apenas empresas (person_type='company')
+      const empresas = data.data?.filter((person: any) => 
+        person.attributes?.person_type === 'company'
+      ) || [];
+      
+      console.log("✅ Empresas carregadas:", empresas.length);
+      res.json({ data: empresas });
+    } catch (error) {
+      console.error("Erro ao buscar empresas:", error);
+      res.status(500).json({ message: "Erro ao buscar empresas" });
     }
   });
 

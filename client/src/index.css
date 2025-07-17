@@ -33,6 +33,31 @@ body {
   transition: all 0.3s ease;
 }
 
+/* Dropdown com melhor contraste */
+.form-input option, select option {
+  background-color: white !important;
+  color: #374151 !important;
+  font-weight: 500 !important;
+}
+
+.dark .form-input option, .dark select option {
+  background-color: #1f2937 !important;
+  color: #f9fafb !important;
+}
+
+/* Contraste aprimorado para categorias */
+.category-badge {
+  background-color: hsl(var(--muted)) !important;
+  color: hsl(var(--foreground)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
 .theme-transition {
   transition: all 0.3s ease;
 }

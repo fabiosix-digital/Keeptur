@@ -30,6 +30,12 @@ Preferred communication style: Simple, everyday language in Portuguese.
 - ✅ Filtros de tarefas corrigidos - padrão "Minhas Tarefas" (assigned_to_me)
 - ✅ Filtro "Criadas por Mim" implementado corretamente
 - ✅ Sistema de interceptação global para requisições 401 (não autorizadas)
+- ✅ Filtros de situação corrigidos e funcionais (open→active, concluded→completed, archived→archived)
+- ✅ Filtros de data unificados (removida duplicação) 
+- ✅ Endpoint de usuários/agentes corrigido para usar dados reais da API do Monde
+- ✅ Endpoint de empresas implementado com dados reais da API do Monde
+- ✅ Melhoria de contraste para categorias e dropdowns
+- ✅ Todos os filtros conectados à API real do Monde funcionando corretamente
 
 ## System Architecture
 

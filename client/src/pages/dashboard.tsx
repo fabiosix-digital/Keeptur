@@ -97,9 +97,17 @@ export default function Dashboard() {
         setAllTasks(tasks);
         
         // Aplicar filtro inicial será feito pelo useEffect do taskFilter
-        setClients([]); // Não carregar clientes na inicialização
         setCategories(categoriesData?.data || []);
         setUsers(usersData?.data || []);
+
+        // Carregar dados das empresas
+        const empresasResponse = await fetch("/api/monde/empresas", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (empresasResponse.ok) {
+          const empresasData = await empresasResponse.json();
+          setClients(empresasData.data || []);
+        }
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
       } finally {
@@ -827,6 +835,7 @@ export default function Dashboard() {
                 <option value="vencimento">Vencimento</option>
               </select>
             </div>
+            {/* Filtros de Data Unificados */}
             <div className="flex gap-2">
               <select className="form-input px-3 py-2 rounded-lg text-sm">
                 <option value="">Data de:</option>
@@ -838,6 +847,11 @@ export default function Dashboard() {
                 <input
                   type="date"
                   className="form-input px-3 py-2 rounded-lg text-sm"
+                  value={startDate}
+                  onChange={(e) => {
+                    setStartDate(e.target.value);
+                    setTimeout(reloadTasks, 100);
+                  }}
                 />
                 <span
                   className="text-sm"
@@ -848,6 +862,11 @@ export default function Dashboard() {
                 <input
                   type="date"
                   className="form-input px-3 py-2 rounded-lg text-sm"
+                  value={endDate}
+                  onChange={(e) => {
+                    setEndDate(e.target.value);
+                    setTimeout(reloadTasks, 100);
+                  }}
                 />
               </div>
             </div>
@@ -862,20 +881,35 @@ export default function Dashboard() {
               <option value="created_by_me">Criadas por Mim</option>
               <option value="all">Tarefas: Todas</option>
             </select>
-            <select className="form-input px-3 py-2 rounded-lg text-sm">
+            <select 
+              className="form-input px-3 py-2 rounded-lg text-sm text-gray-800"
+              value={selectedClient}
+              onChange={(e) => {
+                setSelectedClient(e.target.value);
+                setTimeout(reloadTasks, 100);
+              }}
+            >
               <option value="">Todas as Empresas</option>
-              <option value="empresa1">Empresa Alpha</option>
-              <option value="empresa2">Empresa Beta</option>
-              <option value="empresa3">Empresa Gamma</option>
-              <option value="empresa4">Empresa Delta</option>
-              <option value="empresa5">Empresa Epsilon</option>
+              {clients.map((client) => (
+                <option key={client.id} value={client.id} className="text-gray-800">
+                  {client.attributes?.name || client.name}
+                </option>
+              ))}
             </select>
-            <select className="form-input px-3 py-2 rounded-lg text-sm">
+            <select 
+              className="form-input px-3 py-2 rounded-lg text-sm text-gray-800"
+              value={selectedResponsible}
+              onChange={(e) => {
+                setSelectedResponsible(e.target.value);
+                setTimeout(reloadTasks, 100);
+              }}
+            >
               <option value="">Todos os Agentes</option>
-              <option value="ana">Ana Marques</option>
-              <option value="joao">João Silva</option>
-              <option value="maria">Maria Santos</option>
-              <option value="pedro">Pedro Costa</option>
+              {users.map((user) => (
+                <option key={user.id} value={user.id} className="text-gray-800">
+                  {user.attributes?.name || user.name}
+                </option>
+              ))}
             </select>
             {/* Filtro de Situação */}
             <select
@@ -894,7 +928,7 @@ export default function Dashboard() {
 
             {/* Filtro de Categoria */}
             <select
-              className="form-input px-3 py-2 rounded-lg text-sm"
+              className="form-input px-3 py-2 rounded-lg text-sm text-gray-800"
               value={selectedCategory}
               onChange={(e) => {
                 setSelectedCategory(e.target.value);
@@ -903,15 +937,15 @@ export default function Dashboard() {
             >
               <option value="">Todas as Categorias</option>
               {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.attributes.name}
+                <option key={category.id} value={category.id} className="text-gray-800">
+                  {category.attributes?.name || category.name}
                 </option>
               ))}
             </select>
 
             {/* Filtro de Responsável */}
             <select
-              className="form-input px-3 py-2 rounded-lg text-sm"
+              className="form-input px-3 py-2 rounded-lg text-sm text-gray-800"
               value={selectedResponsible}
               onChange={(e) => {
                 setSelectedResponsible(e.target.value);
@@ -920,33 +954,13 @@ export default function Dashboard() {
             >
               <option value="">Todos os Responsáveis</option>
               {users.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.attributes.name}
+                <option key={user.id} value={user.id} className="text-gray-800">
+                  {user.attributes?.name || user.name}
                 </option>
               ))}
             </select>
 
-            {/* Filtro de Data */}
-            <input
-              type="date"
-              className="form-input px-3 py-2 rounded-lg text-sm"
-              value={startDate}
-              onChange={(e) => {
-                setStartDate(e.target.value);
-                setTimeout(reloadTasks, 100);
-              }}
-              placeholder="Data início"
-            />
-            <input
-              type="date"
-              className="form-input px-3 py-2 rounded-lg text-sm"
-              value={endDate}
-              onChange={(e) => {
-                setEndDate(e.target.value);
-                setTimeout(reloadTasks, 100);
-              }}
-              placeholder="Data fim"
-            />
+            {/* Filtros de Data já implementados acima */}
             
           </div>
 

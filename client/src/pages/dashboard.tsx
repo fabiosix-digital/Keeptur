@@ -113,8 +113,9 @@ export default function Dashboard() {
         params.append('assignee', 'me');
       } else if (taskFilter === 'created_by_me') {
         params.append('filter[created_by]', 'me');
+      } else if (taskFilter === 'all') {
+        params.append('all', 'true'); // Sinalizar que queremos todas as tarefas
       }
-      // Se for 'all', não aplicar filtro para mostrar todas as tarefas da empresa
       
       // Aplicar outros filtros se existirem
       if (taskSearchTerm) params.append('search', taskSearchTerm);

@@ -264,6 +264,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         queryParams.append('filter[created_by]', 'me');
       }
       
+      // Se não houver filtro específico, assumir que queremos tarefas do usuário por padrão
+      if (!req.query.assignee && !req.query['filter[created_by]'] && !req.query.all) {
+        queryParams.append('filter[assigned]', 'user_tasks');
+      }
+      
       // Filtros de status
       if (req.query.status) {
         queryParams.append('filter[status]', req.query.status);

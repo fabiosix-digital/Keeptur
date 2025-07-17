@@ -1,0 +1,145 @@
+🧩 1. Campos ausentes ou com dados incorretos
+✅ Pessoa / Cliente associado à tarefa
+Problema: Campo não aparece.
+
+Correção:
+
+Use o campo person_id da tarefa (task.person_id) para buscar os dados do cliente via /api/v2/people/{id}.
+
+Exiba person.name no campo "Cliente".
+
+Se quiser exibir mais detalhes (email, telefone), use os campos:
+
+person.email
+
+person.phone
+
+person.cellphone
+
+✅ Telefone e Celular do cliente
+Problema: Não aparecem.
+
+Correção:
+
+Esses dados estão em phone e cellphone no objeto retornado de /api/v2/people/{id}.
+
+✅ Empresa
+Problema: Campo some ou aparece o código (ID).
+
+Correção:
+
+Use company_id da tarefa para buscar /api/v2/companies/{id} e exibir company.name no dropdown ou texto.
+
+🛠️ 2. Comportamento da modal
+✅ Botões duplicados / posicionamento
+Problema: Botão "Concluir" está duplicado e desalinhado.
+
+Correção:
+
+Remova o botão extra.
+
+Mantenha os botões assim:
+
+Concluir: cor azul (bg-blue-600), alinhado à esquerda.
+
+Salvar: cor verde (bg-green-600), alinhado à direita.
+
+✅ Modal não fecha ao salvar
+Problema: Ao clicar em salvar, não fecha.
+
+Correção:
+
+Após o await updateTask(...) ou similar, execute setOpen(false) ou closeModal().
+
+✅ Scroll em histórico muito grande
+Problema: Se o histórico for longo, quebra layout.
+
+Correção:
+
+Aplique estilo com scroll:
+
+tsx
+Copiar
+Editar
+<div className="overflow-y-auto max-h-64">...</div>
+✅ Modal responsiva
+Problema: Não adapta bem à tela.
+
+Correção:
+
+Use classes como w-full max-w-4xl no container da modal.
+
+Aplique flex-wrap, grid-cols-1 sm:grid-cols-2 para organização dos campos.
+
+🔁 3. Histórico da Tarefa
+✅ Atualização não aparece no histórico
+Problema: Texto digitado não aparece na timeline após salvar.
+
+Correção:
+
+Após salvar a atualização (/api/v2/task_historics/), re-fetche os históricos da tarefa atual com:
+
+ts
+Copiar
+Editar
+fetch(`/api/v2/task_historics?task_id=${taskId}`)
+✅ Histórico errado
+Problema: Mostra o histórico da mesma tarefa em todas.
+
+Correção:
+
+Certifique-se de passar o task.id correto na query.
+
+Exemplo:
+
+ts
+Copiar
+Editar
+useEffect(() => {
+  if (selectedTask) {
+    fetch(`/api/v2/task_historics?task_id=${selectedTask.id}`)
+  }
+}, [selectedTask])
+💾 4. Salvar tarefa: atualização completa
+✅ Salvamento não está atualizando todos os campos
+Problema: Só alguns campos atualizam.
+
+Correção:
+
+Verifique se está passando todos os campos no PUT /api/v2/tasks/{id}.
+
+Campos obrigatórios a serem enviados:
+
+title
+
+description
+
+status_id
+
+due_date
+
+responsible_user_id
+
+person_id
+
+company_id
+
+category_id
+
+priority_id
+
+situation_id
+
+Exemplo de payload:
+
+json
+Copiar
+Editar
+{
+  "title": "Nova tarefa",
+  "description": "Descrição atualizada",
+  "person_id": "XYZ123",
+  "company_id": "ABC456",
+  "category_id": "CAT789"
+}
+Se

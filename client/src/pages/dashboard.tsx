@@ -107,15 +107,13 @@ export default function Dashboard() {
       return client.attributes?.name || client.attributes?.['company-name'] || client.name || 'Cliente não encontrado';
     }
     
-    // Se não encontrar nos clientes, procurar nas tarefas (dados incluídos)
-    for (const task of allTasks) {
-      if (task.relationships?.person?.data?.id === personId) {
-        console.log('🔍 Verificando tarefa:', task.id);
-        // Verificar se tem dados do cliente no próprio objeto da tarefa
-        if (task.client_name) {
-          console.log('✅ Nome do cliente na tarefa:', task.client_name);
-          return task.client_name;
-        }
+    // Procurar nos dados incluídos das tarefas (included)
+    const response = JSON.parse(localStorage.getItem('lastTasksResponse') || '{}');
+    if (response.included) {
+      const person = response.included.find((item: any) => item.type === 'people' && item.id === personId);
+      if (person) {
+        console.log('✅ Pessoa encontrada nos includes:', person.attributes?.name);
+        return person.attributes?.name || person.attributes?.['company-name'] || 'Cliente não encontrado';
       }
     }
     
@@ -133,10 +131,12 @@ export default function Dashboard() {
       return client.attributes?.email || client.email || '';
     }
     
-    // Se não encontrar nos clientes, procurar nas tarefas
-    for (const task of allTasks) {
-      if (task.relationships?.person?.data?.id === personId && task.client_email) {
-        return task.client_email;
+    // Procurar nos dados incluídos das tarefas
+    const response = JSON.parse(localStorage.getItem('lastTasksResponse') || '{}');
+    if (response.included) {
+      const person = response.included.find((item: any) => item.type === 'people' && item.id === personId);
+      if (person) {
+        return person.attributes?.email || '';
       }
     }
     
@@ -151,6 +151,16 @@ export default function Dashboard() {
     if (client) {
       return client.attributes?.phone || client.attributes?.['business-phone'] || client.phone || '';
     }
+    
+    // Procurar nos dados incluídos das tarefas
+    const response = JSON.parse(localStorage.getItem('lastTasksResponse') || '{}');
+    if (response.included) {
+      const person = response.included.find((item: any) => item.type === 'people' && item.id === personId);
+      if (person) {
+        return person.attributes?.phone || person.attributes?.['business-phone'] || '';
+      }
+    }
+    
     return '';
   };
 
@@ -162,6 +172,16 @@ export default function Dashboard() {
     if (client) {
       return client.attributes?.['mobile-phone'] || client.attributes?.mobile || client.mobile || '';
     }
+    
+    // Procurar nos dados incluídos das tarefas
+    const response = JSON.parse(localStorage.getItem('lastTasksResponse') || '{}');
+    if (response.included) {
+      const person = response.included.find((item: any) => item.type === 'people' && item.id === personId);
+      if (person) {
+        return person.attributes?.['mobile-phone'] || person.attributes?.mobile || '';
+      }
+    }
+    
     return '';
   };
 
@@ -175,6 +195,16 @@ export default function Dashboard() {
     if (client) {
       return client.attributes?.['company-name'] || client.attributes?.company || client.company || '';
     }
+    
+    // Procurar nos dados incluídos das tarefas
+    const response = JSON.parse(localStorage.getItem('lastTasksResponse') || '{}');
+    if (response.included) {
+      const person = response.included.find((item: any) => item.type === 'people' && item.id === personId);
+      if (person) {
+        return person.attributes?.['company-name'] || person.attributes?.company || '';
+      }
+    }
+    
     return '';
   };
 
@@ -318,6 +348,9 @@ export default function Dashboard() {
 
       const data = await response.json();
       console.log('✅ Tarefas carregadas:', data.data?.length || 0);
+      
+      // Salvar dados incluídos no localStorage para uso nas funções getPerson
+      localStorage.setItem('lastTasksResponse', JSON.stringify(data));
       
       // Agora carregar tarefas excluídas separadamente
       const deletedUrl = `/api/monde/tarefas?all=true&include_deleted=true`;
@@ -2113,7 +2146,29 @@ export default function Dashboard() {
     const saveAndCloseModal = async () => {
       // Se há texto de atualização, salva o histórico primeiro
       if (updateText.trim()) {
-        await saveTaskHistory();
+        try {
+          const response = await fetch(`/api/monde/tarefas/${selectedTask?.id}/historico`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+            },
+            body: JSON.stringify({
+              description: updateText
+            })
+          });
+          
+          if (response.ok) {
+            console.log('✅ Histórico salvo com sucesso');
+            alert('Atualização salva com sucesso!');
+          } else {
+            console.error('❌ Erro ao salvar histórico');
+            alert('Erro ao salvar atualização');
+          }
+        } catch (error) {
+          console.error('❌ Erro na requisição:', error);
+          alert('Erro ao salvar atualização');
+        }
       }
       
       // Fecha o modal
@@ -2388,6 +2443,11 @@ export default function Dashboard() {
                         }
                         readOnly
                       />
+                      {selectedTask?.relationships?.person?.data?.id && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          ID: {selectedTask.relationships.person.data.id}
+                        </div>
+                      )}
                     </div>
                     <div className="col-span-6">
                       <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>

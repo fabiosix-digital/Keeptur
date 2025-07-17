@@ -286,10 +286,12 @@ export default function Dashboard() {
         
         switch (selectedSituation) {
           case 'pendentes':
-            return !isCompleted;
+            // Pendentes = não concluídas E não atrasadas (dentro do prazo ou sem prazo)
+            return !isCompleted && (!dueDate || dueDate >= now);
           case 'concluidas':
             return isCompleted;
           case 'atrasadas':
+            // Atrasadas = não concluídas E com prazo vencido
             return !isCompleted && dueDate && dueDate < now;
           default:
             return true;

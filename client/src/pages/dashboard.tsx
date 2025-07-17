@@ -2301,6 +2301,14 @@ export default function Dashboard() {
               </button>
               <button 
                 className={`tab-button px-4 py-2 rounded-lg text-sm font-medium ${
+                  activeModalTab === "historico" ? "active" : ""
+                }`}
+                onClick={() => setActiveModalTab("historico")}
+              >
+                Histórico
+              </button>
+              <button 
+                className={`tab-button px-4 py-2 rounded-lg text-sm font-medium ${
                   activeModalTab === "anexos" ? "active" : ""
                 }`}
                 onClick={() => setActiveModalTab("anexos")}
@@ -2643,6 +2651,52 @@ export default function Dashboard() {
                 </div>
               )}
 
+              {/* Aba Histórico */}
+              {activeModalTab === "historico" && (
+                <div className="space-y-4">
+                  <div className="max-h-96 overflow-y-auto">
+                    <h3 className="text-sm font-medium mb-4" style={{ color: "var(--text-secondary)" }}>
+                      Histórico da Tarefa
+                    </h3>
+                    {taskHistory.length === 0 ? (
+                      <p className="text-sm text-center py-8" style={{ color: "var(--text-tertiary)" }}>
+                        Nenhum histórico disponível
+                      </p>
+                    ) : (
+                      <div className="space-y-3">
+                        {taskHistory.map((item: any, index: number) => (
+                          <div key={index} className="p-3 rounded-lg border" style={{ backgroundColor: "var(--bg-tertiary)", borderColor: "var(--border-color)" }}>
+                            <div className="flex justify-between items-start mb-2">
+                              <span className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
+                                {new Date(item.attributes["registered-at"]).toLocaleString()}
+                              </span>
+                            </div>
+                            <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                              {item.attributes.text || "Sem texto"}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Adicionar novo histórico */}
+                  <div className="border-t pt-4" style={{ borderColor: "var(--border-color)" }}>
+                    <h4 className="text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                      Adicionar atualização
+                    </h4>
+                    <textarea
+                      value={newHistoryText}
+                      onChange={(e) => setNewHistoryText(e.target.value)}
+                      className="w-full px-3 py-2 border rounded-lg text-sm resize-none"
+                      placeholder="Adicione uma atualização..."
+                      rows={3}
+                      style={{ backgroundColor: "var(--bg-primary)", color: "var(--text-primary)" }}
+                    />
+                  </div>
+                </div>
+              )}
+
               {/* Aba Anexos */}
               {activeModalTab === "anexos" && (
                 <div className="space-y-4">
@@ -2741,6 +2795,25 @@ export default function Dashboard() {
                               const result = await response.json();
                               setTaskAttachments([...taskAttachments, ...result.data]);
                               setAttachments([]);
+                              
+                              // Registrar no histórico do Monde
+                              const fileNames = result.data.map(file => file.name).join(', ');
+                              try {
+                                await fetch(`/api/monde/tarefas/${selectedTask.id}/historico`, {
+                                  method: 'POST',
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+                                  },
+                                  body: JSON.stringify({
+                                    description: `Anexo(s) adicionado(s): ${fileNames}`
+                                  })
+                                });
+                              } catch (error) {
+                                console.error('Erro ao registrar histórico:', error);
+                              }
+                              
+                              alert('Anexos enviados com sucesso!');
                             } else {
                               console.error('Erro ao fazer upload dos anexos');
                             }
@@ -2785,8 +2858,40 @@ export default function Dashboard() {
                               {attachment.name || attachment.filename}
                             </a>
                           </div>
-                          <div className="text-sm text-gray-600">
-                            {attachment.size ? `${(attachment.size / 1024).toFixed(1)} KB` : 'N/A'}
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600">
+                              {attachment.size ? `${(attachment.size / 1024).toFixed(1)} KB` : 'N/A'}
+                            </span>
+                            <button
+                              onClick={async () => {
+                                if (confirm('Tem certeza que deseja excluir este anexo?')) {
+                                  try {
+                                    // Remover anexo da lista
+                                    const newAttachments = taskAttachments.filter((_, i) => i !== index);
+                                    setTaskAttachments(newAttachments);
+                                    
+                                    // Registrar no histórico do Monde
+                                    await fetch(`/api/monde/tarefas/${selectedTask.id}/historico`, {
+                                      method: 'POST',
+                                      headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+                                      },
+                                      body: JSON.stringify({
+                                        description: `Anexo excluído: ${attachment.name || attachment.filename}`
+                                      })
+                                    });
+                                    
+                                    alert('Anexo excluído com sucesso!');
+                                  } catch (error) {
+                                    console.error('Erro ao excluir anexo:', error);
+                                  }
+                                }
+                              }}
+                              className="text-red-600 hover:text-red-800 p-1"
+                            >
+                              <i className="ri-delete-bin-line"></i>
+                            </button>
                           </div>
                         </div>
                       ))}

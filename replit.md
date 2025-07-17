@@ -47,6 +47,10 @@ Preferred communication style: Simple, everyday language in Portuguese.
 - ✅ Coluna "Concluídas" do Kanban agora puxa tarefas concluídas corretamente
 - ✅ Sistema de filtros otimizado para não disparar requisições desnecessárias
 - ✅ Endpoint de categorias corrigido para usar /api/v2/task_categories com suporte a múltiplos formatos
+- ✅ Sistema de anexos integrado com API do Monde e registro no histórico
+- ✅ CSS das abas corrigido - fundo azul (#6366f1) para abas selecionadas
+- ✅ Funcionalidade de exclusão de anexos implementada com confirmação
+- ✅ Registro automático de upload/exclusão de anexos no histórico da tarefa
 
 ## System Architecture
 

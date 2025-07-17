@@ -2666,7 +2666,7 @@ export default function Dashboard() {
                     <button
                       type="button"
                       onClick={() => document.getElementById('file-upload')?.click()}
-                      className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                      className="flex items-center space-x-2 px-4 py-2 text-white rounded text-sm hover:bg-blue-700 bg-[#949cb0]"
                     >
                       <i className="ri-attachment-line"></i>
                       <span>Anexar</span>

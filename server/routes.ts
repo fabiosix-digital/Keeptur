@@ -1329,41 +1329,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`📎 Buscando anexos para tarefa ${taskId}`);
 
-      // Tentar buscar anexos da API do Monde usando endpoint correto
+      // Tentar múltiplas rotas para buscar anexos da API do Monde
+      const possibleEndpoints = [
+        `https://web.monde.com.br/api/v2/tasks/${taskId}/anexos`,
+        `https://web.monde.com.br/api/v2/tarefas/${taskId}/anexos`,
+        `https://web.monde.com.br/api/v2/tasks/${taskId}/attachments`,
+        `https://web.monde.com.br/api/v2/tasks/${taskId}/relationships/attachments`
+      ];
+
+      for (const endpoint of possibleEndpoints) {
+        try {
+          console.log(`📎 Tentando endpoint: ${endpoint}`);
+          
+          const attachmentResponse = await fetch(endpoint, {
+            headers: {
+              'Authorization': `Bearer ${req.mondeToken}`,
+              'Accept': 'application/vnd.api+json'
+            }
+          });
+
+          if (attachmentResponse.ok) {
+            const attachmentData = await attachmentResponse.json();
+            console.log(`✅ Sucesso no endpoint ${endpoint}! Encontrados ${attachmentData.data?.length || 0} anexos`);
+            console.log(`📎 Resposta completa:`, JSON.stringify(attachmentData, null, 2));
+            
+            // Formatar anexos do Monde
+            const formattedAttachments = (attachmentData.data || []).map(attachment => ({
+              id: attachment.id,
+              name: attachment.attributes?.name || attachment.attributes?.filename || attachment.attributes?.original_name || 'Anexo',
+              filename: attachment.attributes?.filename || attachment.attributes?.name || attachment.attributes?.original_name || 'anexo',
+              size: attachment.attributes?.size || attachment.attributes?.file_size || 0,
+              type: attachment.attributes?.content_type || attachment.attributes?.mime_type || 'application/octet-stream',
+              url: attachment.attributes?.url || attachment.attributes?.download_url || `/api/monde/anexos/${taskId}/${attachment.id}`,
+              created_at: attachment.attributes?.created_at || attachment.attributes?.uploaded_at
+            }));
+
+            console.log(`📎 Anexos formatados do Monde:`, formattedAttachments);
+            
+            return res.json({
+              data: formattedAttachments
+            });
+          } else {
+            console.log(`⚠️ Endpoint ${endpoint} retornou ${attachmentResponse.status}`);
+          }
+        } catch (error) {
+          console.log(`⚠️ Erro no endpoint ${endpoint}:`, error);
+        }
+      }
+
+      // Se nenhum endpoint funcionar, tentar extrair anexos do histórico
+      console.log('📎 Tentando extrair anexos do histórico da tarefa...');
       try {
-        const mondeAttachmentUrl = `https://web.monde.com.br/api/v2/tarefas/${taskId}/anexos`;
-        
-        const attachmentResponse = await fetch(mondeAttachmentUrl, {
+        const historyResponse = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}/task-historics?include=person&page[size]=50&sort=-date-time`, {
           headers: {
             'Authorization': `Bearer ${req.mondeToken}`,
             'Accept': 'application/vnd.api+json'
           }
         });
 
-        if (attachmentResponse.ok) {
-          const attachmentData = await attachmentResponse.json();
-          console.log(`✅ Encontrados ${attachmentData.data?.length || 0} anexos no Monde via endpoint correto`);
-          // Formatar anexos do Monde
-          const formattedAttachments = (attachmentData.data || []).map(attachment => ({
-            id: attachment.id,
-            name: attachment.attributes?.name || attachment.attributes?.filename || attachment.attributes?.original_name || 'Anexo',
-            filename: attachment.attributes?.filename || attachment.attributes?.name || attachment.attributes?.original_name || 'anexo',
-            size: attachment.attributes?.size || attachment.attributes?.file_size || 0,
-            type: attachment.attributes?.content_type || attachment.attributes?.mime_type || 'application/octet-stream',
-            url: attachment.attributes?.url || attachment.attributes?.download_url || `/api/monde/anexos/${taskId}/${attachment.id}`,
-            created_at: attachment.attributes?.created_at || attachment.attributes?.uploaded_at
-          }));
-
-          console.log(`📎 Anexos formatados do Monde:`, formattedAttachments);
+        if (historyResponse.ok) {
+          const historyData = await historyResponse.json();
+          const attachmentsFromHistory = [];
           
-          return res.json({
-            data: formattedAttachments
+          // Extrair anexos do histórico
+          historyData.data?.forEach(entry => {
+            if (entry.attributes?.historic && entry.attributes.historic.includes('Anexo inserido:')) {
+              const filename = entry.attributes.historic.match(/'([^']+)'/)?.[1];
+              if (filename) {
+                attachmentsFromHistory.push({
+                  id: entry.id,
+                  name: filename,
+                  filename: filename,
+                  size: 0,
+                  type: 'application/octet-stream',
+                  url: `/api/monde/anexos/${taskId}/${entry.id}`,
+                  created_at: entry.attributes['date-time']
+                });
+              }
+            }
           });
-        } else {
-          console.log(`⚠️ Endpoint de anexos não disponível no Monde (${attachmentResponse.status})`);
+
+          if (attachmentsFromHistory.length > 0) {
+            console.log(`📎 Encontrados ${attachmentsFromHistory.length} anexos no histórico`);
+            return res.json({
+              data: attachmentsFromHistory
+            });
+          }
         }
       } catch (error) {
-        console.log('⚠️ Erro ao buscar anexos no Monde:', error);
+        console.log('⚠️ Erro ao buscar anexos no histórico:', error);
       }
 
       // Fallback: buscar anexos no banco de dados PostgreSQL

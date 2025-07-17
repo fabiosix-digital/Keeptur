@@ -622,12 +622,10 @@ export default function Dashboard() {
 
       if (response.ok) {
         const data = await response.json();
-        // Filtrar apenas os históricos dessa tarefa específica
-        const filteredHistory = data.data?.filter((entry: any) => {
-          return entry.relationships?.task?.data?.id === taskId;
-        }) || [];
-        console.log('📋 Histórico filtrado para tarefa', taskId, ':', filteredHistory.length, 'entradas');
-        return filteredHistory;
+        // Histórico já vem filtrado pelo servidor
+        const historyData = data.data || [];
+        console.log('📋 Histórico recebido para tarefa', taskId, ':', historyData.length, 'entradas');
+        return historyData;
       } else if (response.status === 401) {
         setShowTokenExpiredModal(true);
       }

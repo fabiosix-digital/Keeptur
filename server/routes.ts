@@ -370,14 +370,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
                                 personData.attributes['company_name'] || 
                                 personData.attributes.companyName || '';
                 
-                // Se não encontrou empresa no cliente, verificar se é pessoa física e buscar empresa associada
-                if (!companyName && personData.attributes.kind === 'individual') {
-                  // Para pessoas físicas, a empresa pode estar em um relacionamento ou campo específico
-                  // Vamos buscar na lista de empresas usando o CNPJ ou outros identificadores
-                  if (personData.attributes.cnpj) {
-                    companyName = 'Empresa (CNPJ: ' + personData.attributes.cnpj + ')';
+                // Se não encontrou empresa no cliente, usar fallback baseado no tipo
+                if (!companyName) {
+                  if (personData.attributes.kind === 'individual') {
+                    // Para pessoas físicas, mostrar o nome da pessoa como "empresa"
+                    companyName = personData.attributes.name || 'Pessoa Física';
                   } else {
-                    companyName = 'Pessoa Física';
+                    companyName = 'Empresa';
                   }
                 }
                 

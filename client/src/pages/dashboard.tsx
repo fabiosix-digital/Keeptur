@@ -46,6 +46,26 @@ export default function Dashboard() {
   const [showTokenExpiredModal, setShowTokenExpiredModal] = useState(false);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [updateText, setUpdateText] = useState("");
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const [taskAttachments, setTaskAttachments] = useState<any[]>([]);
+
+  // Função para carregar anexos da tarefa
+  const loadTaskAttachments = async (taskId: string) => {
+    try {
+      const response = await fetch(`/api/monde/tarefas/${taskId}/anexos`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setTaskAttachments(data.data || []);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar anexos:', error);
+    }
+  };
   
   // Função para obter tarefas do calendário baseada nos dados reais
   const getTasksForCalendar = () => {
@@ -2257,6 +2277,8 @@ export default function Dashboard() {
                   onClick={() => {
                     setShowTaskModal(false);
                     setSelectedTask(null);
+                    setAttachments([]);
+                    setTaskAttachments([]);
                   }}
                   className="theme-toggle p-2 rounded-lg !rounded-button whitespace-nowrap"
                 >
@@ -2266,34 +2288,28 @@ export default function Dashboard() {
             </div>
           </div>
           
-          {/* Abas da Modal - Estilo Monde */}
+          {/* Abas da Modal */}
           <div className="px-4 mb-4">
-            <div className="flex space-x-0 border-b border-gray-300">
+            <div className="flex space-x-1">
               <button 
-                className={`px-4 py-2 text-sm font-medium border-b-2 ${
-                  activeModalTab === "detalhes" 
-                    ? "border-blue-500 text-blue-600" 
-                    : "border-transparent text-gray-600 hover:text-gray-800"
+                className={`tab-button px-4 py-2 rounded-lg text-sm font-medium ${
+                  activeModalTab === "detalhes" ? "active" : ""
                 }`}
                 onClick={() => setActiveModalTab("detalhes")}
               >
                 Detalhes
               </button>
               <button 
-                className={`px-4 py-2 text-sm font-medium border-b-2 ${
-                  activeModalTab === "anexos" 
-                    ? "border-blue-500 text-blue-600" 
-                    : "border-transparent text-gray-600 hover:text-gray-800"
+                className={`tab-button px-4 py-2 rounded-lg text-sm font-medium ${
+                  activeModalTab === "anexos" ? "active" : ""
                 }`}
                 onClick={() => setActiveModalTab("anexos")}
               >
                 Anexos
               </button>
               <button 
-                className={`px-4 py-2 text-sm font-medium border-b-2 ${
-                  activeModalTab === "campos" 
-                    ? "border-blue-500 text-blue-600" 
-                    : "border-transparent text-gray-600 hover:text-gray-800"
+                className={`tab-button px-4 py-2 rounded-lg text-sm font-medium ${
+                  activeModalTab === "campos" ? "active" : ""
                 }`}
                 onClick={() => setActiveModalTab("campos")}
               >
@@ -2631,8 +2647,19 @@ export default function Dashboard() {
               {activeModalTab === "anexos" && (
                 <div className="space-y-4">
                   <div className="flex items-center space-x-4 mb-4">
+                    <input
+                      type="file"
+                      id="file-upload"
+                      className="hidden"
+                      multiple
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files || []);
+                        setAttachments([...attachments, ...files]);
+                      }}
+                    />
                     <button
                       type="button"
+                      onClick={() => document.getElementById('file-upload')?.click()}
                       className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
                     >
                       <i className="ri-attachment-line"></i>
@@ -2640,6 +2667,20 @@ export default function Dashboard() {
                     </button>
                     <button
                       type="button"
+                      onClick={() => {
+                        navigator.clipboard.read().then(clipboardItems => {
+                          for (const clipboardItem of clipboardItems) {
+                            for (const type of clipboardItem.types) {
+                              if (type.startsWith('image/')) {
+                                clipboardItem.getType(type).then(blob => {
+                                  const file = new File([blob], `clipboard-${Date.now()}.png`, { type });
+                                  setAttachments([...attachments, file]);
+                                });
+                              }
+                            }
+                          }
+                        }).catch(err => console.log('Erro ao acessar clipboard:', err));
+                      }}
                       className="flex items-center space-x-2 px-4 py-2 bg-gray-600 text-white rounded text-sm hover:bg-gray-700"
                     >
                       <i className="ri-folder-line"></i>
@@ -2651,22 +2692,110 @@ export default function Dashboard() {
                     </label>
                   </div>
 
+                  {/* Lista de anexos pendentes para upload */}
+                  {attachments.length > 0 && (
+                    <div className="mb-4">
+                      <h4 className="text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                        Arquivos para anexar:
+                      </h4>
+                      <div className="space-y-2">
+                        {attachments.map((file, index) => (
+                          <div key={index} className="flex items-center justify-between p-2 bg-blue-50 rounded">
+                            <div className="flex items-center space-x-2">
+                              <i className="ri-file-line text-blue-600"></i>
+                              <span className="text-sm">{file.name}</span>
+                              <span className="text-xs text-gray-500">({(file.size / 1024).toFixed(1)} KB)</span>
+                            </div>
+                            <button
+                              onClick={() => {
+                                const newAttachments = attachments.filter((_, i) => i !== index);
+                                setAttachments(newAttachments);
+                              }}
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              <i className="ri-close-line"></i>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!selectedTask || attachments.length === 0) return;
+                          
+                          const formData = new FormData();
+                          attachments.forEach(file => {
+                            formData.append('files', file);
+                          });
+                          
+                          try {
+                            const response = await fetch(`/api/monde/tarefas/${selectedTask.id}/anexos`, {
+                              method: 'POST',
+                              headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+                              },
+                              body: formData
+                            });
+                            
+                            if (response.ok) {
+                              const result = await response.json();
+                              setTaskAttachments([...taskAttachments, ...result.data]);
+                              setAttachments([]);
+                            } else {
+                              console.error('Erro ao fazer upload dos anexos');
+                            }
+                          } catch (error) {
+                            console.error('Erro na requisição:', error);
+                          }
+                        }}
+                        className="mt-2 px-4 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+                      >
+                        <i className="ri-upload-line mr-2"></i>
+                        Fazer Upload
+                      </button>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                        Descrição
+                        Nome do Arquivo
                       </label>
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                        Tipo
+                        Tamanho
                       </label>
                     </div>
                   </div>
 
-                  <div className="text-center py-16" style={{ color: "var(--text-secondary)" }}>
-                    &lt;Nada para mostrar.&gt;
-                  </div>
+                  {/* Lista de anexos existentes */}
+                  {taskAttachments.length > 0 ? (
+                    <div className="space-y-2">
+                      {taskAttachments.map((attachment, index) => (
+                        <div key={index} className="grid grid-cols-2 gap-4 p-2 border rounded hover:bg-gray-50">
+                          <div className="flex items-center space-x-2">
+                            <i className="ri-file-line text-blue-600"></i>
+                            <a
+                              href={attachment.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm text-blue-600 hover:underline"
+                            >
+                              {attachment.name || attachment.filename}
+                            </a>
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            {attachment.size ? `${(attachment.size / 1024).toFixed(1)} KB` : 'N/A'}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-16" style={{ color: "var(--text-secondary)" }}>
+                      &lt;Nenhum anexo encontrado.&gt;
+                    </div>
+                  )}
                 </div>
               )}
 

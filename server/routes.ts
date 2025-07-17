@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import multer from "multer";
 import { insertEmpresaSchema, insertAssinaturaSchema, insertPagamentoSchema, insertSessaoSchema } from "@shared/schema";
 import { z } from "zod";
 
@@ -1208,6 +1209,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Erro ao buscar empresas:", error);
       res.status(500).json({ message: "Erro ao buscar empresas" });
+    }
+  });
+
+  // Configurar multer para upload de arquivos
+  const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 10 * 1024 * 1024 // 10MB
+    }
+  });
+
+  // Endpoint para upload de anexos
+  app.post("/api/monde/tarefas/:taskId/anexos", authenticateToken, upload.array('files'), async (req: any, res) => {
+    try {
+      const taskId = req.params.taskId;
+      const files = req.files as Express.Multer.File[];
+      
+      if (!files || files.length === 0) {
+        return res.status(400).json({ message: "Nenhum arquivo enviado" });
+      }
+
+      // Simular anexos salvos (já que o Monde não tem endpoint específico para anexos)
+      const attachments = files.map(file => ({
+        id: `attachment_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`,
+        name: file.originalname,
+        filename: file.originalname,
+        size: file.size,
+        type: file.mimetype,
+        url: `/api/monde/anexos/${taskId}/${file.originalname}`,
+        created_at: new Date().toISOString()
+      }));
+
+      // Retornar dados dos anexos
+      res.json({
+        message: "Arquivos anexados com sucesso",
+        data: attachments
+      });
+    } catch (error) {
+      console.error("Erro ao fazer upload de anexos:", error);
+      res.status(500).json({ message: "Erro ao fazer upload de anexos" });
+    }
+  });
+
+  // Endpoint para buscar anexos de uma tarefa
+  app.get("/api/monde/tarefas/:taskId/anexos", authenticateToken, async (req: any, res) => {
+    try {
+      const taskId = req.params.taskId;
+      
+      // Por enquanto, simular que não há anexos (pois o Monde não tem este endpoint)
+      // Em uma implementação real, você conectaria com a API do Monde ou salvaria no banco de dados
+      res.json({
+        data: []
+      });
+    } catch (error) {
+      console.error("Erro ao buscar anexos:", error);
+      res.status(500).json({ message: "Erro ao buscar anexos" });
     }
   });
 

@@ -250,7 +250,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log('Filtros recebidos:', req.query);
       
-      // Incluir relacionamentos essenciais
+      // Incluir relacionamentos essenciais - vamos usar dados do servidor para filtrar
       let mondeUrl = `https://web.monde.com.br/api/v2/tasks?include=assignee,person,category,author`;
       
       // Adicionar filtros da query string

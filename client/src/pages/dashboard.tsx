@@ -84,10 +84,10 @@ export default function Dashboard() {
         const realStats = calculateTaskStats(tasks);
 
         setAllTasks(tasks);
-        setTasks(tasks);
+        
+        // Aplicar filtro inicial será feito pelo useEffect do taskFilter
         setClients([]); // Não carregar clientes na inicialização
         setCategories(categoriesData?.data || []);
-        setStats(realStats);
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
       } finally {
@@ -100,12 +100,16 @@ export default function Dashboard() {
 
   // Aplicar filtros dinamicamente quando taskFilter mudar
   useEffect(() => {
-    if (allTasks.length > 0) {
-      const filtered = getFilteredTasks();
-      setTasks(filtered);
-      setStats(calculateTaskStats(filtered));
-    }
-  }, [taskFilter, allTasks]);
+    const applyFilter = async () => {
+      console.log('📋 Aplicando filtro:', taskFilter);
+      const filteredTasks = await loadTasksWithFilter(taskFilter);
+      setTasks(filteredTasks);
+      setStats(calculateTaskStats(filteredTasks));
+      console.log('✅ Filtros aplicados. Tarefas exibidas:', filteredTasks.length);
+    };
+
+    applyFilter();
+  }, [taskFilter]);
 
   // Função para carregar TODAS as tarefas da empresa (uma vez só)
   const loadAllTasks = async () => {
@@ -121,6 +125,7 @@ export default function Dashboard() {
 
       // Carregar todas as tarefas da empresa
       const url = `/api/monde/tarefas?all=true`;
+      console.log('🔄 Carregando todas as tarefas da empresa...');
 
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
@@ -134,7 +139,9 @@ export default function Dashboard() {
         throw new Error("Erro ao carregar tarefas");
       }
 
-      return await response.json();
+      const data = await response.json();
+      console.log('✅ Tarefas carregadas:', data.data?.length || 0);
+      return data;
     } catch (error) {
       console.error("Erro ao carregar tarefas:", error);
       return { data: [] };
@@ -208,27 +215,43 @@ export default function Dashboard() {
     };
   };
 
-  // Filtrar tarefas dinamicamente sem recarregar da API
-  const getFilteredTasks = () => {
-    if (!allTasks.length) return [];
-    
-    const userEmail = user?.email || '';
-    
-    // Aplicar filtro principal
-    let filteredTasks = allTasks;
-    
-    if (taskFilter === 'assigned_to_me') {
-      filteredTasks = allTasks.filter((task: any) => 
-        task.relationships?.assignee?.data?.attributes?.email === userEmail
-      );
-    } else if (taskFilter === 'created_by_me') {
-      filteredTasks = allTasks.filter((task: any) => 
-        task.relationships?.author?.data?.attributes?.email === userEmail
-      );
+  // Carregar tarefas com filtros específicos da API
+  const loadTasksWithFilter = async (filter: string) => {
+    try {
+      const token = localStorage.getItem("keeptur-token");
+      if (!token) return [];
+
+      let url = `/api/monde/tarefas`;
+      
+      // Aplicar filtros específicos
+      if (filter === 'assigned_to_me') {
+        url += `?assignee=me`;
+      } else if (filter === 'created_by_me') {
+        url += `?filter[created_by]=me`;
+      } else {
+        url += `?all=true`;
+      }
+
+      console.log('🔄 Carregando tarefas com filtro:', filter, 'URL:', url);
+
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          setShowTokenExpiredModal(true);
+        }
+        throw new Error("Erro ao carregar tarefas");
+      }
+
+      const data = await response.json();
+      console.log('✅ Tarefas carregadas com filtro:', data.data?.length || 0);
+      return data.data || [];
+    } catch (error) {
+      console.error("Erro ao carregar tarefas:", error);
+      return [];
     }
-    // Para 'all', usar todas as tarefas
-    
-    return filteredTasks;
   };
 
   // Recarregar tarefas quando necessário (mantém as existentes)

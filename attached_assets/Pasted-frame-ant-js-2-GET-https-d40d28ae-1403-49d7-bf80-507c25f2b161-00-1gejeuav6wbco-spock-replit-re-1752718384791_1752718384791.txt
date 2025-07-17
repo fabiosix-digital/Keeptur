@@ -1,0 +1,38 @@
+frame_ant.js:2 
+ GET https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.…responsible_id=e6558bc8-de7b-4d03-92a0-0095d3572f89&start_date=28520-01-01 400 (Bad Request)
+Console.js:61 Erro ao carregar tarefas: Error: Erro ao carregar tarefas
+    at loadTasksWithFilter (dashboard.tsx:283:15)
+    at async reloadTasks (dashboard.tsx:297:27)
+frame_ant.js:2 
+ GET https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.…esponsible_id=e6558bc8-de7b-4d03-92a0-0095d3572f89&start_date=275760-01-01 400 (Bad Request)
+Console.js:61 Erro ao carregar tarefas: Error: Erro ao carregar tarefas
+    at loadTasksWithFilter (dashboard.tsx:283:15)
+    at async reloadTasks (dashboard.tsx:297:27)
+frame_ant.js:2 
+ GET https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.…monde/tarefas?all=true&responsible_id=e6558bc8-de7b-4d03-92a0-0095d3572f89 400 (Bad Request)
+Console.js:61 Erro ao carregar tarefas: Error: Erro ao carregar tarefas
+    at loadTasksWithFilter (dashboard.tsx:283:15)
+    at async reloadTasks (dashboard.tsx:297:27)
+frame_ant.js:2 
+ GET https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.…&responsible_id=e6558bc8-de7b-4d03-92a0-0095d3572f89&start_date=0020-01-01 400 (Bad Request)
+Console.js:61 Erro ao carregar tarefas: Error: Erro ao carregar tarefas
+    at loadTasksWithFilter (dashboard.tsx:283:15)
+    at async reloadTasks (dashboard.tsx:297:27)
+frame_ant.js:2 
+ GET https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.…&responsible_id=e6558bc8-de7b-4d03-92a0-0095d3572f89&start_date=0002-01-01 400 (Bad Request)
+Console.js:61 Erro ao carregar tarefas: Error: Erro ao carregar tarefas
+    at loadTasksWithFilter (dashboard.tsx:283:15)
+    at async reloadTasks (dashboard.tsx:297:27)
+frame_ant.js:2 
+ GET https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.…&responsible_id=e6558bc8-de7b-4d03-92a0-0095d3572f89&start_date=0202-01-01 400 (Bad Request)
+Console.js:61 Erro ao carregar tarefas: Error: Erro ao carregar tarefas
+    at loadTasksWithFilter (dashboard.tsx:283:15)
+    at async reloadTasks (dashboard.tsx:297:27)
+frame_ant.js:2 
+ GET https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.…&responsible_id=e6558bc8-de7b-4d03-92a0-0095d3572f89&start_date=2025-01-01 400 (Bad Request)
+Console.js:61 Erro ao carregar tarefas: Error: Erro ao carregar tarefas
+    at loadTasksWithFilter (dashboard.tsx:283:15)
+    at async reloadTasks (dashboard.tsx:297:27)
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.
+﻿
+

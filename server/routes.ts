@@ -300,15 +300,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('✅ Filtro categoria aplicado:', req.query.category_id);
       }
       
-      // 👨‍💼 Filtro de responsável
+      // 👨‍💼 Filtro de responsável (usar assignee_id ao invés de responsible_id)
       if (req.query.responsible_id) {
-        queryParams.append('filter[responsible_id]', req.query.responsible_id);
+        queryParams.append('filter[assignee_id]', req.query.responsible_id);
         console.log('✅ Filtro responsável aplicado:', req.query.responsible_id);
       }
       
-      // 🧾 Filtro de cliente
+      // 🧾 Filtro de cliente (usar person_id ao invés de client_id)
       if (req.query.client_id) {
-        queryParams.append('filter[client_id]', req.query.client_id);
+        queryParams.append('filter[person_id]', req.query.client_id);
         console.log('✅ Filtro cliente aplicado:', req.query.client_id);
       }
       
@@ -836,9 +836,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tasks = data.data || [];
       const included = data.included || [];
       
-      // Buscar usuários dos includes
+      // Buscar usuários dos includes (pessoas sem CNPJ são usuários)
       included.forEach((item: any) => {
-        if (item.type === 'people' && item.attributes?.person_type === 'user') {
+        if (item.type === 'people' && !item.attributes?.cnpj) {
           usersSet.add(JSON.stringify({
             id: item.id,
             name: item.attributes.name,
@@ -927,9 +927,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tasks = data.data || [];
       const included = data.included || [];
       
-      // Buscar empresas dos includes
+      // Buscar empresas dos includes (pessoas com CNPJ são empresas)
       included.forEach((item: any) => {
-        if (item.type === 'people' && item.attributes?.person_type === 'company') {
+        if (item.type === 'people' && item.attributes?.cnpj) {
           companiesSet.add(JSON.stringify({
             id: item.id,
             name: item.attributes.name,

@@ -1,0 +1,86 @@
+2frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.Understand this error
+17Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.Understand this error
+68frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.Understand this error
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.
+e @ frame_ant.js:2
+s @ frame_ant.js:2Understand this error
+19frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.Understand this error
+d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/monde/tarefas?all=true&client_id=247471a8-5289-4079-8db5-8753df826eb3&start_date=2025-01-01&end_date=2025-01-30:1  Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this error
+Console.js:61 Erro ao carregar tarefas: Error: Erro ao carregar tarefas
+    at loadTasksWithFilter (dashboard.tsx:283:15)
+    at async reloadTasks (dashboard.tsx:297:27)
+Mt.forEach.n.<computed> @ Console.js:61Understand this error
+d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/monde/tarefas?all=true&client_id=d3d66cd9-fcb8-4106-acc5-3d867f1b11f3&start_date=2025-01-01&end_date=2025-01-30:1  Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this error
+Console.js:61 Erro ao carregar tarefas: Error: Erro ao carregar tarefas
+    at loadTasksWithFilter (dashboard.tsx:283:15)
+    at async reloadTasks (dashboard.tsx:297:27)
+Mt.forEach.n.<computed> @ Console.js:61Understand this error
+d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/monde/tarefas?all=true&client_id=fb54b869-abef-4e61-9ee2-0a43d8796f1b&start_date=2025-01-01&end_date=2025-01-30:1  Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this error
+Console.js:61 Erro ao carregar tarefas: Error: Erro ao carregar tarefas
+    at loadTasksWithFilter (dashboard.tsx:283:15)
+    at async reloadTasks (dashboard.tsx:297:27)
+Mt.forEach.n.<computed> @ Console.js:61Understand this error
+d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/monde/tarefas?all=true&client_id=247471a8-5289-4079-8db5-8753df826eb3&end_date=2025-01-30:1  Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this error
+Console.js:61 Erro ao carregar tarefas: Error: Erro ao carregar tarefas
+    at loadTasksWithFilter (dashboard.tsx:283:15)
+    at async reloadTasks (dashboard.tsx:297:27)
+Mt.forEach.n.<computed> @ Console.js:61Understand this error
+d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/monde/tarefas?all=true&client_id=d3d66cd9-fcb8-4106-acc5-3d867f1b11f3&end_date=2025-01-30:1  Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this error
+Console.js:61 Erro ao carregar tarefas: Error: Erro ao carregar tarefas
+    at loadTasksWithFilter (dashboard.tsx:283:15)
+    at async reloadTasks (dashboard.tsx:297:27)
+Mt.forEach.n.<computed> @ Console.js:61Understand this error
+d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/monde/tarefas?all=true&client_id=f5248c57-3753-409c-85a9-9dd932557c7d:1  Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this error
+Console.js:61 Erro ao carregar tarefas: Error: Erro ao carregar tarefas
+    at loadTasksWithFilter (dashboard.tsx:283:15)
+    at async reloadTasks (dashboard.tsx:297:27)
+Mt.forEach.n.<computed> @ Console.js:61Understand this error
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Afetch%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3Abad835a6&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=355ac227-a8df-48ba-bd4b-8037e2c6e1cb:1  Failed to load resource: net::ERR_CONNECTION_CLOSEDUnderstand this error
+frame_ant.js:2  Uncaught (in promise) TypeError: Failed to fetch
+    at window.fetch (frame_ant.js:2:12357)
+    at _app-45990e8db10dbf0e.js:38:9046
+    at a (_app-45990e8db10dbf0e.js:26:165254)
+    at m (_app-45990e8db10dbf0e.js:26:163626)
+    at g (_app-45990e8db10dbf0e.js:26:163113)
+    at Object.send (_app-45990e8db10dbf0e.js:26:165514)
+    at e.flush (_app-45990e8db10dbf0e.js:11:73719)
+    at _app-45990e8db10dbf0e.js:11:73330
+    at _app-45990e8db10dbf0e.js:11:84748
+    at Array.forEach (<anonymous>)
+    at e.notify (_app-45990e8db10dbf0e.js:11:84721)
+    at f (_app-45990e8db10dbf0e.js:11:19878)
+    at Object.notifyBeforeAddMessage (_app-45990e8db10dbf0e.js:11:20059)
+    at e.push (_app-45990e8db10dbf0e.js:11:74262)
+    at e.addOrUpdate (_app-45990e8db10dbf0e.js:11:74038)
+    at e.add (_app-45990e8db10dbf0e.js:11:73381)
+    at Object.add (_app-45990e8db10dbf0e.js:11:168270)
+    at _app-45990e8db10dbf0e.js:11:176163
+    at _app-45990e8db10dbf0e.js:14:433706
+    at Array.forEach (<anonymous>)
+    at e.notify (_app-45990e8db10dbf0e.js:14:433679)
+    at _app-45990e8db10dbf0e.js:11:175945
+    at _app-45990e8db10dbf0e.js:14:433706
+    at Array.forEach (<anonymous>)
+    at e.notify (_app-45990e8db10dbf0e.js:14:433679)
+    at handleLog (_app-45990e8db10dbf0e.js:11:175152)
+    at e.handleLogStrategy (_app-45990e8db10dbf0e.js:11:171023)
+    at e.log (_app-45990e8db10dbf0e.js:11:167051)
+    at d (_app-45990e8db10dbf0e.js:6:191515)
+    at e.<anonymous> (_app-45990e8db10dbf0e.js:6:191463)
+    at r.value [as log] (_app-45990e8db10dbf0e.js:6:191409)
+    at e.info (_app-45990e8db10dbf0e.js:11:167213)
+    at Object.info (_app-45990e8db10dbf0e.js:11:177419)
+    at e.ep [as log] (2240-6bbeedda1d6e95fe.js:1:77338)
+    at 2240-6bbeedda1d6e95fe.js:1:25155
+    at u.dispatchEvent (9119-bf1acebf592e6002.js:1:79553)
+    at d.updateSession (9119-bf1acebf592e6002.js:1:80685)
+    at d.createUnconnectedSession (9119-bf1acebf592e6002.js:1:9080)
+    at d.connect (9119-bf1acebf592e6002.js:1:11759)
+    at d.tryReconnecting (9119-bf1acebf592e6002.js:1:8624)
+    at d.onConnClosed (9119-bf1acebf592e6002.js:1:9247)
+    at onConnectionClosed (9119-bf1acebf592e6002.js:1:11331)
+    at ws.onclose (9119-bf1acebf592e6002.js:1:14255)Understand this error
+d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/monde/tarefas?all=true&client_id=247471a8-5289-4079-8db5-8753df826eb3:1  Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this error
+Console.js:61 Erro ao carregar tarefas: Error: Erro ao carregar tarefas
+    at loadTasksWithFilter (dashboard.tsx:283:15)
+    at async reloadTasks (dashboard.tsx:297:27)

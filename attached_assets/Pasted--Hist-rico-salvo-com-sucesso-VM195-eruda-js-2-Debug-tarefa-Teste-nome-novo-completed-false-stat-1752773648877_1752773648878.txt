@@ -1,0 +1,139 @@
+✅ Histórico salvo com sucesso
+VM195 eruda.js:2 Debug tarefa: Teste nome novo {completed: false, status: undefined, deleted: undefined, is_deleted: undefined, due: '2025-07-16T18:54:39.491-03:00'}
+VM283 eruda.js:2 [Violation] Added non-passive event listener to a scroll-blocking 'wheel' event. Consider marking event handler as 'passive' to make the page more responsive. See https://www.chromestatus.com/feature/5745543795965952
+add @ VM283 eruda.js:2
+(anônimo) @ VM283 eruda.js:2
+t @ VM283 eruda.js:2
+(anônimo) @ VM283 eruda.js:2
+on @ VM283 eruda.js:2
+value @ VM283 eruda.js:2
+t @ VM283 eruda.js:2
+value @ VM283 eruda.js:2
+t @ VM283 eruda.js:2
+_initDevTools @ VM283 eruda.js:2
+init @ VM283 eruda.js:2
+(anônimo) @ VM284 injected.js:2
+(anônimo) @ VM284 injected.js:156
+VM283 eruda.js:2 [vite] connecting...
+VM283 eruda.js:2 [vite] connected.
+VM283 eruda.js:2 🔄 Carregando todas as tarefas da empresa...
+VM283 eruda.js:2 📋 Aplicando filtro: assigned_to_me
+VM283 eruda.js:2 ✅ Filtros aplicados. Tarefas exibidas: 0
+VM283 eruda.js:2 📋 Aplicando filtro: assigned_to_me
+VM283 eruda.js:2 ✅ Filtros aplicados. Tarefas exibidas: 0
+workspace_iframe.html:1 Unrecognized feature: 'ambient-light-sensor'.Entenda o aviso
+workspace_iframe.html:1 Unrecognized feature: 'battery'.Entenda o aviso
+workspace_iframe.html:1 Unrecognized feature: 'execution-while-not-rendered'.Entenda o aviso
+workspace_iframe.html:1 Unrecognized feature: 'execution-while-out-of-viewport'.Entenda o aviso
+workspace_iframe.html:1 Unrecognized feature: 'layout-animations'.Entenda o aviso
+workspace_iframe.html:1 Unrecognized feature: 'legacy-image-formats'.Entenda o aviso
+workspace_iframe.html:1 Unrecognized feature: 'navigation-override'.Entenda o aviso
+workspace_iframe.html:1 Unrecognized feature: 'oversized-images'.Entenda o aviso
+workspace_iframe.html:1 Unrecognized feature: 'publickey-credentials'.Entenda o aviso
+workspace_iframe.html:1 Unrecognized feature: 'speaker-selection'.Entenda o aviso
+workspace_iframe.html:1 Unrecognized feature: 'unoptimized-images'.Entenda o aviso
+workspace_iframe.html:1 Unrecognized feature: 'unsized-media'.Entenda o aviso
+workspace_iframe.html:1 Allow attribute will take precedence over 'allowfullscreen'.Entenda o aviso
+workspace_iframe.html:1 Allow attribute will take precedence over 'allowpaymentrequest'.Entenda o aviso
+VM283 eruda.js:2 ✅ Tarefas carregadas: 1
+VM283 eruda.js:2 🗑️ Carregando tarefas excluídas...
+VM283 eruda.js:2 ✅ Tarefas excluídas carregadas: 32
+VM283 eruda.js:2 📊 Total de tarefas combinadas: 32 (ativas: 1 + excluídas: 32 )
+VM283 eruda.js:2 📋 Categorias carregadas: 10
+VM283 eruda.js:2 📋 Primeira categoria: {id: 'Venda - Orçamento', type: 'task-categories', attributes: {…}}
+VM283 eruda.js:2 📋 Usuários carregados: 14
+VM283 eruda.js:2 📋 Pessoas/clientes carregadas: 50
+VM283 eruda.js:2 📋 Aplicando filtro: assigned_to_me
+VM283 eruda.js:2 ✅ Filtros aplicados. Tarefas exibidas: 1
+VM283 eruda.js:2 Debug tarefa: Teste nome novo {completed: false, status: undefined, deleted: undefined, is_deleted: undefined, due: '2025-07-16T18:54:39.491-03:00'}
+VM283 eruda.js:2 Debug tarefa: Teste nome novo {completed: false, status: undefined, deleted: undefined, is_deleted: undefined, due: '2025-07-16T18:54:39.491-03:00'}
+VM283 eruda.js:2 Debug tarefa: Teste nome novo {completed: false, status: undefined, deleted: undefined, is_deleted: undefined, due: '2025-07-16T18:54:39.491-03:00'}
+VM283 eruda.js:2 🔍 Debugging pessoa: 516bf45c-0747-4b4f-9a55-7a40a883b035
+VM283 eruda.js:2 🔍 Tarefa completa: {id: 'e77068cc-3a6a-4bb8-aa1a-370a77869bd3', type: 'tasks', links: {…}, attributes: {…}, relationships: {…}, …}
+VM283 eruda.js:2 🔍 Resultado: Cliente não encontrado
+VM283 eruda.js:2 Debug tarefa: Teste nome novo {completed: false, status: undefined, deleted: undefined, is_deleted: undefined, due: '2025-07-16T18:54:39.491-03:00'}
+DevTools.js:316 [Violation] Added non-passive event listener to a scroll-blocking 'wheel' event. Consider marking event handler as 'passive' to make the page more responsive. See https://www.chromestatus.com/feature/5745543795965952
+add @ delegate.js:81
+(anônimo) @ $event.js:17
+t @ each.js:8
+(anônimo) @ $event.js:16
+on @ $.js:42
+value @ index.js:144
+t @ index.js:17
+value @ DevTools.js:316
+t @ DevTools.js:58
+_initDevTools @ eruda.js:244
+init @ eruda.js:51
+(anônimo) @ injected.js:2
+(anônimo) @ injected.js:156
+Console.js:61 [vite] connecting...
+Console.js:61 [vite] connected.
+Console.js:61 🔄 Carregando todas as tarefas da empresa...
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 0
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 0
+Console.js:61 ✅ Tarefas carregadas: 1
+Console.js:61 🗑️ Carregando tarefas excluídas...
+Console.js:61 ✅ Tarefas excluídas carregadas: 32
+Console.js:61 📊 Total de tarefas combinadas: 32 (ativas: 1 + excluídas: 32 )
+Console.js:61 📋 Categorias carregadas: 10
+Console.js:61 📋 Primeira categoria: {id: 'Venda - Orçamento', type: 'task-categories', attributes: {…}}
+Console.js:61 📋 Usuários carregados: 14
+Console.js:61 📋 Pessoas/clientes carregadas: 50
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 1
+Console.js:61 Debug tarefa: Teste nome novo {completed: false, status: undefined, deleted: undefined, is_deleted: undefined, due: '2025-07-16T18:54:39.491-03:00'}
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.
+e @ frame_ant.js:2
+s @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+s @ frame_ant.js:2
+window.fetch @ frame_ant.js:2
+(anônimo) @ _app-c8f6cc98a14c1088.js:38
+(anônimo) @ _app-c8f6cc98a14c1088.js:25
+e @ _app-c8f6cc98a14c1088.js:14
+t.subscribe @ _app-c8f6cc98a14c1088.js:14
+e.consumeQueue @ _app-c8f6cc98a14c1088.js:25
+(anônimo) @ _app-c8f6cc98a14c1088.js:25
+n @ _app-c8f6cc98a14c1088.js:38
+setTimeout
+(anônimo) @ _app-c8f6cc98a14c1088.js:38
+e.scheduleQueueConsumption @ _app-c8f6cc98a14c1088.js:25
+(anônimo) @ _app-c8f6cc98a14c1088.js:25
+e @ _app-c8f6cc98a14c1088.js:14
+t.subscribe @ _app-c8f6cc98a14c1088.js:14
+(anônimo) @ _app-c8f6cc98a14c1088.js:25
+e @ _app-c8f6cc98a14c1088.js:14
+t.subscribe @ _app-c8f6cc98a14c1088.js:14
+e.try @ _app-c8f6cc98a14c1088.js:25
+e.start @ _app-c8f6cc98a14c1088.js:25
+t.request @ _app-c8f6cc98a14c1088.js:25
+(anônimo) @ _app-c8f6cc98a14c1088.js:14
+(anônimo) @ _app-c8f6cc98a14c1088.js:14
+(anônimo) @ _app-c8f6cc98a14c1088.js:25
+(anônimo) @ _app-c8f6cc98a14c1088.js:14
+e.execute @ _app-c8f6cc98a14c1088.js:14
+e.getObservableFromLink @ _app-c8f6cc98a14c1088.js:11
+(anônimo) @ _app-c8f6cc98a14c1088.js:11
+(anônimo) @ _app-c8f6cc98a14c1088.js:11
+(anônimo) @ _app-c8f6cc98a14c1088.js:11
+(anônimo) @ _app-c8f6cc98a14c1088.js:11
+s @ _app-c8f6cc98a14c1088.js:11
+e.mutate @ _app-c8f6cc98a14c1088.js:11
+e.mutate @ _app-c8f6cc98a14c1088.js:11
+(anônimo) @ _app-c8f6cc98a14c1088.js:14
+(anônimo) @ _app-c8f6cc98a14c1088.js:40
+(anônimo) @ main-665079992d3a61d9.js:1
+n @ main-665079992d3a61d9.js:1
+u @ main-665079992d3a61d9.js:1
+(anônimo) @ main-665079992d3a61d9.js:1
+(anônimo) @ main-665079992d3a61d9.js:1
+n @ _app-c8f6cc98a14c1088.js:38Entenda o erro

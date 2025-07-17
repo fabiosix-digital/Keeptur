@@ -97,18 +97,24 @@ export default function Dashboard() {
   const getPersonName = (personId: string) => {
     if (!personId) return 'Cliente não encontrado';
     
-    // Buscar primeiro nos clientes carregados
-    const client = clients.find((client: any) => client.id === personId);
+    console.log('🔍 Buscando pessoa com ID:', personId);
+    console.log('🔍 Lista de clientes disponíveis:', clients.map(c => ({ id: c.id, name: c.attributes?.name })));
+    
+    // Buscar primeiro nos clientes carregados (normalizar IDs)
+    const client = clients.find((client: any) => client.id?.toString() === personId?.toString());
     if (client) {
+      console.log('✅ Cliente encontrado:', client.attributes?.name);
       return client.attributes?.name || client.attributes?.['company-name'] || client.name || 'Cliente não encontrado';
     }
     
-    // Buscar nos usuários carregados
-    const user = users.find((user: any) => user.id === personId);
+    // Buscar nos usuários carregados (normalizar IDs)
+    const user = users.find((user: any) => user.id?.toString() === personId?.toString());
     if (user) {
+      console.log('✅ Usuário encontrado:', user.attributes?.name);
       return user.attributes?.name || user.name || 'Cliente não encontrado';
     }
     
+    console.log('❌ Pessoa não encontrada em nenhuma lista');
     return 'Cliente não encontrado';
   };
 
@@ -116,14 +122,14 @@ export default function Dashboard() {
   const getPersonEmail = (personId: string) => {
     if (!personId) return '';
     
-    // Buscar primeiro nos clientes carregados
-    const client = clients.find((client: any) => client.id === personId);
+    // Buscar primeiro nos clientes carregados (normalizar IDs)
+    const client = clients.find((client: any) => client.id?.toString() === personId?.toString());
     if (client) {
       return client.attributes?.email || client.email || '';
     }
     
-    // Buscar nos usuários carregados
-    const user = users.find((user: any) => user.id === personId);
+    // Buscar nos usuários carregados (normalizar IDs)
+    const user = users.find((user: any) => user.id?.toString() === personId?.toString());
     if (user) {
       return user.attributes?.email || '';
     }
@@ -135,14 +141,14 @@ export default function Dashboard() {
   const getPersonPhone = (personId: string) => {
     if (!personId) return '';
     
-    // Buscar primeiro nos clientes carregados
-    const client = clients.find((client: any) => client.id === personId);
+    // Buscar primeiro nos clientes carregados (normalizar IDs)
+    const client = clients.find((client: any) => client.id?.toString() === personId?.toString());
     if (client) {
       return client.attributes?.phone || client.attributes?.['business-phone'] || client.phone || '';
     }
     
-    // Buscar nos usuários carregados
-    const user = users.find((user: any) => user.id === personId);
+    // Buscar nos usuários carregados (normalizar IDs)
+    const user = users.find((user: any) => user.id?.toString() === personId?.toString());
     if (user) {
       return user.attributes?.phone || user.attributes?.['business-phone'] || '';
     }
@@ -154,14 +160,14 @@ export default function Dashboard() {
   const getPersonMobile = (personId: string) => {
     if (!personId) return '';
     
-    // Buscar primeiro nos clientes carregados
-    const client = clients.find((client: any) => client.id === personId);
+    // Buscar primeiro nos clientes carregados (normalizar IDs)
+    const client = clients.find((client: any) => client.id?.toString() === personId?.toString());
     if (client) {
       return client.attributes?.['mobile-phone'] || client.attributes?.mobile || client.mobile || '';
     }
     
-    // Buscar nos usuários carregados
-    const user = users.find((user: any) => user.id === personId);
+    // Buscar nos usuários carregados (normalizar IDs)
+    const user = users.find((user: any) => user.id?.toString() === personId?.toString());
     if (user) {
       return user.attributes?.['mobile-phone'] || user.attributes?.mobile || '';
     }
@@ -175,14 +181,14 @@ export default function Dashboard() {
   const getPersonCompany = (personId: string) => {
     if (!personId) return 'Sem empresa';
     
-    // Buscar primeiro nos clientes carregados
-    const client = clients.find((client: any) => client.id === personId);
+    // Buscar primeiro nos clientes carregados (normalizar IDs)
+    const client = clients.find((client: any) => client.id?.toString() === personId?.toString());
     if (client) {
       return client.attributes?.['company-name'] || client.attributes?.company || client.company || 'Sem empresa';
     }
     
-    // Buscar nos usuários carregados
-    const user = users.find((user: any) => user.id === personId);
+    // Buscar nos usuários carregados (normalizar IDs)
+    const user = users.find((user: any) => user.id?.toString() === personId?.toString());
     if (user) {
       return user.attributes?.['company-name'] || user.attributes?.company || 'Sem empresa';
     }
@@ -2305,6 +2311,8 @@ export default function Dashboard() {
               };
               
               try {
+                console.log('💾 Salvando tarefa com dados:', taskData);
+                
                 const response = await fetch(`/api/monde/tarefas/${selectedTask.id}`, {
                   method: 'PUT',
                   headers: {
@@ -2314,15 +2322,48 @@ export default function Dashboard() {
                   body: JSON.stringify(taskData)
                 });
                 
+                const result = await response.json();
+                console.log('📋 Resposta da API:', result);
+                
                 if (response.ok) {
+                  console.log('✅ Tarefa salva com sucesso');
+                  
+                  // Tentar salvar histórico se houver
+                  if (newHistoryText?.trim()) {
+                    try {
+                      const historyResponse = await fetch(`/api/monde/tarefas/${selectedTask.id}/historico`, {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+                        },
+                        body: JSON.stringify({
+                          description: newHistoryText
+                        })
+                      });
+                      
+                      if (historyResponse.ok) {
+                        console.log('✅ Histórico salvo com sucesso');
+                      } else {
+                        console.warn('⚠️ Erro ao salvar histórico, mas tarefa foi salva');
+                      }
+                    } catch (historyError) {
+                      console.warn('⚠️ Erro ao salvar histórico:', historyError);
+                    }
+                  }
+                  
+                  // Fechar modal e recarregar dados
                   setShowTaskModal(false);
                   setSelectedTask(null);
+                  setNewHistoryText('');
                   window.location.reload();
                 } else {
-                  console.error('Erro ao salvar tarefa');
+                  console.error('❌ Erro ao salvar tarefa:', result);
+                  alert('Erro ao salvar tarefa. Verifique os dados e tente novamente.');
                 }
               } catch (error) {
-                console.error('Erro na requisição:', error);
+                console.error('❌ Erro na requisição:', error);
+                alert('Erro de conexão ao salvar tarefa.');
               }
             }}>
               

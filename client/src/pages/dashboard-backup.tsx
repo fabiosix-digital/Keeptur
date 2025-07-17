@@ -1,1 +1,0 @@
-// Backup do dashboard antes da correção - linha 1640 em diante está corrompida

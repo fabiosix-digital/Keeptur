@@ -8,7 +8,7 @@ import logoFull from "@assets/LOGO Lilas_1752695672079.png";
 import logoIcon from "@assets/ico Lilas_1752695703171.png";
 import "../modal.css";
 
-function Dashboard() {
+export default function Dashboard() {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -543,22 +543,26 @@ function Dashboard() {
       case "A Fazer":
         // Tarefas não concluídas e sem status específico
         return filteredTasks.filter(
-          (task: any) => !task.attributes.completed && !task.attributes.archived
+          (task: any) =>
+            !task.attributes.completed &&
+            (!task.attributes.status || task.attributes.status === "pending"),
         );
       case "Em Andamento":
-        // Tarefas em andamento (não concluídas, mas com algum progresso)
+        // Tarefas com status in_progress
         return filteredTasks.filter(
-          (task: any) => !task.attributes.completed && task.attributes.started_at
+          (task: any) =>
+            !task.attributes.completed &&
+            task.attributes.status === "in_progress",
         );
       case "Concluído":
-        // Tarefas concluídas
+        // Tarefas marcadas como concluídas
         return filteredTasks.filter(
-          (task: any) => task.attributes.completed
+          (task: any) => task.attributes.completed === true,
         );
-      case "Arquivado":
-        // Tarefas arquivadas
+      case "Cancelado":
+        // Tarefas com status cancelled
         return filteredTasks.filter(
-          (task: any) => task.attributes.archived
+          (task: any) => task.attributes.status === "cancelled",
         );
       default:
         return [];
@@ -1190,7 +1194,7 @@ function Dashboard() {
                       A Fazer
                     </h3>
                     <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
-                      {getTasksByStatus("A Fazer").length}
+                      8
                     </span>
                   </div>
                   <div
@@ -1198,61 +1202,86 @@ function Dashboard() {
                     onDrop={(e) => handleDrop(e, "A Fazer")}
                     onDragOver={(e) => e.preventDefault()}
                   >
-                    {getTasksByStatus("A Fazer").map((task: any) => (
-                      <div
-                        key={task.id}
-                        className="kanban-card rounded-lg p-4 cursor-move"
-                        draggable={true}
-                        onDragStart={(e) => handleDragStart(e, task.id, "A Fazer")}
-                      >
-                        <div className="flex items-start justify-between mb-2">
-                          <h4
-                            className="font-medium text-sm"
-                            style={{ color: "var(--text-primary)" }}
-                          >
-                            {task.attributes.title}
-                          </h4>
-                          <span className={`priority-badge-${getPriorityClass(task)} px-2 py-1 rounded-full text-xs font-medium`}>
-                            {getPriorityLabel(task)}
-                          </span>
-                        </div>
-                        <p
-                          className="text-xs mb-3"
-                          style={{ color: "var(--text-tertiary)" }}
+                    <div
+                      className="kanban-card rounded-lg p-4 cursor-move"
+                      draggable={true}
+                      onDragStart={(e) => handleDragStart(e, 1, "A Fazer")}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <h4
+                          className="font-medium text-sm"
+                          style={{ color: "var(--text-primary)" }}
                         >
-                          {task.relationships?.assignee?.data?.attributes?.name || 
-                           task.relationships?.author?.data?.attributes?.name || 
-                           "Sem responsável"}
-                        </p>
-                        <div className="flex items-center justify-between">
-                          <span
-                            className="text-xs"
-                            style={{ color: "var(--text-secondary)" }}
-                          >
-                            {formatTaskDate(task.attributes.due)}
-                          </span>
-                          <div className="flex space-x-1">
-                            <button 
-                              onClick={() => handleViewTask(task)}
-                              className="action-button p-1 rounded !rounded-button whitespace-nowrap"
-                            >
-                              <i className="ri-eye-line text-xs"></i>
-                            </button>
-                            <button 
-                              onClick={() => handleEditTask(task)}
-                              className="action-button p-1 rounded !rounded-button whitespace-nowrap"
-                            >
-                              <i className="ri-edit-line text-xs"></i>
-                            </button>
-                          </div>
+                          Reunião de Planejamento
+                        </h4>
+                        <span className="priority-badge-high px-2 py-1 rounded-full text-xs font-medium">
+                          Alta
+                        </span>
+                      </div>
+                      <p
+                        className="text-xs mb-3"
+                        style={{ color: "var(--text-tertiary)" }}
+                      >
+                        Maria Rodrigues
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <span
+                          className="text-xs"
+                          style={{ color: "var(--text-secondary)" }}
+                        >
+                          15/07 14:30
+                        </span>
+                        <div className="flex space-x-1">
+                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
+                            <i className="ri-eye-line text-xs"></i>
+                          </button>
+                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
+                            <i className="ri-edit-line text-xs"></i>
+                          </button>
                         </div>
                       </div>
-                    ))}
+                    </div>
+                    <div
+                      className="kanban-card rounded-lg p-4 cursor-move"
+                      draggable={true}
+                      onDragStart={(e) => handleDragStart(e, 2, "A Fazer")}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <h4
+                          className="font-medium text-sm"
+                          style={{ color: "var(--text-primary)" }}
+                        >
+                          Ligação de Follow-up
+                        </h4>
+                        <span className="priority-badge-medium px-2 py-1 rounded-full text-xs font-medium">
+                          Média
+                        </span>
+                      </div>
+                      <p
+                        className="text-xs mb-3"
+                        style={{ color: "var(--text-tertiary)" }}
+                      >
+                        João Silva
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <span
+                          className="text-xs"
+                          style={{ color: "var(--text-secondary)" }}
+                        >
+                          16/07 09:00
+                        </span>
+                        <div className="flex space-x-1">
+                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
+                            <i className="ri-eye-line text-xs"></i>
+                          </button>
+                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
+                            <i className="ri-edit-line text-xs"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <button 
-                    onClick={() => setShowTaskModal(true)}
-                    className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
-                  >
+                  <button className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
                     <i className="ri-add-line mr-2"></i>Nova Tarefa
                   </button>
                 </div>
@@ -1267,7 +1296,7 @@ function Dashboard() {
                       Em Andamento
                     </h3>
                     <span className="bg-blue-200 text-blue-700 px-2 py-1 rounded-full text-xs">
-                      {getTasksByStatus("Em Andamento").length}
+                      3
                     </span>
                   </div>
                   <div
@@ -1275,58 +1304,47 @@ function Dashboard() {
                     onDrop={(e) => handleDrop(e, "Em Andamento")}
                     onDragOver={(e) => e.preventDefault()}
                   >
-                    {getTasksByStatus("Em Andamento").map((task: any) => (
-                      <div
-                        key={task.id}
-                        className="kanban-card rounded-lg p-4 cursor-move"
-                        draggable={true}
-                        onDragStart={(e) => handleDragStart(e, task.id, "Em Andamento")}
-                      >
-                        <div className="flex items-start justify-between mb-2">
-                          <h4
-                            className="font-medium text-sm"
-                            style={{ color: "var(--text-primary)" }}
-                          >
-                            {task.attributes.title}
-                          </h4>
-                          <span className={`priority-badge-${getPriorityClass(task)} px-2 py-1 rounded-full text-xs font-medium`}>
-                            {getPriorityLabel(task)}
-                          </span>
-                        </div>
-                        <p
-                          className="text-xs mb-3"
-                          style={{ color: "var(--text-tertiary)" }}
+                    <div
+                      className="kanban-card rounded-lg p-4 cursor-move"
+                      draggable={true}
+                      onDragStart={(e) => handleDragStart(e, 3, "Em Andamento")}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <h4
+                          className="font-medium text-sm"
+                          style={{ color: "var(--text-primary)" }}
                         >
-                          {task.relationships?.assignee?.data?.attributes?.name || 
-                           task.relationships?.author?.data?.attributes?.name || 
-                           "Sem responsável"}
-                        </p>
-                        <div className="flex items-center justify-between">
-                          <span
-                            className="text-xs"
-                            style={{ color: "var(--text-secondary)" }}
-                          >
-                            {formatTaskDate(task.attributes.due)}
-                          </span>
-                          <div className="flex space-x-1">
-                            <button 
-                              onClick={() => handleViewTask(task)}
-                              className="action-button p-1 rounded !rounded-button whitespace-nowrap"
-                            >
-                              <i className="ri-eye-line text-xs"></i>
-                            </button>
-                            <button 
-                              onClick={() => handleEditTask(task)}
-                              className="action-button p-1 rounded !rounded-button whitespace-nowrap"
-                            >
-                              <i className="ri-edit-line text-xs"></i>
-                            </button>
-                          </div>
+                          Análise de Requisitos
+                        </h4>
+                        <span className="priority-badge-medium px-2 py-1 rounded-full text-xs font-medium">
+                          Média
+                        </span>
+                      </div>
+                      <p
+                        className="text-xs mb-3"
+                        style={{ color: "var(--text-tertiary)" }}
+                      >
+                        Lucia Santos
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <span
+                          className="text-xs"
+                          style={{ color: "var(--text-secondary)" }}
+                        >
+                          17/07 10:00
+                        </span>
+                        <div className="flex space-x-1">
+                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
+                            <i className="ri-eye-line text-xs"></i>
+                          </button>
+                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
+                            <i className="ri-edit-line text-xs"></i>
+                          </button>
                         </div>
                       </div>
-                    ))}
+                    </div>
                   </div>
-                  <button 
+                  <button
                     onClick={() => setShowTaskModal(true)}
                     className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
                   >
@@ -1344,7 +1362,7 @@ function Dashboard() {
                       Concluído
                     </h3>
                     <span className="bg-green-200 text-green-700 px-2 py-1 rounded-full text-xs">
-                      {getTasksByStatus("Concluído").length}
+                      12
                     </span>
                   </div>
                   <div
@@ -1352,58 +1370,113 @@ function Dashboard() {
                     onDrop={(e) => handleDrop(e, "Concluído")}
                     onDragOver={(e) => e.preventDefault()}
                   >
-                    {getTasksByStatus("Concluído").map((task: any) => (
-                      <div
-                        key={task.id}
-                        className="kanban-card rounded-lg p-4 cursor-move"
-                        draggable={true}
-                        onDragStart={(e) => handleDragStart(e, task.id, "Concluído")}
-                      >
-                        <div className="flex items-start justify-between mb-2">
-                          <h4
-                            className="font-medium text-sm"
-                            style={{ color: "var(--text-primary)" }}
-                          >
-                            {task.attributes.title}
-                          </h4>
-                          <span className={`priority-badge-${getPriorityClass(task)} px-2 py-1 rounded-full text-xs font-medium`}>
-                            {getPriorityLabel(task)}
-                          </span>
-                        </div>
-                        <p
-                          className="text-xs mb-3"
-                          style={{ color: "var(--text-tertiary)" }}
+                    <div
+                      className="kanban-card rounded-lg p-4 cursor-move"
+                      draggable={true}
+                      onDragStart={(e) => handleDragStart(e, 4, "Concluído")}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <h4
+                          className="font-medium text-sm"
+                          style={{ color: "var(--text-primary)" }}
                         >
-                          {task.relationships?.assignee?.data?.attributes?.name || 
-                           task.relationships?.author?.data?.attributes?.name || 
-                           "Sem responsável"}
-                        </p>
-                        <div className="flex items-center justify-between">
-                          <span
-                            className="text-xs"
-                            style={{ color: "var(--text-secondary)" }}
-                          >
-                            {formatTaskDate(task.attributes.due)}
-                          </span>
-                          <div className="flex space-x-1">
-                            <button 
-                              onClick={() => handleViewTask(task)}
-                              className="action-button p-1 rounded !rounded-button whitespace-nowrap"
-                            >
-                              <i className="ri-eye-line text-xs"></i>
-                            </button>
-                            <button 
-                              onClick={() => handleEditTask(task)}
-                              className="action-button p-1 rounded !rounded-button whitespace-nowrap"
-                            >
-                              <i className="ri-edit-line text-xs"></i>
-                            </button>
-                          </div>
+                          Envio de Proposta
+                        </h4>
+                        <span className="priority-badge-low px-2 py-1 rounded-full text-xs font-medium">
+                          Baixa
+                        </span>
+                      </div>
+                      <p
+                        className="text-xs mb-3"
+                        style={{ color: "var(--text-tertiary)" }}
+                      >
+                        Ana Costa
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <span
+                          className="text-xs"
+                          style={{ color: "var(--text-secondary)" }}
+                        >
+                          14/07 16:00
+                        </span>
+                        <div className="flex space-x-1">
+                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
+                            <i className="ri-eye-line text-xs"></i>
+                          </button>
+                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
+                            <i className="ri-edit-line text-xs"></i>
+                          </button>
                         </div>
                       </div>
-                    ))}
+                    </div>
                   </div>
-                  <button 
+                  <button
+                    onClick={() => setShowTaskModal(true)}
+                    className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
+                  >
+                    <i className="ri-add-line mr-2"></i>Nova Tarefa
+                  </button>
+                </div>
+
+                {/* Cancelado */}
+                <div className="kanban-column rounded-lg p-4 min-w-80">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3
+                      className="font-semibold text-sm"
+                      style={{ color: "var(--text-primary)" }}
+                    >
+                      Cancelado
+                    </h3>
+                    <span className="bg-red-200 text-red-700 px-2 py-1 rounded-full text-xs">
+                      2
+                    </span>
+                  </div>
+                  <div
+                    className="space-y-3"
+                    onDrop={(e) => handleDrop(e, "Cancelado")}
+                    onDragOver={(e) => e.preventDefault()}
+                  >
+                    <div
+                      className="kanban-card rounded-lg p-4 cursor-move"
+                      draggable={true}
+                      onDragStart={(e) => handleDragStart(e, 5, "Cancelado")}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <h4
+                          className="font-medium text-sm"
+                          style={{ color: "var(--text-primary)" }}
+                        >
+                          Reunião Cancelada
+                        </h4>
+                        <span className="priority-badge-low px-2 py-1 rounded-full text-xs font-medium">
+                          Baixa
+                        </span>
+                      </div>
+                      <p
+                        className="text-xs mb-3"
+                        style={{ color: "var(--text-tertiary)" }}
+                      >
+                        Roberto Ferreira
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <span
+                          className="text-xs"
+                          style={{ color: "var(--text-secondary)" }}
+                        >
+                          13/07 15:00
+                        </span>
+                        <div className="flex space-x-1">
+                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
+                            <i className="ri-eye-line text-xs"></i>
+                          </button>
+                          <button className="action-button p-1 rounded !rounded-button whitespace-nowrap">
+                            <i className="ri-edit-line text-xs"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <button
                     onClick={() => setShowTaskModal(true)}
                     className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
                   >
@@ -1501,31 +1574,42 @@ function Dashboard() {
                   </div>
 
                   {/* Dias do mês */}
-                  {[...Array(31)].map((_, i) => {
-                    const dayDate = new Date(2025, 6, i + 1); // Julho 2025
-                    const dayTasks = getTasksByDate(dayDate);
-                    
-                    return (
+                  {[...Array(31)].map((_, i) => (
+                    <div
+                      key={i}
+                      className={`calendar-day rounded-lg p-2 ${i === 15 ? "bg-blue-50" : ""}`}
+                    >
                       <div
-                        key={i}
-                        className={`calendar-day rounded-lg p-2 ${i === 15 ? "bg-blue-50" : ""}`}
+                        className={`text-sm font-medium mb-1 ${i === 15 ? "text-blue-600" : ""}`}
+                        style={{
+                          color: i === 15 ? undefined : "var(--text-primary)",
+                        }}
                       >
-                        <div
-                          className={`text-sm font-medium mb-1 ${i === 15 ? "text-blue-600" : ""}`}
-                          style={{
-                            color: i === 15 ? undefined : "var(--text-primary)",
-                          }}
-                        >
-                          {i + 1}
-                        </div>
-                        {dayTasks.map((task: any) => (
-                          <div key={task.id} className="calendar-event">
-                            {formatTaskDate(task.attributes.due).split(' ')[1]} - {task.attributes.title}
-                          </div>
-                        ))}
+                        {i + 1}
                       </div>
-                    );
-                  })}
+                      {i === 11 && (
+                        <div className="calendar-event">
+                          10:00 - Visita Técnica
+                        </div>
+                      )}
+                      {i === 13 && (
+                        <div className="calendar-event">
+                          16:00 - Envio Proposta
+                        </div>
+                      )}
+                      {i === 14 && (
+                        <div className="calendar-event">14:30 - Reunião</div>
+                      )}
+                      {i === 15 && (
+                        <>
+                          <div className="calendar-event">
+                            09:00 - Follow-up
+                          </div>
+                          <div className="calendar-event">15:00 - Análise</div>
+                        </>
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
 
@@ -1556,29 +1640,16 @@ function Dashboard() {
                       >
                         {hour.toString().padStart(2, "0")}:00
                       </div>
-                      {Array.from({ length: 7 }, (_, day) => {
-                        const dayDate = new Date(2025, 6, 14 + day); // Semana do dia 14-20 de julho
-                        const hourTasks = tasks.filter((task: any) => {
-                          if (!task.attributes.due) return false;
-                          const taskDate = new Date(task.attributes.due);
-                          return taskDate.getDate() === dayDate.getDate() && 
-                                 taskDate.getHours() === hour;
-                        });
-                        
-                        return (
-                          <div
-                            key={day}
-                            className="calendar-day p-2 text-center text-xs min-h-[40px] border"
-                            style={{ borderColor: "var(--border-color)" }}
-                          >
-                            {hourTasks.map((task: any) => (
-                              <div key={task.id} className="calendar-event">
-                                {task.attributes.title}
-                              </div>
-                            ))}
-                          </div>
-                        );
-                      })}
+                      {Array.from({ length: 7 }, (_, day) => (
+                        <div
+                          key={day}
+                          className="calendar-day p-2 text-center text-xs min-h-[40px] border"
+                          style={{ borderColor: "var(--border-color)" }}
+                        >
+                          {hour === 9 && day === 1 ? "Reunião" : ""}
+                          {hour === 14 && day === 3 ? "Proposta" : ""}
+                        </div>
+                      ))}
                     </React.Fragment>
                   ))}
                 </div>
@@ -1596,71 +1667,851 @@ function Dashboard() {
                     className="p-2 text-center text-sm font-medium"
                     style={{ color: "var(--text-secondary)" }}
                   >
-                    16/07/2025
+                    Tarefas
                   </div>
-                  {Array.from({ length: 24 }, (_, hour) => {
-                    const dayDate = new Date(2025, 6, 16); // 16 de julho
-                    const hourTasks = tasks.filter((task: any) => {
-                      if (!task.attributes.due) return false;
-                      const taskDate = new Date(task.attributes.due);
-                      return taskDate.getDate() === dayDate.getDate() && 
-                             taskDate.getHours() === hour;
-                    });
-                    
-                    return (
-                      <React.Fragment key={hour}>
-                        <div
-                          className="p-2 text-center text-xs border"
-                          style={{ borderColor: "var(--border-color)" }}
-                        >
-                          {hour.toString().padStart(2, "0")}:00
-                        </div>
-                        <div
-                          className="calendar-day p-2 text-center text-xs min-h-[40px] border"
-                          style={{ borderColor: "var(--border-color)" }}
-                        >
-                          {hourTasks.map((task: any) => (
-                            <div key={task.id} className="calendar-event">
-                              {task.attributes.title}
-                            </div>
-                          ))}
-                        </div>
-                      </React.Fragment>
-                    );
-                  })}
+                  {Array.from({ length: 24 }, (_, hour) => (
+                    <React.Fragment key={hour}>
+                      <div
+                        className="p-2 text-center text-xs border"
+                        style={{ borderColor: "var(--border-color)" }}
+                      >
+                        {hour.toString().padStart(2, "0")}:00
+                      </div>
+                      <div
+                        className="calendar-day p-2 text-center text-xs min-h-[40px] border"
+                        style={{ borderColor: "var(--border-color)" }}
+                      >
+                        {hour === 9
+                          ? "Reunião com cliente"
+                          : hour === 14
+                            ? "Desenvolver proposta"
+                            : ""}
+                      </div>
+                    </React.Fragment>
+                  ))}
                 </div>
               )}
             </div>
           )}
-
-          {/* Modais */}
-          <TaskModal
-            isOpen={showTaskModal}
-            onClose={() => setShowTaskModal(false)}
-            task={selectedTask}
-          />
-          <TaskDetailsModal
-            isOpen={showTaskDetails}
-            onClose={() => setShowTaskDetails(false)}
-            task={selectedTaskDetails}
-            taskHistory={taskHistory}
-            activeTab={taskHistoryTab}
-            setActiveTab={setTaskHistoryTab}
-          />
-          <ClientModal
-            isOpen={showClientModal}
-            onClose={() => setShowClientModal(false)}
-            client={selectedClient}
-          />
-          <TokenExpiredModal
-            isOpen={showTokenExpiredModal}
-            onClose={() => setShowTokenExpiredModal(false)}
-          />
         </div>
       </div>
     </div>
   );
+
+  // Modal de Nova Tarefa
+  const TaskModal = () => (
+    <div
+      className={`fixed inset-0 modal-overlay flex items-center justify-center z-50 ${showTaskModal ? "" : "hidden"}`}
+    >
+      <div className="modal-content rounded-xl shadow-xl p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-6">
+          <h3
+            className="text-xl font-semibold"
+            style={{ color: "var(--text-primary)" }}
+          >
+            Nova Tarefa
+          </h3>
+          <button
+            onClick={() => setShowTaskModal(false)}
+            className="theme-toggle p-2 rounded-lg !rounded-button whitespace-nowrap"
+          >
+            <i className="ri-close-line text-lg"></i>
+          </button>
+        </div>
+        <div className="flex space-x-1 mb-6">
+          <button className="tab-button active px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+            Detalhes
+          </button>
+          <button className="tab-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+            Anexos
+          </button>
+          <button className="tab-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+            Campos Personalizados
+          </button>
+        </div>
+        <form>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="md:col-span-2">
+              <label
+                className="block text-sm font-medium mb-2"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                Título da Tarefa *
+              </label>
+              <input
+                type="text"
+                className="form-input w-full px-3 py-2 rounded-lg text-sm"
+                placeholder="Digite o título da tarefa"
+                required
+              />
+            </div>
+            <div>
+              <label
+                className="block text-sm font-medium mb-2"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                Categoria
+              </label>
+              <select className="form-input w-full px-3 py-2 rounded-lg text-sm">
+                <option value="todo">A Fazer</option>
+                <option value="progress">Em Andamento</option>
+                <option value="completed">Concluído</option>
+                <option value="cancelled">Cancelado</option>
+              </select>
+            </div>
+            <div>
+              <label
+                className="block text-sm font-medium mb-2"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                Responsável
+              </label>
+              <select className="form-input w-full px-3 py-2 rounded-lg text-sm">
+                <option value="">Selecione o responsável</option>
+                <option value="ana">Ana Marques</option>
+                <option value="joao">João Silva</option>
+                <option value="maria">Maria Santos</option>
+                <option value="pedro">Pedro Costa</option>
+              </select>
+            </div>
+            <div>
+              <label
+                className="block text-sm font-medium mb-2"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                Cliente
+              </label>
+              <select className="form-input w-full px-3 py-2 rounded-lg text-sm">
+                <option value="">Selecione o cliente</option>
+                <option value="maria">Maria Rodrigues</option>
+                <option value="joao">João Silva</option>
+                <option value="ana">Ana Costa</option>
+              </select>
+            </div>
+            {/* Campo de prioridade removido - não existe na API do Monde */}
+            <div>
+              <label
+                className="block text-sm font-medium mb-2"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                Data de Vencimento
+              </label>
+              <input
+                type="datetime-local"
+                className="form-input w-full px-3 py-2 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label
+                className="block text-sm font-medium mb-2"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                Tipo de Tarefa
+              </label>
+              <select className="form-input w-full px-3 py-2 rounded-lg text-sm">
+                <option value="reuniao">Reunião</option>
+                <option value="ligacao">Ligação</option>
+                <option value="email">E-mail</option>
+                <option value="visita">Visita</option>
+              </select>
+            </div>
+            <div className="md:col-span-2">
+              <label
+                className="block text-sm font-medium mb-2"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                Descrição
+              </label>
+              <textarea
+                className="form-input w-full px-3 py-2 rounded-lg text-sm h-32"
+                placeholder="Descreva os detalhes da tarefa..."
+              ></textarea>
+            </div>
+          </div>
+          <div className="flex justify-end space-x-3 mt-6">
+            <button
+              type="button"
+              onClick={() => setShowTaskModal(false)}
+              className="action-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="primary-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
+            >
+              Criar Tarefa
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+
+  const renderClientsView = () => (
+    <div className="max-w-7xl mx-auto space-y-6">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="card rounded-xl p-6 stats-card">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-white/80 text-sm font-medium">
+                Total de Clientes
+              </p>
+              <p className="text-white text-2xl font-bold">1,247</p>
+            </div>
+            <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+              <i className="ri-user-3-line text-white text-xl"></i>
+            </div>
+          </div>
+          <div className="mt-4 flex items-center">
+            <i className="ri-arrow-up-line text-white/80 text-sm"></i>
+            <span className="text-white/80 text-sm ml-1">+12% este mês</span>
+          </div>
+        </div>
+
+        <div className="card rounded-xl p-6 stats-card-secondary">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-white/80 text-sm font-medium">
+                Clientes com Tarefas
+              </p>
+              <p className="text-white text-2xl font-bold">892</p>
+            </div>
+            <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+              <i className="ri-task-line text-white text-xl"></i>
+            </div>
+          </div>
+          <div className="mt-4 flex items-center">
+            <i className="ri-arrow-up-line text-white/80 text-sm"></i>
+            <span className="text-white/80 text-sm ml-1">+8% este mês</span>
+          </div>
+        </div>
+
+        <div className="card rounded-xl p-6 stats-card-success">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-white/80 text-sm font-medium">
+                Novos Clientes (30 dias)
+              </p>
+              <p className="text-white text-2xl font-bold">156</p>
+            </div>
+            <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+              <i className="ri-user-add-line text-white text-xl"></i>
+            </div>
+          </div>
+          <div className="mt-4 flex items-center">
+            <i className="ri-arrow-up-line text-white/80 text-sm"></i>
+            <span className="text-white/80 text-sm ml-1">+23% este mês</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Clients Table */}
+      <div className="card rounded-xl p-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <h2
+            className="text-xl font-semibold"
+            style={{ color: "var(--text-primary)" }}
+          >
+            Lista de Clientes
+          </h2>
+          <div className="flex items-center space-x-3">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Buscar clientes..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyPress={(e) => e.key === "Enter" && handleSearchClients()}
+                className="search-input pl-10 pr-4 py-2 rounded-lg text-sm w-64"
+              />
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                <i className="ri-search-line text-gray-400"></i>
+              </div>
+            </div>
+            <button
+              onClick={handleSearchClients}
+              className="action-button px-4 py-2 rounded-lg text-sm font-medium rounded-button"
+            >
+              <i className="ri-search-line mr-2"></i>
+              Buscar
+            </button>
+            {searchTerm && (
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setClients([]);
+                }}
+                className="action-button px-4 py-2 rounded-lg text-sm font-medium rounded-button"
+              >
+                <i className="ri-close-line mr-2"></i>
+                Limpar
+              </button>
+            )}
+            <button className="primary-button px-4 py-2 rounded-lg text-sm font-medium rounded-button">
+              <i className="ri-add-line mr-2"></i>
+              Novo Cliente
+            </button>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="table-row">
+                <th
+                  className="text-left py-3 px-4 font-medium text-sm"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  Cliente
+                </th>
+                <th
+                  className="text-left py-3 px-4 font-medium text-sm"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  Email
+                </th>
+                <th
+                  className="text-left py-3 px-4 font-medium text-sm"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  Telefone
+                </th>
+                <th
+                  className="text-left py-3 px-4 font-medium text-sm"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  Status
+                </th>
+                <th
+                  className="text-left py-3 px-4 font-medium text-sm"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  Ações
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {clients.map((client) => (
+                <tr key={client.id} className="table-row">
+                  <td className="py-3 px-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 rounded-full client-avatar flex items-center justify-center text-white font-medium text-sm">
+                        {(client.attributes?.name || client.nome)
+                          ?.charAt(0)
+                          .toUpperCase()}
+                      </div>
+                      <div>
+                        <p
+                          className="font-medium text-sm"
+                          style={{ color: "var(--text-primary)" }}
+                        >
+                          {client.attributes?.name || client.nome}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                  <td
+                    className="py-3 px-4 text-sm"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
+                    {client.attributes?.email || client.email}
+                  </td>
+                  <td
+                    className="py-3 px-4 text-sm"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
+                    {client.attributes?.phone || client.telefone}
+                  </td>
+                  <td className="py-3 px-4">
+                    <span className="px-2 py-1 rounded-full text-xs status-badge-active">
+                      Ativo
+                    </span>
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="flex items-center space-x-2">
+                      <button className="action-button p-1 rounded">
+                        <i className="ri-edit-line text-sm"></i>
+                      </button>
+                      <button className="action-button p-1 rounded">
+                        <i className="ri-more-line text-sm"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="loading-spinner"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-screen overflow-hidden theme-transition">
+      {/* Sidebar */}
+      <aside
+        className={`sidebar ${sidebarCollapsed ? "sidebar-collapsed" : "sidebar-expanded"} sidebar-transition fixed inset-y-0 left-0 z-50 flex flex-col`}
+      >
+        <div
+          className="flex items-center h-16 px-4 border-b"
+          style={{ borderColor: "var(--border-color)" }}
+        >
+          <div className="flex items-center">
+            {sidebarCollapsed ? (
+              <img src={logoIcon} alt="Keeptur" className="w-6 h-6" />
+            ) : (
+              <img src={logoFull} alt="Keeptur" className="h-8" />
+            )}
+          </div>
+        </div>
+
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+          <button
+            onClick={() => setActiveTab("tarefas")}
+            className={`menu-item flex items-center px-3 py-2.5 text-sm font-medium w-full ${activeTab === "tarefas" ? "active" : ""}`}
+          >
+            <div className="w-5 h-5 flex items-center justify-center">
+              <i className="ri-task-line"></i>
+            </div>
+            {!sidebarCollapsed && <span className="ml-3">Tarefas</span>}
+            {sidebarCollapsed && <span className="tooltip">Tarefas</span>}
+          </button>
+
+          <button
+            onClick={() => setActiveTab("clientes")}
+            className={`menu-item flex items-center px-3 py-2.5 text-sm font-medium w-full ${activeTab === "clientes" ? "active" : ""}`}
+          >
+            <div className="w-5 h-5 flex items-center justify-center">
+              <i className="ri-user-3-line"></i>
+            </div>
+            {!sidebarCollapsed && <span className="ml-3">Clientes</span>}
+            {sidebarCollapsed && <span className="tooltip">Clientes</span>}
+          </button>
+        </nav>
+
+        <div
+          className="mt-auto px-3 py-4 border-t"
+          style={{ borderColor: "var(--border-color)" }}
+        >
+          <button className="menu-item flex items-center px-3 py-2.5 text-sm font-medium w-full">
+            <div className="w-5 h-5 flex items-center justify-center">
+              <i className="ri-settings-3-line"></i>
+            </div>
+            {!sidebarCollapsed && <span className="ml-3">Configurações</span>}
+            {sidebarCollapsed && <span className="tooltip">Configurações</span>}
+          </button>
+
+          <button
+            onClick={handleLogout}
+            className="menu-item flex items-center px-3 py-2.5 text-sm font-medium w-full bg-red-500 hover:bg-red-600 text-white"
+          >
+            <div className="w-5 h-5 flex items-center justify-center">
+              <i className="ri-logout-box-line text-white"></i>
+            </div>
+            {!sidebarCollapsed && <span className="ml-3 text-white">Sair</span>}
+            {sidebarCollapsed && <span className="tooltip">Sair</span>}
+          </button>
+
+          <button
+            onClick={toggleSidebar}
+            className="menu-item flex items-center px-3 py-2.5 text-sm font-medium w-full"
+          >
+            <div className="w-5 h-5 flex items-center justify-center">
+              <i
+                className={
+                  sidebarCollapsed ? "ri-menu-unfold-line" : "ri-menu-fold-line"
+                }
+              ></i>
+            </div>
+            {!sidebarCollapsed && <span className="ml-3">Recolher Menu</span>}
+            {sidebarCollapsed && <span className="tooltip">Expandir Menu</span>}
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
+        <header
+          className={`header flex items-center justify-between h-16 px-6 content-transition`}
+          style={{ marginLeft: sidebarCollapsed ? "4rem" : "16rem" }}
+        >
+          <div className="flex items-center">
+            <h1
+              className="text-xl font-semibold"
+              style={{ color: "var(--text-primary)" }}
+            >
+              {activeTab === "tarefas"
+                ? "Gestão de Tarefas"
+                : "Gestão de Clientes"}
+            </h1>
+          </div>
+
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={toggleTheme}
+              className="theme-toggle p-2 rounded-lg rounded-button"
+            >
+              <div className="w-5 h-5 flex items-center justify-center">
+                <i
+                  className={theme === "light" ? "ri-moon-line" : "ri-sun-line"}
+                ></i>
+              </div>
+            </button>
+
+            <div className="relative">
+              <button className="theme-toggle p-2 rounded-lg relative rounded-button">
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <i className="ri-notification-3-line"></i>
+                </div>
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                  5
+                </span>
+              </button>
+            </div>
+
+            <div className="relative">
+              <button className="flex items-center space-x-3 p-1 rounded-lg theme-toggle rounded-button">
+                <div className="w-8 h-8 rounded-full stats-card flex items-center justify-center text-white font-medium text-sm">
+                  {user?.name?.charAt(0).toUpperCase() || "U"}
+                </div>
+                <div className="hidden md:block text-left">
+                  <p
+                    className="text-sm font-medium"
+                    style={{ color: "var(--text-primary)" }}
+                  >
+                    {user?.name}
+                  </p>
+                  <p
+                    className="text-xs"
+                    style={{ color: "var(--text-tertiary)" }}
+                  >
+                    {user?.role}
+                  </p>
+                </div>
+                <div className="w-4 h-4 flex items-center justify-center">
+                  <i className="ri-arrow-down-s-line"></i>
+                </div>
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Main Content Area */}
+        <main
+          className={`flex-1 overflow-auto content-area content-transition p-6`}
+          style={{ marginLeft: sidebarCollapsed ? "4rem" : "16rem" }}
+        >
+          {activeTab === "tarefas" ? renderTasksView() : renderClientsView()}
+        </main>
+      </div>
+
+      {/* Floating Action Button */}
+      <button
+        onClick={() => setShowTaskModal(true)}
+        className="floating-button"
+      >
+        <i className="ri-add-line text-xl"></i>
+      </button>
+
+      {/* Modal de Nova Tarefa */}
+      <TaskModal />
+
+      {/* Modal de Visualização de Tarefa */}
+      {showTaskDetails && selectedTaskDetails && (
+        <div className="fixed inset-0 modal-overlay flex items-center justify-center z-50">
+          <div className="modal-content rounded-xl shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div
+              className="flex items-center justify-between p-6 border-b"
+              style={{ borderColor: "var(--border-color)" }}
+            >
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <span
+                    className="text-xs font-medium"
+                    style={{ color: "var(--text-tertiary)" }}
+                  >
+                    #{selectedTaskDetails.id}
+                  </span>
+                  <span
+                    className={`status-badge-${selectedTaskDetails.attributes.completed ? "completed" : "pending"} px-3 py-1 rounded-full text-sm font-medium`}
+                  >
+                    {selectedTaskDetails.attributes.completed
+                      ? "Concluído"
+                      : "Pendente"}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowTaskDetails(false)}
+                className="theme-toggle p-2 rounded-lg !rounded-button whitespace-nowrap"
+              >
+                <i className="ri-close-line text-lg"></i>
+              </button>
+            </div>
+
+            <div className="p-6">
+              <div className="mb-6">
+                <h2
+                  className="text-xl font-semibold mb-2"
+                  style={{ color: "var(--text-primary)" }}
+                >
+                  {selectedTaskDetails.attributes.title}
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span
+                      className="font-medium"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
+                      Cliente:
+                    </span>
+                    <span
+                      className={`ml-2 ${!selectedTaskDetails.client_name ? "text-red-600" : ""}`}
+                      style={{
+                        color: !selectedTaskDetails.client_name
+                          ? "#dc2626"
+                          : "var(--text-primary)",
+                      }}
+                    >
+                      {selectedTaskDetails.client_name || "Sem cliente"}
+                    </span>
+                  </div>
+                  <div>
+                    <span
+                      className="font-medium"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
+                      Responsável:
+                    </span>
+                    <span
+                      className="ml-2"
+                      style={{ color: "var(--text-primary)" }}
+                    >
+                      {selectedTaskDetails.assignee_name || "Não informado"}
+                    </span>
+                  </div>
+                  <div>
+                    <span
+                      className="font-medium"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
+                      Data/Hora:
+                    </span>
+                    <span
+                      className="ml-2"
+                      style={{ color: "var(--text-primary)" }}
+                    >
+                      {selectedTaskDetails.attributes.due
+                        ? new Date(
+                            selectedTaskDetails.attributes.due,
+                          ).toLocaleString()
+                        : "Não informado"}
+                    </span>
+                  </div>
+                  <div>
+                    <span
+                      className="font-medium"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
+                      Categoria:
+                    </span>
+                    <span
+                      className="ml-2"
+                      style={{ color: "var(--text-primary)" }}
+                    >
+                      {selectedTaskDetails.category_name || "Não informado"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <div className="flex space-x-1 mb-4">
+                  <button
+                    className={`tab-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap ${
+                      taskHistoryTab === "detalhes" ? "active" : ""
+                    }`}
+                    onClick={() => setTaskHistoryTab("detalhes")}
+                  >
+                    Detalhes
+                  </button>
+                  <button
+                    className={`tab-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap ${
+                      taskHistoryTab === "historico" ? "active" : ""
+                    }`}
+                    onClick={() => setTaskHistoryTab("historico")}
+                  >
+                    Histórico
+                  </button>
+                </div>
+
+                <div className="tab-content">
+                  {taskHistoryTab === "detalhes" && (
+                    <>
+                      <div className="mb-4">
+                        <h3
+                          className="text-sm font-medium mb-2"
+                          style={{ color: "var(--text-secondary)" }}
+                        >
+                          Descrição
+                        </h3>
+                        <p
+                          className="text-sm p-3 rounded-lg"
+                          style={{
+                            color: "var(--text-primary)",
+                            backgroundColor: "var(--bg-tertiary)",
+                          }}
+                        >
+                          {selectedTaskDetails.attributes.description ||
+                            "Sem descrição"}
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <h3
+                            className="text-sm font-medium mb-2"
+                            style={{ color: "var(--text-secondary)" }}
+                          >
+                            Informações Adicionais
+                          </h3>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span style={{ color: "var(--text-tertiary)" }}>
+                                Data de Criação:
+                              </span>
+                              <span style={{ color: "var(--text-primary)" }}>
+                                {selectedTaskDetails.attributes["registered-at"]
+                                  ? new Date(
+                                      selectedTaskDetails.attributes[
+                                        "registered-at"
+                                      ],
+                                    ).toLocaleString()
+                                  : "Não informado"}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span style={{ color: "var(--text-tertiary)" }}>
+                                Última Atualização:
+                              </span>
+                              <span style={{ color: "var(--text-primary)" }}>
+                                {selectedTaskDetails.attributes["completed-at"]
+                                  ? new Date(
+                                      selectedTaskDetails.attributes[
+                                        "completed-at"
+                                      ],
+                                    ).toLocaleString()
+                                  : "Não informado"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {taskHistoryTab === "historico" && (
+                    <div className="max-h-96 overflow-y-auto">
+                      <h3
+                        className="text-sm font-medium mb-4"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
+                        Histórico da Tarefa
+                      </h3>
+                      {taskHistory.length === 0 ? (
+                        <p
+                          className="text-sm text-center py-8"
+                          style={{ color: "var(--text-tertiary)" }}
+                        >
+                          Nenhum histórico disponível
+                        </p>
+                      ) : (
+                        <div className="space-y-3">
+                          {taskHistory.map((item: any, index: number) => (
+                            <div
+                              key={index}
+                              className="p-3 rounded-lg border"
+                              style={{
+                                backgroundColor: "var(--bg-tertiary)",
+                                borderColor: "var(--border-color)",
+                              }}
+                            >
+                              <div className="flex items-center justify-between mb-2">
+                                <span
+                                  className="text-sm font-medium"
+                                  style={{ color: "var(--text-primary)" }}
+                                >
+                                  {item.user_name || "Usuário"}
+                                </span>
+                                <span
+                                  className="text-xs"
+                                  style={{ color: "var(--text-tertiary)" }}
+                                >
+                                  {item.attributes["date-time"]
+                                    ? new Date(
+                                        item.attributes["date-time"],
+                                      ).toLocaleString()
+                                    : "Data não disponível"}
+                                </span>
+                              </div>
+                              <p
+                                className="text-sm"
+                                style={{ color: "var(--text-secondary)" }}
+                              >
+                                {item.attributes.text || "Sem texto"}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div
+                className="flex items-center justify-end space-x-3 pt-4 border-t"
+                style={{ borderColor: "var(--border-color)" }}
+              >
+                <button
+                  onClick={() => setShowTaskDetails(false)}
+                  className="action-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
+                >
+                  Fechar
+                </button>
+                <button
+                  onClick={() => {
+                    setShowTaskDetails(false);
+                    setSelectedTask(selectedTaskDetails);
+                    setShowTaskModal(true);
+                  }}
+                  className="primary-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
+                >
+                  <i className="ri-edit-line mr-2"></i>
+                  Editar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de token expirado */}
+      <TokenExpiredModal
+        isOpen={showTokenExpiredModal}
+        onClose={() => setShowTokenExpiredModal(false)}
+      />
+    </div>
+  );
 }
-
-export default Dashboard;
-

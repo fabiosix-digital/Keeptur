@@ -43,6 +43,35 @@ export default function Dashboard() {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [showTokenExpiredModal, setShowTokenExpiredModal] = useState(false);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  
+  // Função para obter tarefas do calendário baseada nos dados reais
+  const getTasksForCalendar = () => {
+    if (!tasks || tasks.length === 0) return {};
+    
+    const tasksByDate = {};
+    
+    tasks.forEach(task => {
+      if (task.attributes.due) {
+        const dueDate = new Date(task.attributes.due);
+        const day = dueDate.getDate();
+        const hour = dueDate.getHours();
+        
+        if (!tasksByDate[day]) {
+          tasksByDate[day] = [];
+        }
+        
+        tasksByDate[day].push({
+          id: task.id,
+          title: task.attributes.title,
+          hour: hour,
+          timeStr: `${hour.toString().padStart(2, '0')}:${dueDate.getMinutes().toString().padStart(2, '0')}`,
+          status: getTaskStatus(task)
+        });
+      }
+    });
+    
+    return tasksByDate;
+  };
 
   useEffect(() => {
     // Aplicar tema no body
@@ -178,9 +207,18 @@ export default function Dashboard() {
         const deletedData = await deletedResponse.json();
         console.log('✅ Tarefas excluídas carregadas:', deletedData.data?.length || 0);
         
-        // Combinar tarefas ativas e excluídas
-        const allTasks = [...(data.data || []), ...(deletedData.data || [])];
-        return { data: allTasks };
+        // Combinar tarefas ativas e excluídas evitando duplicatas
+        const activeTasks = data.data || [];
+        const deletedTasks = deletedData.data || [];
+        const allTasks = [...activeTasks, ...deletedTasks];
+        
+        // Remover duplicatas baseado no ID
+        const uniqueTasks = allTasks.filter((task, index, self) => 
+          index === self.findIndex(t => t.id === task.id)
+        );
+        
+        console.log('📊 Total de tarefas combinadas:', uniqueTasks.length, '(ativas:', activeTasks.length, '+ excluídas:', deletedTasks.length, ')');
+        return { data: uniqueTasks };
       } else {
         console.warn('⚠️ Erro ao carregar tarefas excluídas, continuando apenas com ativas');
         return data;
@@ -319,6 +357,9 @@ export default function Dashboard() {
           case 'atrasadas':
             // Atrasadas = não concluídas E com prazo vencido
             return !isCompleted && dueDate && dueDate < now;
+          case 'excluidas':
+            // Excluídas = verificar se a tarefa foi carregada do endpoint de excluídas
+            return task.attributes.deleted || task.attributes.is_deleted;
           default:
             return true;
         }
@@ -478,14 +519,19 @@ export default function Dashboard() {
 
   // Função para determinar o status da tarefa
   const getTaskStatus = (task: any) => {
+    // Verificar se a tarefa foi excluída (assumindo que tarefas excluídas têm um atributo deleted ou similar)
+    if (task.attributes.deleted || task.attributes.is_deleted) {
+      return { status: "deleted", label: "Excluída", class: "status-badge-deleted" };
+    }
+    
     if (task.attributes.completed) {
       return { status: "completed", label: "Concluída", class: "status-badge-completed" };
     }
     
     const now = new Date();
-    const dueDate = new Date(task.attributes.due);
+    const dueDate = task.attributes.due ? new Date(task.attributes.due) : null;
     
-    if (dueDate < now) {
+    if (dueDate && dueDate < now) {
       return { status: "overdue", label: "Atrasada", class: "status-badge-overdue" };
     }
     
@@ -1663,42 +1709,43 @@ export default function Dashboard() {
                   </div>
 
                   {/* Dias do mês */}
-                  {[...Array(31)].map((_, i) => (
-                    <div
-                      key={i}
-                      className={`calendar-day rounded-lg p-2 ${i === 15 ? "bg-blue-50" : ""}`}
-                    >
-                      <div
-                        className={`text-sm font-medium mb-1 ${i === 15 ? "text-blue-600" : ""}`}
-                        style={{
-                          color: i === 15 ? undefined : "var(--text-primary)",
-                        }}
-                      >
-                        {i + 1}
-                      </div>
-                      {i === 11 && (
-                        <div className="calendar-event">
-                          10:00 - Visita Técnica
-                        </div>
-                      )}
-                      {i === 13 && (
-                        <div className="calendar-event">
-                          16:00 - Envio Proposta
-                        </div>
-                      )}
-                      {i === 14 && (
-                        <div className="calendar-event">14:30 - Reunião</div>
-                      )}
-                      {i === 15 && (
-                        <>
-                          <div className="calendar-event">
-                            09:00 - Follow-up
+                  {(() => {
+                    const tasksByDate = getTasksForCalendar();
+                    const today = new Date().getDate();
+                    
+                    return [...Array(31)].map((_, i) => {
+                      const day = i + 1;
+                      const dayTasks = tasksByDate[day] || [];
+                      const isToday = day === today;
+                      
+                      return (
+                        <div
+                          key={i}
+                          className={`calendar-day rounded-lg p-2 ${isToday ? "bg-blue-50" : ""}`}
+                        >
+                          <div
+                            className={`text-sm font-medium mb-1 ${isToday ? "text-blue-600" : ""}`}
+                            style={{
+                              color: isToday ? undefined : "var(--text-primary)",
+                            }}
+                          >
+                            {day}
                           </div>
-                          <div className="calendar-event">15:00 - Análise</div>
-                        </>
-                      )}
-                    </div>
-                  ))}
+                          {dayTasks.map((task, index) => (
+                            <div 
+                              key={`${task.id}-${index}`} 
+                              className={`calendar-event truncate ${
+                                task.status.status === 'completed' ? 'line-through opacity-60' : ''
+                              }`}
+                              title={`${task.timeStr} - ${task.title}`}
+                            >
+                              {task.timeStr} - {task.title}
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    });
+                  })()}
                 </div>
               )}
 
@@ -1735,8 +1782,19 @@ export default function Dashboard() {
                           className="calendar-day p-2 text-center text-xs min-h-[40px] border"
                           style={{ borderColor: "var(--border-color)" }}
                         >
-                          {hour === 9 && day === 1 ? "Reunião" : ""}
-                          {hour === 14 && day === 3 ? "Proposta" : ""}
+                          {(() => {
+                            const tasksByDate = getTasksForCalendar();
+                            const today = new Date().getDate();
+                            const currentDay = today + day - 1; // Ajustar para semana
+                            const dayTasks = tasksByDate[currentDay] || [];
+                            const hourTasks = dayTasks.filter(task => task.hour === hour);
+                            
+                            return hourTasks.map((task, index) => (
+                              <div key={`${task.id}-${index}`} className="calendar-event text-xs truncate">
+                                {task.title}
+                              </div>
+                            ));
+                          })()}
                         </div>
                       ))}
                     </React.Fragment>
@@ -1770,11 +1828,18 @@ export default function Dashboard() {
                         className="calendar-day p-2 text-center text-xs min-h-[40px] border"
                         style={{ borderColor: "var(--border-color)" }}
                       >
-                        {hour === 9
-                          ? "Reunião com cliente"
-                          : hour === 14
-                            ? "Desenvolver proposta"
-                            : ""}
+                        {(() => {
+                          const tasksByDate = getTasksForCalendar();
+                          const today = new Date().getDate();
+                          const dayTasks = tasksByDate[today] || [];
+                          const hourTasks = dayTasks.filter(task => task.hour === hour);
+                          
+                          return hourTasks.map((task, index) => (
+                            <div key={`${task.id}-${index}`} className="text-xs truncate">
+                              {task.title}
+                            </div>
+                          ));
+                        })()}
                       </div>
                     </React.Fragment>
                   ))}

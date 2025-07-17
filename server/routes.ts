@@ -766,8 +766,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       const data = await mondeResponse.json();
+      
+      // Verificar se a resposta tem erro
+      if (data.errors) {
+        console.log("⚠️ Erro na API de usuários:", data.errors[0]?.title);
+        res.json({ data: [] });
+        return;
+      }
+      
       console.log("✅ Usuários/agentes da empresa carregados:", data.length || 0);
-      res.json({ data: data });
+      res.json({ data: Array.isArray(data) ? data : [] });
     } catch (error) {
       console.error("Erro ao buscar usuários:", error);
       res.status(500).json({ message: "Erro ao buscar usuários" });

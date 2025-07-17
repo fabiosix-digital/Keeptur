@@ -98,7 +98,7 @@ export default function Dashboard() {
         
         // Aplicar filtro inicial será feito pelo useEffect do taskFilter
         setCategories(categoriesData?.data || []);
-        setUsers(usersData?.data || []);
+        setUsers(Array.isArray(usersData?.data) ? usersData.data : []);
 
         // Carregar dados das empresas
         const empresasResponse = await fetch("/api/monde/empresas", {

@@ -2753,8 +2753,7 @@ export default function Dashboard() {
                         <p className="font-medium text-yellow-800">Anexos sincronizados do Monde</p>
                         <p className="text-yellow-700 mt-1">
                           Os anexos abaixo são importados diretamente do sistema Monde. 
-                          A API do Monde não permite download direto de arquivos, portanto os botões de visualizar/baixar 
-                          redirecionam para o sistema Monde original.
+                          Use "Ver no Monde" para acessar o arquivo no sistema original ou "Copiar Nome" para facilitar a busca.
                         </p>
                       </div>
                     </div>
@@ -2853,68 +2852,41 @@ export default function Dashboard() {
                           </div>
                           <div className="flex items-center justify-start space-x-2">
                             <button
-                              onClick={async () => {
-                                try {
-                                  // Tentar visualizar o anexo via backend com token
-                                  const response = await fetch(`/api/monde/anexos/${selectedTask?.id}/${attachment.id}/download`, {
-                                    headers: {
-                                      'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
-                                    }
-                                  });
-                                  
-                                  if (response.ok) {
-                                    const blob = await response.blob();
-                                    const url = URL.createObjectURL(blob);
-                                    window.open(url, '_blank');
-                                  } else {
-                                    const error = await response.json();
-                                    alert(`⚠️ Anexo não disponível para download via API\n\n${error.error || 'A API do Monde não disponibiliza download direto de anexos.'}\n\nPara acessar este arquivo, entre no sistema Monde original.`);
-                                  }
-                                } catch (error) {
-                                  console.error('Erro ao visualizar anexo:', error);
-                                  alert('⚠️ Anexo não disponível para download\n\nPara acessar este arquivo, entre no sistema Monde original.');
-                                }
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                // Abrir sistema Monde original para visualizar anexo
+                                const mondeUrl = `https://web.monde.com.br/tasks/${selectedTask?.id}`;
+                                window.open(mondeUrl, '_blank');
                               }}
                               className="text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50 text-xs"
-                              title="Tentar visualizar anexo"
+                              title="Abrir no Monde original para visualizar"
                             >
-                              <i className="ri-eye-line mr-1"></i>
-                              Visualizar
+                              <i className="ri-external-link-line mr-1"></i>
+                              Ver no Monde
                             </button>
                             <button
-                              onClick={async () => {
-                                try {
-                                  // Tentar baixar o anexo via backend com token
-                                  const response = await fetch(`/api/monde/anexos/${selectedTask?.id}/${attachment.id}/download`, {
-                                    headers: {
-                                      'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
-                                    }
-                                  });
-                                  
-                                  if (response.ok) {
-                                    const blob = await response.blob();
-                                    const url = URL.createObjectURL(blob);
-                                    const link = document.createElement('a');
-                                    link.href = url;
-                                    link.download = attachment.name || 'anexo';
-                                    document.body.appendChild(link);
-                                    link.click();
-                                    document.body.removeChild(link);
-                                    URL.revokeObjectURL(url);
-                                  } else {
-                                    const error = await response.json();
-                                    alert(`⚠️ Anexo não disponível para download via API\n\n${error.error || 'A API do Monde não disponibiliza download direto de anexos.'}\n\nPara baixar este arquivo, entre no sistema Monde original.`);
-                                  }
-                                } catch (error) {
-                                  console.error('Erro ao baixar anexo:', error);
-                                  alert('⚠️ Anexo não disponível para download\n\nPara baixar este arquivo, entre no sistema Monde original.');
-                                }
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                // Copiar nome do arquivo para área de transferência
+                                const fileName = attachment.nome_original || attachment.name || attachment.filename || 'anexo';
+                                navigator.clipboard.writeText(fileName).then(() => {
+                                  // Mostrar toast de sucesso sem fechar modal
+                                  const toast = document.createElement('div');
+                                  toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                                  toast.textContent = 'Nome do arquivo copiado!';
+                                  document.body.appendChild(toast);
+                                  setTimeout(() => {
+                                    document.body.removeChild(toast);
+                                  }, 2000);
+                                });
                               }}
-                              className="text-green-600 hover:text-green-800 px-2 py-1 rounded hover:bg-green-50 text-xs"
-                              title="Tentar baixar anexo"
+                              className="text-gray-600 hover:text-gray-800 px-2 py-1 rounded hover:bg-gray-50 text-xs"
+                              title="Copiar nome do arquivo"
                             >
-                              <i className="ri-download-line mr-1"></i>
-                              Baixar
+                              <i className="ri-file-copy-line mr-1"></i>
+                              Copiar Nome
                             </button>
                           </div>
                         </div>

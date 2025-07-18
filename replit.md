@@ -81,6 +81,11 @@ Preferred communication style: Simple, everyday language in Portuguese.
 - ✅ Confirmado que API do Monde não disponibiliza download direto de anexos
 - ✅ Interface atualizada com avisos claros sobre limitações da API
 - ✅ Botões de visualizar/baixar implementados com mensagens informativas
+- ✅ Problema da modal fechando corrigido - botões não usam mais alert()
+- ✅ Botão "Ver no Monde" implementado para redirecionar ao sistema original
+- ✅ Botão "Copiar Nome" implementado para facilitar busca de arquivos
+- ✅ Toast notifications implementadas para feedback visual sem interferir na modal
+- ✅ Sistema de anexos finalizado com interface user-friendly e funcional
 
 ## System Architecture
 

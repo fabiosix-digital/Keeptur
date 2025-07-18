@@ -1502,8 +1502,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       for (const item of included) {
         console.log(`🔧 Analisando item incluído: ${item.type} - ${item.id}`);
         if (item.attributes) {
-          console.log(`🔧 Atributos do item ${item.type}:`, Object.keys(item.attributes));
+          console.log(`🔧 Atributos COMPLETOS do item ${item.type}:`, JSON.stringify(item.attributes, null, 2));
         }
+      }
+      
+      // Buscar também no meta ou links se existirem
+      if (taskData.meta) {
+        console.log('🔧 Meta data da tarefa:', JSON.stringify(taskData.meta, null, 2));
+      }
+      if (taskData.links) {
+        console.log('🔧 Links da tarefa:', JSON.stringify(taskData.links, null, 2));
       }
       
       // Buscar campos personalizados na estrutura completa da tarefa
@@ -1553,6 +1561,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (customFields.length === 0) {
         console.log('🔧 Tentando buscar campos personalizados via endpoint específico...');
         
+        // Primeiro, vamos buscar a tarefa com TODOS os includes possíveis
+        const taskWithAllIncludes = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}?include=assignee,person,category,author,custom_fields,field_values,task_fields,form_fields,company,task_category,task_template`, {
+          headers: {
+            'Authorization': `Bearer ${req.mondeToken}`,
+            'Accept': 'application/vnd.api+json'
+          }
+        });
+        
+        if (taskWithAllIncludes.ok) {
+          const taskWithAllData = await taskWithAllIncludes.json();
+          console.log('🔧 Tarefa com TODOS os includes:', JSON.stringify(taskWithAllData, null, 2));
+          
+          // Verificar se há campos personalizados nos included
+          const allIncluded = taskWithAllData.included || [];
+          for (const item of allIncluded) {
+            console.log(`🔧 Tipo de item incluído: ${item.type}`);
+            if (item.type && (item.type.includes('field') || item.type.includes('custom') || item.type.includes('form'))) {
+              console.log(`🔧 CAMPO PERSONALIZADO ENCONTRADO: ${item.type}`, JSON.stringify(item, null, 2));
+            }
+          }
+        }
+        
         // Tentar buscar configurações de campos da empresa com múltiplos endpoints
         const fieldEndpoints = [
           '/api/v2/task-field-configs',
@@ -1562,7 +1592,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           '/api/v2/forms',
           '/api/v2/task-categories/' + (relationships.category?.data?.id || '') + '/fields',
           '/api/v2/companies/fields',
-          '/api/v2/task-templates'
+          '/api/v2/task-templates',
+          '/api/v2/field-definitions',
+          '/api/v2/task-form-fields',
+          '/api/v2/companies/custom-fields',
+          '/api/v2/task-categories/' + (relationships.category?.data?.id || '') + '/custom-fields'
         ];
         
         for (const endpoint of fieldEndpoints) {
@@ -1724,6 +1758,120 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('❌ Erro ao buscar campos personalizados:', error);
       res.status(500).json({ error: 'Erro ao buscar campos personalizados' });
+    }
+  });
+
+  // Endpoint para investigar a API do Monde profundamente
+  app.get('/api/monde/debug/:id', authenticateToken, async (req: any, res) => {
+    try {
+      const taskId = req.params.id;
+      console.log('🔍 INVESTIGAÇÃO PROFUNDA DA API DO MONDE - Tarefa:', taskId);
+      
+      const results = {};
+      
+      // Buscar tarefa com diferentes conjuntos de includes
+      const includeTests = [
+        'assignee,person,category,author',
+        'assignee,person,category,author,custom_fields',
+        'assignee,person,category,author,field_values',
+        'assignee,person,category,author,task_fields',
+        'assignee,person,category,author,form_fields',
+        'assignee,person,category,author,company',
+        'assignee,person,category,author,task_category',
+        'assignee,person,category,author,task_template',
+        'assignee,person,category,author,attributes',
+        'assignee,person,category,author,extra_fields',
+        'assignee,person,category,author,meta_fields',
+        'assignee,person,category,author,dynamic_fields'
+      ];
+      
+      for (const includeSet of includeTests) {
+        try {
+          const response = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}?include=${includeSet}`, {
+            headers: {
+              'Authorization': `Bearer ${req.mondeToken}`,
+              'Accept': 'application/vnd.api+json'
+            }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            results[includeSet] = {
+              success: true,
+              includedCount: data.included?.length || 0,
+              includedTypes: data.included?.map(item => item.type) || [],
+              attributesKeys: Object.keys(data.data?.attributes || {}),
+              relationships: Object.keys(data.data?.relationships || {})
+            };
+            
+            console.log(`✅ Include ${includeSet}: ${data.included?.length || 0} items`);
+            if (data.included?.length > 0) {
+              console.log(`   Tipos: ${data.included.map(item => item.type).join(', ')}`);
+            }
+          } else {
+            results[includeSet] = { success: false, status: response.status };
+            console.log(`❌ Include ${includeSet}: ${response.status}`);
+          }
+        } catch (error) {
+          results[includeSet] = { success: false, error: error.message };
+          console.log(`❌ Include ${includeSet}: ${error.message}`);
+        }
+      }
+      
+      // Buscar endpoints específicos para campos personalizados
+      const fieldEndpoints = [
+        '/api/v2/task-field-configs',
+        '/api/v2/custom-fields',
+        '/api/v2/field-configs',
+        '/api/v2/task-fields',
+        '/api/v2/forms',
+        '/api/v2/field-definitions',
+        '/api/v2/task-form-fields',
+        '/api/v2/companies/custom-fields',
+        '/api/v2/task-categories/fields',
+        '/api/v2/task-templates/fields'
+      ];
+      
+      results.endpoints = {};
+      for (const endpoint of fieldEndpoints) {
+        try {
+          const response = await fetch(`https://web.monde.com.br${endpoint}`, {
+            headers: {
+              'Authorization': `Bearer ${req.mondeToken}`,
+              'Accept': 'application/vnd.api+json'
+            }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            results.endpoints[endpoint] = {
+              success: true,
+              status: response.status,
+              dataCount: data.data?.length || 0,
+              firstItem: data.data?.[0] || null
+            };
+            console.log(`✅ Endpoint ${endpoint}: ${data.data?.length || 0} items`);
+          } else {
+            results.endpoints[endpoint] = {
+              success: false,
+              status: response.status
+            };
+            console.log(`❌ Endpoint ${endpoint}: ${response.status}`);
+          }
+        } catch (error) {
+          results.endpoints[endpoint] = {
+            success: false,
+            error: error.message
+          };
+          console.log(`❌ Endpoint ${endpoint}: ${error.message}`);
+        }
+      }
+      
+      console.log('🔍 INVESTIGAÇÃO COMPLETA:', JSON.stringify(results, null, 2));
+      res.json(results);
+    } catch (error) {
+      console.error('Erro na investigação:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });
 

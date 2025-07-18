@@ -1553,82 +1553,164 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (customFields.length === 0) {
         console.log('🔧 Tentando buscar campos personalizados via endpoint específico...');
         
-        // Tentar buscar configurações de campos da empresa
-        try {
-          const fieldsConfigResponse = await fetch(`https://web.monde.com.br/api/v2/task-field-configs`, {
-            headers: {
-              'Authorization': `Bearer ${req.mondeToken}`,
-              'Accept': 'application/vnd.api+json'
-            }
-          });
-          
-          if (fieldsConfigResponse.ok) {
-            const fieldsConfig = await fieldsConfigResponse.json();
-            console.log('🔧 Configurações de campos encontradas:', JSON.stringify(fieldsConfig, null, 2));
+        // Tentar buscar configurações de campos da empresa com múltiplos endpoints
+        const fieldEndpoints = [
+          '/api/v2/task-field-configs',
+          '/api/v2/custom-fields',
+          '/api/v2/field-configs',
+          '/api/v2/task-fields',
+          '/api/v2/forms',
+          '/api/v2/task-categories/' + (relationships.category?.data?.id || '') + '/fields',
+          '/api/v2/companies/fields',
+          '/api/v2/task-templates'
+        ];
+        
+        for (const endpoint of fieldEndpoints) {
+          try {
+            console.log(`🔧 Testando endpoint de configurações: ${endpoint}`);
+            const fieldsConfigResponse = await fetch(`https://web.monde.com.br${endpoint}`, {
+              headers: {
+                'Authorization': `Bearer ${req.mondeToken}`,
+                'Accept': 'application/vnd.api+json'
+              }
+            });
             
-            // Processar configurações de campos
-            if (fieldsConfig.data && Array.isArray(fieldsConfig.data)) {
-              fieldsConfig.data.forEach(fieldConfig => {
-                const fieldName = fieldConfig.attributes?.name || fieldConfig.attributes?.label;
-                const fieldType = fieldConfig.attributes?.field_type || 'text';
-                const fieldId = fieldConfig.attributes?.slug || fieldConfig.id;
-                
-                // Buscar valor nos atributos da tarefa
-                const fieldValue = attributes[fieldId] || attributes[fieldName?.toLowerCase().replace(/\s+/g, '-')] || '';
-                
-                customFields.push({
-                  id: fieldId,
-                  name: fieldName,
-                  type: fieldType,
-                  value: fieldValue,
-                  options: fieldConfig.attributes?.options || []
+            if (fieldsConfigResponse.ok) {
+              const fieldsConfig = await fieldsConfigResponse.json();
+              console.log(`✅ Configurações encontradas em ${endpoint}:`, JSON.stringify(fieldsConfig, null, 2));
+              
+              // Processar configurações de campos
+              if (fieldsConfig.data && Array.isArray(fieldsConfig.data)) {
+                fieldsConfig.data.forEach(fieldConfig => {
+                  const fieldName = fieldConfig.attributes?.name || fieldConfig.attributes?.label || fieldConfig.attributes?.title;
+                  const fieldType = fieldConfig.attributes?.field_type || fieldConfig.attributes?.type || 'text';
+                  const fieldId = fieldConfig.attributes?.slug || fieldConfig.attributes?.key || fieldConfig.id;
+                  
+                  // Buscar valor nos atributos da tarefa
+                  const fieldValue = attributes[fieldId] || attributes[fieldName?.toLowerCase().replace(/\s+/g, '-')] || '';
+                  
+                  if (fieldName) {
+                    customFields.push({
+                      id: fieldId,
+                      name: fieldName,
+                      type: fieldType,
+                      value: fieldValue,
+                      options: fieldConfig.attributes?.options || fieldConfig.attributes?.choices || []
+                    });
+                  }
                 });
-              });
+                
+                // Se encontrou campos, parar de buscar
+                if (customFields.length > 0) {
+                  console.log(`✅ Encontrados ${customFields.length} campos personalizados no endpoint ${endpoint}`);
+                  break;
+                }
+              }
+            } else {
+              console.log(`❌ Endpoint ${endpoint} retornou ${fieldsConfigResponse.status}`);
             }
+          } catch (error) {
+            console.log(`❌ Erro no endpoint ${endpoint}:`, error.message);
           }
-        } catch (error) {
-          console.log('❌ Erro ao buscar configurações de campos:', error.message);
         }
       }
       
-      // Se ainda não encontrou, usar campos baseados no que foi visto no Monde
+      // Se ainda não encontrou, vamos fazer uma busca mais abrangente
       if (customFields.length === 0) {
-        console.log('🔧 Usando campos baseados na interface do Monde...');
+        console.log('🔧 Fazendo busca abrangente por campos personalizados...');
         
-        // Buscar valores reais nos atributos da tarefa
-        const motivoPerda = attributes['motivo-da-perda'] || attributes['motivo_da_perda'] || attributes['custom-motivo-da-perda'] || '';
-        const situacaoVenda = attributes['situacao-da-venda'] || attributes['situacao_da_venda'] || attributes['custom-situacao-da-venda'] || '';
-        const valorOrcamento = attributes['valor-do-orcamento'] || attributes['valor_do_orcamento'] || attributes['custom-valor-do-orcamento'] || '';
-        const origemLead = attributes['origem-do-lead'] || attributes['origem_do_lead'] || attributes['custom-origem-do-lead'] || '';
+        // Buscar TODOS os campos que não são padrão como possíveis campos personalizados
+        const standardTaskFields = [
+          'id', 'title', 'description', 'due', 'completed', 'completed-at', 
+          'registered-at', 'visualized', 'number', 'type', 'links', 'created-at', 'updated-at'
+        ];
         
-        customFields.push(
-          {
-            id: 'motivo-da-perda',
-            name: 'Motivo da perda',
-            type: 'textarea',
-            value: motivoPerda
-          },
-          {
-            id: 'situacao-da-venda',
-            name: 'Situação da venda',
-            type: 'select',
-            value: situacaoVenda,
-            options: ['Em orçamento', 'Negociação', 'Fechado', 'Perdido', 'Cancelado']
-          },
-          {
-            id: 'valor-do-orcamento',
-            name: 'Valor do orçamento',
-            type: 'currency',
-            value: valorOrcamento
-          },
-          {
-            id: 'origem-do-lead',
-            name: 'Origem do lead',
-            type: 'select',
-            value: origemLead,
-            options: ['Site', 'Facebook', 'Instagram', 'Google Ads', 'Indicação', 'Telefone', 'Email', 'WhatsApp', 'Outros']
+        Object.keys(attributes).forEach(key => {
+          if (!standardTaskFields.includes(key)) {
+            const value = attributes[key];
+            let fieldType = 'text';
+            let fieldName = key;
+            
+            // Determinar o tipo do campo baseado no nome e valor
+            if (key.includes('valor') || key.includes('preco') || key.includes('custo') || key.includes('comissao')) {
+              fieldType = 'currency';
+            } else if (key.includes('data') || key.includes('date')) {
+              fieldType = 'date';
+            } else if (key.includes('observacao') || key.includes('descricao') || key.includes('comentario') || key.includes('motivo')) {
+              fieldType = 'textarea';
+            } else if (key.includes('situacao') || key.includes('status') || key.includes('origem') || key.includes('tipo')) {
+              fieldType = 'select';
+            } else if (typeof value === 'number') {
+              fieldType = 'number';
+            } else if (typeof value === 'boolean') {
+              fieldType = 'select';
+            }
+            
+            // Melhorar o nome do campo
+            fieldName = key
+              .replace(/-/g, ' ')
+              .replace(/_/g, ' ')
+              .replace(/\b\w/g, l => l.toUpperCase());
+            
+            // Definir opções para campos de seleção
+            let options = [];
+            if (fieldType === 'select') {
+              if (key.includes('situacao') || key.includes('status')) {
+                options = ['Em orçamento', 'Negociação', 'Fechado', 'Perdido', 'Cancelado'];
+              } else if (key.includes('origem')) {
+                options = ['Site', 'Facebook', 'Instagram', 'Google Ads', 'Indicação', 'Telefone', 'Email', 'WhatsApp', 'Outros'];
+              } else if (key.includes('prioridade')) {
+                options = ['Baixa', 'Normal', 'Alta', 'Urgente'];
+              } else if (typeof value === 'boolean') {
+                options = ['Sim', 'Não'];
+              }
+            }
+            
+            customFields.push({
+              id: key,
+              name: fieldName,
+              type: fieldType,
+              value: value !== null && value !== undefined ? String(value) : '',
+              options: options
+            });
+            
+            console.log(`🔧 Campo personalizado detectado: ${fieldName} (${key}) = ${value}`);
           }
-        );
+        });
+        
+        // Se ainda não encontrou nenhum campo, usar campos padrão do Monde
+        if (customFields.length === 0) {
+          console.log('🔧 Usando campos padrão do Monde...');
+          
+          customFields.push(
+            {
+              id: 'motivo-da-perda',
+              name: 'Motivo da perda',
+              type: 'textarea',
+              value: ''
+            },
+            {
+              id: 'situacao-da-venda',
+              name: 'Situação da venda',
+              type: 'select',
+              value: '',
+              options: ['Em orçamento', 'Negociação', 'Fechado', 'Perdido', 'Cancelado']
+            },
+            {
+              id: 'valor-do-orcamento',
+              name: 'Valor do orçamento',
+              type: 'currency',
+              value: ''
+            },
+            {
+              id: 'origem-do-lead',
+              name: 'Origem do lead',
+              type: 'select',
+              value: '',
+              options: ['Site', 'Facebook', 'Instagram', 'Google Ads', 'Indicação', 'Telefone', 'Email', 'WhatsApp', 'Outros']
+            }
+          );
+        }
       }
       
       console.log('🔧 Campos personalizados baseados no Monde:', customFields);

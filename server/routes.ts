@@ -1878,16 +1878,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint para buscar clientes/pessoas do Monde
   app.get('/api/monde/clientes', authenticateToken, async (req: any, res) => {
     try {
-      const { search, page = 1, limit = 50 } = req.query;
+      const { search, kind, page = 1, limit = 50 } = req.query;
+      
+      console.log('🔍 Parâmetros recebidos para busca de clientes:', req.query);
       
       // Construir URL com filtros
-      let url = `https://web.monde.com.br/api/v2/people?page[number]=${page}&page[size]=${limit}`;
+      const params = new URLSearchParams();
+      params.append('page[number]', page.toString());
+      params.append('page[size]', limit.toString());
       
-      if (search) {
-        url += `&filter[search]=${encodeURIComponent(search)}`;
+      if (search && search.trim()) {
+        params.append('filter[search]', search.trim());
+        console.log('📝 Aplicando filtro de busca:', search.trim());
       }
       
-      console.log('🔍 Buscando clientes no Monde:', url);
+      if (kind && kind !== 'todos' && kind !== '') {
+        params.append('filter[kind]', kind);
+        console.log('🏷️ Aplicando filtro de tipo:', kind);
+      }
+      
+      const url = `https://web.monde.com.br/api/v2/people?${params.toString()}`;
+      console.log('🌐 URL final da API do Monde:', url);
       
       const response = await fetch(url, {
         headers: {
@@ -1897,7 +1908,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       if (!response.ok) {
-        console.error('Erro ao buscar clientes:', response.status, response.statusText);
+        console.error('❌ Erro na API do Monde:', response.status, response.statusText);
         return res.status(response.status).json({ error: 'Erro ao buscar clientes' });
       }
       
@@ -1906,7 +1917,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(data);
     } catch (error) {
-      console.error('Erro ao buscar clientes:', error);
+      console.error('❌ Erro ao buscar clientes:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });

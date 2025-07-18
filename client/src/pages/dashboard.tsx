@@ -3001,13 +3001,11 @@ export default function Dashboard() {
                                 }}
                               >
                                 <option value="">Selecione uma opção</option>
-                                {field.id === 'prioridade' && (
-                                  <>
-                                    <option value="baixa">Baixa</option>
-                                    <option value="normal">Normal</option>
-                                    <option value="alta">Alta</option>
-                                  </>
-                                )}
+                                {field.options && field.options.map((option, optionIndex) => (
+                                  <option key={optionIndex} value={option}>
+                                    {option}
+                                  </option>
+                                ))}
                               </select>
                             ) : field.type === 'number' ? (
                               <input

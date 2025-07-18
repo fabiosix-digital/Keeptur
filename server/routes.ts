@@ -1506,34 +1506,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Simular campos personalizados baseados nas imagens mostradas pelo usuário
-      // Estes são os campos que existem no Monde e devem ser sincronizados
-      const customFields = [
-        {
-          id: 'motivo-da-perda',
-          name: 'Motivo da perda',
-          type: 'textarea',
-          value: 'teste' // Valor que aparece na imagem
-        },
-        {
-          id: 'situacao-da-venda',
-          name: 'Situação da venda',
-          type: 'select',
-          value: 'Em orçamento' // Valor que aparece na imagem
-        },
-        {
-          id: 'valor-do-orcamento',
-          name: 'Valor do orçamento',
-          type: 'currency',
-          value: '' // Campo vazio na imagem
-        },
-        {
-          id: 'origem-do-lead',
-          name: 'Origem do lead',
-          type: 'text',
-          value: '' // Campo vazio na imagem
+      // Buscar campos personalizados na estrutura completa da tarefa
+      const task = taskData.data;
+      const attributes = task.attributes || {};
+      const relationships = task.relationships || {};
+      
+      console.log('🔧 Todos os atributos da tarefa:', JSON.stringify(attributes, null, 2));
+      console.log('🔧 Todos os relacionamentos da tarefa:', JSON.stringify(relationships, null, 2));
+      
+      // Buscar também nos dados relacionados (pessoa, categoria, etc.)
+      let personData = null;
+      let categoryData = null;
+      
+      // Encontrar dados da pessoa relacionada
+      if (relationships.person?.data?.id) {
+        personData = included.find(item => item.type === 'people' && item.id === relationships.person.data.id);
+        if (personData) {
+          console.log('🔧 Atributos da pessoa relacionada:', JSON.stringify(personData.attributes, null, 2));
         }
-      ];
+      }
+      
+      // Encontrar dados da categoria relacionada
+      if (relationships.category?.data?.id) {
+        categoryData = included.find(item => item.type === 'task-categories' && item.id === relationships.category.data.id);
+        if (categoryData) {
+          console.log('🔧 Atributos da categoria relacionada:', JSON.stringify(categoryData.attributes, null, 2));
+        }
+      }
+      
+      // Buscar por campos personalizados em diferentes locais
+      const customFields = [];
+      
+      // Verificar se há campos personalizados nos atributos da tarefa
+      Object.keys(attributes).forEach(key => {
+        if (key.includes('custom') || key.includes('campo') || key.includes('field')) {
+          customFields.push({
+            id: key,
+            name: key.replace(/-/g, ' ').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+            type: 'text',
+            value: attributes[key] || ''
+          });
+        }
+      });
+      
+      // Se não encontrou campos personalizados, vamos buscar via endpoint específico
+      if (customFields.length === 0) {
+        console.log('🔧 Tentando buscar campos personalizados via endpoint específico...');
+        
+        // Tentar buscar configurações de campos da empresa
+        try {
+          const fieldsConfigResponse = await fetch(`https://web.monde.com.br/api/v2/task-field-configs`, {
+            headers: {
+              'Authorization': `Bearer ${req.mondeToken}`,
+              'Accept': 'application/vnd.api+json'
+            }
+          });
+          
+          if (fieldsConfigResponse.ok) {
+            const fieldsConfig = await fieldsConfigResponse.json();
+            console.log('🔧 Configurações de campos encontradas:', JSON.stringify(fieldsConfig, null, 2));
+            
+            // Processar configurações de campos
+            if (fieldsConfig.data && Array.isArray(fieldsConfig.data)) {
+              fieldsConfig.data.forEach(fieldConfig => {
+                const fieldName = fieldConfig.attributes?.name || fieldConfig.attributes?.label;
+                const fieldType = fieldConfig.attributes?.field_type || 'text';
+                const fieldId = fieldConfig.attributes?.slug || fieldConfig.id;
+                
+                // Buscar valor nos atributos da tarefa
+                const fieldValue = attributes[fieldId] || attributes[fieldName?.toLowerCase().replace(/\s+/g, '-')] || '';
+                
+                customFields.push({
+                  id: fieldId,
+                  name: fieldName,
+                  type: fieldType,
+                  value: fieldValue,
+                  options: fieldConfig.attributes?.options || []
+                });
+              });
+            }
+          }
+        } catch (error) {
+          console.log('❌ Erro ao buscar configurações de campos:', error.message);
+        }
+      }
+      
+      // Se ainda não encontrou, usar campos baseados no que foi visto no Monde
+      if (customFields.length === 0) {
+        console.log('🔧 Usando campos baseados na interface do Monde...');
+        
+        // Buscar valores reais nos atributos da tarefa
+        const motivoPerda = attributes['motivo-da-perda'] || attributes['motivo_da_perda'] || attributes['custom-motivo-da-perda'] || '';
+        const situacaoVenda = attributes['situacao-da-venda'] || attributes['situacao_da_venda'] || attributes['custom-situacao-da-venda'] || '';
+        const valorOrcamento = attributes['valor-do-orcamento'] || attributes['valor_do_orcamento'] || attributes['custom-valor-do-orcamento'] || '';
+        const origemLead = attributes['origem-do-lead'] || attributes['origem_do_lead'] || attributes['custom-origem-do-lead'] || '';
+        
+        customFields.push(
+          {
+            id: 'motivo-da-perda',
+            name: 'Motivo da perda',
+            type: 'textarea',
+            value: motivoPerda
+          },
+          {
+            id: 'situacao-da-venda',
+            name: 'Situação da venda',
+            type: 'select',
+            value: situacaoVenda,
+            options: ['Em orçamento', 'Negociação', 'Fechado', 'Perdido', 'Cancelado']
+          },
+          {
+            id: 'valor-do-orcamento',
+            name: 'Valor do orçamento',
+            type: 'currency',
+            value: valorOrcamento
+          },
+          {
+            id: 'origem-do-lead',
+            name: 'Origem do lead',
+            type: 'select',
+            value: origemLead,
+            options: ['Site', 'Facebook', 'Instagram', 'Google Ads', 'Indicação', 'Telefone', 'Email', 'WhatsApp', 'Outros']
+          }
+        );
+      }
       
       console.log('🔧 Campos personalizados baseados no Monde:', customFields);
       
@@ -1574,21 +1670,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentTask = taskData.data;
       
       // Criar payload para atualizar a tarefa incluindo campos personalizados
-      // Como não há endpoint específico, tentamos incluir os campos no payload da tarefa
       const updatePayload = {
         data: {
           type: 'tasks',
           id: taskId,
-          attributes: {
-            ...currentTask.attributes,
-            // Tentar incluir campos personalizados como atributos
-            'custom-motivo-da-perda': fields.find(f => f.id === 'motivo-da-perda')?.value || '',
-            'custom-situacao-da-venda': fields.find(f => f.id === 'situacao-da-venda')?.value || '',
-            'custom-valor-do-orcamento': fields.find(f => f.id === 'valor-do-orcamento')?.value || '',
-            'custom-origem-do-lead': fields.find(f => f.id === 'origem-do-lead')?.value || ''
-          }
+          attributes: {}
         }
       };
+      
+      // Adicionar campos personalizados como atributos da tarefa
+      fields.forEach(field => {
+        // Tentar diferentes formatos de nome de campo
+        const fieldNames = [
+          field.id,
+          field.id.replace(/-/g, '_'),
+          `custom-${field.id}`,
+          `custom_${field.id}`,
+          field.id.replace(/-/g, ''),
+          field.id.replace(/_/g, '-')
+        ];
+        
+        // Usar o primeiro nome de campo como padrão
+        updatePayload.data.attributes[fieldNames[0]] = field.value || '';
+      });
       
       console.log('🔧 Payload para atualizar tarefa:', JSON.stringify(updatePayload, null, 2));
       

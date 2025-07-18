@@ -19,12 +19,18 @@ export default function Dashboard() {
   const [clients, setClients] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [stats, setStats] = useState<any>({});
+  const [clientStats, setClientStats] = useState<any>({});
   const [loading, setLoading] = useState(true);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [calendarView, setCalendarView] = useState("mes");
   const [searchTerm, setSearchTerm] = useState("");
   const [searchingClients, setSearchingClients] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [showClientModal, setShowClientModal] = useState(false);
+  const [selectedClientForModal, setSelectedClientForModal] = useState<any>(null);
+  const [clientsCurrentPage, setClientsCurrentPage] = useState(1);
+  const [clientsHasMore, setClientsHasMore] = useState(false);
   const [showCompletedTasks, setShowCompletedTasks] = useState(false);
   const [taskFilter, setTaskFilter] = useState("assigned_to_me");
   const [taskSearchTerm, setTaskSearchTerm] = useState("");
@@ -54,6 +60,28 @@ export default function Dashboard() {
   const [customFields, setCustomFields] = useState<any[]>([]);
   const [loadingCustomFields, setLoadingCustomFields] = useState(false);
   const [savingCustomFields, setSavingCustomFields] = useState(false);
+
+  // Função para buscar clientes removida (implementada mais abaixo)
+
+  // Função para carregar estatísticas de clientes
+  const loadClientStats = async () => {
+    try {
+      const response = await fetch('/api/monde/clientes/estatisticas', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setClientStats(data);
+      } else {
+        console.error('Erro ao carregar estatísticas de clientes:', response.status);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar estatísticas de clientes:', error);
+    }
+  };
 
   // Função para carregar anexos da tarefa
   const loadTaskAttachments = async (taskId: string) => {
@@ -358,11 +386,8 @@ export default function Dashboard() {
         });
         const usersData = await usersResponse.json();
         
-        // Carregar pessoas/clientes
-        const pessoasResponse = await fetch("/api/monde/clientes", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const pessoasData = await pessoasResponse.json();
+        // Carregar estatísticas de clientes
+        await loadClientStats();
 
         // Processar dados do formato JSON:API do Monde
         const tasks = tasksResponse?.data || [];
@@ -692,30 +717,46 @@ export default function Dashboard() {
     }
   };
 
-  const handleSearchClients = async () => {
-    if (!searchTerm.trim()) {
-      setClients([]);
-      return;
-    }
+  const searchClients = async (query: string, page: number = 1) => {
+    if (!query.trim()) return;
 
     try {
       setSearchingClients(true);
-      const token = localStorage.getItem("keeptur-token");
+      setHasSearched(true);
+      
       const response = await fetch(
-        `/api/monde/clientes?filter[search]=${encodeURIComponent(searchTerm)}`,
+        `/api/monde/clientes?q=${encodeURIComponent(query)}&page=${page}`,
         {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+          headers: { Authorization: `Bearer ${localStorage.getItem('keeptur-token')}` },
+        }
       );
-
-      if (response.ok) {
-        const data = await response.json();
-        setClients(data.data || []);
-      } else if (response.status === 401) {
-        setShowTokenExpiredModal(true);
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          setShowTokenExpiredModal(true);
+        }
+        throw new Error('Erro ao buscar clientes');
       }
+      
+      const data = await response.json();
+      console.log('🔍 Resultado da busca de clientes:', data);
+      
+      if (page === 1) {
+        setClients(data.data || []);
+      } else {
+        setClients(prev => [...prev, ...(data.data || [])]);
+      }
+      
+      setClientsCurrentPage(page);
+      setClientsHasMore(data.meta?.has_more || false);
     } catch (error) {
-      console.error("Erro ao pesquisar clientes:", error);
+      console.error("Erro ao buscar clientes:", error);
+      
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
+      toast.textContent = 'Erro ao buscar clientes';
+      document.body.appendChild(toast);
+      setTimeout(() => document.body.removeChild(toast), 3000);
     } finally {
       setSearchingClients(false);
     }
@@ -758,7 +799,7 @@ export default function Dashboard() {
 
     // Recarregar clientes se houver busca ativa
     if (searchTerm.trim()) {
-      await handleSearchClients();
+      // Busca removida do useEffect inicial
     }
   };
 
@@ -3257,41 +3298,52 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Clients Table */}
+      {/* Clients Search */}
       <div className="card rounded-xl p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <h2
             className="text-xl font-semibold"
             style={{ color: "var(--text-primary)" }}
           >
-            Lista de Clientes
+            Buscar Clientes
           </h2>
           <div className="flex items-center space-x-3">
             <div className="relative">
               <input
                 type="text"
-                placeholder="Buscar clientes..."
+                placeholder="Digite nome, email, CPF ou CNPJ..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSearchClients()}
-                className="search-input pl-10 pr-4 py-2 rounded-lg text-sm w-64"
+                onKeyPress={(e) => e.key === "Enter" && searchClients(searchTerm)}
+                className="search-input pl-10 pr-4 py-2 rounded-lg text-sm w-80"
               />
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
                 <i className="ri-search-line text-gray-400"></i>
               </div>
             </div>
             <button
-              onClick={handleSearchClients}
-              className="action-button px-4 py-2 rounded-lg text-sm font-medium rounded-button"
+              onClick={() => searchClients(searchTerm)}
+              disabled={searchingClients || !searchTerm.trim()}
+              className="action-button px-4 py-2 rounded-lg text-sm font-medium rounded-button disabled:opacity-50"
             >
-              <i className="ri-search-line mr-2"></i>
-              Buscar
+              {searchingClients ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current inline-block mr-2"></div>
+                  Buscando...
+                </>
+              ) : (
+                <>
+                  <i className="ri-search-line mr-2"></i>
+                  Buscar
+                </>
+              )}
             </button>
             {searchTerm && (
               <button
                 onClick={() => {
                   setSearchTerm("");
                   setClients([]);
+                  setHasSearched(false);
                 }}
                 className="action-button px-4 py-2 rounded-lg text-sm font-medium rounded-button"
               >
@@ -3299,104 +3351,471 @@ export default function Dashboard() {
                 Limpar
               </button>
             )}
-            <button className="primary-button px-4 py-2 rounded-lg text-sm font-medium rounded-button">
+            <button 
+              onClick={() => setShowClientModal(true)}
+              className="primary-button px-4 py-2 rounded-lg text-sm font-medium rounded-button"
+            >
               <i className="ri-add-line mr-2"></i>
               Novo Cliente
             </button>
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="table-row">
-                <th
-                  className="text-left py-3 px-4 font-medium text-sm"
-                  style={{ color: "var(--text-secondary)" }}
-                >
-                  Cliente
-                </th>
-                <th
-                  className="text-left py-3 px-4 font-medium text-sm"
-                  style={{ color: "var(--text-secondary)" }}
-                >
-                  Email
-                </th>
-                <th
-                  className="text-left py-3 px-4 font-medium text-sm"
-                  style={{ color: "var(--text-secondary)" }}
-                >
-                  Telefone
-                </th>
-                <th
-                  className="text-left py-3 px-4 font-medium text-sm"
-                  style={{ color: "var(--text-secondary)" }}
-                >
-                  Status
-                </th>
-                <th
-                  className="text-left py-3 px-4 font-medium text-sm"
-                  style={{ color: "var(--text-secondary)" }}
-                >
-                  Ações
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {clients.map((client) => (
-                <tr key={client.id} className="table-row">
-                  <td className="py-3 px-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 rounded-full client-avatar flex items-center justify-center text-white font-medium text-sm">
-                        {(client.attributes?.name || client.nome)
-                          ?.charAt(0)
-                          .toUpperCase()}
+        {/* Mensagem inicial quando não há busca */}
+        {!hasSearched && !searchingClients && (
+          <div className="text-center py-16" style={{ color: "var(--text-secondary)" }}>
+            <i className="ri-search-line text-6xl text-gray-400 mb-4"></i>
+            <h3 className="text-lg font-semibold mb-2">Digite para buscar clientes</h3>
+            <p className="text-sm">
+              Use o campo de busca acima para encontrar clientes por nome, email, CPF ou CNPJ.
+            </p>
+            <p className="text-sm text-gray-500 mt-2">
+              Todos os dados são carregados diretamente da API do Monde.
+            </p>
+          </div>
+        )}
+
+        {/* Resultados da busca */}
+        {hasSearched && !searchingClients && (
+          <>
+            {clients.length > 0 ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                    {clients.length} cliente{clients.length !== 1 ? 's' : ''} encontrado{clients.length !== 1 ? 's' : ''}
+                  </p>
+                  {clientsHasMore && (
+                    <button
+                      onClick={() => searchClients(searchTerm, clientsCurrentPage + 1)}
+                      className="action-button px-3 py-1 rounded text-sm"
+                    >
+                      Carregar mais
+                    </button>
+                  )}
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {clients.map((client: any) => (
+                    <div key={client.id} className="card p-4 rounded-lg border">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-sm mb-1" style={{ color: "var(--text-primary)" }}>
+                            {client.attributes.name}
+                          </h4>
+                          {client.attributes['company-name'] && (
+                            <p className="text-xs text-gray-500 mb-1">
+                              {client.attributes['company-name']}
+                            </p>
+                          )}
+                          <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
+                            {client.attributes.kind === 'individual' ? 'Pessoa Física' : 'Pessoa Jurídica'}
+                          </p>
+                        </div>
+                        <div className="flex space-x-1">
+                          <button
+                            onClick={() => {
+                              setSelectedClientForModal(client);
+                              setShowClientModal(true);
+                            }}
+                            className="action-button p-1 rounded"
+                          >
+                            <i className="ri-eye-line text-xs"></i>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedClientForModal(client);
+                              setShowClientModal(true);
+                            }}
+                            className="action-button p-1 rounded"
+                          >
+                            <i className="ri-edit-line text-xs"></i>
+                          </button>
+                        </div>
                       </div>
-                      <div>
-                        <p
-                          className="font-medium text-sm"
-                          style={{ color: "var(--text-primary)" }}
-                        >
-                          {client.attributes?.name || client.nome}
-                        </p>
+                      
+                      <div className="space-y-2">
+                        {client.attributes.email && (
+                          <div className="flex items-center text-xs" style={{ color: "var(--text-secondary)" }}>
+                            <i className="ri-mail-line mr-2"></i>
+                            {client.attributes.email}
+                          </div>
+                        )}
+                        {client.attributes.phone && (
+                          <div className="flex items-center text-xs" style={{ color: "var(--text-secondary)" }}>
+                            <i className="ri-phone-line mr-2"></i>
+                            {client.attributes.phone}
+                          </div>
+                        )}
+                        {client.attributes.cpf && (
+                          <div className="flex items-center text-xs" style={{ color: "var(--text-secondary)" }}>
+                            <i className="ri-user-line mr-2"></i>
+                            CPF: {client.attributes.cpf}
+                          </div>
+                        )}
+                        {client.attributes.cnpj && (
+                          <div className="flex items-center text-xs" style={{ color: "var(--text-secondary)" }}>
+                            <i className="ri-building-line mr-2"></i>
+                            CNPJ: {client.attributes.cnpj}
+                          </div>
+                        )}
+                        {client.attributes['registered-at'] && (
+                          <div className="flex items-center text-xs text-gray-500">
+                            <i className="ri-calendar-line mr-2"></i>
+                            Cadastrado em {new Date(client.attributes['registered-at']).toLocaleDateString('pt-BR')}
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </td>
-                  <td
-                    className="py-3 px-4 text-sm"
-                    style={{ color: "var(--text-secondary)" }}
-                  >
-                    {client.attributes?.email || client.email}
-                  </td>
-                  <td
-                    className="py-3 px-4 text-sm"
-                    style={{ color: "var(--text-secondary)" }}
-                  >
-                    {client.attributes?.phone || client.telefone}
-                  </td>
-                  <td className="py-3 px-4">
-                    <span className="px-2 py-1 rounded-full text-xs status-badge-active">
-                      Ativo
-                    </span>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex items-center space-x-2">
-                      <button className="action-button p-1 rounded">
-                        <i className="ri-edit-line text-sm"></i>
-                      </button>
-                      <button className="action-button p-1 rounded">
-                        <i className="ri-more-line text-sm"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-16" style={{ color: "var(--text-secondary)" }}>
+                <i className="ri-user-search-line text-6xl text-gray-400 mb-4"></i>
+                <h3 className="text-lg font-semibold mb-2">Nenhum cliente encontrado</h3>
+                <p className="text-sm">
+                  Não encontramos clientes com os termos "{searchTerm}".
+                </p>
+                <p className="text-sm text-gray-500 mt-2">
+                  Tente usar termos diferentes ou criar um novo cliente.
+                </p>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
+
+  // Modal de Cliente
+  const renderClientModal = () => {
+    if (!showClientModal) return null;
+
+    const isEditing = selectedClientForModal !== null;
+    const clientData = selectedClientForModal || {};
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold" style={{ color: "var(--text-primary)" }}>
+              {isEditing ? 'Editar Cliente' : 'Novo Cliente'}
+            </h2>
+            <button
+              onClick={() => {
+                setShowClientModal(false);
+                setSelectedClientForModal(null);
+              }}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <i className="ri-close-line text-xl"></i>
+            </button>
+          </div>
+
+          <form onSubmit={async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target as HTMLFormElement);
+            const clientPayload = {
+              data: {
+                type: 'people',
+                ...(isEditing && { id: clientData.id }),
+                attributes: {
+                  name: formData.get('name'),
+                  'company-name': formData.get('company-name'),
+                  email: formData.get('email'),
+                  phone: formData.get('phone'),
+                  'mobile-phone': formData.get('mobile-phone'),
+                  'business-phone': formData.get('business-phone'),
+                  cpf: formData.get('cpf'),
+                  cnpj: formData.get('cnpj'),
+                  address: formData.get('address'),
+                  number: formData.get('number'),
+                  complement: formData.get('complement'),
+                  district: formData.get('district'),
+                  zip: formData.get('zip'),
+                  'birth-date': formData.get('birth-date'),
+                  rg: formData.get('rg'),
+                  'passport-number': formData.get('passport-number'),
+                  'passport-expiration': formData.get('passport-expiration'),
+                  gender: formData.get('gender'),
+                  'city-inscription': formData.get('city-inscription'),
+                  'state-inscription': formData.get('state-inscription'),
+                  website: formData.get('website'),
+                  observations: formData.get('observations'),
+                  kind: formData.get('kind') || 'individual'
+                }
+              }
+            };
+
+            try {
+              const url = isEditing ? `/api/monde/clientes/${clientData.id}` : '/api/monde/clientes';
+              const method = isEditing ? 'PATCH' : 'POST';
+              
+              const response = await fetch(url, {
+                method,
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+                },
+                body: JSON.stringify(clientPayload)
+              });
+
+              if (response.ok) {
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                toast.textContent = `Cliente ${isEditing ? 'atualizado' : 'criado'} com sucesso!`;
+                document.body.appendChild(toast);
+                setTimeout(() => document.body.removeChild(toast), 3000);
+                
+                setShowClientModal(false);
+                setSelectedClientForModal(null);
+                
+                // Recarregar busca se havia busca ativa
+                if (searchTerm.trim()) {
+                  await searchClients(searchTerm);
+                }
+              } else {
+                const errorData = await response.json();
+                console.error('Erro ao salvar cliente:', errorData);
+                
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                toast.textContent = `Erro ao ${isEditing ? 'atualizar' : 'criar'} cliente`;
+                document.body.appendChild(toast);
+                setTimeout(() => document.body.removeChild(toast), 3000);
+              }
+            } catch (error) {
+              console.error('Erro ao salvar cliente:', error);
+              
+              const toast = document.createElement('div');
+              toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
+              toast.textContent = 'Erro de conexão';
+              document.body.appendChild(toast);
+              setTimeout(() => document.body.removeChild(toast), 3000);
+            }
+          }}>
+            <div className="space-y-4">
+              {/* Informações Básicas */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-secondary)" }}>
+                    Nome *
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    required
+                    defaultValue={clientData.attributes?.name || ''}
+                    className="form-input w-full px-3 py-2 text-sm"
+                    style={{ backgroundColor: "var(--bg-secondary)" }}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-secondary)" }}>
+                    Tipo *
+                  </label>
+                  <select
+                    name="kind"
+                    required
+                    defaultValue={clientData.attributes?.kind || 'individual'}
+                    className="form-input w-full px-3 py-2 text-sm"
+                    style={{ backgroundColor: "var(--bg-secondary)" }}
+                  >
+                    <option value="individual">Pessoa Física</option>
+                    <option value="company">Pessoa Jurídica</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-secondary)" }}>
+                  Razão Social / Nome da Empresa
+                </label>
+                <input
+                  type="text"
+                  name="company-name"
+                  defaultValue={clientData.attributes?.['company-name'] || ''}
+                  className="form-input w-full px-3 py-2 text-sm"
+                  style={{ backgroundColor: "var(--bg-secondary)" }}
+                />
+              </div>
+
+              {/* Contato */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-secondary)" }}>
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    defaultValue={clientData.attributes?.email || ''}
+                    className="form-input w-full px-3 py-2 text-sm"
+                    style={{ backgroundColor: "var(--bg-secondary)" }}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-secondary)" }}>
+                    Telefone
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    defaultValue={clientData.attributes?.phone || ''}
+                    className="form-input w-full px-3 py-2 text-sm"
+                    style={{ backgroundColor: "var(--bg-secondary)" }}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-secondary)" }}>
+                    Celular
+                  </label>
+                  <input
+                    type="tel"
+                    name="mobile-phone"
+                    defaultValue={clientData.attributes?.['mobile-phone'] || ''}
+                    className="form-input w-full px-3 py-2 text-sm"
+                    style={{ backgroundColor: "var(--bg-secondary)" }}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-secondary)" }}>
+                    Telefone Comercial
+                  </label>
+                  <input
+                    type="tel"
+                    name="business-phone"
+                    defaultValue={clientData.attributes?.['business-phone'] || ''}
+                    className="form-input w-full px-3 py-2 text-sm"
+                    style={{ backgroundColor: "var(--bg-secondary)" }}
+                  />
+                </div>
+              </div>
+
+              {/* Documentos */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-secondary)" }}>
+                    CPF
+                  </label>
+                  <input
+                    type="text"
+                    name="cpf"
+                    defaultValue={clientData.attributes?.cpf || ''}
+                    className="form-input w-full px-3 py-2 text-sm"
+                    style={{ backgroundColor: "var(--bg-secondary)" }}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-secondary)" }}>
+                    CNPJ
+                  </label>
+                  <input
+                    type="text"
+                    name="cnpj"
+                    defaultValue={clientData.attributes?.cnpj || ''}
+                    className="form-input w-full px-3 py-2 text-sm"
+                    style={{ backgroundColor: "var(--bg-secondary)" }}
+                  />
+                </div>
+              </div>
+
+              {/* Endereço */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-secondary)" }}>
+                    Endereço
+                  </label>
+                  <input
+                    type="text"
+                    name="address"
+                    defaultValue={clientData.attributes?.address || ''}
+                    className="form-input w-full px-3 py-2 text-sm"
+                    style={{ backgroundColor: "var(--bg-secondary)" }}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-secondary)" }}>
+                    Número
+                  </label>
+                  <input
+                    type="text"
+                    name="number"
+                    defaultValue={clientData.attributes?.number || ''}
+                    className="form-input w-full px-3 py-2 text-sm"
+                    style={{ backgroundColor: "var(--bg-secondary)" }}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-secondary)" }}>
+                    Complemento
+                  </label>
+                  <input
+                    type="text"
+                    name="complement"
+                    defaultValue={clientData.attributes?.complement || ''}
+                    className="form-input w-full px-3 py-2 text-sm"
+                    style={{ backgroundColor: "var(--bg-secondary)" }}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-secondary)" }}>
+                    Bairro
+                  </label>
+                  <input
+                    type="text"
+                    name="district"
+                    defaultValue={clientData.attributes?.district || ''}
+                    className="form-input w-full px-3 py-2 text-sm"
+                    style={{ backgroundColor: "var(--bg-secondary)" }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-secondary)" }}>
+                  Observações
+                </label>
+                <textarea
+                  name="observations"
+                  rows={3}
+                  defaultValue={clientData.attributes?.observations || ''}
+                  className="form-input w-full px-3 py-2 text-sm"
+                  style={{ backgroundColor: "var(--bg-secondary)" }}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-2 mt-6">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowClientModal(false);
+                  setSelectedClientForModal(null);
+                }}
+                className="px-4 py-2 bg-gray-600 text-white rounded text-sm hover:bg-gray-700"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+              >
+                {isEditing ? 'Atualizar' : 'Criar'} Cliente
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  };
 
   if (loading) {
     return (
@@ -3862,6 +4281,9 @@ export default function Dashboard() {
         isOpen={showTokenExpiredModal}
         onClose={() => setShowTokenExpiredModal(false)}
       />
+
+      {/* Modal de Cliente */}
+      {renderClientModal()}
     </div>
   );
 }

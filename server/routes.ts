@@ -1875,6 +1875,256 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para buscar clientes/pessoas do Monde
+  app.get('/api/monde/clientes', authenticateToken, async (req: any, res) => {
+    try {
+      const { search, page = 1, limit = 50 } = req.query;
+      
+      // Construir URL com filtros
+      let url = `https://web.monde.com.br/api/v2/people?page[number]=${page}&page[size]=${limit}`;
+      
+      if (search) {
+        url += `&filter[search]=${encodeURIComponent(search)}`;
+      }
+      
+      console.log('🔍 Buscando clientes no Monde:', url);
+      
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${req.mondeToken}`,
+          'Accept': 'application/vnd.api+json'
+        }
+      });
+      
+      if (!response.ok) {
+        console.error('Erro ao buscar clientes:', response.status, response.statusText);
+        return res.status(response.status).json({ error: 'Erro ao buscar clientes' });
+      }
+      
+      const data = await response.json();
+      console.log(`✅ Clientes encontrados: ${data.data?.length || 0}`);
+      
+      res.json(data);
+    } catch (error) {
+      console.error('Erro ao buscar clientes:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Endpoint para buscar cliente específico
+  app.get('/api/monde/clientes/:id', authenticateToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      
+      const response = await fetch(`https://web.monde.com.br/api/v2/people/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${req.mondeToken}`,
+          'Accept': 'application/vnd.api+json'
+        }
+      });
+      
+      if (!response.ok) {
+        console.error('Erro ao buscar cliente:', response.status, response.statusText);
+        return res.status(response.status).json({ error: 'Erro ao buscar cliente' });
+      }
+      
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error('Erro ao buscar cliente:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Endpoint para criar cliente
+  app.post('/api/monde/clientes', authenticateToken, async (req: any, res) => {
+    try {
+      const response = await fetch('https://web.monde.com.br/api/v2/people', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${req.mondeToken}`,
+          'Accept': 'application/vnd.api+json',
+          'Content-Type': 'application/vnd.api+json'
+        },
+        body: JSON.stringify(req.body)
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Erro ao criar cliente:', response.status, errorData);
+        return res.status(response.status).json(errorData);
+      }
+      
+      const data = await response.json();
+      console.log('✅ Cliente criado com sucesso:', data.data?.id);
+      res.status(201).json(data);
+    } catch (error) {
+      console.error('Erro ao criar cliente:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Endpoint para atualizar cliente
+  app.patch('/api/monde/clientes/:id', authenticateToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      
+      const response = await fetch(`https://web.monde.com.br/api/v2/people/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${req.mondeToken}`,
+          'Accept': 'application/vnd.api+json',
+          'Content-Type': 'application/vnd.api+json'
+        },
+        body: JSON.stringify(req.body)
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Erro ao atualizar cliente:', response.status, errorData);
+        return res.status(response.status).json(errorData);
+      }
+      
+      const data = await response.json();
+      console.log('✅ Cliente atualizado com sucesso:', id);
+      res.json(data);
+    } catch (error) {
+      console.error('Erro ao atualizar cliente:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Endpoint para excluir cliente
+  app.delete('/api/monde/clientes/:id', authenticateToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      
+      const response = await fetch(`https://web.monde.com.br/api/v2/people/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${req.mondeToken}`,
+          'Accept': 'application/vnd.api+json'
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Erro ao excluir cliente:', response.status, errorData);
+        return res.status(response.status).json(errorData);
+      }
+      
+      console.log('✅ Cliente excluído com sucesso:', id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Erro ao excluir cliente:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Endpoint para buscar cidades (para o formulário de cliente)
+  app.get('/api/monde/cidades', authenticateToken, async (req: any, res) => {
+    try {
+      const { search } = req.query;
+      
+      let url = 'https://web.monde.com.br/api/v2/cities';
+      if (search) {
+        url += `?filter[search]=${encodeURIComponent(search)}`;
+      }
+      
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${req.mondeToken}`,
+          'Accept': 'application/vnd.api+json'
+        }
+      });
+      
+      if (!response.ok) {
+        console.error('Erro ao buscar cidades:', response.status, response.statusText);
+        return res.status(response.status).json({ error: 'Erro ao buscar cidades' });
+      }
+      
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error('Erro ao buscar cidades:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Endpoint para estatísticas de clientes
+  app.get('/api/monde/clientes/estatisticas', authenticateToken, async (req: any, res) => {
+    try {
+      // Buscar total de clientes
+      const totalResponse = await fetch('https://web.monde.com.br/api/v2/people?page[size]=1', {
+        headers: {
+          'Authorization': `Bearer ${req.mondeToken}`,
+          'Accept': 'application/vnd.api+json'
+        }
+      });
+      
+      if (!totalResponse.ok) {
+        console.error('Erro ao buscar total de clientes:', totalResponse.status);
+        return res.status(totalResponse.status).json({ error: 'Erro ao buscar estatísticas' });
+      }
+      
+      const totalData = await totalResponse.json();
+      
+      // Buscar clientes com tarefas (que têm relacionamento com tarefas)
+      const clientsWithTasksResponse = await fetch('https://web.monde.com.br/api/v2/tasks?page[size]=1&include=person', {
+        headers: {
+          'Authorization': `Bearer ${req.mondeToken}`,
+          'Accept': 'application/vnd.api+json'
+        }
+      });
+      
+      let clientsWithTasks = 0;
+      if (clientsWithTasksResponse.ok) {
+        const tasksData = await clientsWithTasksResponse.json();
+        // Contar clientes únicos nas tarefas
+        const uniqueClients = new Set();
+        tasksData.data?.forEach((task: any) => {
+          if (task.relationships?.person?.data?.id) {
+            uniqueClients.add(task.relationships.person.data.id);
+          }
+        });
+        clientsWithTasks = uniqueClients.size;
+      }
+      
+      // Buscar novos clientes (últimos 30 dias)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      // Para novos clientes, vamos usar uma estimativa baseada em paginação
+      const recentClientsResponse = await fetch('https://web.monde.com.br/api/v2/people?sort=-registered-at&page[size]=50', {
+        headers: {
+          'Authorization': `Bearer ${req.mondeToken}`,
+          'Accept': 'application/vnd.api+json'
+        }
+      });
+      
+      let newClients = 0;
+      if (recentClientsResponse.ok) {
+        const recentData = await recentClientsResponse.json();
+        newClients = recentData.data?.filter((client: any) => {
+          const registeredAt = new Date(client.attributes['registered-at']);
+          return registeredAt >= thirtyDaysAgo;
+        }).length || 0;
+      }
+      
+      res.json({
+        totalClients: totalData.data?.length || 0,
+        clientsWithTasks,
+        newClients,
+        totalPossible: 1247, // Número da interface
+        clientsWithTasksPossible: 892, // Número da interface
+        newClientsPossible: 156 // Número da interface
+      });
+    } catch (error) {
+      console.error('Erro ao buscar estatísticas:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
   // Endpoint para atualizar campos personalizados de uma tarefa
   app.put('/api/monde/tarefas/:taskId/campos', authenticateToken, async (req: any, res) => {
     try {

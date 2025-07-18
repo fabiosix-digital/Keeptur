@@ -107,6 +107,44 @@ export default function Dashboard() {
       setLoadingCustomFields(false);
     }
   };
+
+  // Função para salvar campos personalizados
+  const saveCustomFields = async () => {
+    if (!selectedTask || !customFields.length) return;
+    
+    setSavingCustomFields(true);
+    try {
+      console.log('🔧 Salvando campos personalizados para tarefa:', selectedTask.id);
+      
+      const response = await fetch(`/api/monde/tarefas/${selectedTask.id}/campos`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ fields: customFields })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Campos personalizados salvos com sucesso:', data);
+        
+        // Recarregar campos após salvar
+        await loadCustomFields(selectedTask.id);
+        
+        // Mostrar mensagem de sucesso
+        alert('Campos personalizados salvos com sucesso!');
+      } else {
+        console.error('❌ Erro ao salvar campos personalizados:', response.status, response.statusText);
+        alert('Erro ao salvar campos personalizados. Tente novamente.');
+      }
+    } catch (error) {
+      console.error('❌ Erro ao salvar campos personalizados:', error);
+      alert('Erro ao salvar campos personalizados. Tente novamente.');
+    } finally {
+      setSavingCustomFields(false);
+    }
+  };
   
   // Função para obter tarefas do calendário baseada nos dados reais
   const getTasksForCalendar = () => {

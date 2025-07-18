@@ -2752,8 +2752,9 @@ export default function Dashboard() {
                       <div className="text-sm">
                         <p className="font-medium text-yellow-800">Anexos sincronizados do Monde</p>
                         <p className="text-yellow-700 mt-1">
-                          Os anexos abaixo são importados diretamente do sistema Monde. 
-                          Use "Ver no Monde" para acessar o arquivo no sistema original ou "Copiar Nome" para facilitar a busca.
+                          <strong>Como visualizar/baixar anexos:</strong><br/>
+                          • Clique em "Ver no Monde" para abrir o sistema original onde você pode visualizar e baixar o arquivo<br/>
+                          • Clique em "Copiar Nome" para copiar o nome do arquivo para sua área de transferência
                         </p>
                       </div>
                     </div>
@@ -2851,39 +2852,172 @@ export default function Dashboard() {
                             </span>
                           </div>
                           <div className="flex items-center justify-start space-x-2">
+                            {(attachment.nome_original?.toLowerCase().includes('.png') || 
+                              attachment.nome_original?.toLowerCase().includes('.jpg') || 
+                              attachment.nome_original?.toLowerCase().includes('.jpeg') || 
+                              attachment.nome_original?.toLowerCase().includes('.gif')) && (
+                              <button
+                                onClick={async (e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  console.log('👁️ Tentando visualizar imagem:', attachment.id);
+                                  
+                                  try {
+                                    // Tentar carregar imagem via nosso backend
+                                    const response = await fetch(`/api/monde/anexos/${selectedTask?.id}/${attachment.id}/download`, {
+                                      headers: {
+                                        'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+                                      }
+                                    });
+                                    
+                                    if (response.ok) {
+                                      const blob = await response.blob();
+                                      const url = URL.createObjectURL(blob);
+                                      
+                                      // Criar modal para visualizar imagem
+                                      const modal = document.createElement('div');
+                                      modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+                                      modal.innerHTML = `
+                                        <div class="relative max-w-4xl max-h-4xl p-4">
+                                          <button class="absolute top-2 right-2 text-white bg-black bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center hover:bg-opacity-75" onclick="this.parentElement.parentElement.remove()">
+                                            ×
+                                          </button>
+                                          <img src="${url}" alt="Anexo" class="max-w-full max-h-full object-contain rounded" />
+                                        </div>
+                                      `;
+                                      document.body.appendChild(modal);
+                                      
+                                      // Remover modal ao clicar fora
+                                      modal.addEventListener('click', (e) => {
+                                        if (e.target === modal) {
+                                          document.body.removeChild(modal);
+                                          URL.revokeObjectURL(url);
+                                        }
+                                      });
+                                    } else {
+                                      throw new Error('Imagem não disponível');
+                                    }
+                                  } catch (error) {
+                                    console.error('Erro ao visualizar imagem:', error);
+                                    const toast = document.createElement('div');
+                                    toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                                    toast.textContent = 'Não foi possível visualizar a imagem';
+                                    document.body.appendChild(toast);
+                                    setTimeout(() => {
+                                      document.body.removeChild(toast);
+                                    }, 2000);
+                                  }
+                                }}
+                                className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs font-medium"
+                                title="Visualizar imagem"
+                              >
+                                <i className="ri-eye-line mr-1"></i>
+                                Visualizar
+                              </button>
+                            )}
                             <button
-                              onClick={(e) => {
+                              onClick={async (e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                // Abrir sistema Monde original para visualizar anexo
-                                const mondeUrl = `https://web.monde.com.br/tasks/${selectedTask?.id}`;
-                                window.open(mondeUrl, '_blank');
+                                console.log('📥 Tentando baixar anexo:', attachment.id);
+                                
+                                try {
+                                  // Tentar baixar anexo via nosso backend
+                                  const response = await fetch(`/api/monde/anexos/${selectedTask?.id}/${attachment.id}/download`, {
+                                    headers: {
+                                      'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+                                    }
+                                  });
+                                  
+                                  if (response.ok) {
+                                    // Sucesso no download
+                                    const blob = await response.blob();
+                                    const url = URL.createObjectURL(blob);
+                                    const link = document.createElement('a');
+                                    link.href = url;
+                                    link.download = attachment.nome_original?.replace(/'/g, '') || attachment.name || 'anexo';
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+                                    URL.revokeObjectURL(url);
+                                    
+                                    // Toast de sucesso
+                                    const toast = document.createElement('div');
+                                    toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                                    toast.textContent = 'Arquivo baixado com sucesso!';
+                                    document.body.appendChild(toast);
+                                    setTimeout(() => {
+                                      document.body.removeChild(toast);
+                                    }, 2000);
+                                  } else {
+                                    // Falha no download - abrir no Monde
+                                    const mondeServer = localStorage.getItem('keeptur-monde-server') || 'https://web.monde.com.br';
+                                    const mondeUrl = `${mondeServer}/tasks/${selectedTask?.id}`;
+                                    window.open(mondeUrl, '_blank');
+                                    
+                                    // Toast informativo
+                                    const toast = document.createElement('div');
+                                    toast.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                                    toast.textContent = 'Abrindo tarefa no Monde para acessar o arquivo...';
+                                    document.body.appendChild(toast);
+                                    setTimeout(() => {
+                                      document.body.removeChild(toast);
+                                    }, 2000);
+                                  }
+                                } catch (error) {
+                                  console.error('Erro ao baixar anexo:', error);
+                                  // Toast de erro
+                                  const toast = document.createElement('div');
+                                  toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                                  toast.textContent = 'Erro ao baixar anexo. Tente novamente.';
+                                  document.body.appendChild(toast);
+                                  setTimeout(() => {
+                                    document.body.removeChild(toast);
+                                  }, 2000);
+                                }
                               }}
-                              className="text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50 text-xs"
-                              title="Abrir no Monde original para visualizar"
+                              className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs font-medium"
+                              title="Baixar arquivo (ou abrir no Monde se não disponível)"
                             >
-                              <i className="ri-external-link-line mr-1"></i>
-                              Ver no Monde
+                              <i className="ri-download-line mr-1"></i>
+                              Baixar Arquivo
                             </button>
                             <button
                               onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
+                                console.log('📋 Botão Copiar Nome clicado');
                                 // Copiar nome do arquivo para área de transferência
                                 const fileName = attachment.nome_original || attachment.name || attachment.filename || 'anexo';
-                                navigator.clipboard.writeText(fileName).then(() => {
+                                console.log('📄 Nome do arquivo:', fileName);
+                                
+                                // Remover aspas do nome do arquivo
+                                const cleanFileName = fileName.replace(/'/g, '');
+                                
+                                navigator.clipboard.writeText(cleanFileName).then(() => {
+                                  console.log('✅ Nome copiado para área de transferência');
                                   // Mostrar toast de sucesso sem fechar modal
                                   const toast = document.createElement('div');
                                   toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
-                                  toast.textContent = 'Nome do arquivo copiado!';
+                                  toast.textContent = `Nome copiado: ${cleanFileName}`;
+                                  document.body.appendChild(toast);
+                                  setTimeout(() => {
+                                    document.body.removeChild(toast);
+                                  }, 2000);
+                                }).catch(err => {
+                                  console.error('❌ Erro ao copiar para área de transferência:', err);
+                                  // Mostrar toast de erro
+                                  const toast = document.createElement('div');
+                                  toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                                  toast.textContent = 'Erro ao copiar nome do arquivo';
                                   document.body.appendChild(toast);
                                   setTimeout(() => {
                                     document.body.removeChild(toast);
                                   }, 2000);
                                 });
                               }}
-                              className="text-gray-600 hover:text-gray-800 px-2 py-1 rounded hover:bg-gray-50 text-xs"
-                              title="Copiar nome do arquivo"
+                              className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-xs font-medium"
+                              title="Copiar nome do arquivo para área de transferência"
                             >
                               <i className="ri-file-copy-line mr-1"></i>
                               Copiar Nome

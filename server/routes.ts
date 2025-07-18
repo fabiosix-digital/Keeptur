@@ -1767,13 +1767,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'Anexo não encontrado no histórico' });
       }
       
+      // Extrair nome do arquivo do histórico
+      const attachmentText = attachmentEntry.attributes.text;
+      const fileName = attachmentText.replace('Anexo inserido: ', '').trim();
+      
+      console.log(`📎 Nome do arquivo extraído: ${fileName}`);
+      console.log(`📎 ID do anexo: ${attachmentId}`);
+      console.log(`📎 ID da tarefa: ${taskId}`);
+      
       // Tentar diferentes URLs possíveis do Monde
       const possibleUrls = [
+        `https://web.monde.com.br/api/v2/tasks/${taskId}/anexos/${attachmentId}/download`,
+        `https://web.monde.com.br/api/v2/tasks/${taskId}/attachments/${attachmentId}/download`,
+        `https://web.monde.com.br/api/v2/anexos/${attachmentId}/download`,
+        `https://web.monde.com.br/api/v2/attachments/${attachmentId}/download`,
+        `https://web.monde.com.br/api/v2/task-historics/${attachmentId}/attachments/${attachmentId}`,
         `https://web.monde.com.br/api/v2/task-historics/${attachmentId}/attachments`,
-        `https://web.monde.com.br/api/v2/tasks/${taskId}/attachments/${attachmentId}`,
-        `https://web.monde.com.br/api/v2/attachments/${attachmentId}`,
         `https://web.monde.com.br/attachments/${attachmentId}`,
-        `https://web.monde.com.br/uploads/${attachmentId}`
+        `https://web.monde.com.br/uploads/${attachmentId}`,
+        `https://web.monde.com.br/files/${attachmentId}`,
+        `https://web.monde.com.br/storage/${attachmentId}`
       ];
       
       for (const url of possibleUrls) {

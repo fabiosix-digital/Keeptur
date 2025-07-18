@@ -2753,8 +2753,8 @@ export default function Dashboard() {
                         <p className="font-medium text-yellow-800">Anexos sincronizados do Monde</p>
                         <p className="text-yellow-700 mt-1">
                           Os anexos abaixo são importados diretamente do sistema Monde. 
-                          Eles são apenas para visualização - para modificar ou excluir, 
-                          acesse o sistema Monde original.
+                          A API do Monde não permite download direto de arquivos, portanto os botões de visualizar/baixar 
+                          redirecionam para o sistema Monde original.
                         </p>
                       </div>
                     </div>
@@ -2853,10 +2853,27 @@ export default function Dashboard() {
                           </div>
                           <div className="flex items-center justify-start space-x-2">
                             <button
-                              onClick={() => {
-                                // Tentar visualizar o anexo via backend
-                                const url = `/api/monde/anexos/${selectedTask?.id}/${attachment.id}/download`;
-                                window.open(url, '_blank');
+                              onClick={async () => {
+                                try {
+                                  // Tentar visualizar o anexo via backend com token
+                                  const response = await fetch(`/api/monde/anexos/${selectedTask?.id}/${attachment.id}/download`, {
+                                    headers: {
+                                      'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+                                    }
+                                  });
+                                  
+                                  if (response.ok) {
+                                    const blob = await response.blob();
+                                    const url = URL.createObjectURL(blob);
+                                    window.open(url, '_blank');
+                                  } else {
+                                    const error = await response.json();
+                                    alert(`⚠️ Anexo não disponível para download via API\n\n${error.error || 'A API do Monde não disponibiliza download direto de anexos.'}\n\nPara acessar este arquivo, entre no sistema Monde original.`);
+                                  }
+                                } catch (error) {
+                                  console.error('Erro ao visualizar anexo:', error);
+                                  alert('⚠️ Anexo não disponível para download\n\nPara acessar este arquivo, entre no sistema Monde original.');
+                                }
                               }}
                               className="text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50 text-xs"
                               title="Tentar visualizar anexo"
@@ -2865,16 +2882,33 @@ export default function Dashboard() {
                               Visualizar
                             </button>
                             <button
-                              onClick={() => {
-                                // Tentar baixar o anexo via backend
-                                const url = `/api/monde/anexos/${selectedTask?.id}/${attachment.id}/download`;
-                                const link = document.createElement('a');
-                                link.href = url;
-                                link.download = attachment.name || 'anexo';
-                                link.target = '_blank';
-                                document.body.appendChild(link);
-                                link.click();
-                                document.body.removeChild(link);
+                              onClick={async () => {
+                                try {
+                                  // Tentar baixar o anexo via backend com token
+                                  const response = await fetch(`/api/monde/anexos/${selectedTask?.id}/${attachment.id}/download`, {
+                                    headers: {
+                                      'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+                                    }
+                                  });
+                                  
+                                  if (response.ok) {
+                                    const blob = await response.blob();
+                                    const url = URL.createObjectURL(blob);
+                                    const link = document.createElement('a');
+                                    link.href = url;
+                                    link.download = attachment.name || 'anexo';
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+                                    URL.revokeObjectURL(url);
+                                  } else {
+                                    const error = await response.json();
+                                    alert(`⚠️ Anexo não disponível para download via API\n\n${error.error || 'A API do Monde não disponibiliza download direto de anexos.'}\n\nPara baixar este arquivo, entre no sistema Monde original.`);
+                                  }
+                                } catch (error) {
+                                  console.error('Erro ao baixar anexo:', error);
+                                  alert('⚠️ Anexo não disponível para download\n\nPara baixar este arquivo, entre no sistema Monde original.');
+                                }
                               }}
                               className="text-green-600 hover:text-green-800 px-2 py-1 rounded hover:bg-green-50 text-xs"
                               title="Tentar baixar anexo"

@@ -77,6 +77,10 @@ Preferred communication style: Simple, everyday language in Portuguese.
 - ✅ Eliminação de erros "invalid input syntax" no banco PostgreSQL
 - ✅ Interface de exclusão atualizada para recarregamento automático de anexos
 - ✅ Logs detalhados implementados para debugging de anexos
+- ✅ Sistema de download de anexos implementado com múltiplos endpoints testados
+- ✅ Confirmado que API do Monde não disponibiliza download direto de anexos
+- ✅ Interface atualizada com avisos claros sobre limitações da API
+- ✅ Botões de visualizar/baixar implementados com mensagens informativas
 
 ## System Architecture
 

@@ -2809,10 +2809,15 @@ export default function Dashboard() {
                     </div>
                   )}
 
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-4 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
                         Nome do Arquivo
+                      </label>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                        Tipo do Arquivo
                       </label>
                     </div>
                     <div>
@@ -2831,7 +2836,7 @@ export default function Dashboard() {
                   {taskAttachments.length > 0 ? (
                     <div className="space-y-2">
                       {taskAttachments.map((attachment, index) => (
-                        <div key={index} className="grid grid-cols-3 gap-4 p-3 border rounded hover:bg-gray-50">
+                        <div key={index} className="grid grid-cols-4 gap-4 p-3 border rounded hover:bg-gray-50">
                           <div className="flex items-center space-x-2">
                             <i className="ri-file-line text-blue-600"></i>
                             <a
@@ -2843,6 +2848,81 @@ export default function Dashboard() {
                             >
                               {attachment.nome_original || attachment.nome_arquivo}
                             </a>
+                          </div>
+                          <div className="flex items-center">
+                            <span className="text-sm text-gray-600">
+                              {(() => {
+                                // Função auxiliar para obter tipo de arquivo baseado na extensão
+                                const getFileType = (filename: string, mimeType?: string): string => {
+                                  if (mimeType) {
+                                    // Mapear tipos MIME para nomes mais amigáveis
+                                    const mimeTypeMap: { [key: string]: string } = {
+                                      'image/jpeg': 'JPEG',
+                                      'image/jpg': 'JPEG',
+                                      'image/png': 'PNG',
+                                      'image/gif': 'GIF',
+                                      'image/svg+xml': 'SVG',
+                                      'image/webp': 'WEBP',
+                                      'application/pdf': 'PDF',
+                                      'application/msword': 'DOC',
+                                      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'DOCX',
+                                      'application/vnd.ms-excel': 'XLS',
+                                      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'XLSX',
+                                      'application/vnd.ms-powerpoint': 'PPT',
+                                      'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'PPTX',
+                                      'application/zip': 'ZIP',
+                                      'application/x-rar-compressed': 'RAR',
+                                      'text/plain': 'TXT',
+                                      'text/csv': 'CSV',
+                                      'application/json': 'JSON',
+                                      'application/xml': 'XML',
+                                      'video/mp4': 'MP4',
+                                      'video/avi': 'AVI',
+                                      'video/quicktime': 'MOV',
+                                      'audio/mpeg': 'MP3',
+                                      'audio/wav': 'WAV',
+                                      'audio/ogg': 'OGG'
+                                    };
+                                    
+                                    return mimeTypeMap[mimeType] || mimeType.split('/')[1]?.toUpperCase() || 'Arquivo';
+                                  }
+                                  
+                                  // Fallback baseado na extensão do arquivo
+                                  const extension = filename.split('.').pop()?.toLowerCase();
+                                  const extensionMap: { [key: string]: string } = {
+                                    'jpg': 'JPEG',
+                                    'jpeg': 'JPEG',
+                                    'png': 'PNG',
+                                    'gif': 'GIF',
+                                    'svg': 'SVG',
+                                    'webp': 'WEBP',
+                                    'pdf': 'PDF',
+                                    'doc': 'DOC',
+                                    'docx': 'DOCX',
+                                    'xls': 'XLS',
+                                    'xlsx': 'XLSX',
+                                    'ppt': 'PPT',
+                                    'pptx': 'PPTX',
+                                    'zip': 'ZIP',
+                                    'rar': 'RAR',
+                                    'txt': 'TXT',
+                                    'csv': 'CSV',
+                                    'json': 'JSON',
+                                    'xml': 'XML',
+                                    'mp4': 'MP4',
+                                    'avi': 'AVI',
+                                    'mov': 'MOV',
+                                    'mp3': 'MP3',
+                                    'wav': 'WAV',
+                                    'ogg': 'OGG'
+                                  };
+                                  
+                                  return extension ? (extensionMap[extension] || extension.toUpperCase()) : 'Arquivo';
+                                };
+                                
+                                return getFileType(attachment.nome_original || attachment.nome_arquivo, attachment.type || attachment.tipo_mime);
+                              })()}
+                            </span>
                           </div>
                           <div className="flex items-center">
                             <span className="text-sm text-gray-600">

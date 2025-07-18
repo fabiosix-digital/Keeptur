@@ -62,6 +62,13 @@ Preferred communication style: Simple, everyday language in Portuguese.
 - ✅ Integração com API do Monde através do histórico para registro de anexos
 - ✅ Correção de erro de carregamento de anexos (data.data em vez de data.attachments)
 - ✅ Estilo CSS para botões discretos com hover e estado ativo
+- ✅ Sistema de exclusão de anexos melhorado com múltiplos endpoints
+- ✅ Exibição de tipo de arquivo (MIME type) na interface de anexos
+- ✅ Interface de anexos reformulada com 4 colunas (Nome, Tipo, Tamanho, Ações)
+- ✅ Melhorias no sistema de upload com múltiplos formatos de FormData
+- ✅ Logs detalhados para troubleshooting de problemas de upload/exclusão
+- ✅ Tratamento de erros melhorado para casos de falha na API do Monde
+- ✅ Sistema de fallback robusto para operações de anexos
 
 ## System Architecture
 

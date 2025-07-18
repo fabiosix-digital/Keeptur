@@ -61,6 +61,7 @@ export interface IStorage {
   // Anexo operations
   createAnexo(data: InsertAnexo): Promise<Anexo>;
   getAnexo(id: number): Promise<Anexo | undefined>;
+  getAnexoById(id: string): Promise<Anexo | undefined>;
   getAnexosByTarefa(tarefaId: string, empresaId: number): Promise<Anexo[]>;
   deleteAnexo(id: number): Promise<void>;
   
@@ -188,6 +189,15 @@ export class DatabaseStorage implements IStorage {
   async getAnexo(id: number): Promise<Anexo | undefined> {
     const [anexo] = await db.select().from(anexos).where(eq(anexos.id, id));
     return anexo || undefined;
+  }
+
+  async getAnexoById(id: string): Promise<Anexo | undefined> {
+    try {
+      const [anexo] = await db.select().from(anexos).where(eq(anexos.id, parseInt(id)));
+      return anexo || undefined;
+    } catch {
+      return undefined;
+    }
   }
 
   async getAnexosByTarefa(tarefaId: string, empresaId: number): Promise<Anexo[]> {

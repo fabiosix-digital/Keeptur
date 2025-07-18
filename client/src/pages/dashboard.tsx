@@ -2839,15 +2839,9 @@ export default function Dashboard() {
                         <div key={index} className="grid grid-cols-4 gap-4 p-3 border rounded hover:bg-gray-50">
                           <div className="flex items-center space-x-2">
                             <i className="ri-file-line text-blue-600"></i>
-                            <a
-                              href={`/api/monde/anexos/${selectedTask?.id}/${attachment.nome_arquivo}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-sm text-blue-600 hover:underline truncate"
-                              title={attachment.nome_original || attachment.nome_arquivo}
-                            >
-                              {attachment.nome_original || attachment.nome_arquivo}
-                            </a>
+                            <span className="text-sm text-gray-900 truncate" title={attachment.nome_original || attachment.name || attachment.filename || 'Arquivo sem nome'}>
+                              {attachment.nome_original || attachment.name || attachment.filename || 'Arquivo sem nome'}
+                            </span>
                           </div>
                           <div className="flex items-center">
                             <span className="text-sm text-gray-600">
@@ -2926,10 +2920,25 @@ export default function Dashboard() {
                           </div>
                           <div className="flex items-center">
                             <span className="text-sm text-gray-600">
-                              {attachment.tamanho ? `${(attachment.tamanho / 1024).toFixed(1)} KB` : 'N/A'}
+                              {attachment.size ? `${(attachment.size / 1024).toFixed(1)} KB` : 'N/A'}
                             </span>
                           </div>
-                          <div className="flex items-center justify-start">
+                          <div className="flex items-center justify-start space-x-2">
+                            <button
+                              onClick={async () => {
+                                try {
+                                  // Baixar anexo
+                                  window.open(`/api/monde/anexos/${selectedTask?.id}/${attachment.id}/download`, '_blank');
+                                } catch (error) {
+                                  console.error('Erro ao baixar anexo:', error);
+                                  alert('Erro ao baixar anexo. Tente novamente.');
+                                }
+                              }}
+                              className="text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50 text-xs"
+                              title="Baixar anexo"
+                            >
+                              <i className="ri-download-line"></i>
+                            </button>
                             <button
                               onClick={async () => {
                                 if (confirm('Tem certeza que deseja excluir este anexo?')) {

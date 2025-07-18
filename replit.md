@@ -8,7 +8,7 @@ Preferred communication style: Simple, everyday language in Portuguese.
 
 ## Recent Changes
 
-### 2025-07-18 - Reorganização Completa dos Filtros de Clientes
+### 2025-07-17 - Correção de Filtros e Sistema de Token Expirado
 - ✅ Login corrigido com API oficial do Monde v2
 - ✅ Logos implementadas (completa no sidebar expandido, ícone no recolhido) 
 - ✅ Usuário fabio@allanacaires.monde.com.br ativado com plano Pro
@@ -86,15 +86,6 @@ Preferred communication style: Simple, everyday language in Portuguese.
 - ✅ Botão "Copiar Nome" implementado para facilitar busca de arquivos
 - ✅ Toast notifications implementadas para feedback visual sem interferir na modal
 - ✅ Sistema de anexos finalizado com interface user-friendly e funcional
-- ✅ Filtros de clientes reorganizados baseados na interface do Monde
-- ✅ Sistema de busca por tipo de cliente (Pessoa Física/Jurídica) implementado
-- ✅ Filtros "Clientes com" e "Marcador" implementados conforme especificação
-- ✅ Campo de busca unificado para nome, CPF, CNPJ e telefone
-- ✅ Filtro "em" com todos os campos disponíveis da API do Monde
-- ✅ Integração com endpoint /api/v2/people com filtros corretos
-- ✅ Interface reorganizada com melhor UX/UI conforme solicitado
-- ✅ Busca sob demanda funcionando corretamente com debounce
-- ✅ Endpoint de busca de clientes otimizado para filtros múltiplos
 
 ## System Architecture
 

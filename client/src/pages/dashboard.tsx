@@ -6,7 +6,6 @@ import { TokenExpiredModal } from "../components/TokenExpiredModal";
 import { setTokenExpiredHandler } from "../lib/queryClient";
 import logoFull from "@assets/LOGO Lilas_1752695672079.png";
 import logoIcon from "@assets/ico Lilas_1752695703171.png";
-import { ClientsSection } from "./clients_section";
 import "../modal.css";
 
 export default function Dashboard() {
@@ -63,47 +62,15 @@ export default function Dashboard() {
   const [savingCustomFields, setSavingCustomFields] = useState(false);
   
   // Estados para filtros de clientes
-  const [clientFilter, setClientFilter] = useState("");
-  const [clientTypeFilter, setClientTypeFilter] = useState("");
-  const [clientMarkerFilter, setClientMarkerFilter] = useState("");
-  const [clientFieldFilter, setClientFieldFilter] = useState("");
-  const [clientSearchTerm, setClientSearchTerm] = useState("");
-  const [searchTimeout, setSearchTimeout] = useState(null);
+  const [clientFilter, setClientFilter] = useState("todos");
+  const [clientTypeFilter, setClientTypeFilter] = useState("todos");
+  const [clientMarkerFilter, setClientMarkerFilter] = useState("todos");
+  const [clientCityFilter, setClientCityFilter] = useState("");
+  const [clientStateFilter, setClientStateFilter] = useState("");
+  const [onlyPayingClients, setOnlyPayingClients] = useState(false);
   const [listViewMode, setListViewMode] = useState(true);
-  const [searchedClients, setSearchedClients] = useState([]);
 
-  // Função para buscar clientes com filtros da API do Monde
-  const performClientSearch = async () => {
-    try {
-      const params = new URLSearchParams();
-      
-      // Filtro de busca por texto (nome, CPF, CNPJ, telefone)
-      if (clientSearchTerm.trim()) {
-        params.append('filter[search]', clientSearchTerm);
-      }
-      
-      // Filtro por tipo (kind)
-      if (clientTypeFilter) {
-        params.append('filter[kind]', clientTypeFilter);
-      }
-      
-      // Paginação
-      params.append('page[size]', '50');
-      
-      const response = await fetch(`/api/monde/clientes?${params.toString()}`);
-      
-      if (response.ok) {
-        const data = await response.json();
-        setSearchedClients(data.data || []);
-      } else {
-        console.error('Erro na busca de clientes:', response.status);
-        setSearchedClients([]);
-      }
-    } catch (error) {
-      console.error('Erro ao buscar clientes:', error);
-      setSearchedClients([]);
-    }
-  };
+  // Função para buscar clientes removida (implementada mais abaixo)
 
   // Função para carregar estatísticas de clientes
   const loadClientStats = async () => {
@@ -3343,232 +3310,201 @@ export default function Dashboard() {
       {/* Clients Management */}
       <div className="card rounded-xl p-6">
         <div className="flex flex-col gap-4 mb-6 w-full">
-          {/* Header com botões principais */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <button 
-                onClick={() => setShowClientModal(true)}
-                className="primary-button px-4 py-2 rounded-lg text-sm font-medium rounded-button"
-              >
-                <i className="ri-add-line mr-2"></i>
-                Novo Cliente
-              </button>
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <button 
+                  onClick={() => setShowClientModal(true)}
+                  className="primary-button px-4 py-2 rounded-lg text-sm font-medium rounded-button"
+                >
+                  <i className="ri-add-line mr-2"></i>
+                  Novo Cliente
+                </button>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button 
+                  onClick={() => setListViewMode(true)}
+                  className={`action-button px-3 py-2 rounded-lg text-sm font-medium rounded-button ${listViewMode ? 'active' : ''}`}
+                >
+                  <i className="ri-list-unordered"></i>
+                </button>
+                <button 
+                  onClick={() => setListViewMode(false)}
+                  className={`action-button px-3 py-2 rounded-lg text-sm font-medium rounded-button ${!listViewMode ? 'active' : ''}`}
+                >
+                  <i className="ri-grid-line"></i>
+                </button>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <button 
-                onClick={() => setListViewMode(true)}
-                className={`action-button px-3 py-2 rounded-lg text-sm font-medium rounded-button ${listViewMode ? 'active' : ''}`}
-              >
-                <i className="ri-list-unordered"></i>
-              </button>
-              <button 
-                onClick={() => setListViewMode(false)}
-                className={`action-button px-3 py-2 rounded-lg text-sm font-medium rounded-button ${!listViewMode ? 'active' : ''}`}
-              >
-                <i className="ri-grid-line"></i>
-              </button>
-            </div>
-          </div>
-
-          {/* Filtros organizados como no Monde */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* Tipo de Cliente */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                Tipo:
-              </label>
-              <select 
-                value={clientTypeFilter}
-                onChange={(e) => {
-                  setClientTypeFilter(e.target.value);
-                  performClientSearch();
-                }}
-                className="form-input px-3 py-2 rounded-lg text-sm"
-                style={{ backgroundColor: "var(--bg-tertiary)" }}
-              >
-                <option value="">[ Todos ]</option>
-                <option value="individual">Pessoa Física</option>
-                <option value="company">Pessoa Jurídica</option>
-                <option value="empresa-do-sistema">Empresa do Sistema</option>
-                <option value="usuario-do-sistema">Usuário do Sistema</option>
-                <option value="vendedor">Vendedor</option>
-              </select>
-            </div>
-
-            {/* Clientes com */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                Clientes com:
-              </label>
+            <div className="flex items-center space-x-4">
+              <span className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>Clientes com:</span>
               <select 
                 value={clientFilter}
-                onChange={(e) => {
-                  setClientFilter(e.target.value);
-                  performClientSearch();
-                }}
+                onChange={(e) => setClientFilter(e.target.value)}
                 className="form-input px-3 py-2 rounded-lg text-sm"
                 style={{ backgroundColor: "var(--bg-tertiary)" }}
               >
-                <option value="">[ Todos ]</option>
-                <option value="primeira-venda">Primeira venda</option>
-                <option value="ultima-venda">Última venda</option>
-                <option value="ultimo-embarque">Último embarque</option>
-                <option value="ultimo-retorno">Último retorno</option>
-                <option value="ultima-atualizacao-tarefa">Última atualização tarefa</option>
-              </select>
-            </div>
-
-            {/* Marcador */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                Marcador:
-              </label>
-              <select 
-                value={clientMarkerFilter}
-                onChange={(e) => {
-                  setClientMarkerFilter(e.target.value);
-                  performClientSearch();
-                }}
-                className="form-input px-3 py-2 rounded-lg text-sm"
-                style={{ backgroundColor: "var(--bg-tertiary)" }}
-              >
-                <option value="">[ Todos ]</option>
-                <option value="sem-marcador">[ Sem Marcador ]</option>
-                <option value="aniversario-15-anos">Aniversário 15 anos</option>
-                <option value="apreciador-de-vinhos">Apreciador de vinhos</option>
-                <option value="cas-aereas">Cas aéreas</option>
-                <option value="cliente-conta-corrente">Cliente Conta Corrente</option>
-                <option value="cliente-vip">Cliente VIP</option>
-                <option value="clientes-inativos">Clientes inativos</option>
-                <option value="conhecer-a-neve">Conhecer a Neve</option>
-                <option value="consolidadores">Consolidadores</option>
-                <option value="cruzeiro">Cruzeiro</option>
-                <option value="falecido">Falecido</option>
-                <option value="funcionarios">Funcionários</option>
-                <option value="hoteis">Hotéis</option>
-                <option value="locadora-de-veiculos">Locadora de Veículos</option>
-                <option value="monde">Monde</option>
-                <option value="operadoras">Operadoras</option>
-              </select>
-            </div>
-
-            {/* Pesquisar */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                Pesquisar:
-              </label>
-              <input
-                type="text"
-                placeholder="Nome, CPF, CNPJ ou telefone..."
-                value={clientSearchTerm}
-                onChange={(e) => {
-                  setClientSearchTerm(e.target.value);
-                  // Fazer busca com debounce
-                  clearTimeout(searchTimeout);
-                  setSearchTimeout(setTimeout(() => {
-                    performClientSearch();
-                  }, 500));
-                }}
-                className="form-input px-3 py-2 rounded-lg text-sm"
-                style={{ backgroundColor: "var(--bg-tertiary)" }}
-              />
-            </div>
-          </div>
-
-          {/* Filtro adicional por campo específico */}
-          <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-            <div className="flex flex-col">
-              <label className="text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                em:
-              </label>
-              <select 
-                value={clientFieldFilter}
-                onChange={(e) => {
-                  setClientFieldFilter(e.target.value);
-                  performClientSearch();
-                }}
-                className="form-input px-3 py-2 rounded-lg text-sm"
-                style={{ backgroundColor: "var(--bg-tertiary)" }}
-              >
-                <option value="">[ Todos ]</option>
-                <option value="bairro">Bairro</option>
-                <option value="cadastrado-em">Cadastrado em</option>
-                <option value="cadastrado-por">Cadastrado por</option>
-                <option value="celular">Celular</option>
-                <option value="cep">CEP</option>
-                <option value="certidao-de-nascimento">Certidão de Nascimento</option>
-                <option value="cidade">Cidade</option>
-                <option value="cnpj">CNPJ</option>
-                <option value="cobrar-taxa-boleto">Cobrar Taxa Boleto</option>
-                <option value="codigo">Código</option>
-                <option value="complemento">Complemento</option>
-                <option value="cpf">CPF</option>
-                <option value="data-de-vencimento-do-visto">Data de vencimento do visto</option>
-                <option value="data-emissao-rg">Data Emissão RG</option>
-                <option value="email">Email</option>
-                <option value="endereco">Endereço</option>
-                <option value="identificacao-fiscal">Identificação Fiscal</option>
-                <option value="inscricao-estadual">Inscrição Estadual</option>
-                <option value="inscricao-municipal">Inscrição Municipal</option>
-                <option value="nascimento-fundacao">Nascimento (Fundação)</option>
-                <option value="nome">Nome</option>
-                <option value="numero">Número</option>
-                <option value="numero-passaporte">Número Passaporte</option>
-                <option value="observacoes">Observações</option>
-                <option value="orgao-emissor-rg">Órgão Emissor RG</option>
-                <option value="pais">País</option>
-                <option value="primeira-venda">Primeira Venda</option>
-                <option value="razao-social">Razão Social</option>
-                <option value="rg">RG</option>
-                <option value="sexo">Sexo</option>
-                <option value="telefone">Telefone</option>
-                <option value="telefone-comercial">Telefone Comercial</option>
-                <option value="tipo">Tipo</option>
-                <option value="uf">UF</option>
-                <option value="ultima-atualizacao-tarefa">Última Atualização Tarefa</option>
-                <option value="ultima-venda">Última Venda</option>
-                <option value="ultimo-embarque">Último Embarque</option>
-                <option value="ultimo-retorno">Último Retorno</option>
-                <option value="vencimento-passaporte">Vencimento Passaporte</option>
-                <option value="vendedor">Vendedor</option>
-                <option value="website">Website</option>
+                <option value="todos">Todos</option>
+                <option value="primeira_venda">Primeira Venda</option>
+                <option value="ultima_venda">Última Venda</option>
+                <option value="ultimo_embarque">Último Embarque</option>
+                <option value="ultimo_retorno">Último Retorno</option>
+                <option value="ultima_atualizacao_tarefa">Última Atualização Tarefa</option>
               </select>
             </div>
           </div>
           
-          {/* Botões de ação */}
-          <div className="flex items-center space-x-2 mt-4">
-            <button
-              onClick={() => performClientSearch()}
-              className="primary-button px-4 py-2 rounded-lg text-sm font-medium rounded-button"
-            >
-              <i className="ri-search-line mr-2"></i>
-              Buscar
-            </button>
-            <button
-              onClick={() => {
-                setClientFilter("");
-                setClientTypeFilter("");
-                setClientMarkerFilter("");
-                setClientSearchTerm("");
-                setClientFieldFilter("");
-                setSearchedClients([]);
-              }}
-              className="action-button px-4 py-2 rounded-lg text-sm font-medium rounded-button"
-            >
-              <i className="ri-close-line mr-2"></i>
-              Limpar Filtros
-            </button>
+          {/* Filtros Avançados */}
+          <div className="card rounded-xl p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                  Buscar clientes
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Digite para pesquisar..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && searchClients(searchTerm)}
+                    className="form-input w-full pl-10 pr-4 py-2 rounded-lg text-sm"
+                    style={{ backgroundColor: "var(--bg-tertiary)" }}
+                  />
+                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                    <i className="ri-search-line text-gray-400"></i>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                  Tipo de Cliente
+                </label>
+                <select 
+                  value={clientTypeFilter}
+                  onChange={(e) => setClientTypeFilter(e.target.value)}
+                  className="form-input w-full px-3 py-2 rounded-lg text-sm"
+                  style={{ backgroundColor: "var(--bg-tertiary)" }}
+                >
+                  <option value="todos">Todos</option>
+                  <option value="individual">Pessoa Física</option>
+                  <option value="company">Pessoa Jurídica</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                  Marcador
+                </label>
+                <select 
+                  value={clientMarkerFilter}
+                  onChange={(e) => setClientMarkerFilter(e.target.value)}
+                  className="form-input w-full px-3 py-2 rounded-lg text-sm"
+                  style={{ backgroundColor: "var(--bg-tertiary)" }}
+                >
+                  <option value="todos">Todos</option>
+                  <option value="vip">VIP</option>
+                  <option value="premium">Premium</option>
+                  <option value="regular">Regular</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                  Cidade
+                </label>
+                <select 
+                  value={clientCityFilter}
+                  onChange={(e) => setClientCityFilter(e.target.value)}
+                  className="form-input w-full px-3 py-2 rounded-lg text-sm"
+                  style={{ backgroundColor: "var(--bg-tertiary)" }}
+                >
+                  <option value="">Todas as cidades</option>
+                  <option value="sao_paulo">São Paulo</option>
+                  <option value="rio_janeiro">Rio de Janeiro</option>
+                  <option value="belo_horizonte">Belo Horizonte</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                  Estado
+                </label>
+                <select 
+                  value={clientStateFilter}
+                  onChange={(e) => setClientStateFilter(e.target.value)}
+                  className="form-input w-full px-3 py-2 rounded-lg text-sm"
+                  style={{ backgroundColor: "var(--bg-tertiary)" }}
+                >
+                  <option value="">Todos os estados</option>
+                  <option value="SP">São Paulo</option>
+                  <option value="RJ">Rio de Janeiro</option>
+                  <option value="MG">Minas Gerais</option>
+                </select>
+              </div>
+              
+              <div className="flex items-center pt-8">
+                <label className="flex items-center">
+                  <input 
+                    type="checkbox" 
+                    checked={onlyPayingClients}
+                    onChange={(e) => setOnlyPayingClients(e.target.checked)}
+                    className="form-checkbox"
+                  />
+                  <span className="ml-2 text-sm" style={{ color: "var(--text-secondary)" }}>
+                    Somente pagante
+                  </span>
+                </label>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-2 mt-4">
+              <button
+                onClick={() => searchClients(searchTerm)}
+                disabled={searchingClients}
+                className="primary-button px-4 py-2 rounded-lg text-sm font-medium rounded-button disabled:opacity-50"
+              >
+                {searchingClients ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current inline-block mr-2"></div>
+                    Buscando...
+                  </>
+                ) : (
+                  <>
+                    <i className="ri-search-line mr-2"></i>
+                    Buscar
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setClients([]);
+                  setHasSearched(false);
+                  setClientFilter("todos");
+                  setClientTypeFilter("todos");
+                  setClientMarkerFilter("todos");
+                  setClientCityFilter("");
+                  setClientStateFilter("");
+                  setOnlyPayingClients(false);
+                }}
+                className="action-button px-4 py-2 rounded-lg text-sm font-medium rounded-button"
+              >
+                <i className="ri-close-line mr-2"></i>
+                Limpar Filtros
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Mensagem inicial quando não há busca */}
-        {searchedClients.length === 0 && (
+        {!hasSearched && !searchingClients && (
           <div className="text-center py-16" style={{ color: "var(--text-secondary)" }}>
             <i className="ri-search-line text-6xl text-gray-400 mb-4"></i>
             <h3 className="text-lg font-semibold mb-2">Digite para buscar clientes</h3>
             <p className="text-sm">
-              Use os filtros acima para encontrar clientes por nome, CPF, CNPJ ou telefone.
+              Use o campo de busca acima para encontrar clientes por nome, email, CPF ou CNPJ.
             </p>
             <p className="text-sm text-gray-500 mt-2">
               Todos os dados são carregados diretamente da API do Monde.
@@ -3577,16 +3513,26 @@ export default function Dashboard() {
         )}
 
         {/* Resultados da busca */}
-        {searchedClients.length > 0 && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                {searchedClients.length} cliente{searchedClients.length !== 1 ? 's' : ''} encontrado{searchedClients.length !== 1 ? 's' : ''}
-              </p>
-            </div>
+        {hasSearched && !searchingClients && (
+          <>
+            {clients.length > 0 ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                    {clients.length} cliente{clients.length !== 1 ? 's' : ''} encontrado{clients.length !== 1 ? 's' : ''}
+                  </p>
+                  {clientsHasMore && (
+                    <button
+                      onClick={() => searchClients(searchTerm, clientsCurrentPage + 1)}
+                      className="action-button px-3 py-1 rounded text-sm"
+                    >
+                      Carregar mais
+                    </button>
+                  )}
+                </div>
                 
-            {/* Visualização em Lista */}
-            {listViewMode ? (
+                {/* Visualização em Lista */}
+                {listViewMode ? (
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
@@ -3615,7 +3561,7 @@ export default function Dashboard() {
                         </tr>
                       </thead>
                       <tbody>
-                        {searchedClients.map((client: any) => (
+                        {clients.map((client: any) => (
                           <tr key={client.id} className="table-row">
                             <td className="py-4 px-4">
                               <div className="flex items-center">
@@ -3687,7 +3633,7 @@ export default function Dashboard() {
                 ) : (
                   /* Visualização em Cards */
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {searchedClients.map((client: any) => (
+                    {clients.map((client: any) => (
                       <div key={client.id} className="card p-4 rounded-lg border">
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
@@ -3774,8 +3720,19 @@ export default function Dashboard() {
                   </div>
                 )}
               </div>
-            </div>
-          </div>
+            ) : (
+              <div className="text-center py-16" style={{ color: "var(--text-secondary)" }}>
+                <i className="ri-user-search-line text-6xl text-gray-400 mb-4"></i>
+                <h3 className="text-lg font-semibold mb-2">Nenhum cliente encontrado</h3>
+                <p className="text-sm">
+                  Não encontramos clientes com os termos "{searchTerm}".
+                </p>
+                <p className="text-sm text-gray-500 mt-2">
+                  Tente usar termos diferentes ou criar um novo cliente.
+                </p>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

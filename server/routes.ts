@@ -1478,8 +1478,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const taskId = req.params.taskId;
       console.log('🔧 Buscando campos personalizados para tarefa', taskId);
       
-      // Buscar a tarefa completa incluindo todos os atributos
-      const taskResponse = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}`, {
+      // Buscar a tarefa completa incluindo todos os atributos possíveis
+      const taskResponse = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}?include=assignee,person,category,author,task-historics`, {
         headers: {
           'Authorization': `Bearer ${req.mondeToken}`,
           'Accept': 'application/vnd.api+json'
@@ -1492,7 +1492,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const taskData = await taskResponse.json();
-      console.log('🔧 Dados da tarefa recebidos:', JSON.stringify(taskData, null, 2));
+      console.log('🔧 Dados COMPLETOS da tarefa recebidos:', JSON.stringify(taskData, null, 2));
+      
+      // Tentar diferentes endpoints para campos personalizados
+      const possibleEndpoints = [
+        `/api/v2/tasks/${taskId}/custom_fields`,
+        `/api/v2/tasks/${taskId}/fields`,
+        `/api/v2/tasks/${taskId}/attributes`,
+        `/api/v2/task_fields?task_id=${taskId}`,
+        `/api/v2/custom_fields?task_id=${taskId}`
+      ];
+      
+      for (const endpoint of possibleEndpoints) {
+        try {
+          console.log(`🔧 Testando endpoint: ${endpoint}`);
+          const customFieldsResponse = await fetch(`https://web.monde.com.br${endpoint}`, {
+            headers: {
+              'Authorization': `Bearer ${req.mondeToken}`,
+              'Accept': 'application/vnd.api+json'
+            }
+          });
+          
+          if (customFieldsResponse.ok) {
+            const customFieldsData = await customFieldsResponse.json();
+            console.log(`✅ Endpoint ${endpoint} funcionou! Dados:`, JSON.stringify(customFieldsData, null, 2));
+            
+            // Se encontrou dados, processar e retornar
+            if (customFieldsData.data && Array.isArray(customFieldsData.data) && customFieldsData.data.length > 0) {
+              const processedFields = customFieldsData.data.map(field => ({
+                id: field.id || field.attributes?.slug || field.attributes?.name?.toLowerCase().replace(/\s+/g, '-'),
+                name: field.attributes?.name || field.attributes?.label || field.name,
+                type: field.attributes?.field_type || field.attributes?.type || 'text',
+                value: field.attributes?.value || field.value || ''
+              }));
+              
+              console.log('🔧 Campos personalizados encontrados:', processedFields);
+              return res.json({ data: processedFields });
+            }
+          } else {
+            console.log(`❌ Endpoint ${endpoint} retornou ${customFieldsResponse.status}`);
+          }
+        } catch (error) {
+          console.log(`❌ Erro no endpoint ${endpoint}:`, error.message);
+        }
+      }
       
       const attributes = taskData.data?.attributes || {};
       const customFields = [];

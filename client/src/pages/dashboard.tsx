@@ -51,6 +51,9 @@ export default function Dashboard() {
   const [taskAttachments, setTaskAttachments] = useState<any[]>([]);
   const [showDeleted, setShowDeleted] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [customFields, setCustomFields] = useState<any[]>([]);
+  const [loadingCustomFields, setLoadingCustomFields] = useState(false);
+  const [savingCustomFields, setSavingCustomFields] = useState(false);
 
   // Função para carregar anexos da tarefa
   const loadTaskAttachments = async (taskId: string) => {
@@ -72,6 +75,36 @@ export default function Dashboard() {
     } catch (error) {
       console.error('Erro ao carregar anexos:', error);
       setTaskAttachments([]);
+    }
+  };
+
+  // Função para carregar campos personalizados da tarefa
+  const loadCustomFields = async (taskId: string) => {
+    if (!taskId) return;
+    
+    setLoadingCustomFields(true);
+    try {
+      console.log('🔧 Carregando campos personalizados para tarefa:', taskId);
+      
+      const response = await fetch(`/api/monde/tarefas/${taskId}/campos`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('🔧 Campos personalizados carregados:', data.data);
+        setCustomFields(data.data || []);
+      } else {
+        console.error('❌ Erro ao carregar campos personalizados:', response.status, response.statusText);
+        setCustomFields([]);
+      }
+    } catch (error) {
+      console.error('❌ Erro ao carregar campos personalizados:', error);
+      setCustomFields([]);
+    } finally {
+      setLoadingCustomFields(false);
     }
   };
   
@@ -745,6 +778,9 @@ export default function Dashboard() {
 
     // Carregar anexos da tarefa
     loadTaskAttachments(task.id);
+    
+    // Carregar campos personalizados da tarefa
+    loadCustomFields(task.id);
   };
 
   // Funções de ação das tarefas
@@ -2752,9 +2788,9 @@ export default function Dashboard() {
                       <div className="text-sm">
                         <p className="font-medium text-yellow-800">Anexos sincronizados do Monde</p>
                         <p className="text-yellow-700 mt-1">
-                          <strong>Como visualizar/baixar anexos:</strong><br/>
-                          • Clique em "Ver no Monde" para abrir o sistema original onde você pode visualizar e baixar o arquivo<br/>
-                          • Clique em "Copiar Nome" para copiar o nome do arquivo para sua área de transferência
+                          <strong>Funcionalidade em desenvolvimento:</strong><br/>
+                          A visualização e download de anexos diretamente no Keeptur ainda está em desenvolvimento.<br/>
+                          Para acessar os arquivos, utilize o sistema Monde original.
                         </p>
                       </div>
                     </div>
@@ -2851,177 +2887,10 @@ export default function Dashboard() {
                               {attachment.size ? `${(attachment.size / 1024).toFixed(1)} KB` : 'N/A'}
                             </span>
                           </div>
-                          <div className="flex items-center justify-start space-x-2">
-                            {(attachment.nome_original?.toLowerCase().includes('.png') || 
-                              attachment.nome_original?.toLowerCase().includes('.jpg') || 
-                              attachment.nome_original?.toLowerCase().includes('.jpeg') || 
-                              attachment.nome_original?.toLowerCase().includes('.gif')) && (
-                              <button
-                                onClick={async (e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  console.log('👁️ Tentando visualizar imagem:', attachment.id);
-                                  
-                                  try {
-                                    // Tentar carregar imagem via nosso backend
-                                    const response = await fetch(`/api/monde/anexos/${selectedTask?.id}/${attachment.id}/download`, {
-                                      headers: {
-                                        'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
-                                      }
-                                    });
-                                    
-                                    if (response.ok) {
-                                      const blob = await response.blob();
-                                      const url = URL.createObjectURL(blob);
-                                      
-                                      // Criar modal para visualizar imagem
-                                      const modal = document.createElement('div');
-                                      modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
-                                      modal.innerHTML = `
-                                        <div class="relative max-w-4xl max-h-4xl p-4">
-                                          <button class="absolute top-2 right-2 text-white bg-black bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center hover:bg-opacity-75" onclick="this.parentElement.parentElement.remove()">
-                                            ×
-                                          </button>
-                                          <img src="${url}" alt="Anexo" class="max-w-full max-h-full object-contain rounded" />
-                                        </div>
-                                      `;
-                                      document.body.appendChild(modal);
-                                      
-                                      // Remover modal ao clicar fora
-                                      modal.addEventListener('click', (e) => {
-                                        if (e.target === modal) {
-                                          document.body.removeChild(modal);
-                                          URL.revokeObjectURL(url);
-                                        }
-                                      });
-                                    } else {
-                                      throw new Error('Imagem não disponível');
-                                    }
-                                  } catch (error) {
-                                    console.error('Erro ao visualizar imagem:', error);
-                                    const toast = document.createElement('div');
-                                    toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
-                                    toast.textContent = 'Não foi possível visualizar a imagem';
-                                    document.body.appendChild(toast);
-                                    setTimeout(() => {
-                                      document.body.removeChild(toast);
-                                    }, 2000);
-                                  }
-                                }}
-                                className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs font-medium"
-                                title="Visualizar imagem"
-                              >
-                                <i className="ri-eye-line mr-1"></i>
-                                Visualizar
-                              </button>
-                            )}
-                            <button
-                              onClick={async (e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                console.log('📥 Tentando baixar anexo:', attachment.id);
-                                
-                                try {
-                                  // Tentar baixar anexo via nosso backend
-                                  const response = await fetch(`/api/monde/anexos/${selectedTask?.id}/${attachment.id}/download`, {
-                                    headers: {
-                                      'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
-                                    }
-                                  });
-                                  
-                                  if (response.ok) {
-                                    // Sucesso no download
-                                    const blob = await response.blob();
-                                    const url = URL.createObjectURL(blob);
-                                    const link = document.createElement('a');
-                                    link.href = url;
-                                    link.download = attachment.nome_original?.replace(/'/g, '') || attachment.name || 'anexo';
-                                    document.body.appendChild(link);
-                                    link.click();
-                                    document.body.removeChild(link);
-                                    URL.revokeObjectURL(url);
-                                    
-                                    // Toast de sucesso
-                                    const toast = document.createElement('div');
-                                    toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
-                                    toast.textContent = 'Arquivo baixado com sucesso!';
-                                    document.body.appendChild(toast);
-                                    setTimeout(() => {
-                                      document.body.removeChild(toast);
-                                    }, 2000);
-                                  } else {
-                                    // Falha no download - abrir no Monde
-                                    const mondeServer = localStorage.getItem('keeptur-monde-server') || 'https://web.monde.com.br';
-                                    const mondeUrl = `${mondeServer}/tasks/${selectedTask?.id}`;
-                                    window.open(mondeUrl, '_blank');
-                                    
-                                    // Toast informativo
-                                    const toast = document.createElement('div');
-                                    toast.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded shadow-lg z-50';
-                                    toast.textContent = 'Abrindo tarefa no Monde para acessar o arquivo...';
-                                    document.body.appendChild(toast);
-                                    setTimeout(() => {
-                                      document.body.removeChild(toast);
-                                    }, 2000);
-                                  }
-                                } catch (error) {
-                                  console.error('Erro ao baixar anexo:', error);
-                                  // Toast de erro
-                                  const toast = document.createElement('div');
-                                  toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
-                                  toast.textContent = 'Erro ao baixar anexo. Tente novamente.';
-                                  document.body.appendChild(toast);
-                                  setTimeout(() => {
-                                    document.body.removeChild(toast);
-                                  }, 2000);
-                                }
-                              }}
-                              className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs font-medium"
-                              title="Baixar arquivo (ou abrir no Monde se não disponível)"
-                            >
-                              <i className="ri-download-line mr-1"></i>
-                              Baixar Arquivo
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                console.log('📋 Botão Copiar Nome clicado');
-                                // Copiar nome do arquivo para área de transferência
-                                const fileName = attachment.nome_original || attachment.name || attachment.filename || 'anexo';
-                                console.log('📄 Nome do arquivo:', fileName);
-                                
-                                // Remover aspas do nome do arquivo
-                                const cleanFileName = fileName.replace(/'/g, '');
-                                
-                                navigator.clipboard.writeText(cleanFileName).then(() => {
-                                  console.log('✅ Nome copiado para área de transferência');
-                                  // Mostrar toast de sucesso sem fechar modal
-                                  const toast = document.createElement('div');
-                                  toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
-                                  toast.textContent = `Nome copiado: ${cleanFileName}`;
-                                  document.body.appendChild(toast);
-                                  setTimeout(() => {
-                                    document.body.removeChild(toast);
-                                  }, 2000);
-                                }).catch(err => {
-                                  console.error('❌ Erro ao copiar para área de transferência:', err);
-                                  // Mostrar toast de erro
-                                  const toast = document.createElement('div');
-                                  toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
-                                  toast.textContent = 'Erro ao copiar nome do arquivo';
-                                  document.body.appendChild(toast);
-                                  setTimeout(() => {
-                                    document.body.removeChild(toast);
-                                  }, 2000);
-                                });
-                              }}
-                              className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-xs font-medium"
-                              title="Copiar nome do arquivo para área de transferência"
-                            >
-                              <i className="ri-file-copy-line mr-1"></i>
-                              Copiar Nome
-                            </button>
+                          <div className="flex items-center justify-start">
+                            <span className="text-sm text-gray-500 italic">
+                              Para visualizar/baixar, acesse o sistema Monde
+                            </span>
                           </div>
                         </div>
                       ))}
@@ -3037,69 +2906,216 @@ export default function Dashboard() {
               {/* Aba Campos Personalizados */}
               {activeModalTab === "campos" && (
                 <div className="space-y-4">
-                  <div className="grid grid-cols-12 gap-4">
-                    <div className="col-span-12">
-                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                        Motivo da perda:
-                      </label>
-                      <input
-                        type="text"
-                        className="form-input w-full px-3 py-2 text-sm"
-                        style={{ backgroundColor: "var(--bg-secondary)" }}
-                      />
+                  {/* Indicador de carregamento */}
+                  {loadingCustomFields && (
+                    <div className="text-center py-4">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                      <p className="text-sm text-gray-600 mt-2">Carregando campos personalizados...</p>
                     </div>
-                  </div>
+                  )}
 
-                  <div className="grid grid-cols-12 gap-4">
-                    <div className="col-span-12">
-                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                        Situação da venda:
-                      </label>
-                      <select 
-                        className="form-input w-full px-3 py-2 text-sm"
-                        style={{ backgroundColor: "var(--bg-secondary)" }}
-                      >
-                        <option value="">Selecione uma situação</option>
-                        <option value="negociacao">Negociação</option>
-                        <option value="proposta">Proposta</option>
-                        <option value="fechada">Fechada</option>
-                        <option value="perdida">Perdida</option>
-                      </select>
+                  {/* Mensagem informativa */}
+                  {!loadingCustomFields && (
+                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+                      <div className="flex items-start space-x-2">
+                        <i className="ri-information-line text-blue-600 text-sm mt-0.5"></i>
+                        <div className="text-sm">
+                          <p className="font-medium text-blue-800 dark:text-blue-200">Campos personalizados sincronizados com o Monde</p>
+                          <p className="text-blue-700 dark:text-blue-300 mt-1">
+                            Estes campos são extraídos diretamente da API do Monde e sincronizados automaticamente com o sistema.
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  <div className="grid grid-cols-12 gap-4">
-                    <div className="col-span-12">
-                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                        Valor do orçamento:
-                      </label>
-                      <input
-                        type="number"
-                        className="form-input w-full px-3 py-2 text-sm"
-                        style={{ backgroundColor: "var(--bg-secondary)" }}
-                        step="0.01"
-                        placeholder="0,00"
-                      />
-                    </div>
-                  </div>
+                  {/* Campos personalizados dinâmicos */}
+                  {!loadingCustomFields && customFields.length > 0 && (
+                    <div className="space-y-4">
+                      {customFields.map((field, index) => (
+                        <div key={field.id} className="grid grid-cols-12 gap-4">
+                          <div className="col-span-12">
+                            <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                              {field.name}:
+                            </label>
+                            {field.type === 'textarea' ? (
+                              <textarea
+                                className="form-input w-full px-3 py-2 text-sm"
+                                style={{ backgroundColor: "var(--bg-secondary)" }}
+                                rows="3"
+                                value={field.value || ''}
+                                onChange={(e) => {
+                                  const newFields = [...customFields];
+                                  newFields[index].value = e.target.value;
+                                  setCustomFields(newFields);
+                                }}
+                                placeholder={`Digite ${field.name.toLowerCase()}...`}
+                              />
+                            ) : field.type === 'select' ? (
+                              <select
+                                className="form-input w-full px-3 py-2 text-sm"
+                                style={{ backgroundColor: "var(--bg-secondary)" }}
+                                value={field.value || ''}
+                                onChange={(e) => {
+                                  const newFields = [...customFields];
+                                  newFields[index].value = e.target.value;
+                                  setCustomFields(newFields);
+                                }}
+                              >
+                                <option value="">Selecione uma opção</option>
+                                {field.id === 'prioridade' && (
+                                  <>
+                                    <option value="baixa">Baixa</option>
+                                    <option value="normal">Normal</option>
+                                    <option value="alta">Alta</option>
+                                  </>
+                                )}
+                              </select>
+                            ) : field.type === 'number' ? (
+                              <input
+                                type="number"
+                                className="form-input w-full px-3 py-2 text-sm"
+                                style={{ backgroundColor: "var(--bg-secondary)" }}
+                                value={field.value || ''}
+                                onChange={(e) => {
+                                  const newFields = [...customFields];
+                                  newFields[index].value = e.target.value;
+                                  setCustomFields(newFields);
+                                }}
+                                placeholder={`Digite ${field.name.toLowerCase()}...`}
+                              />
+                            ) : field.type === 'currency' ? (
+                              <input
+                                type="number"
+                                className="form-input w-full px-3 py-2 text-sm"
+                                style={{ backgroundColor: "var(--bg-secondary)" }}
+                                step="0.01"
+                                value={field.value || ''}
+                                onChange={(e) => {
+                                  const newFields = [...customFields];
+                                  newFields[index].value = e.target.value;
+                                  setCustomFields(newFields);
+                                }}
+                                placeholder="0,00"
+                              />
+                            ) : field.type === 'date' ? (
+                              <input
+                                type="date"
+                                className="form-input w-full px-3 py-2 text-sm"
+                                style={{ backgroundColor: "var(--bg-secondary)" }}
+                                value={field.value || ''}
+                                onChange={(e) => {
+                                  const newFields = [...customFields];
+                                  newFields[index].value = e.target.value;
+                                  setCustomFields(newFields);
+                                }}
+                              />
+                            ) : (
+                              <input
+                                type="text"
+                                className="form-input w-full px-3 py-2 text-sm"
+                                style={{ backgroundColor: "var(--bg-secondary)" }}
+                                value={field.value || ''}
+                                onChange={(e) => {
+                                  const newFields = [...customFields];
+                                  newFields[index].value = e.target.value;
+                                  setCustomFields(newFields);
+                                }}
+                                placeholder={`Digite ${field.name.toLowerCase()}...`}
+                              />
+                            )}
+                          </div>
+                        </div>
+                      ))}
 
-                  <div className="grid grid-cols-12 gap-4">
-                    <div className="col-span-12">
-                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                        Origem do lead:
-                      </label>
-                      <select 
-                        className="form-input w-full px-3 py-2 text-sm"
-                        style={{ backgroundColor: "var(--bg-secondary)" }}
-                      >
-                        <option value="">Selecione uma origem</option>
-                        <option value="site">Site</option>
-                        <option value="referencia">Referência</option>
-                        <option value="publicidade">Publicidade</option>
-                        <option value="outros">Outros</option>
-                      </select>
+                      {/* Botão para salvar campos */}
+                      <div className="flex justify-end space-x-2 mt-6">
+                        <button
+                          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+                          disabled={savingCustomFields}
+                          onClick={async () => {
+                            if (!selectedTask) return;
+                            
+                            setSavingCustomFields(true);
+                            try {
+                              console.log('🔧 Salvando campos personalizados:', customFields);
+                              
+                              const response = await fetch(`/api/monde/tarefas/${selectedTask.id}/campos`, {
+                                method: 'PUT',
+                                headers: {
+                                  'Content-Type': 'application/json',
+                                  'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+                                },
+                                body: JSON.stringify({
+                                  fields: customFields
+                                })
+                              });
+                              
+                              if (response.ok) {
+                                console.log('✅ Campos personalizados salvos com sucesso');
+                                
+                                // Toast de sucesso
+                                const toast = document.createElement('div');
+                                toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                                toast.textContent = 'Campos personalizados salvos com sucesso!';
+                                document.body.appendChild(toast);
+                                setTimeout(() => {
+                                  document.body.removeChild(toast);
+                                }, 3000);
+                                
+                                // Recarregar dados da tarefa
+                                loadTasks();
+                              } else {
+                                console.error('❌ Erro ao salvar campos personalizados');
+                                
+                                // Toast de erro
+                                const toast = document.createElement('div');
+                                toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                                toast.textContent = 'Erro ao salvar campos personalizados';
+                                document.body.appendChild(toast);
+                                setTimeout(() => {
+                                  document.body.removeChild(toast);
+                                }, 3000);
+                              }
+                            } catch (error) {
+                              console.error('❌ Erro ao salvar campos personalizados:', error);
+                              
+                              // Toast de erro
+                              const toast = document.createElement('div');
+                              toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                              toast.textContent = 'Erro de conexão ao salvar campos personalizados';
+                              document.body.appendChild(toast);
+                              setTimeout(() => {
+                                document.body.removeChild(toast);
+                              }, 3000);
+                            } finally {
+                              setSavingCustomFields(false);
+                            }
+                          }}
+                        >
+                          {savingCustomFields ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white inline-block mr-2"></div>
+                              Salvando...
+                            </>
+                          ) : (
+                            'Salvar Campos'
+                          )}
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  )}
+
+                  {/* Mensagem quando não há campos */}
+                  {!loadingCustomFields && customFields.length === 0 && (
+                    <div className="text-center py-16" style={{ color: "var(--text-secondary)" }}>
+                      <i className="ri-settings-line text-4xl text-gray-400 mb-4"></i>
+                      <p>Nenhum campo personalizado encontrado para esta tarefa.</p>
+                      <p className="text-sm text-gray-500 mt-2">
+                        Os campos personalizados são carregados automaticamente da API do Monde.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 

@@ -1472,6 +1472,156 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para buscar campos personalizados de uma tarefa
+  app.get('/api/monde/tarefas/:taskId/campos', authenticateToken, async (req: any, res) => {
+    try {
+      const taskId = req.params.taskId;
+      console.log('🔧 Buscando campos personalizados para tarefa', taskId);
+      
+      // Buscar a tarefa completa incluindo todos os atributos
+      const taskResponse = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}`, {
+        headers: {
+          'Authorization': `Bearer ${req.mondeToken}`,
+          'Accept': 'application/vnd.api+json'
+        }
+      });
+
+      if (!taskResponse.ok) {
+        console.log(`❌ Erro ao buscar tarefa: ${taskResponse.status}`);
+        return res.status(500).json({ error: 'Erro ao buscar tarefa' });
+      }
+
+      const taskData = await taskResponse.json();
+      console.log('🔧 Dados da tarefa recebidos:', taskData);
+      
+      const attributes = taskData.data?.attributes || {};
+      const customFields = [];
+      
+      // Extrair campos personalizados dos atributos da tarefa
+      // Mapear campos comuns que podem existir
+      const fieldMapping = {
+        'motivo-perda': { name: 'Motivo da perda', type: 'text' },
+        'comissao': { name: 'Comissão', type: 'currency' },
+        'valor-venda': { name: 'Valor da venda', type: 'currency' },
+        'observacoes': { name: 'Observações', type: 'textarea' },
+        'prioridade': { name: 'Prioridade', type: 'select' },
+        'status-customizado': { name: 'Status customizado', type: 'text' },
+        'data-limite': { name: 'Data limite', type: 'date' },
+        'valor-estimado': { name: 'Valor estimado', type: 'currency' },
+        'percentual-conclusao': { name: 'Percentual de conclusão', type: 'number' },
+        'cliente-feedback': { name: 'Feedback do cliente', type: 'textarea' }
+      };
+      
+      // Verificar todos os atributos e extrair campos personalizados
+      Object.keys(attributes).forEach(key => {
+        if (fieldMapping[key]) {
+          customFields.push({
+            id: key,
+            name: fieldMapping[key].name,
+            type: fieldMapping[key].type,
+            value: attributes[key] || ''
+          });
+        } else if (!['title', 'description', 'due', 'completed', 'completed-at', 'registered-at', 'visualized', 'number'].includes(key)) {
+          // Adicionar outros campos que não são padrão
+          customFields.push({
+            id: key,
+            name: key.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+            type: 'text',
+            value: attributes[key] || ''
+          });
+        }
+      });
+      
+      // Se não encontrou campos específicos, criar campos padrão baseados na estrutura comum
+      if (customFields.length === 0) {
+        customFields.push(
+          {
+            id: 'motivo-perda',
+            name: 'Motivo da perda',
+            type: 'text',
+            value: ''
+          },
+          {
+            id: 'comissao',
+            name: 'Comissão',
+            type: 'currency',
+            value: ''
+          },
+          {
+            id: 'valor-venda',
+            name: 'Valor da venda',
+            type: 'currency',
+            value: ''
+          },
+          {
+            id: 'observacoes',
+            name: 'Observações',
+            type: 'textarea',
+            value: ''
+          }
+        );
+      }
+      
+      console.log('🔧 Campos personalizados processados:', customFields);
+      res.json({ data: customFields });
+      
+    } catch (error) {
+      console.error('❌ Erro ao buscar campos personalizados:', error);
+      res.status(500).json({ error: 'Erro ao buscar campos personalizados' });
+    }
+  });
+
+  // Endpoint para atualizar campos personalizados de uma tarefa
+  app.put('/api/monde/tarefas/:taskId/campos', authenticateToken, async (req: any, res) => {
+    try {
+      const taskId = req.params.taskId;
+      const { fields } = req.body;
+      
+      console.log('🔧 Atualizando campos personalizados para tarefa', taskId);
+      console.log('🔧 Campos recebidos:', fields);
+      
+      // Construir atributos para atualização
+      const attributes = {};
+      fields.forEach(field => {
+        attributes[field.id] = field.value;
+      });
+      
+      const requestBody = {
+        data: {
+          type: "tasks",
+          id: taskId,
+          attributes: attributes
+        }
+      };
+      
+      console.log('🔧 Enviando atualização para o Monde:', requestBody);
+      
+      const updateResponse = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${req.mondeToken}`,
+          'Accept': 'application/vnd.api+json',
+          'Content-Type': 'application/vnd.api+json'
+        },
+        body: JSON.stringify(requestBody)
+      });
+      
+      if (updateResponse.ok) {
+        const updatedTask = await updateResponse.json();
+        console.log('✅ Campos personalizados atualizados com sucesso');
+        res.json({ success: true, data: updatedTask });
+      } else {
+        const errorText = await updateResponse.text();
+        console.log('❌ Erro ao atualizar campos personalizados:', errorText);
+        res.status(updateResponse.status).json({ error: 'Erro ao atualizar campos personalizados' });
+      }
+      
+    } catch (error) {
+      console.error('❌ Erro ao atualizar campos personalizados:', error);
+      res.status(500).json({ error: 'Erro ao atualizar campos personalizados' });
+    }
+  });
+
   // Endpoint para buscar anexos de uma tarefa (baseado 100% no histórico do Monde)
   app.get("/api/monde/tarefas/:taskId/anexos", authenticateToken, async (req: any, res) => {
     try {

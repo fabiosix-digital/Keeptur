@@ -60,6 +60,15 @@ export default function Dashboard() {
   const [customFields, setCustomFields] = useState<any[]>([]);
   const [loadingCustomFields, setLoadingCustomFields] = useState(false);
   const [savingCustomFields, setSavingCustomFields] = useState(false);
+  
+  // Estados para filtros de clientes
+  const [clientFilter, setClientFilter] = useState("todos");
+  const [clientTypeFilter, setClientTypeFilter] = useState("todos");
+  const [clientMarkerFilter, setClientMarkerFilter] = useState("todos");
+  const [clientCityFilter, setClientCityFilter] = useState("");
+  const [clientStateFilter, setClientStateFilter] = useState("");
+  const [onlyPayingClients, setOnlyPayingClients] = useState(false);
+  const [listViewMode, setListViewMode] = useState(true);
 
   // Função para buscar clientes removida (implementada mais abaixo)
 
@@ -3249,7 +3258,7 @@ export default function Dashboard() {
               <p className="text-white/80 text-sm font-medium">
                 Total de Clientes
               </p>
-              <p className="text-white text-2xl font-bold">1,247</p>
+              <p className="text-white text-2xl font-bold">{clientStats.totalClients || 0}</p>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
               <i className="ri-user-3-line text-white text-xl"></i>
@@ -3257,7 +3266,7 @@ export default function Dashboard() {
           </div>
           <div className="mt-4 flex items-center">
             <i className="ri-arrow-up-line text-white/80 text-sm"></i>
-            <span className="text-white/80 text-sm ml-1">+12% este mês</span>
+            <span className="text-white/80 text-sm ml-1">{clientStats.totalChange || '+12% este mês'}</span>
           </div>
         </div>
 
@@ -3267,7 +3276,7 @@ export default function Dashboard() {
               <p className="text-white/80 text-sm font-medium">
                 Clientes com Tarefas
               </p>
-              <p className="text-white text-2xl font-bold">892</p>
+              <p className="text-white text-2xl font-bold">{clientStats.clientsWithTasks || 0}</p>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
               <i className="ri-task-line text-white text-xl"></i>
@@ -3275,7 +3284,7 @@ export default function Dashboard() {
           </div>
           <div className="mt-4 flex items-center">
             <i className="ri-arrow-up-line text-white/80 text-sm"></i>
-            <span className="text-white/80 text-sm ml-1">+8% este mês</span>
+            <span className="text-white/80 text-sm ml-1">{clientStats.withTasksChange || '+8% este mês'}</span>
           </div>
         </div>
 
@@ -3285,7 +3294,7 @@ export default function Dashboard() {
               <p className="text-white/80 text-sm font-medium">
                 Novos Clientes (30 dias)
               </p>
-              <p className="text-white text-2xl font-bold">156</p>
+              <p className="text-white text-2xl font-bold">{clientStats.newClients || 0}</p>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
               <i className="ri-user-add-line text-white text-xl"></i>
@@ -3293,71 +3302,199 @@ export default function Dashboard() {
           </div>
           <div className="mt-4 flex items-center">
             <i className="ri-arrow-up-line text-white/80 text-sm"></i>
-            <span className="text-white/80 text-sm ml-1">+23% este mês</span>
+            <span className="text-white/80 text-sm ml-1">{clientStats.newClientsChange || '+23% este mês'}</span>
           </div>
         </div>
       </div>
 
-      {/* Clients Search */}
+      {/* Clients Management */}
       <div className="card rounded-xl p-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <h2
-            className="text-xl font-semibold"
-            style={{ color: "var(--text-primary)" }}
-          >
-            Buscar Clientes
-          </h2>
-          <div className="flex items-center space-x-3">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Digite nome, email, CPF ou CNPJ..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && searchClients(searchTerm)}
-                className="search-input pl-10 pr-4 py-2 rounded-lg text-sm w-80"
-              />
-              <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                <i className="ri-search-line text-gray-400"></i>
+        <div className="flex flex-col gap-4 mb-6 w-full">
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <button 
+                  onClick={() => setShowClientModal(true)}
+                  className="primary-button px-4 py-2 rounded-lg text-sm font-medium rounded-button"
+                >
+                  <i className="ri-add-line mr-2"></i>
+                  Novo Cliente
+                </button>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button 
+                  onClick={() => setListViewMode(true)}
+                  className={`action-button px-3 py-2 rounded-lg text-sm font-medium rounded-button ${listViewMode ? 'active' : ''}`}
+                >
+                  <i className="ri-list-unordered"></i>
+                </button>
+                <button 
+                  onClick={() => setListViewMode(false)}
+                  className={`action-button px-3 py-2 rounded-lg text-sm font-medium rounded-button ${!listViewMode ? 'active' : ''}`}
+                >
+                  <i className="ri-grid-line"></i>
+                </button>
               </div>
             </div>
-            <button
-              onClick={() => searchClients(searchTerm)}
-              disabled={searchingClients || !searchTerm.trim()}
-              className="action-button px-4 py-2 rounded-lg text-sm font-medium rounded-button disabled:opacity-50"
-            >
-              {searchingClients ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current inline-block mr-2"></div>
-                  Buscando...
-                </>
-              ) : (
-                <>
-                  <i className="ri-search-line mr-2"></i>
-                  Buscar
-                </>
-              )}
-            </button>
-            {searchTerm && (
+            <div className="flex items-center space-x-4">
+              <span className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>Clientes com:</span>
+              <select 
+                value={clientFilter}
+                onChange={(e) => setClientFilter(e.target.value)}
+                className="form-input px-3 py-2 rounded-lg text-sm"
+                style={{ backgroundColor: "var(--bg-tertiary)" }}
+              >
+                <option value="todos">Todos</option>
+                <option value="primeira_venda">Primeira Venda</option>
+                <option value="ultima_venda">Última Venda</option>
+                <option value="ultimo_embarque">Último Embarque</option>
+                <option value="ultimo_retorno">Último Retorno</option>
+                <option value="ultima_atualizacao_tarefa">Última Atualização Tarefa</option>
+              </select>
+            </div>
+          </div>
+          
+          {/* Filtros Avançados */}
+          <div className="card rounded-xl p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                  Buscar clientes
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Digite para pesquisar..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && searchClients(searchTerm)}
+                    className="form-input w-full pl-10 pr-4 py-2 rounded-lg text-sm"
+                    style={{ backgroundColor: "var(--bg-tertiary)" }}
+                  />
+                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                    <i className="ri-search-line text-gray-400"></i>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                  Tipo de Cliente
+                </label>
+                <select 
+                  value={clientTypeFilter}
+                  onChange={(e) => setClientTypeFilter(e.target.value)}
+                  className="form-input w-full px-3 py-2 rounded-lg text-sm"
+                  style={{ backgroundColor: "var(--bg-tertiary)" }}
+                >
+                  <option value="todos">Todos</option>
+                  <option value="individual">Pessoa Física</option>
+                  <option value="company">Pessoa Jurídica</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                  Marcador
+                </label>
+                <select 
+                  value={clientMarkerFilter}
+                  onChange={(e) => setClientMarkerFilter(e.target.value)}
+                  className="form-input w-full px-3 py-2 rounded-lg text-sm"
+                  style={{ backgroundColor: "var(--bg-tertiary)" }}
+                >
+                  <option value="todos">Todos</option>
+                  <option value="vip">VIP</option>
+                  <option value="premium">Premium</option>
+                  <option value="regular">Regular</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                  Cidade
+                </label>
+                <select 
+                  value={clientCityFilter}
+                  onChange={(e) => setClientCityFilter(e.target.value)}
+                  className="form-input w-full px-3 py-2 rounded-lg text-sm"
+                  style={{ backgroundColor: "var(--bg-tertiary)" }}
+                >
+                  <option value="">Todas as cidades</option>
+                  <option value="sao_paulo">São Paulo</option>
+                  <option value="rio_janeiro">Rio de Janeiro</option>
+                  <option value="belo_horizonte">Belo Horizonte</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                  Estado
+                </label>
+                <select 
+                  value={clientStateFilter}
+                  onChange={(e) => setClientStateFilter(e.target.value)}
+                  className="form-input w-full px-3 py-2 rounded-lg text-sm"
+                  style={{ backgroundColor: "var(--bg-tertiary)" }}
+                >
+                  <option value="">Todos os estados</option>
+                  <option value="SP">São Paulo</option>
+                  <option value="RJ">Rio de Janeiro</option>
+                  <option value="MG">Minas Gerais</option>
+                </select>
+              </div>
+              
+              <div className="flex items-center pt-8">
+                <label className="flex items-center">
+                  <input 
+                    type="checkbox" 
+                    checked={onlyPayingClients}
+                    onChange={(e) => setOnlyPayingClients(e.target.checked)}
+                    className="form-checkbox"
+                  />
+                  <span className="ml-2 text-sm" style={{ color: "var(--text-secondary)" }}>
+                    Somente pagante
+                  </span>
+                </label>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-2 mt-4">
+              <button
+                onClick={() => searchClients(searchTerm)}
+                disabled={searchingClients}
+                className="primary-button px-4 py-2 rounded-lg text-sm font-medium rounded-button disabled:opacity-50"
+              >
+                {searchingClients ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current inline-block mr-2"></div>
+                    Buscando...
+                  </>
+                ) : (
+                  <>
+                    <i className="ri-search-line mr-2"></i>
+                    Buscar
+                  </>
+                )}
+              </button>
               <button
                 onClick={() => {
                   setSearchTerm("");
                   setClients([]);
                   setHasSearched(false);
+                  setClientFilter("todos");
+                  setClientTypeFilter("todos");
+                  setClientMarkerFilter("todos");
+                  setClientCityFilter("");
+                  setClientStateFilter("");
+                  setOnlyPayingClients(false);
                 }}
                 className="action-button px-4 py-2 rounded-lg text-sm font-medium rounded-button"
               >
                 <i className="ri-close-line mr-2"></i>
-                Limpar
+                Limpar Filtros
               </button>
-            )}
-            <button 
-              onClick={() => setShowClientModal(true)}
-              className="primary-button px-4 py-2 rounded-lg text-sm font-medium rounded-button"
-            >
-              <i className="ri-add-line mr-2"></i>
-              Novo Cliente
-            </button>
+            </div>
           </div>
         </div>
 
@@ -3394,80 +3531,194 @@ export default function Dashboard() {
                   )}
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {clients.map((client: any) => (
-                    <div key={client.id} className="card p-4 rounded-lg border">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-sm mb-1" style={{ color: "var(--text-primary)" }}>
-                            {client.attributes.name}
-                          </h4>
-                          {client.attributes['company-name'] && (
-                            <p className="text-xs text-gray-500 mb-1">
-                              {client.attributes['company-name']}
+                {/* Visualização em Lista */}
+                {listViewMode ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="table-row">
+                          <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: "var(--text-secondary)" }}>
+                            Cliente
+                          </th>
+                          <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: "var(--text-secondary)" }}>
+                            E-mail
+                          </th>
+                          <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: "var(--text-secondary)" }}>
+                            Telefone
+                          </th>
+                          <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: "var(--text-secondary)" }}>
+                            Celular
+                          </th>
+                          <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: "var(--text-secondary)" }}>
+                            Cidade
+                          </th>
+                          <th className="text-left py-3 px-4 font-medium text-sm" style={{ color: "var(--text-secondary)" }}>
+                            UF
+                          </th>
+                          <th className="text-right py-3 px-4 font-medium text-sm" style={{ color: "var(--text-secondary)" }}>
+                            Ações
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {clients.map((client: any) => (
+                          <tr key={client.id} className="table-row">
+                            <td className="py-4 px-4">
+                              <div className="flex items-center">
+                                <div className="w-10 h-10 rounded-full client-avatar flex items-center justify-center text-white font-medium text-sm mr-3">
+                                  {client.attributes.name?.charAt(0)?.toUpperCase() || 'C'}
+                                </div>
+                                <div>
+                                  <p className="font-medium text-sm" style={{ color: "var(--text-primary)" }}>
+                                    {client.attributes.name}
+                                  </p>
+                                  <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
+                                    {client.attributes.kind === 'individual' ? 'Pessoa Física' : 'Pessoa Jurídica'}
+                                  </p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-4 px-4">
+                              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                                {client.attributes.email || '-'}
+                              </p>
+                            </td>
+                            <td className="py-4 px-4">
+                              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                                {client.attributes.phone || '-'}
+                              </p>
+                            </td>
+                            <td className="py-4 px-4">
+                              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                                {client.attributes['mobile-phone'] || '-'}
+                              </p>
+                            </td>
+                            <td className="py-4 px-4">
+                              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                                {client.attributes.city || '-'}
+                              </p>
+                            </td>
+                            <td className="py-4 px-4">
+                              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                                {client.attributes.state || '-'}
+                              </p>
+                            </td>
+                            <td className="py-4 px-4 text-right">
+                              <div className="flex items-center justify-end space-x-2">
+                                <button
+                                  onClick={() => {
+                                    setSelectedClientForModal(client);
+                                    setShowClientModal(true);
+                                  }}
+                                  className="action-button p-1 rounded"
+                                >
+                                  <i className="ri-eye-line text-sm"></i>
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setSelectedClientForModal(client);
+                                    setShowClientModal(true);
+                                  }}
+                                  className="action-button p-1 rounded"
+                                >
+                                  <i className="ri-edit-line text-sm"></i>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  /* Visualização em Cards */
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {clients.map((client: any) => (
+                      <div key={client.id} className="card p-4 rounded-lg border">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-sm mb-1" style={{ color: "var(--text-primary)" }}>
+                              {client.attributes.name}
+                            </h4>
+                            {client.attributes['company-name'] && (
+                              <p className="text-xs text-gray-500 mb-1">
+                                {client.attributes['company-name']}
+                              </p>
+                            )}
+                            <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
+                              {client.attributes.kind === 'individual' ? 'Pessoa Física' : 'Pessoa Jurídica'}
                             </p>
+                          </div>
+                          <div className="flex space-x-1">
+                            <button
+                              onClick={() => {
+                                setSelectedClientForModal(client);
+                                setShowClientModal(true);
+                              }}
+                              className="action-button p-1 rounded"
+                            >
+                              <i className="ri-eye-line text-xs"></i>
+                            </button>
+                            <button
+                              onClick={() => {
+                                setSelectedClientForModal(client);
+                                setShowClientModal(true);
+                              }}
+                              className="action-button p-1 rounded"
+                            >
+                              <i className="ri-edit-line text-xs"></i>
+                            </button>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          {client.attributes.email && (
+                            <div className="flex items-center text-xs" style={{ color: "var(--text-secondary)" }}>
+                              <i className="ri-mail-line mr-2"></i>
+                              {client.attributes.email}
+                            </div>
                           )}
-                          <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
-                            {client.attributes.kind === 'individual' ? 'Pessoa Física' : 'Pessoa Jurídica'}
-                          </p>
-                        </div>
-                        <div className="flex space-x-1">
-                          <button
-                            onClick={() => {
-                              setSelectedClientForModal(client);
-                              setShowClientModal(true);
-                            }}
-                            className="action-button p-1 rounded"
-                          >
-                            <i className="ri-eye-line text-xs"></i>
-                          </button>
-                          <button
-                            onClick={() => {
-                              setSelectedClientForModal(client);
-                              setShowClientModal(true);
-                            }}
-                            className="action-button p-1 rounded"
-                          >
-                            <i className="ri-edit-line text-xs"></i>
-                          </button>
+                          {client.attributes.phone && (
+                            <div className="flex items-center text-xs" style={{ color: "var(--text-secondary)" }}>
+                              <i className="ri-phone-line mr-2"></i>
+                              {client.attributes.phone}
+                            </div>
+                          )}
+                          {client.attributes['mobile-phone'] && (
+                            <div className="flex items-center text-xs" style={{ color: "var(--text-secondary)" }}>
+                              <i className="ri-smartphone-line mr-2"></i>
+                              {client.attributes['mobile-phone']}
+                            </div>
+                          )}
+                          {client.attributes.cpf && (
+                            <div className="flex items-center text-xs" style={{ color: "var(--text-secondary)" }}>
+                              <i className="ri-user-line mr-2"></i>
+                              CPF: {client.attributes.cpf}
+                            </div>
+                          )}
+                          {client.attributes.cnpj && (
+                            <div className="flex items-center text-xs" style={{ color: "var(--text-secondary)" }}>
+                              <i className="ri-building-line mr-2"></i>
+                              CNPJ: {client.attributes.cnpj}
+                            </div>
+                          )}
+                          {client.attributes.city && (
+                            <div className="flex items-center text-xs" style={{ color: "var(--text-secondary)" }}>
+                              <i className="ri-map-pin-line mr-2"></i>
+                              {client.attributes.city}{client.attributes.state && ` - ${client.attributes.state}`}
+                            </div>
+                          )}
+                          {client.attributes['registered-at'] && (
+                            <div className="flex items-center text-xs text-gray-500">
+                              <i className="ri-calendar-line mr-2"></i>
+                              Cadastrado em {new Date(client.attributes['registered-at']).toLocaleDateString('pt-BR')}
+                            </div>
+                          )}
                         </div>
                       </div>
-                      
-                      <div className="space-y-2">
-                        {client.attributes.email && (
-                          <div className="flex items-center text-xs" style={{ color: "var(--text-secondary)" }}>
-                            <i className="ri-mail-line mr-2"></i>
-                            {client.attributes.email}
-                          </div>
-                        )}
-                        {client.attributes.phone && (
-                          <div className="flex items-center text-xs" style={{ color: "var(--text-secondary)" }}>
-                            <i className="ri-phone-line mr-2"></i>
-                            {client.attributes.phone}
-                          </div>
-                        )}
-                        {client.attributes.cpf && (
-                          <div className="flex items-center text-xs" style={{ color: "var(--text-secondary)" }}>
-                            <i className="ri-user-line mr-2"></i>
-                            CPF: {client.attributes.cpf}
-                          </div>
-                        )}
-                        {client.attributes.cnpj && (
-                          <div className="flex items-center text-xs" style={{ color: "var(--text-secondary)" }}>
-                            <i className="ri-building-line mr-2"></i>
-                            CNPJ: {client.attributes.cnpj}
-                          </div>
-                        )}
-                        {client.attributes['registered-at'] && (
-                          <div className="flex items-center text-xs text-gray-500">
-                            <i className="ri-calendar-line mr-2"></i>
-                            Cadastrado em {new Date(client.attributes['registered-at']).toLocaleDateString('pt-BR')}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             ) : (
               <div className="text-center py-16" style={{ color: "var(--text-secondary)" }}>

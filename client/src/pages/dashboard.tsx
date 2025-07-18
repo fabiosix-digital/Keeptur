@@ -2934,38 +2934,35 @@ export default function Dashboard() {
                               onClick={async () => {
                                 if (confirm('Tem certeza que deseja excluir este anexo?')) {
                                   try {
-                                    // Excluir anexo do banco de dados
-                                    await fetch(`/api/monde/anexos/${selectedTask?.id}/${attachment.id}`, {
+                                    console.log('🗑️ Excluindo anexo:', attachment.id);
+                                    
+                                    // Excluir anexo do sistema
+                                    const response = await fetch(`/api/monde/anexos/${selectedTask?.id}/${attachment.id}`, {
                                       method: 'DELETE',
                                       headers: {
                                         'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
                                       }
                                     });
                                     
-                                    // Remover anexo da lista
-                                    const newAttachments = taskAttachments.filter((_, i) => i !== index);
-                                    setTaskAttachments(newAttachments);
-                                    
-                                    // Registrar no histórico do Monde
-                                    await fetch(`/api/monde/tarefas/${selectedTask?.id}/historico`, {
-                                      method: 'POST',
-                                      headers: {
-                                        'Content-Type': 'application/json',
-                                        'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
-                                      },
-                                      body: JSON.stringify({
-                                        description: `Anexo excluído: ${attachment.nome_original || attachment.nome_arquivo}`
-                                      })
-                                    });
-                                    
-                                    // Recarregar histórico
-                                    if (selectedTask?.id) {
-                                      loadTaskHistory(selectedTask.id);
+                                    if (response.ok) {
+                                      console.log('✅ Anexo excluído com sucesso');
+                                      
+                                      // Recarregar anexos da tarefa
+                                      await loadTaskAttachments(selectedTask?.id);
+                                      
+                                      // Recarregar histórico
+                                      if (selectedTask?.id) {
+                                        await loadTaskHistory(selectedTask.id);
+                                      }
+                                      
+                                      alert('Anexo excluído com sucesso!');
+                                    } else {
+                                      console.error('Erro ao excluir anexo:', response.status);
+                                      alert('Erro ao excluir anexo. Tente novamente.');
                                     }
-                                    
-                                    alert('Anexo excluído com sucesso!');
                                   } catch (error) {
                                     console.error('Erro ao excluir anexo:', error);
+                                    alert('Erro ao excluir anexo. Tente novamente.');
                                   }
                                 }
                               }}

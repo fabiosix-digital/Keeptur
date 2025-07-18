@@ -69,6 +69,14 @@ Preferred communication style: Simple, everyday language in Portuguese.
 - ✅ Logs detalhados para troubleshooting de problemas de upload/exclusão
 - ✅ Tratamento de erros melhorado para casos de falha na API do Monde
 - ✅ Sistema de fallback robusto para operações de anexos
+- ✅ Correção do sistema de exclusão de anexos - agora suporta IDs UUID do Monde
+- ✅ Implementação de busca inteligente de nomes de anexos via histórico
+- ✅ Otimização do endpoint de exclusão para registrar sempre no histórico
+- ✅ Logos SVG otimizadas criadas para melhorar performance de carregamento
+- ✅ Correção de tratamento de IDs mistos (UUID vs integer) no sistema de anexos
+- ✅ Eliminação de erros "invalid input syntax" no banco PostgreSQL
+- ✅ Interface de exclusão atualizada para recarregamento automático de anexos
+- ✅ Logs detalhados implementados para debugging de anexos
 
 ## System Architecture
 

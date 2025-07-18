@@ -1464,11 +1464,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const historyData = await historyResponse.json();
           const attachmentsFromHistory = [];
           
-          // Extrair anexos do histórico
+          // Primeiro, identificar anexos excluídos
+          const deletedAttachments = new Set();
+          historyData.data?.forEach(entry => {
+            if (entry.attributes?.text && entry.attributes.text.includes('Anexo excluído:')) {
+              const filename = entry.attributes.text.match(/Anexo excluído: (.+)/)?.[1];
+              if (filename && filename !== 'undefined') {
+                deletedAttachments.add(filename);
+              }
+            }
+          });
+          
+          console.log(`📎 Anexos excluídos identificados:`, Array.from(deletedAttachments));
+          
+          // Extrair anexos do histórico, excluindo os que foram excluídos
           historyData.data?.forEach(entry => {
             if (entry.attributes?.historic && entry.attributes.historic.includes('Anexo inserido:')) {
               const filename = entry.attributes.historic.match(/'([^']+)'/)?.[1];
-              if (filename) {
+              if (filename && !deletedAttachments.has(filename)) {
                 // Detectar tipo de arquivo pela extensão
                 const extension = filename.split('.').pop()?.toLowerCase();
                 let mimeType = 'application/octet-stream';
@@ -1505,12 +1518,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           });
 
-          if (attachmentsFromHistory.length > 0) {
-            console.log(`📎 Encontrados ${attachmentsFromHistory.length} anexos no histórico`);
-            return res.json({
-              data: attachmentsFromHistory
-            });
-          }
+          console.log(`📎 Encontrados ${attachmentsFromHistory.length} anexos no histórico (após filtrar excluídos)`);
+          return res.json({
+            data: attachmentsFromHistory
+          });
         }
       } catch (error) {
         console.log('⚠️ Erro ao buscar anexos no histórico:', error);
@@ -1555,14 +1566,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let sucessoLocal = false;
       let sucessoMonde = false;
       
-      // 1. Primeiro buscar o nome do anexo no banco local
+      console.log(`🗑️ Iniciando exclusão: taskId=${taskId}, attachmentId=${attachmentId}`);
+      
+      // 1. Buscar o nome do anexo no histórico da tarefa primeiro
       try {
-        const attachment = await storage.getAnexo(parseInt(attachmentId));
-        if (attachment && attachment.empresa_id === req.user.empresa_info.id) {
-          anexoNome = attachment.nome_original;
+        const historyResponse = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}/task-historics?include=person&page[size]=50&sort=-date-time`, {
+          headers: {
+            'Authorization': `Bearer ${req.mondeToken}`,
+            'Accept': 'application/vnd.api+json'
+          }
+        });
+        
+        if (historyResponse.ok) {
+          const historyData = await historyResponse.json();
+          
+          // Buscar por registros de upload de anexo
+          const uploadEntries = historyData.data?.filter(entry => 
+            entry.attributes?.historic && entry.attributes.historic.includes('Anexo inserido:')
+          ) || [];
+          
+          // Buscar por registros de upload de anexo relacionados ao attachmentId
+          const relatedEntry = uploadEntries.find(entry => 
+            entry.id === attachmentId || entry.attributes?.historic?.includes(attachmentId)
+          );
+          
+          if (relatedEntry) {
+            const filename = relatedEntry.attributes.historic.match(/'([^']+)'/)?.[1];
+            if (filename) {
+              anexoNome = filename;
+              console.log(`📎 Nome do anexo encontrado no histórico: ${anexoNome}`);
+            }
+          } else if (uploadEntries.length > 0) {
+            // Se não encontrou específico, usar o mais recente
+            const filename = uploadEntries[0].attributes.historic.match(/'([^']+)'/)?.[1];
+            if (filename) {
+              anexoNome = filename;
+              console.log(`📎 Usando nome do anexo mais recente: ${anexoNome}`);
+            }
+          }
         }
-      } catch (error) {
-        console.log('⚠️ Erro ao buscar nome do anexo no banco local:', error);
+      } catch (historyError) {
+        console.log('⚠️ Erro ao buscar nome do anexo no histórico:', historyError);
+      }
+      
+      // 2. Tentar buscar no banco local apenas se o attachmentId for numérico
+      if (!isNaN(parseInt(attachmentId))) {
+        try {
+          const attachment = await storage.getAnexo(parseInt(attachmentId));
+          if (attachment && attachment.empresa_id === req.user.empresa_info.id) {
+            anexoNome = attachment.nome_original || attachment.nome_arquivo || anexoNome;
+            console.log(`📎 Nome do anexo encontrado no banco local: ${anexoNome}`);
+          }
+        } catch (error) {
+          console.log('⚠️ Erro ao buscar nome do anexo no banco local:', error);
+        }
       }
 
       // 2. Tentar excluir do sistema Monde primeiro
@@ -1602,65 +1659,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
 
-        // Se não conseguiu excluir diretamente, registrar exclusão no histórico
-        if (!sucessoMonde) {
-          console.log('🗑️ Registrando exclusão de anexo no histórico do Monde...');
-          try {
-            const historicoResponse = await fetch(`https://web.monde.com.br/api/v2/task-historics`, {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${req.mondeToken}`,
-                'Content-Type': 'application/vnd.api+json'
-              },
-              body: JSON.stringify({
-                data: {
-                  type: 'task-historics',
-                  attributes: {
-                    text: `Anexo excluído: ${anexoNome}`,
-                    'date-time': new Date().toISOString()
-                  },
-                  relationships: {
-                    task: {
-                      data: {
-                        id: taskId,
-                        type: 'tasks'
-                      }
+        // Sempre registrar exclusão no histórico (independente de conseguir excluir diretamente)
+        console.log('🗑️ Registrando exclusão de anexo no histórico do Monde...');
+        try {
+          const historicoResponse = await fetch(`https://web.monde.com.br/api/v2/task-historics`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${req.mondeToken}`,
+              'Content-Type': 'application/vnd.api+json'
+            },
+            body: JSON.stringify({
+              data: {
+                type: 'task-historics',
+                attributes: {
+                  text: `Anexo excluído: ${anexoNome}`,
+                  'date-time': new Date().toISOString()
+                },
+                relationships: {
+                  task: {
+                    data: {
+                      id: taskId,
+                      type: 'tasks'
                     }
                   }
                 }
-              })
-            });
+              }
+            })
+          });
 
-            if (historicoResponse.ok) {
-              console.log('✅ Exclusão de anexo registrada no histórico do Monde');
-              sucessoMonde = true;
-            } else {
-              const errorText = await historicoResponse.text().catch(() => '');
-              console.log('❌ Erro ao registrar exclusão no histórico do Monde:', errorText);
-            }
-          } catch (error) {
-            console.log('❌ Erro ao registrar exclusão no histórico:', error);
+          if (historicoResponse.ok) {
+            console.log('✅ Exclusão de anexo registrada no histórico do Monde');
+            sucessoMonde = true;
+          } else {
+            const errorText = await historicoResponse.text().catch(() => '');
+            console.log('❌ Erro ao registrar exclusão no histórico do Monde:', errorText);
           }
+        } catch (error) {
+          console.log('❌ Erro ao registrar exclusão no histórico:', error);
         }
       } catch (error) {
         console.log('❌ Erro geral ao excluir do Monde:', error);
       }
 
-      // 3. Excluir do banco local (PostgreSQL)
-      try {
-        // Verificar se o anexo existe no banco local
-        const attachment = await storage.getAnexo(parseInt(attachmentId));
-        
-        if (attachment && attachment.empresa_id === req.user.empresa_info.id) {
-          anexoNome = attachment.nome_original;
-          await storage.deleteAnexo(parseInt(attachmentId));
-          console.log(`✅ Anexo ${attachmentId} excluído do banco local`);
-          sucessoLocal = true;
-        } else {
-          console.log(`⚠️ Anexo ${attachmentId} não encontrado no banco local ou não pertence à empresa`);
+      // 3. Excluir do banco local (PostgreSQL) apenas se for ID numérico
+      if (!isNaN(parseInt(attachmentId))) {
+        try {
+          // Verificar se o anexo existe no banco local
+          const attachment = await storage.getAnexo(parseInt(attachmentId));
+          
+          if (attachment && attachment.empresa_id === req.user.empresa_info.id) {
+            anexoNome = attachment.nome_original || anexoNome;
+            await storage.deleteAnexo(parseInt(attachmentId));
+            console.log(`✅ Anexo ${attachmentId} excluído do banco local`);
+            sucessoLocal = true;
+          } else {
+            console.log(`⚠️ Anexo ${attachmentId} não encontrado no banco local ou não pertence à empresa`);
+          }
+        } catch (error) {
+          console.error('❌ Erro ao excluir anexo do banco local:', error);
         }
-      } catch (error) {
-        console.error('❌ Erro ao excluir anexo do banco local:', error);
+      } else {
+        console.log(`📝 Anexo ${attachmentId} é UUID do Monde - não está no banco local`);
       }
 
       // 3. Retornar resultado baseado no sucesso das operações

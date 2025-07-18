@@ -2717,6 +2717,43 @@ export default function Dashboard() {
                       <i className="ri-folder-line"></i>
                       <span>Colar</span>
                     </button>
+                    
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          console.log('🔍 Iniciando debug completo da tarefa:', selectedTask.id);
+                          const response = await fetch(`/api/monde/debug-task/${selectedTask.id}`, {
+                            headers: {
+                              'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+                            }
+                          });
+                          
+                          if (response.ok) {
+                            const debugData = await response.json();
+                            console.log('🔍 DEBUG COMPLETO:', debugData);
+                            
+                            // Abrir uma nova janela com os dados de debug
+                            const debugWindow = window.open('', '_blank');
+                            debugWindow.document.write(`
+                              <html>
+                                <head><title>Debug - Tarefa ${selectedTask.id}</title></head>
+                                <body>
+                                  <h1>Debug da Tarefa</h1>
+                                  <pre>${JSON.stringify(debugData, null, 2)}</pre>
+                                </body>
+                              </html>
+                            `);
+                          }
+                        } catch (error) {
+                          console.error('Erro no debug:', error);
+                        }
+                      }}
+                      className="flex items-center space-x-2 px-4 py-2 text-white rounded text-sm hover:bg-red-700 bg-red-600"
+                    >
+                      <i className="ri-bug-line"></i>
+                      <span>Debug</span>
+                    </button>
                     <label className="flex items-center space-x-2">
                       <input type="checkbox" />
                       <span className="text-sm">Mostrar Excluídos</span>

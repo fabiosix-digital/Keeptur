@@ -1530,7 +1530,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Se nenhum endpoint funcionar, tentar extrair anexos do histórico
       console.log('📎 Tentando extrair anexos do histórico da tarefa...');
       try {
-        const historyResponse = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}/task-historics?include=person&page[size]=50&sort=-date-time`, {
+        const historyResponse = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}/task-historics?include=person&page[size]=100&sort=-date-time`, {
           headers: {
             'Authorization': `Bearer ${req.mondeToken}`,
             'Accept': 'application/vnd.api+json'
@@ -1540,6 +1540,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (historyResponse.ok) {
           const historyData = await historyResponse.json();
           const attachmentsFromHistory = [];
+          
+          console.log(`📎 DEBUG - Total de entradas no histórico: ${historyData.data?.length || 0}`);
           
           // Primeiro, identificar anexos excluídos
           const deletedAttachments = new Set();
@@ -1552,51 +1554,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           });
           
-          console.log(`📎 Anexos excluídos identificados:`, Array.from(deletedAttachments));
+          console.log(`📎 DEBUG - Anexos excluídos identificados:`, Array.from(deletedAttachments));
           
-          // Extrair anexos do histórico, excluindo os que foram excluídos
-          historyData.data?.forEach(entry => {
-            if (entry.attributes?.historic && entry.attributes.historic.includes('Anexo inserido:')) {
-              const filename = entry.attributes.historic.match(/'([^']+)'/)?.[1];
-              if (filename && !deletedAttachments.has(filename)) {
-                // Detectar tipo de arquivo pela extensão
-                const extension = filename.split('.').pop()?.toLowerCase();
-                let mimeType = 'application/octet-stream';
-                
-                if (extension) {
-                  const mimeTypes = {
-                    'png': 'image/png',
-                    'jpg': 'image/jpeg',
-                    'jpeg': 'image/jpeg',
-                    'gif': 'image/gif',
-                    'pdf': 'application/pdf',
-                    'doc': 'application/msword',
-                    'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                    'xls': 'application/vnd.ms-excel',
-                    'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                    'txt': 'text/plain',
-                    'zip': 'application/zip',
-                    'rar': 'application/x-rar-compressed'
-                  };
-                  mimeType = mimeTypes[extension] || 'application/octet-stream';
-                }
-                
-                attachmentsFromHistory.push({
-                  id: entry.id,
-                  name: filename,
-                  filename: filename,
-                  nome_original: filename,
-                  size: 0,
-                  type: mimeType,
-                  extension: extension,
-                  url: `/api/monde/anexos/${taskId}/${entry.id}`,
-                  created_at: entry.attributes['date-time']
-                });
+          // Examinar todos os tipos de entrada no histórico
+          historyData.data?.forEach((entry, index) => {
+            console.log(`📎 DEBUG - Entrada ${index}: tipo="${entry.type}", id="${entry.id}"`);
+            console.log(`📎 DEBUG - Atributos:`, {
+              text: entry.attributes?.text,
+              historic: entry.attributes?.historic,
+              dateTime: entry.attributes?.['date-time']
+            });
+            
+            // Buscar por diferentes padrões de anexo
+            const text = entry.attributes?.text || '';
+            const historic = entry.attributes?.historic || '';
+            
+            let filename = null;
+            let isAttachment = false;
+            
+            // Padrões conhecidos para anexos
+            if (text.includes('Anexo inserido:') || historic.includes('Anexo inserido:')) {
+              isAttachment = true;
+              filename = text.match(/Anexo inserido: (.+)/)?.[1] || historic.match(/Anexo inserido: (.+)/)?.[1];
+            } else if (text.includes('anexo') || historic.includes('anexo')) {
+              isAttachment = true;
+              // Tentar extrair nome do arquivo de diferentes formas
+              filename = text.match(/'([^']+)'/)?.[1] || historic.match(/'([^']+)'/)?.[1];
+              if (!filename) {
+                filename = text.match(/([^\/\\]+\.[a-zA-Z]{2,4})/)?.[1] || historic.match(/([^\/\\]+\.[a-zA-Z]{2,4})/)?.[1];
               }
+            }
+            
+            if (isAttachment && filename && !deletedAttachments.has(filename)) {
+              console.log(`📎 DEBUG - Anexo encontrado: ${filename}`);
+              
+              // Detectar tipo de arquivo pela extensão
+              const extension = filename.split('.').pop()?.toLowerCase();
+              let mimeType = 'application/octet-stream';
+              
+              if (extension) {
+                const mimeTypes = {
+                  'png': 'image/png',
+                  'jpg': 'image/jpeg',
+                  'jpeg': 'image/jpeg',
+                  'gif': 'image/gif',
+                  'pdf': 'application/pdf',
+                  'doc': 'application/msword',
+                  'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                  'xls': 'application/vnd.ms-excel',
+                  'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                  'txt': 'text/plain',
+                  'zip': 'application/zip',
+                  'rar': 'application/x-rar-compressed'
+                };
+                mimeType = mimeTypes[extension] || 'application/octet-stream';
+              }
+              
+              attachmentsFromHistory.push({
+                id: entry.id,
+                name: filename,
+                filename: filename,
+                nome_original: filename,
+                size: 0,
+                type: mimeType,
+                extension: extension,
+                url: `/api/monde/anexos/${taskId}/${entry.id}`,
+                created_at: entry.attributes['date-time']
+              });
             }
           });
 
-          console.log(`📎 Encontrados ${attachmentsFromHistory.length} anexos no histórico (após filtrar excluídos)`);
+          console.log(`📎 DEBUG - Encontrados ${attachmentsFromHistory.length} anexos no histórico (após filtrar excluídos)`);
+          console.log(`📎 DEBUG - Anexos encontrados:`, attachmentsFromHistory.map(a => a.name));
+          
           return res.json({
             data: attachmentsFromHistory
           });
@@ -1760,6 +1790,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("❌ Erro geral ao excluir anexo:", error);
       res.status(500).json({ message: "Erro interno do servidor ao excluir anexo" });
+    }
+  });
+
+  // Endpoint para debug - listar todas as possíveis informações sobre uma tarefa
+  app.get("/api/monde/debug-task/:taskId", authenticateToken, async (req: any, res) => {
+    try {
+      const { taskId } = req.params;
+      console.log(`🔍 DEBUG - Investigando tarefa ${taskId} completamente...`);
+      
+      const results = {};
+      
+      // 1. Buscar a tarefa completa
+      try {
+        const taskResponse = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}?include=assignee,person,category,author`, {
+          headers: {
+            'Authorization': `Bearer ${req.mondeToken}`,
+            'Accept': 'application/vnd.api+json'
+          }
+        });
+        
+        if (taskResponse.ok) {
+          const taskData = await taskResponse.json();
+          results.task = taskData;
+          console.log(`🔍 DEBUG - Tarefa encontrada:`, JSON.stringify(taskData, null, 2));
+        } else {
+          results.task = `Erro ${taskResponse.status}`;
+        }
+      } catch (error) {
+        results.task = `Erro: ${error.message}`;
+      }
+      
+      // 2. Buscar histórico completo
+      try {
+        const historyResponse = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}/task-historics?include=person&page[size]=100`, {
+          headers: {
+            'Authorization': `Bearer ${req.mondeToken}`,
+            'Accept': 'application/vnd.api+json'
+          }
+        });
+        
+        if (historyResponse.ok) {
+          const historyData = await historyResponse.json();
+          results.history = historyData;
+          console.log(`🔍 DEBUG - Histórico completo (${historyData.data?.length || 0} entradas):`, JSON.stringify(historyData, null, 2));
+        } else {
+          results.history = `Erro ${historyResponse.status}`;
+        }
+      } catch (error) {
+        results.history = `Erro: ${error.message}`;
+      }
+      
+      // 3. Testar todos os endpoints possíveis de anexos
+      const attachmentEndpoints = [
+        `https://web.monde.com.br/api/v2/tasks/${taskId}/anexos`,
+        `https://web.monde.com.br/api/v2/tasks/${taskId}/attachments`,
+        `https://web.monde.com.br/api/v2/tasks/${taskId}/files`,
+        `https://web.monde.com.br/api/v2/tasks/${taskId}/uploads`,
+        `https://web.monde.com.br/api/v2/tasks/${taskId}/relationships/attachments`,
+        `https://web.monde.com.br/api/v2/tasks/${taskId}/relationships/files`
+      ];
+      
+      results.attachmentEndpoints = {};
+      
+      for (const endpoint of attachmentEndpoints) {
+        try {
+          const response = await fetch(endpoint, {
+            headers: {
+              'Authorization': `Bearer ${req.mondeToken}`,
+              'Accept': 'application/vnd.api+json'
+            }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            results.attachmentEndpoints[endpoint] = data;
+            console.log(`🔍 DEBUG - Endpoint ${endpoint} FUNCIONOU:`, JSON.stringify(data, null, 2));
+          } else {
+            results.attachmentEndpoints[endpoint] = `HTTP ${response.status}`;
+          }
+        } catch (error) {
+          results.attachmentEndpoints[endpoint] = `Erro: ${error.message}`;
+        }
+      }
+      
+      res.json(results);
+    } catch (error) {
+      console.error("Erro no debug da tarefa:", error);
+      res.status(500).json({ message: "Erro interno do servidor", error: error.message });
     }
   });
 

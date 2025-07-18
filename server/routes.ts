@@ -1400,6 +1400,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { taskId, attachmentId } = req.params;
       
+      console.log(`📥 Iniciando download do anexo ${attachmentId} da tarefa ${taskId}`);
+      
       // Buscar informações do anexo no histórico
       const historyResponse = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}/task-historics?include=person&page[size]=50&sort=-date-time`, {
         headers: {
@@ -1418,6 +1420,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const filename = historyEntry.attributes.historic.match(/'([^']+)'/)?.[1];
           
           if (filename) {
+            console.log(`📥 Tentando baixar arquivo: ${filename}`);
+            
             // Tentar múltiplos endpoints para download
             const possibleDownloadEndpoints = [
               `https://web.monde.com.br/api/v2/tasks/${taskId}/anexos/${attachmentId}/download`,
@@ -1432,6 +1436,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             for (const endpoint of possibleDownloadEndpoints) {
               try {
+                console.log(`📥 Tentando endpoint: ${endpoint}`);
                 const downloadResponse = await fetch(endpoint, {
                   headers: {
                     'Authorization': `Bearer ${req.mondeToken}`,
@@ -1440,6 +1445,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 });
 
                 if (downloadResponse.ok) {
+                  console.log(`✅ Sucesso no download via ${endpoint}`);
                   const contentType = downloadResponse.headers.get('content-type') || 'application/octet-stream';
                   const buffer = await downloadResponse.arrayBuffer();
                   
@@ -1447,35 +1453,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
                   res.send(Buffer.from(buffer));
                   return;
+                } else {
+                  console.log(`❌ Endpoint ${endpoint} retornou ${downloadResponse.status}`);
                 }
               } catch (error) {
-                console.log(`Erro no endpoint ${endpoint}:`, error);
+                console.log(`❌ Erro no endpoint ${endpoint}:`, error);
               }
             }
           }
         }
       }
 
-      // Fallback: tentar buscar no banco local
-      try {
-        const attachment = await storage.getAnexoById(attachmentId);
-        
-        if (attachment) {
-          const filePath = `uploads/${attachment.nome_arquivo}`;
-          
-          // Verificar se o arquivo existe
-          if (require('fs').existsSync(filePath)) {
-            res.download(filePath, attachment.nome_original);
-            return;
-          }
-        }
-      } catch (error) {
-        console.log('Erro ao buscar anexo no banco local:', error);
-      }
-
-      res.status(404).json({ error: 'Anexo não encontrado' });
+      console.log(`❌ Anexo ${attachmentId} não encontrado ou não disponível para download`);
+      res.status(404).json({ error: 'Anexo não encontrado ou não disponível para download' });
     } catch (error) {
-      console.error('Erro ao fazer download do anexo:', error);
+      console.error('❌ Erro ao fazer download do anexo:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });
@@ -1613,31 +1605,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('⚠️ Erro ao buscar anexos no histórico:', error);
       }
 
-      // Fallback: buscar anexos no banco de dados PostgreSQL
-      try {
-        const attachments = await storage.getAnexosByTarefa(taskId, req.user.empresa_info.id);
-        
-        const formattedAttachments = attachments.map(attachment => ({
-          id: attachment.id,
-          name: attachment.nome_original,
-          filename: attachment.nome_original,
-          size: attachment.tamanho,
-          type: attachment.tipo_mime,
-          url: `/api/monde/anexos/${taskId}/${attachment.nome_arquivo}`,
-          created_at: attachment.created_at
-        }));
-
-        console.log(`✅ Encontrados ${formattedAttachments.length} anexos no banco de dados`);
-        
-        res.json({
-          data: formattedAttachments
-        });
-      } catch (error) {
-        console.error('Erro ao buscar anexos no banco:', error);
-        res.json({
-          data: []
-        });
-      }
+      // Fallback: retornar lista vazia se não encontrar anexos
+      console.log('📎 Nenhum anexo encontrado para esta tarefa');
+      res.json({
+        data: []
+      });
     } catch (error) {
       console.error("Erro ao buscar anexos:", error);
       res.status(500).json({ message: "Erro ao buscar anexos" });
@@ -1649,7 +1621,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { taskId, attachmentId } = req.params;
       let anexoNome = "anexo";
-      let sucessoLocal = false;
       let sucessoMonde = false;
       
       console.log(`🗑️ Iniciando exclusão: taskId=${taskId}, attachmentId=${attachmentId}`);
@@ -1694,142 +1665,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (historyError) {
         console.log('⚠️ Erro ao buscar nome do anexo no histórico:', historyError);
       }
+
+      // 2. Estratégia principal: Tentar excluir do Monde primeiro
+      console.log('🗑️ Tentando excluir anexo do Monde...');
       
-      // 2. Tentar buscar no banco local apenas se o attachmentId for numérico
-      if (!isNaN(parseInt(attachmentId))) {
+      const possibleDeleteEndpoints = [
+        `https://web.monde.com.br/api/v2/tasks/${taskId}/anexos/${attachmentId}`,
+        `https://web.monde.com.br/api/v2/tasks/${taskId}/attachments/${attachmentId}`,
+        `https://web.monde.com.br/api/v2/anexos/${attachmentId}`,
+        `https://web.monde.com.br/api/v2/attachments/${attachmentId}`
+      ];
+
+      for (const endpoint of possibleDeleteEndpoints) {
         try {
-          const attachment = await storage.getAnexo(parseInt(attachmentId));
-          if (attachment && attachment.empresa_id === req.user.empresa_info.id) {
-            anexoNome = attachment.nome_original || attachment.nome_arquivo || anexoNome;
-            console.log(`📎 Nome do anexo encontrado no banco local: ${anexoNome}`);
+          console.log(`🗑️ Tentando excluir via endpoint: ${endpoint}`);
+          const deleteResponse = await fetch(endpoint, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${req.mondeToken}`,
+              'Accept': 'application/vnd.api+json'
+            }
+          });
+
+          if (deleteResponse.ok || deleteResponse.status === 204) {
+            console.log(`✅ Anexo excluído com sucesso via ${endpoint}`);
+            sucessoMonde = true;
+            break;
+          } else {
+            console.log(`❌ Endpoint ${endpoint} retornou ${deleteResponse.status}`);
           }
         } catch (error) {
-          console.log('⚠️ Erro ao buscar nome do anexo no banco local:', error);
+          console.log(`❌ Erro no endpoint ${endpoint}:`, error);
         }
       }
 
-      // 2. Estratégia melhorada: Marcar como excluído via histórico primeiro
-      console.log('🗑️ Registrando exclusão de anexo no histórico do Monde...');
-      try {
-        const historicoResponse = await fetch(`https://web.monde.com.br/api/v2/task-historics`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${req.mondeToken}`,
-            'Content-Type': 'application/vnd.api+json'
-          },
-          body: JSON.stringify({
-            data: {
-              type: 'task-historics',
-              attributes: {
-                text: `Anexo excluído: ${anexoNome}`,
-                'date-time': new Date().toISOString()
-              },
-              relationships: {
-                task: {
-                  data: {
-                    id: taskId,
-                    type: 'tasks'
+      // 3. Se não conseguiu excluir do Monde, registrar como excluído no histórico
+      if (!sucessoMonde) {
+        console.log('🗑️ Registrando exclusão de anexo no histórico do Monde...');
+        try {
+          const historicoResponse = await fetch(`https://web.monde.com.br/api/v2/task-historics`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${req.mondeToken}`,
+              'Content-Type': 'application/vnd.api+json'
+            },
+            body: JSON.stringify({
+              data: {
+                type: 'task-historics',
+                attributes: {
+                  text: `Anexo excluído: ${anexoNome}`,
+                  'date-time': new Date().toISOString()
+                },
+                relationships: {
+                  task: {
+                    data: {
+                      id: taskId,
+                      type: 'tasks'
+                    }
                   }
                 }
               }
-            }
-          })
-        });
+            })
+          });
 
-        if (historicoResponse.ok) {
-          console.log('✅ Exclusão de anexo registrada no histórico do Monde');
-          sucessoMonde = true;
-        } else {
-          const errorText = await historicoResponse.text().catch(() => '');
-          console.log('❌ Erro ao registrar exclusão no histórico do Monde:', errorText);
-        }
-      } catch (error) {
-        console.log('❌ Erro ao registrar exclusão no histórico:', error);
-      }
-
-      // 3. Tentar excluir diretamente do Monde também
-      try {
-        const possibleDeleteEndpoints = [
-          `https://web.monde.com.br/api/v2/tasks/${taskId}/anexos/${attachmentId}`,
-          `https://web.monde.com.br/api/v2/tasks/${taskId}/attachments/${attachmentId}`,
-          `https://web.monde.com.br/api/v2/anexos/${attachmentId}`,
-          `https://web.monde.com.br/api/v2/attachments/${attachmentId}`
-        ];
-
-        for (const endpoint of possibleDeleteEndpoints) {
-          try {
-            console.log(`🗑️ Tentando excluir anexo do Monde via: ${endpoint}`);
-            
-            const deleteResponse = await fetch(endpoint, {
-              method: 'DELETE',
-              headers: {
-                'Authorization': `Bearer ${req.mondeToken}`,
-                'Accept': 'application/vnd.api+json',
-                'Content-Type': 'application/vnd.api+json'
-              }
-            });
-
-            if (deleteResponse.ok || deleteResponse.status === 204 || deleteResponse.status === 404) {
-              console.log(`✅ Anexo excluído com sucesso do Monde via ${endpoint} (Status: ${deleteResponse.status})`);
-              sucessoMonde = true;
-              break;
-            } else {
-              const errorText = await deleteResponse.text().catch(() => '');
-              console.log(`⚠️ Endpoint ${endpoint} retornou ${deleteResponse.status}: ${errorText}`);
-            }
-          } catch (error) {
-            console.log(`⚠️ Erro no endpoint ${endpoint}:`, error);
-          }
-        }
-      } catch (error) {
-        console.log('❌ Erro geral ao excluir do Monde:', error);
-      }
-
-      // 3. Excluir do banco local (PostgreSQL) apenas se for ID numérico
-      if (!isNaN(parseInt(attachmentId))) {
-        try {
-          // Verificar se o anexo existe no banco local
-          const attachment = await storage.getAnexo(parseInt(attachmentId));
-          
-          if (attachment && attachment.empresa_id === req.user.empresa_info.id) {
-            anexoNome = attachment.nome_original || anexoNome;
-            await storage.deleteAnexo(parseInt(attachmentId));
-            console.log(`✅ Anexo ${attachmentId} excluído do banco local`);
-            sucessoLocal = true;
+          if (historicoResponse.ok) {
+            console.log('✅ Exclusão de anexo registrada no histórico do Monde');
+            sucessoMonde = true;
           } else {
-            console.log(`⚠️ Anexo ${attachmentId} não encontrado no banco local ou não pertence à empresa`);
+            const errorText = await historicoResponse.text().catch(() => '');
+            console.log('❌ Erro ao registrar exclusão no histórico do Monde:', errorText);
           }
         } catch (error) {
-          console.error('❌ Erro ao excluir anexo do banco local:', error);
+          console.log('❌ Erro ao registrar exclusão no histórico:', error);
         }
-      } else {
-        console.log(`📝 Anexo ${attachmentId} é UUID do Monde - não está no banco local`);
       }
 
-      // 3. Retornar resultado baseado no sucesso das operações
-      if (sucessoLocal || sucessoMonde) {
-        const status = [];
-        if (sucessoLocal) status.push("banco local");
-        if (sucessoMonde) status.push("sistema Monde");
-        
-        console.log(`🎉 Anexo ${attachmentId} excluído com sucesso de: ${status.join(", ")}`);
+      // 4. Retornar resultado baseado no sucesso das operações
+      if (sucessoMonde) {
+        console.log(`🎉 Anexo ${attachmentId} excluído com sucesso do sistema Monde`);
         
         res.json({ 
           message: "Anexo excluído com sucesso",
-          deleted_from: status,
+          deleted_from: ["sistema Monde"],
           attachment_name: anexoNome
         });
       } else {
-        console.log(`❌ Falha ao excluir anexo ${attachmentId} de ambos os sistemas`);
-        res.status(404).json({ 
-          message: "Anexo não encontrado em nenhum sistema",
+        console.log(`❌ Falha ao excluir anexo ${attachmentId}`);
+        res.status(500).json({ 
+          message: "Erro ao excluir anexo. Tente novamente.",
           deleted_from: [],
           attachment_name: anexoNome
         });
       }
     } catch (error) {
-      console.error("Erro geral ao excluir anexo:", error);
-      res.status(500).json({ message: "Erro ao excluir anexo" });
+      console.error("❌ Erro geral ao excluir anexo:", error);
+      res.status(500).json({ message: "Erro interno do servidor ao excluir anexo" });
     }
   });
 

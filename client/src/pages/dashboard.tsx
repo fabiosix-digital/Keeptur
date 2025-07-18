@@ -2852,18 +2852,35 @@ export default function Dashboard() {
                             </span>
                           </div>
                           <div className="flex items-center justify-start space-x-2">
-                            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                              <i className="ri-eye-line mr-1"></i>
-                              Somente visualização
-                            </span>
                             <button
                               onClick={() => {
-                                alert('Para baixar anexos, acesse o sistema Monde original.\n\nOs anexos são sincronizados apenas para visualização no Keeptur.');
+                                // Tentar visualizar o anexo via backend
+                                const url = `/api/monde/anexos/${selectedTask?.id}/${attachment.id}/download`;
+                                window.open(url, '_blank');
                               }}
                               className="text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50 text-xs"
-                              title="Informação sobre download"
+                              title="Tentar visualizar anexo"
                             >
-                              <i className="ri-information-line"></i>
+                              <i className="ri-eye-line mr-1"></i>
+                              Visualizar
+                            </button>
+                            <button
+                              onClick={() => {
+                                // Tentar baixar o anexo via backend
+                                const url = `/api/monde/anexos/${selectedTask?.id}/${attachment.id}/download`;
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.download = attachment.name || 'anexo';
+                                link.target = '_blank';
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                              }}
+                              className="text-green-600 hover:text-green-800 px-2 py-1 rounded hover:bg-green-50 text-xs"
+                              title="Tentar baixar anexo"
+                            >
+                              <i className="ri-download-line mr-1"></i>
+                              Baixar
                             </button>
                           </div>
                         </div>

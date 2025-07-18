@@ -1737,6 +1737,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para baixar anexos do Monde
+  app.get('/api/monde/anexos/:taskId/:attachmentId/download', authenticateToken, async (req: any, res) => {
+    try {
+      const { taskId, attachmentId } = req.params;
+      
+      console.log(`📎 Tentando baixar anexo ${attachmentId} da tarefa ${taskId}`);
+      
+      // Buscar histórico para encontrar o anexo
+      const historyResponse = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}/task-historics?include=person&page[size]=50&sort=-date-time`, {
+        headers: {
+          'Authorization': `Bearer ${req.mondeToken}`,
+          'Accept': 'application/vnd.api+json'
+        }
+      });
+      
+      if (!historyResponse.ok) {
+        return res.status(404).json({ error: 'Histórico não encontrado' });
+      }
+      
+      const historyData = await historyResponse.json();
+      
+      // Procurar o anexo no histórico
+      const attachmentEntry = historyData.data.find(entry => 
+        entry.attributes.text && entry.attributes.text.includes(`Anexo inserido: `) && entry.id === attachmentId
+      );
+      
+      if (!attachmentEntry) {
+        return res.status(404).json({ error: 'Anexo não encontrado no histórico' });
+      }
+      
+      // Tentar diferentes URLs possíveis do Monde
+      const possibleUrls = [
+        `https://web.monde.com.br/api/v2/task-historics/${attachmentId}/attachments`,
+        `https://web.monde.com.br/api/v2/tasks/${taskId}/attachments/${attachmentId}`,
+        `https://web.monde.com.br/api/v2/attachments/${attachmentId}`,
+        `https://web.monde.com.br/attachments/${attachmentId}`,
+        `https://web.monde.com.br/uploads/${attachmentId}`
+      ];
+      
+      for (const url of possibleUrls) {
+        try {
+          console.log(`🔄 Tentando URL: ${url}`);
+          
+          const attachmentResponse = await fetch(url, {
+            headers: {
+              'Authorization': `Bearer ${req.mondeToken}`,
+              'Accept': '*/*'
+            }
+          });
+          
+          if (attachmentResponse.ok) {
+            console.log(`✅ Anexo encontrado em: ${url}`);
+            
+            // Proxy do arquivo para o frontend
+            const contentType = attachmentResponse.headers.get('content-type') || 'application/octet-stream';
+            const contentDisposition = attachmentResponse.headers.get('content-disposition') || `attachment; filename="${attachmentId}"`;
+            
+            res.setHeader('Content-Type', contentType);
+            res.setHeader('Content-Disposition', contentDisposition);
+            
+            const buffer = await attachmentResponse.buffer();
+            return res.send(buffer);
+          }
+        } catch (error) {
+          console.log(`❌ Erro na URL ${url}:`, error.message);
+          continue;
+        }
+      }
+      
+      return res.status(404).json({ error: 'Anexo não encontrado em nenhuma URL testada' });
+      
+    } catch (error) {
+      console.error('Erro ao baixar anexo:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
   // Endpoint para debug - listar todas as possíveis informações sobre uma tarefa
   app.get("/api/monde/debug-task/:taskId", authenticateToken, async (req: any, res) => {
     try {

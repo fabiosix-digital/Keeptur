@@ -1472,173 +1472,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para buscar anexos de uma tarefa
+  // Endpoint para buscar anexos de uma tarefa (baseado 100% no histórico do Monde)
   app.get("/api/monde/tarefas/:taskId/anexos", authenticateToken, async (req: any, res) => {
     try {
       const taskId = req.params.taskId;
       
-      console.log(`📎 Buscando anexos para tarefa ${taskId}`);
+      console.log(`📎 Buscando anexos para tarefa ${taskId} via histórico do Monde`);
 
-      // Tentar múltiplas rotas para buscar anexos da API do Monde
-      const possibleEndpoints = [
-        `https://web.monde.com.br/api/v2/tasks/${taskId}/anexos`,
-        `https://web.monde.com.br/api/v2/tarefas/${taskId}/anexos`,
-        `https://web.monde.com.br/api/v2/tasks/${taskId}/attachments`,
-        `https://web.monde.com.br/api/v2/tasks/${taskId}/relationships/attachments`
-      ];
-
-      for (const endpoint of possibleEndpoints) {
-        try {
-          console.log(`📎 Tentando endpoint: ${endpoint}`);
-          
-          const attachmentResponse = await fetch(endpoint, {
-            headers: {
-              'Authorization': `Bearer ${req.mondeToken}`,
-              'Accept': 'application/vnd.api+json'
-            }
-          });
-
-          if (attachmentResponse.ok) {
-            const attachmentData = await attachmentResponse.json();
-            console.log(`✅ Sucesso no endpoint ${endpoint}! Encontrados ${attachmentData.data?.length || 0} anexos`);
-            console.log(`📎 Resposta completa:`, JSON.stringify(attachmentData, null, 2));
-            
-            // Formatar anexos do Monde
-            const formattedAttachments = (attachmentData.data || []).map(attachment => ({
-              id: attachment.id,
-              name: attachment.attributes?.name || attachment.attributes?.filename || attachment.attributes?.original_name || 'Anexo',
-              filename: attachment.attributes?.filename || attachment.attributes?.name || attachment.attributes?.original_name || 'anexo',
-              size: attachment.attributes?.size || attachment.attributes?.file_size || 0,
-              type: attachment.attributes?.content_type || attachment.attributes?.mime_type || 'application/octet-stream',
-              url: attachment.attributes?.url || attachment.attributes?.download_url || `/api/monde/anexos/${taskId}/${attachment.id}`,
-              created_at: attachment.attributes?.created_at || attachment.attributes?.uploaded_at
-            }));
-
-            console.log(`📎 Anexos formatados do Monde:`, formattedAttachments);
-            
-            return res.json({
-              data: formattedAttachments
-            });
-          } else {
-            console.log(`⚠️ Endpoint ${endpoint} retornou ${attachmentResponse.status}`);
-          }
-        } catch (error) {
-          console.log(`⚠️ Erro no endpoint ${endpoint}:`, error);
+      // Buscar histórico completo da tarefa
+      const historyResponse = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}/task-historics?include=person&page[size]=200&sort=-date-time`, {
+        headers: {
+          'Authorization': `Bearer ${req.mondeToken}`,
+          'Accept': 'application/vnd.api+json'
         }
+      });
+
+      if (!historyResponse.ok) {
+        console.log(`❌ Erro ao buscar histórico: ${historyResponse.status}`);
+        return res.json({ data: [] });
       }
 
-      // Se nenhum endpoint funcionar, tentar extrair anexos do histórico
-      console.log('📎 Tentando extrair anexos do histórico da tarefa...');
-      try {
-        const historyResponse = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}/task-historics?include=person&page[size]=100&sort=-date-time`, {
-          headers: {
-            'Authorization': `Bearer ${req.mondeToken}`,
-            'Accept': 'application/vnd.api+json'
-          }
-        });
+      const historyData = await historyResponse.json();
+      console.log(`📎 Histórico carregado: ${historyData.data?.length || 0} entradas`);
+      
+      // Mapear todos os anexos mencionados no histórico
+      const attachmentMap = new Map();
+      const deletedAttachments = new Set();
 
-        if (historyResponse.ok) {
-          const historyData = await historyResponse.json();
-          const attachmentsFromHistory = [];
-          
-          console.log(`📎 DEBUG - Total de entradas no histórico: ${historyData.data?.length || 0}`);
-          
-          // Primeiro, identificar anexos excluídos
-          const deletedAttachments = new Set();
-          historyData.data?.forEach(entry => {
-            if (entry.attributes?.text && entry.attributes.text.includes('Anexo excluído:')) {
-              const filename = entry.attributes.text.match(/Anexo excluído: (.+)/)?.[1];
-              if (filename && filename !== 'undefined') {
-                deletedAttachments.add(filename);
-              }
+      historyData.data?.forEach((entry, index) => {
+        const text = entry.attributes?.text || '';
+        const historic = entry.attributes?.historic || '';
+        const dateTime = entry.attributes?.['date-time'];
+        
+        // Identificar anexos excluídos
+        if (text.includes('Anexo excluído:')) {
+          const filename = text.match(/Anexo excluído: (.+)/)?.[1];
+          if (filename && filename !== 'undefined' && filename !== 'anexo') {
+            deletedAttachments.add(filename);
+            console.log(`🗑️ Anexo excluído identificado: ${filename}`);
+          }
+        }
+        
+        // Identificar anexos inseridos
+        let filename = null;
+        let isAttachment = false;
+        
+        // Padrões para identificar anexos
+        if (text.includes('Anexo inserido:') || historic.includes('Anexo inserido:')) {
+          filename = text.match(/Anexo inserido: (.+)/)?.[1] || historic.match(/Anexo inserido: (.+)/)?.[1];
+          isAttachment = true;
+        } else if (text.includes('anexo') || historic.includes('anexo')) {
+          // Tentar extrair nome do arquivo com aspas
+          filename = text.match(/'([^']+\.[a-zA-Z0-9]{2,4})'/)?.[1] || historic.match(/'([^']+\.[a-zA-Z0-9]{2,4})'/)?.[1];
+          if (!filename) {
+            // Tentar extrair nome do arquivo sem aspas
+            filename = text.match(/([^\/\\]+\.[a-zA-Z0-9]{2,4})/)?.[1] || historic.match(/([^\/\\]+\.[a-zA-Z0-9]{2,4})/)?.[1];
+          }
+          if (filename && (text.includes('inserido') || historic.includes('inserido') || text.includes('adicionado') || historic.includes('adicionado'))) {
+            isAttachment = true;
+          }
+        }
+        
+        if (isAttachment && filename) {
+          // Não adicionar se já está na lista de excluídos
+          if (!deletedAttachments.has(filename)) {
+            const extension = filename.split('.').pop()?.toLowerCase();
+            let mimeType = 'application/octet-stream';
+            
+            if (extension) {
+              const mimeTypes = {
+                'png': 'image/png', 'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'gif': 'image/gif',
+                'pdf': 'application/pdf', 'doc': 'application/msword', 'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'xls': 'application/vnd.ms-excel', 'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'txt': 'text/plain', 'zip': 'application/zip', 'rar': 'application/x-rar-compressed'
+              };
+              mimeType = mimeTypes[extension] || 'application/octet-stream';
             }
-          });
-          
-          console.log(`📎 DEBUG - Anexos excluídos identificados:`, Array.from(deletedAttachments));
-          
-          // Examinar todos os tipos de entrada no histórico
-          historyData.data?.forEach((entry, index) => {
-            console.log(`📎 DEBUG - Entrada ${index}: tipo="${entry.type}", id="${entry.id}"`);
-            console.log(`📎 DEBUG - Atributos:`, {
-              text: entry.attributes?.text,
-              historic: entry.attributes?.historic,
-              dateTime: entry.attributes?.['date-time']
-            });
             
-            // Buscar por diferentes padrões de anexo
-            const text = entry.attributes?.text || '';
-            const historic = entry.attributes?.historic || '';
-            
-            let filename = null;
-            let isAttachment = false;
-            
-            // Padrões conhecidos para anexos
-            if (text.includes('Anexo inserido:') || historic.includes('Anexo inserido:')) {
-              isAttachment = true;
-              filename = text.match(/Anexo inserido: (.+)/)?.[1] || historic.match(/Anexo inserido: (.+)/)?.[1];
-            } else if (text.includes('anexo') || historic.includes('anexo')) {
-              isAttachment = true;
-              // Tentar extrair nome do arquivo de diferentes formas
-              filename = text.match(/'([^']+)'/)?.[1] || historic.match(/'([^']+)'/)?.[1];
-              if (!filename) {
-                filename = text.match(/([^\/\\]+\.[a-zA-Z]{2,4})/)?.[1] || historic.match(/([^\/\\]+\.[a-zA-Z]{2,4})/)?.[1];
-              }
-            }
-            
-            if (isAttachment && filename && !deletedAttachments.has(filename)) {
-              console.log(`📎 DEBUG - Anexo encontrado: ${filename}`);
-              
-              // Detectar tipo de arquivo pela extensão
-              const extension = filename.split('.').pop()?.toLowerCase();
-              let mimeType = 'application/octet-stream';
-              
-              if (extension) {
-                const mimeTypes = {
-                  'png': 'image/png',
-                  'jpg': 'image/jpeg',
-                  'jpeg': 'image/jpeg',
-                  'gif': 'image/gif',
-                  'pdf': 'application/pdf',
-                  'doc': 'application/msword',
-                  'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                  'xls': 'application/vnd.ms-excel',
-                  'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                  'txt': 'text/plain',
-                  'zip': 'application/zip',
-                  'rar': 'application/x-rar-compressed'
-                };
-                mimeType = mimeTypes[extension] || 'application/octet-stream';
-              }
-              
-              attachmentsFromHistory.push({
+            // Usar o nome do arquivo como chave para evitar duplicatas
+            if (!attachmentMap.has(filename)) {
+              attachmentMap.set(filename, {
                 id: entry.id,
                 name: filename,
                 filename: filename,
                 nome_original: filename,
-                size: 0,
+                size: 0, // Tamanho não disponível no histórico
                 type: mimeType,
                 extension: extension,
                 url: `/api/monde/anexos/${taskId}/${entry.id}`,
-                created_at: entry.attributes['date-time']
+                created_at: dateTime,
+                historyEntryId: entry.id
               });
+              console.log(`📎 Anexo encontrado: ${filename} (ID: ${entry.id})`);
             }
-          });
-
-          console.log(`📎 DEBUG - Encontrados ${attachmentsFromHistory.length} anexos no histórico (após filtrar excluídos)`);
-          console.log(`📎 DEBUG - Anexos encontrados:`, attachmentsFromHistory.map(a => a.name));
-          
-          return res.json({
-            data: attachmentsFromHistory
-          });
+          }
         }
-      } catch (error) {
-        console.log('⚠️ Erro ao buscar anexos no histórico:', error);
-      }
-
-      // Fallback: retornar lista vazia se não encontrar anexos
-      console.log('📎 Nenhum anexo encontrado para esta tarefa');
-      res.json({
-        data: []
+      });
+      
+      // Filtrar anexos excluídos (segunda passagem)
+      attachmentMap.forEach((attachment, filename) => {
+        if (deletedAttachments.has(filename)) {
+          attachmentMap.delete(filename);
+          console.log(`🗑️ Removendo anexo excluído: ${filename}`);
+        }
+      });
+      
+      const attachmentsFromHistory = Array.from(attachmentMap.values());
+      console.log(`📎 Total de anexos ativos encontrados: ${attachmentsFromHistory.length}`);
+      console.log(`📎 Nomes dos anexos:`, attachmentsFromHistory.map(a => a.name));
+      
+      return res.json({
+        data: attachmentsFromHistory
       });
     } catch (error) {
       console.error("Erro ao buscar anexos:", error);
@@ -1823,7 +1767,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // 2. Buscar histórico completo
       try {
-        const historyResponse = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}/task-historics?include=person&page[size]=100`, {
+        const historyResponse = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}/task-historics?include=person&page[size]=100&sort=-date-time`, {
           headers: {
             'Authorization': `Bearer ${req.mondeToken}`,
             'Accept': 'application/vnd.api+json'
@@ -1835,7 +1779,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           results.history = historyData;
           console.log(`🔍 DEBUG - Histórico completo (${historyData.data?.length || 0} entradas):`, JSON.stringify(historyData, null, 2));
         } else {
-          results.history = `Erro ${historyResponse.status}`;
+          const errorText = await historyResponse.text();
+          results.history = `Erro ${historyResponse.status}: ${errorText}`;
+          console.log(`🔍 DEBUG - Erro no histórico:`, errorText);
         }
       } catch (error) {
         results.history = `Erro: ${error.message}`;

@@ -1492,75 +1492,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const taskData = await taskResponse.json();
-      console.log('🔧 Dados da tarefa recebidos:', taskData);
+      console.log('🔧 Dados da tarefa recebidos:', JSON.stringify(taskData, null, 2));
       
       const attributes = taskData.data?.attributes || {};
       const customFields = [];
       
-      // Extrair campos personalizados dos atributos da tarefa
-      // Mapear campos comuns que podem existir
-      const fieldMapping = {
-        'motivo-perda': { name: 'Motivo da perda', type: 'text' },
-        'comissao': { name: 'Comissão', type: 'currency' },
-        'valor-venda': { name: 'Valor da venda', type: 'currency' },
-        'observacoes': { name: 'Observações', type: 'textarea' },
-        'prioridade': { name: 'Prioridade', type: 'select' },
-        'status-customizado': { name: 'Status customizado', type: 'text' },
-        'data-limite': { name: 'Data limite', type: 'date' },
-        'valor-estimado': { name: 'Valor estimado', type: 'currency' },
-        'percentual-conclusao': { name: 'Percentual de conclusão', type: 'number' },
-        'cliente-feedback': { name: 'Feedback do cliente', type: 'textarea' }
-      };
+      // Campos padrão que não devem ser considerados personalizados
+      const standardFields = [
+        'title', 'description', 'due', 'completed', 'completed-at', 
+        'registered-at', 'visualized', 'number', 'id', 'type', 'links'
+      ];
       
-      // Verificar todos os atributos e extrair campos personalizados
+      console.log('🔧 Atributos da tarefa:', Object.keys(attributes));
+      
+      // Extrair TODOS os campos que não são padrão como campos personalizados
       Object.keys(attributes).forEach(key => {
-        if (fieldMapping[key]) {
+        if (!standardFields.includes(key)) {
+          const value = attributes[key];
+          let fieldType = 'text';
+          
+          // Determinar o tipo do campo baseado no valor e nome
+          if (key.includes('valor') || key.includes('comissao') || key.includes('preco')) {
+            fieldType = 'currency';
+          } else if (key.includes('data') || key.includes('date')) {
+            fieldType = 'date';
+          } else if (key.includes('observacao') || key.includes('descricao') || key.includes('texto')) {
+            fieldType = 'textarea';
+          } else if (typeof value === 'number') {
+            fieldType = 'number';
+          } else if (typeof value === 'boolean') {
+            fieldType = 'select';
+          }
+          
           customFields.push({
             id: key,
-            name: fieldMapping[key].name,
-            type: fieldMapping[key].type,
-            value: attributes[key] || ''
-          });
-        } else if (!['title', 'description', 'due', 'completed', 'completed-at', 'registered-at', 'visualized', 'number'].includes(key)) {
-          // Adicionar outros campos que não são padrão
-          customFields.push({
-            id: key,
-            name: key.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-            type: 'text',
-            value: attributes[key] || ''
+            name: key.replace(/-/g, ' ').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+            type: fieldType,
+            value: value || ''
           });
         }
       });
       
-      // Se não encontrou campos específicos, criar campos padrão baseados na estrutura comum
-      if (customFields.length === 0) {
-        customFields.push(
-          {
-            id: 'motivo-perda',
-            name: 'Motivo da perda',
-            type: 'text',
-            value: ''
-          },
-          {
-            id: 'comissao',
-            name: 'Comissão',
-            type: 'currency',
-            value: ''
-          },
-          {
-            id: 'valor-venda',
-            name: 'Valor da venda',
-            type: 'currency',
-            value: ''
-          },
-          {
-            id: 'observacoes',
-            name: 'Observações',
-            type: 'textarea',
-            value: ''
-          }
-        );
-      }
+      console.log('🔧 Campos personalizados extraídos:', customFields.map(f => `${f.name} (${f.id}): ${f.value}`));
       
       console.log('🔧 Campos personalizados processados:', customFields);
       res.json({ data: customFields });

@@ -1,0 +1,62 @@
+📎 SOBRE ANEXOS
+A API do Monde tem suporte total para anexos relacionados a tarefas. Os seguintes endpoints estão documentados:
+
+✅ Endpoints Disponíveis
+Listar anexos de uma tarefa
+GET /api/task_attachments
+➜ Retorna a lista de arquivos anexados a uma tarefa.
+
+Visualizar um anexo específico
+GET /api/task_attachments/:id
+➜ Retorna detalhes e conteúdo do anexo (ex.: link para download).
+
+Anexar um novo arquivo à tarefa
+POST /api/task_attachments
+Campos esperados:
+
+json
+Copiar
+Editar
+{
+  "task_id": "ID da tarefa",
+  "file": (arquivo binário, via multipart/form-data)
+}
+Excluir um anexo
+DELETE /api/task_attachments/:id
+➜ Remove permanentemente o anexo da tarefa.
+
+🔁 Sincronização com o Keeptur
+Sim, é possível fazer espelhamento completo:
+
+Ao criar um anexo no Keeptur → envie um POST /task_attachments pro Monde.
+
+Ao excluir no Keeptur → envie um DELETE /task_attachments/:id correspondente.
+
+Para mostrar dinamicamente os anexos do Monde no Keeptur, basta fazer o GET dos anexos da tarefa e exibir na interface (como sua aba “Anexos”).
+
+⚠️ Se você conseguiu listar os arquivos mas não conseguiu excluir: verifique se está enviando o :id correto do anexo recebido do Monde, e se está autenticado corretamente com permissão para deletar.
+
+🧩 SOBRE CAMPOS PERSONALIZADOS
+Após minuciosa busca no ZIP, não existe nenhum endpoint na API do Monde diretamente nomeado como "custom fields", "campos personalizados", "extra fields", "user fields" ou similares.
+
+Ou seja:
+
+❌ Não há endpoints públicos documentados para ler ou editar esses campos personalizados de tarefas.
+Possibilidades:
+
+Esses campos podem estar embutidos no objeto da tarefa (/api/tarefas/:id) como parte do payload, mas isso precisa ser testado ao criar ou editar uma tarefa.
+
+Se ao dar GET /tarefas/:id você vê esses campos no JSON (ex: motivo_perda, origem_lead, etc), você pode incluí-los no PUT ou PATCH.
+
+✅ RECOMENDAÇÃO FINAL
+Para anexos:
+Você tem tudo que precisa para:
+
+Sincronizar dinamicamente entre Keeptur e Monde;
+
+Fazer upload, listar, excluir — 100% pela API.
+
+Para campos personalizados:
+Faça testes no GET e PATCH de tarefa e veja se esses campos vêm embutidos.
+
+Se não vierem: não é possível sincronizar de forma nativa por enquanto.

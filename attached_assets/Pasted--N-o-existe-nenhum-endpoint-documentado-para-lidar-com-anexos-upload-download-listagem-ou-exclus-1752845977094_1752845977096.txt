@@ -1,0 +1,104 @@
+❌ Não existe nenhum endpoint documentado para lidar com anexos (upload, download, listagem ou exclusão).
+Fiz uma varredura em todos os arquivos do pacote.
+
+Não há nenhuma menção a termos como attachment, anexo, file, upload, download, media, etc.
+
+Todos os endpoints disponíveis estão relacionados a:
+
+Autenticação
+
+Pessoas (people)
+
+Cidades
+
+Tarefas (tasks)
+
+Históricos (task_historics)
+
+Categorias (task_categories)
+
+✅ Conclusão:
+Você consegue espelhar os anexos do Monde no seu sistema apenas pela leitura das tarefas via GET_tasks_show.md, caso o JSON da tarefa inclua algum campo de metadados com anexos (o que não parece ocorrer diretamente nos endpoints).
+
+Mas não há como excluir ou atualizar anexos diretamente no Monde via API.
+
+Isso significa que a sincronização total bidirecional de anexos entre seu sistema (Keeptur) e o Monde é atualmente impossível usando apenas a API pública do Monde que você me forneceu.
+
+Se quiser, posso ajudar com alternativas, como:
+
+Ver se os anexos estão escondidos em algum campo genérico (tipo metadados da tarefa).
+
+Sugerir soluções de workaround com campos personalizados, caso haja abertura para isso.
+Deseja? 
+
+
+
+
+
+
+
+
+Você disse:
+certo e tem como eu ver os arquivos dentro do keeptur?
+
+
+O ChatGPT disse:
+✅ Sim, você pode visualizar os arquivos anexados dentro do seu sistema Keeptur, desde que você os armazene corretamente e exiba dinamicamente na interface. Abaixo te explico como fazer isso funcionar 100%, assumindo que você já está espelhando o que vem do Monde.
+
+🧩 COMO FUNCIONARÁ O FLUXO NO KEEPTUR:
+1. Estrutura para guardar os anexos localmente:
+Você precisa ter uma estrutura semelhante a:
+
+bash
+Copiar
+Editar
+/public/uploads/anexos/
+└── tarefa_id/
+    ├── comprovante.pdf
+    ├── contrato-assinado.jpg
+    └── orçamento.xlsx
+Ou salvar os arquivos em um banco (como MongoDB GridFS, Firebase Storage, S3), desde que armazene a referência associada à tarefa.
+
+2. Modelo de dados (exemplo):
+json
+Copiar
+Editar
+{
+  "id": "tarefa-123",
+  "titulo": "Orçamento Viagem",
+  "anexos": [
+    {
+      "nome": "comprovante.pdf",
+      "url": "/uploads/anexos/tarefa-123/comprovante.pdf",
+      "tamanho": "1.2MB",
+      "tipo": "application/pdf"
+    }
+  ]
+}
+3. Na Interface do Keeptur:
+Um componente <Anexos /> precisa:
+
+Listar os arquivos com botão de download e exclusão.
+
+Ter um campo para upload de novos arquivos (usando input[type="file"]).
+
+A exclusão precisa chamar seu backend para deletar do local e atualizar a lista.
+
+4. Backend (exemplo Express ou NestJS):
+POST /tarefas/:id/anexos → salva arquivo no local correto.
+
+GET /tarefas/:id/anexos → retorna JSON com a lista de anexos.
+
+DELETE /tarefas/:id/anexos/:arquivo → remove o anexo do disco.
+
+⚠️ IMPORTANTE
+Como o Monde não suporta exclusão ou upload de anexos via API, se alguém anexar pelo Monde, você só consegue espelhar (ler e exibir), mas não consegue deletar isso de lá.
+
+Para não confundir o usuário, recomendo:
+
+Exibir duas seções separadas:
+
+📥 Anexos adicionados pelo Monde (somente leitura)
+
+📤 Anexos adicionados pelo Keeptur (editáveis e com exclusão)
+

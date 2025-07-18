@@ -1479,8 +1479,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`📎 Buscando anexos para tarefa ${taskId} via histórico do Monde`);
 
-      // Buscar histórico completo da tarefa
-      const historyResponse = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}/task-historics?include=person&page[size]=200&sort=-date-time`, {
+      // Buscar histórico completo da tarefa (máximo 50 por página)
+      const historyResponse = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}/task-historics?include=person&page[size]=50&sort=-date-time`, {
         headers: {
           'Authorization': `Bearer ${req.mondeToken}`,
           'Accept': 'application/vnd.api+json'
@@ -1767,7 +1767,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // 2. Buscar histórico completo
       try {
-        const historyResponse = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}/task-historics?include=person&page[size]=100&sort=-date-time`, {
+        const historyResponse = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}/task-historics?include=person&page[size]=50&sort=-date-time`, {
           headers: {
             'Authorization': `Bearer ${req.mondeToken}`,
             'Accept': 'application/vnd.api+json'

@@ -1,0 +1,201 @@
+Debug da Tarefa
+{
+  "task": {
+    "data": {
+      "id": "f83a1fb2-f4e4-4389-8e9e-8480fe26fd4d",
+      "type": "tasks",
+      "links": {
+        "self": "https://web.monde.com.br/api/v2/tasks/f83a1fb2-f4e4-4389-8e9e-8480fe26fd4d"
+      },
+      "attributes": {
+        "title": "TESTE DE NOVA TAREFA (2)",
+        "number": 33,
+        "due": "2025-07-17T20:13:00.000-03:00",
+        "visualized": true,
+        "completed": false,
+        "completed-at": null,
+        "registered-at": "2025-07-17T15:14:21.780-03:00",
+        "description": null
+      },
+      "relationships": {
+        "category": {
+          "links": {
+            "self": "https://web.monde.com.br/api/v2/tasks/f83a1fb2-f4e4-4389-8e9e-8480fe26fd4d/relationships/category",
+            "related": "https://web.monde.com.br/api/v2/tasks/f83a1fb2-f4e4-4389-8e9e-8480fe26fd4d/category"
+          },
+          "data": {
+            "type": "task-categories",
+            "id": "Captação"
+          }
+        },
+        "person": {
+          "links": {
+            "self": "https://web.monde.com.br/api/v2/tasks/f83a1fb2-f4e4-4389-8e9e-8480fe26fd4d/relationships/person",
+            "related": "https://web.monde.com.br/api/v2/tasks/f83a1fb2-f4e4-4389-8e9e-8480fe26fd4d/person"
+          },
+          "data": {
+            "type": "people",
+            "id": "516bf45c-0747-4b4f-9a55-7a40a883b035"
+          }
+        },
+        "assignee": {
+          "links": {
+            "self": "https://web.monde.com.br/api/v2/tasks/f83a1fb2-f4e4-4389-8e9e-8480fe26fd4d/relationships/assignee",
+            "related": "https://web.monde.com.br/api/v2/tasks/f83a1fb2-f4e4-4389-8e9e-8480fe26fd4d/assignee"
+          },
+          "data": {
+            "type": "people",
+            "id": "9c409497-5b93-49fa-b6c2-f8381bc880d5"
+          }
+        },
+        "author": {
+          "links": {
+            "self": "https://web.monde.com.br/api/v2/tasks/f83a1fb2-f4e4-4389-8e9e-8480fe26fd4d/relationships/author",
+            "related": "https://web.monde.com.br/api/v2/tasks/f83a1fb2-f4e4-4389-8e9e-8480fe26fd4d/author"
+          },
+          "data": {
+            "type": "people",
+            "id": "9c409497-5b93-49fa-b6c2-f8381bc880d5"
+          }
+        },
+        "task-historics": {
+          "links": {
+            "self": "https://web.monde.com.br/api/v2/tasks/f83a1fb2-f4e4-4389-8e9e-8480fe26fd4d/relationships/task-historics",
+            "related": "https://web.monde.com.br/api/v2/tasks/f83a1fb2-f4e4-4389-8e9e-8480fe26fd4d/task-historics"
+          }
+        }
+      }
+    },
+    "included": [
+      {
+        "id": "9c409497-5b93-49fa-b6c2-f8381bc880d5",
+        "type": "people",
+        "links": {
+          "self": "https://web.monde.com.br/api/v2/people/9c409497-5b93-49fa-b6c2-f8381bc880d5"
+        },
+        "attributes": {
+          "name": "Fabio Silva",
+          "company-name": null,
+          "address": null,
+          "number": null,
+          "complement": null,
+          "district": null,
+          "zip": null,
+          "birth-date": null,
+          "cpf": "21622179889",
+          "rg": null,
+          "passport-number": null,
+          "passport-expiration": null,
+          "gender": null,
+          "cnpj": null,
+          "city-inscription": null,
+          "state-inscription": null,
+          "observations": null,
+          "registered-at": "2025-02-20T17:57:15.809-03:00",
+          "business-phone": "",
+          "mobile-phone": "",
+          "phone": "19987220649",
+          "email": "Fabio@6web.com.br",
+          "website": null,
+          "code": 105368,
+          "kind": "individual"
+        },
+        "relationships": {
+          "city": {
+            "links": {
+              "self": "https://web.monde.com.br/api/v2/people/9c409497-5b93-49fa-b6c2-f8381bc880d5/relationships/city",
+              "related": "https://web.monde.com.br/api/v2/people/9c409497-5b93-49fa-b6c2-f8381bc880d5/city"
+            }
+          },
+          "creator": {
+            "links": {
+              "self": "https://web.monde.com.br/api/v2/people/9c409497-5b93-49fa-b6c2-f8381bc880d5/relationships/creator",
+              "related": "https://web.monde.com.br/api/v2/people/9c409497-5b93-49fa-b6c2-f8381bc880d5/creator"
+            }
+          }
+        }
+      },
+      {
+        "id": "516bf45c-0747-4b4f-9a55-7a40a883b035",
+        "type": "people",
+        "links": {
+          "self": "https://web.monde.com.br/api/v2/people/516bf45c-0747-4b4f-9a55-7a40a883b035"
+        },
+        "attributes": {
+          "name": "FABIO RODRIGUES DA SILVA",
+          "company-name": null,
+          "address": null,
+          "number": null,
+          "complement": null,
+          "district": null,
+          "zip": null,
+          "birth-date": null,
+          "cpf": "36929572896",
+          "rg": null,
+          "passport-number": null,
+          "passport-expiration": null,
+          "gender": null,
+          "cnpj": null,
+          "city-inscription": null,
+          "state-inscription": null,
+          "observations": null,
+          "registered-at": "2025-02-20T22:55:10.927-03:00",
+          "business-phone": "",
+          "mobile-phone": "19987220649",
+          "phone": "1998722064",
+          "email": "fabio.digital@icloud.com",
+          "website": null,
+          "code": 105371,
+          "kind": "individual"
+        },
+        "relationships": {
+          "city": {
+            "links": {
+              "self": "https://web.monde.com.br/api/v2/people/516bf45c-0747-4b4f-9a55-7a40a883b035/relationships/city",
+              "related": "https://web.monde.com.br/api/v2/people/516bf45c-0747-4b4f-9a55-7a40a883b035/city"
+            }
+          },
+          "creator": {
+            "links": {
+              "self": "https://web.monde.com.br/api/v2/people/516bf45c-0747-4b4f-9a55-7a40a883b035/relationships/creator",
+              "related": "https://web.monde.com.br/api/v2/people/516bf45c-0747-4b4f-9a55-7a40a883b035/creator"
+            }
+          }
+        }
+      },
+      {
+        "id": "Captação",
+        "type": "task-categories",
+        "links": {
+          "self": "https://web.monde.com.br/api/v2/task-categories/Captação"
+        },
+        "attributes": {
+          "description": "Captação"
+        },
+        "relationships": {
+          "tasks": {
+            "links": {
+              "self": "https://web.monde.com.br/api/v2/task-categories/Captação/relationships/tasks",
+              "related": "https://web.monde.com.br/api/v2/task-categories/Captação/tasks"
+            },
+            "data": [
+              {
+                "type": "tasks",
+                "id": "f83a1fb2-f4e4-4389-8e9e-8480fe26fd4d"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "history": "Erro 400: {\"errors\":[{\"title\":\"Invalid page value\",\"detail\":\"size exceeds maximum page size of 50.\",\"code\":\"118\",\"status\":\"400\"}]}",
+  "attachmentEndpoints": {
+    "https://web.monde.com.br/api/v2/tasks/f83a1fb2-f4e4-4389-8e9e-8480fe26fd4d/anexos": "HTTP 404",
+    "https://web.monde.com.br/api/v2/tasks/f83a1fb2-f4e4-4389-8e9e-8480fe26fd4d/attachments": "HTTP 404",
+    "https://web.monde.com.br/api/v2/tasks/f83a1fb2-f4e4-4389-8e9e-8480fe26fd4d/files": "HTTP 404",
+    "https://web.monde.com.br/api/v2/tasks/f83a1fb2-f4e4-4389-8e9e-8480fe26fd4d/uploads": "HTTP 404",
+    "https://web.monde.com.br/api/v2/tasks/f83a1fb2-f4e4-4389-8e9e-8480fe26fd4d/relationships/attachments": "HTTP 404",
+    "https://web.monde.com.br/api/v2/tasks/f83a1fb2-f4e4-4389-8e9e-8480fe26fd4d/relationships/files": "HTTP 404"
+  }
+}

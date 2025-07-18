@@ -2677,47 +2677,11 @@ export default function Dashboard() {
               {/* Aba Anexos */}
               {activeModalTab === "anexos" && (
                 <div className="space-y-4">
-                  <div className="flex items-center space-x-4 mb-4 bg-[#f1f5f9] pt-[8px] pb-[8px]">
-                    <input
-                      type="file"
-                      id="file-upload"
-                      className="hidden"
-                      multiple
-                      onChange={(e) => {
-                        const files = Array.from(e.target.files || []);
-                        setAttachments([...attachments, ...files]);
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => document.getElementById('file-upload')?.click()}
-                      className="flex items-center space-x-2 px-4 py-2 text-white rounded text-sm hover:bg-blue-700 bg-[#949cb0]"
-                    >
-                      <i className="ri-attachment-line"></i>
-                      <span>Anexar</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigator.clipboard.read().then(clipboardItems => {
-                          for (const clipboardItem of clipboardItems) {
-                            for (const type of clipboardItem.types) {
-                              if (type.startsWith('image/')) {
-                                clipboardItem.getType(type).then(blob => {
-                                  const file = new File([blob], `clipboard-${Date.now()}.png`, { type });
-                                  setAttachments([...attachments, file]);
-                                });
-                              }
-                            }
-                          }
-                        }).catch(err => console.log('Erro ao acessar clipboard:', err));
-                      }}
-                      className="flex items-center space-x-2 px-4 py-2 text-white rounded text-sm hover:bg-gray-700 bg-[#949cb0]"
-                    >
-                      <i className="ri-folder-line"></i>
-                      <span>Colar</span>
-                    </button>
-                    
+                  <div className="flex items-center justify-between mb-4 bg-[#f1f5f9] pt-[8px] pb-[8px] px-4">
+                    <div className="flex items-center space-x-2">
+                      <i className="ri-information-line text-blue-600"></i>
+                      <span className="text-sm text-gray-700">Anexos sincronizados do sistema Monde</span>
+                    </div>
                     <button
                       type="button"
                       onClick={async () => {
@@ -2749,102 +2713,14 @@ export default function Dashboard() {
                           console.error('Erro no debug:', error);
                         }
                       }}
-                      className="flex items-center space-x-2 px-4 py-2 text-white rounded text-sm hover:bg-red-700 bg-red-600"
+                      className="flex items-center space-x-2 px-3 py-1 text-white rounded text-xs hover:bg-red-700 bg-red-600"
                     >
                       <i className="ri-bug-line"></i>
                       <span>Debug</span>
                     </button>
-                    <label className="flex items-center space-x-2">
-                      <input type="checkbox" />
-                      <span className="text-sm">Mostrar Excluídos</span>
-                    </label>
                   </div>
 
-                  {/* Lista de anexos pendentes para upload */}
-                  {attachments.length > 0 && (
-                    <div className="mb-4">
-                      <h4 className="text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                        Arquivos para anexar:
-                      </h4>
-                      <div className="space-y-2">
-                        {attachments.map((file, index) => (
-                          <div key={index} className="flex items-center justify-between p-2 bg-blue-50 rounded">
-                            <div className="flex items-center space-x-2">
-                              <i className="ri-file-line text-blue-600"></i>
-                              <span className="text-sm">{file.name}</span>
-                              <span className="text-xs text-gray-500">({(file.size / 1024).toFixed(1)} KB)</span>
-                            </div>
-                            <button
-                              onClick={() => {
-                                const newAttachments = attachments.filter((_, i) => i !== index);
-                                setAttachments(newAttachments);
-                              }}
-                              className="text-red-600 hover:text-red-800"
-                            >
-                              <i className="ri-close-line"></i>
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          if (!selectedTask || attachments.length === 0) return;
-                          
-                          const formData = new FormData();
-                          attachments.forEach(file => {
-                            formData.append('files', file);
-                          });
-                          
-                          try {
-                            const response = await fetch(`/api/monde/tarefas/${selectedTask.id}/anexos`, {
-                              method: 'POST',
-                              headers: {
-                                'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
-                              },
-                              body: formData
-                            });
-                            
-                            if (response.ok) {
-                              const result = await response.json();
-                              setTaskAttachments([...taskAttachments, ...result.data]);
-                              setAttachments([]);
-                              
-                              // Registrar no histórico do Monde
-                              const fileNames = result.data.map(file => file.name).join(', ');
-                              try {
-                                await fetch(`/api/monde/tarefas/${selectedTask.id}/historico`, {
-                                  method: 'POST',
-                                  headers: {
-                                    'Content-Type': 'application/json',
-                                    'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
-                                  },
-                                  body: JSON.stringify({
-                                    description: `Anexo(s) adicionado(s): ${fileNames}`
-                                  })
-                                });
-                                
-                                // Recarregar histórico para mostrar a nova entrada
-                                loadTaskHistory(selectedTask.id);
-                              } catch (error) {
-                                console.error('Erro ao registrar histórico:', error);
-                              }
-                              
-                              alert('Anexos enviados com sucesso!');
-                            } else {
-                              console.error('Erro ao fazer upload dos anexos');
-                            }
-                          } catch (error) {
-                            console.error('Erro na requisição:', error);
-                          }
-                        }}
-                        className="mt-2 px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
-                      >
-                        <i className="ri-upload-line mr-1"></i>
-                        Upload
-                      </button>
-                    </div>
-                  )}
+
 
                   <div className="grid grid-cols-4 gap-4">
                     <div>
@@ -2866,6 +2742,21 @@ export default function Dashboard() {
                       <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
                         Ações
                       </label>
+                    </div>
+                  </div>
+
+                  {/* Aviso sobre sincronização */}
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                    <div className="flex items-start space-x-2">
+                      <i className="ri-information-line text-yellow-600 text-sm mt-0.5"></i>
+                      <div className="text-sm">
+                        <p className="font-medium text-yellow-800">Anexos sincronizados do Monde</p>
+                        <p className="text-yellow-700 mt-1">
+                          Os anexos abaixo são importados diretamente do sistema Monde. 
+                          Eles são apenas para visualização - para modificar ou excluir, 
+                          acesse o sistema Monde original.
+                        </p>
+                      </div>
                     </div>
                   </div>
 
@@ -2961,61 +2852,18 @@ export default function Dashboard() {
                             </span>
                           </div>
                           <div className="flex items-center justify-start space-x-2">
+                            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                              <i className="ri-eye-line mr-1"></i>
+                              Somente visualização
+                            </span>
                             <button
-                              onClick={async () => {
-                                try {
-                                  // Baixar anexo
-                                  window.open(`/api/monde/anexos/${selectedTask?.id}/${attachment.id}/download`, '_blank');
-                                } catch (error) {
-                                  console.error('Erro ao baixar anexo:', error);
-                                  alert('Erro ao baixar anexo. Tente novamente.');
-                                }
+                              onClick={() => {
+                                alert('Para baixar anexos, acesse o sistema Monde original.\n\nOs anexos são sincronizados apenas para visualização no Keeptur.');
                               }}
                               className="text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50 text-xs"
-                              title="Baixar anexo"
+                              title="Informação sobre download"
                             >
-                              <i className="ri-download-line"></i>
-                            </button>
-                            <button
-                              onClick={async () => {
-                                if (confirm('Tem certeza que deseja excluir este anexo?')) {
-                                  try {
-                                    console.log('🗑️ Excluindo anexo:', attachment.id);
-                                    
-                                    // Excluir anexo do sistema
-                                    const response = await fetch(`/api/monde/anexos/${selectedTask?.id}/${attachment.id}`, {
-                                      method: 'DELETE',
-                                      headers: {
-                                        'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
-                                      }
-                                    });
-                                    
-                                    if (response.ok) {
-                                      console.log('✅ Anexo excluído com sucesso');
-                                      
-                                      // Recarregar anexos da tarefa
-                                      await loadTaskAttachments(selectedTask?.id);
-                                      
-                                      // Recarregar histórico
-                                      if (selectedTask?.id) {
-                                        await loadTaskHistory(selectedTask.id);
-                                      }
-                                      
-                                      alert('Anexo excluído com sucesso!');
-                                    } else {
-                                      console.error('Erro ao excluir anexo:', response.status);
-                                      alert('Erro ao excluir anexo. Tente novamente.');
-                                    }
-                                  } catch (error) {
-                                    console.error('Erro ao excluir anexo:', error);
-                                    alert('Erro ao excluir anexo. Tente novamente.');
-                                  }
-                                }
-                              }}
-                              className="text-red-600 hover:text-red-800 px-2 py-1 rounded hover:bg-red-50 text-xs"
-                              title="Excluir anexo"
-                            >
-                              <i className="ri-delete-bin-line"></i>
+                              <i className="ri-information-line"></i>
                             </button>
                           </div>
                         </div>

@@ -1318,7 +1318,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } catch (error) {
           console.log('❌ Erro ao integrar com API do Monde:', error);
         }
-      }</old_str>
+      }
 
       // Fallback: salvar anexos no banco de dados PostgreSQL
       const attachments = [];
@@ -1509,7 +1509,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json({
           data: []
         });
-      }</old_str>
+      }
     } catch (error) {
       console.error("Erro ao buscar anexos:", error);
       res.status(500).json({ message: "Erro ao buscar anexos" });

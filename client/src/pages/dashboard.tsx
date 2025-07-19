@@ -641,17 +641,9 @@ export default function Dashboard() {
       console.log('- UserUUID encontrado:', userUUID);
       console.log('- SourceTasks:', sourceTasks.length);
       
-      // Para "assigned_to_me", filtrar pelo UUID se disponível
-      if (userUUID) {
-        filtered = sourceTasks.filter((task: any) => {
-          const assigneeId = task.relationships?.assignee?.data?.id;
-          return assigneeId === userUUID;
-        });
-      } else {
-        // Se não temos UUID, usar as tarefas do servidor (já filtradas)
-        console.log('⚠️ UserUUID não encontrado, usando tarefas do servidor');
-        filtered = tasks || [];
-      }
+      // Para "assigned_to_me", usar SEMPRE as tarefas ativas (tasks) para evitar filtros duplos
+      console.log('✅ Usando tarefas ativas para assigned_to_me:', tasks.length);
+      filtered = tasks || [];
     } else if (filter === 'created_by_me') {
       // Para 'criadas por mim', usar apenas as tarefas ativas do usuário
       if (userUUID) {
@@ -1873,9 +1865,10 @@ export default function Dashboard() {
           {/* Kanban View */}
           {activeView === "kanban" && (
             <div className="view-content">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 w-full overflow-x-auto pb-4">
+              <div className={`grid gap-4 w-full overflow-x-auto pb-4 ${showDeleted ? 'grid-cols-1 lg:grid-cols-4' : 'grid-cols-1 lg:grid-cols-3'}`}>
                 {/* Pendentes */}
-                <div className="kanban-column rounded-lg p-4 w-full min-h-fit">
+                {!collapsedColumns.pending ? (
+                  <div className="kanban-column rounded-lg p-4 w-full min-h-fit">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-2">
                       <button
@@ -1969,15 +1962,32 @@ export default function Dashboard() {
                       ))}
                     </div>
                   )}
-                  {!collapsedColumns.pending && (
-                    <button className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+                    <button
+                      onClick={() => setShowTaskModal(true)}
+                      className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
+                    >
                       <i className="ri-add-line mr-2"></i>Nova Tarefa
                     </button>
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  <div className="kanban-column-collapsed rounded-lg p-2 w-fit min-w-fit">
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => toggleColumnCollapse('pending')}
+                        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                      >
+                        <i className="ri-arrow-right-s-line text-lg"></i>
+                      </button>
+                      <h3 className="font-semibold text-sm transform -rotate-90 whitespace-nowrap" style={{ color: "var(--text-primary)" }}>
+                        Pendentes
+                      </h3>
+                    </div>
+                  </div>
+                )}
 
                 {/* Atrasadas */}
-                <div className="kanban-column rounded-lg p-4 w-full min-h-fit">
+                {!collapsedColumns.overdue ? (
+                  <div className="kanban-column rounded-lg p-4 w-full min-h-fit">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-2">
                       <button
@@ -2070,18 +2080,32 @@ export default function Dashboard() {
                       ))}
                     </div>
                   )}
-                  {!collapsedColumns.overdue && (
                     <button
                       onClick={() => setShowTaskModal(true)}
                       className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
                     >
                       <i className="ri-add-line mr-2"></i>Nova Tarefa
                     </button>
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  <div className="kanban-column-collapsed rounded-lg p-2 w-fit min-w-fit">
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => toggleColumnCollapse('overdue')}
+                        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                      >
+                        <i className="ri-arrow-right-s-line text-lg"></i>
+                      </button>
+                      <h3 className="font-semibold text-sm transform -rotate-90 whitespace-nowrap" style={{ color: "var(--text-primary)" }}>
+                        Atrasadas
+                      </h3>
+                    </div>
+                  </div>
+                )}
 
                 {/* Concluídas */}
-                <div className="kanban-column rounded-lg p-4 w-full min-h-fit">
+                {!collapsedColumns.completed ? (
+                  <div className="kanban-column rounded-lg p-4 w-full min-h-fit">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-2">
                       <button
@@ -2174,15 +2198,28 @@ export default function Dashboard() {
                       ))}
                     </div>
                   )}
-                  {!collapsedColumns.completed && (
                     <button
                       onClick={() => setShowTaskModal(true)}
                       className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
                     >
                       <i className="ri-add-line mr-2"></i>Nova Tarefa
                     </button>
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  <div className="kanban-column-collapsed rounded-lg p-2 w-fit min-w-fit">
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => toggleColumnCollapse('completed')}
+                        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                      >
+                        <i className="ri-arrow-right-s-line text-lg"></i>
+                      </button>
+                      <h3 className="font-semibold text-sm transform -rotate-90 whitespace-nowrap" style={{ color: "var(--text-primary)" }}>
+                        Concluídas
+                      </h3>
+                    </div>
+                  </div>
+                )}
 
                 {/* Excluídas - só mostrar se showDeleted for true */}
                 {showDeleted && (

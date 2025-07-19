@@ -1,0 +1,96 @@
+Uncaught (in promise) AbortError: The user aborted a request.Entenda o erro
+Console.js:61 ✅ Tarefas excluídas carregadas: 34
+Console.js:61 📊 Total de tarefas combinadas: 34 (ativas: 3 + excluídas: 34 )
+Console.js:61 📋 Categorias carregadas: 10
+Console.js:61 📋 Primeira categoria: Object
+d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/monde/clientes/estatisticas:1  Failed to load resource: the server responded with a status of 404 (Not Found)Entenda o erro
+Console.js:61 Erro ao carregar estatísticas de clientes: 404
+Mt.forEach.n.<computed> @ Console.js:61Entenda o erro
+Console.js:61 🎯 Tarefas separadas: Object
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 🔍 DEBUG FILTRO assigned_to_me:
+Console.js:61 - UserEmail: fabio@allanacaires.monde.com.br
+Console.js:61 - Users carregados: 14
+Console.js:61 - UserUUID encontrado: 9c409497-5b93-49fa-b6c2-f8381bc880d5
+Console.js:61 - SourceTasks: 34
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 3
+Console.js:61 ⚠️ Não foi possível carregar pessoas/clientes
+Console.js:61 📋 Usuários carregados: 14
+Console.js:61 🔄 Carregando tarefas do usuário logado...
+Console.js:61 ✅ Tarefas carregadas: 3
+Console.js:61 🗑️ Carregando tarefas excluídas...
+Console.js:61 ✅ Tarefas excluídas carregadas: 34
+Console.js:61 📊 Total de tarefas combinadas: 34 (ativas: 3 + excluídas: 34 )
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 0
+_app-f10df38f71c1285f.js:38 [Violation] 'setTimeout' handler took 55ms
+[Violation] Forced reflow while executing JavaScript took 31ms
+Console.js:61 🔄 Carregando tarefas do usuário logado...
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.
+e @ frame_ant.js:2
+s @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+s @ frame_ant.js:2
+window.fetch @ frame_ant.js:2
+(anônimo) @ _app-f10df38f71c1285f.js:38
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+e.consumeQueue @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:25
+n @ _app-f10df38f71c1285f.js:38
+setTimeout
+(anônimo) @ _app-f10df38f71c1285f.js:38
+e.scheduleQueueConsumption @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+e.try @ _app-f10df38f71c1285f.js:25
+e.start @ _app-f10df38f71c1285f.js:25
+t.request @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:14
+e.execute @ _app-f10df38f71c1285f.js:14
+e.getObservableFromLink @ _app-f10df38f71c1285f.js:11
+e.getResultsFromLink @ _app-f10df38f71c1285f.js:11
+v @ _app-f10df38f71c1285f.js:11
+e.fetchQueryByPolicy @ _app-f10df38f71c1285f.js:11
+v @ _app-f10df38f71c1285f.js:11
+e.fetchConcastWithInfo @ _app-f10df38f71c1285f.js:11
+t.fetch @ _app-f10df38f71c1285f.js:14
+t.reobserveAsConcast @ _app-f10df38f71c1285f.js:14
+e.executeQuery @ _app-f10df38f71c1285f.js:26
+(anônimo) @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:40
+(anônimo) @ main-b79515c1024d334e.js:1
+n @ main-b79515c1024d334e.js:1
+u @ main-b79515c1024d334e.js:1
+(anônimo) @ main-b79515c1024d334e.js:1
+(anônimo) @ main-b79515c1024d334e.js:1
+(anônimo) @ _app-f10df38f71c1285f.js:40
+(anônimo) @ _app-f10df38f71c1285f.js:40
+(anônimo) @ main-b79515c1024d334e.js:1
+n @ main-b79515c1024d334e.js:1
+u @ main-b79515c1024d334e.js:1
+(anônimo) @ main-b79515c1024d334e.js:1
+(anônimo) @ main-b79515c1024d334e.js:1
+n @ _app-f10df38f71c1285f.js:38Entenda o erro
+Console.js:61 ✅ Tarefas carregadas: 3
+Console.js:61 🗑️ Carregando tarefas excluídas...
+[Violation] Forced reflow while executing JavaScript took 30ms
+Console.js:61 ✅ Tarefas excluídas carregadas: 34
+Console.js:61 📊 Total de tarefas combinadas: 34 (ativas: 3 + excluídas: 34 )
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 0

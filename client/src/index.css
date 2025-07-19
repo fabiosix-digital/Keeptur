@@ -425,6 +425,16 @@ body {
   min-height: 500px;
 }
 
+.kanban-column-collapsed {
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 60px;
+}
+
 .kanban-card {
   background-color: var(--bg-primary);
   border: 1px solid var(--border-color);

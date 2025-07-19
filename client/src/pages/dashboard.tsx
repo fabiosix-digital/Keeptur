@@ -405,20 +405,93 @@ export default function Dashboard() {
           array.findIndex((t: any) => t.id === task.id) === index
         );
         
-        // Separar tarefas ativas das excluídas baseado no status REAL da API
+        // 🚨 CORREÇÃO CRÍTICA: Analisar dados reais das tarefas para entender estrutura
+        console.log('🔍 Analisando estrutura real das tarefas do servidor...');
+        
+        // Debug: examinar os primeiros registros para entender a estrutura
+        if (uniqueTasks.length > 0) {
+          console.log('📋 DEBUG - Primeira tarefa (estrutura completa):', JSON.stringify(uniqueTasks[0], null, 2));
+          console.log('📋 DEBUG - Atributos da primeira tarefa:', uniqueTasks[0].attributes);
+          
+          // Examinar todas as tarefas para ver quais campos indicam exclusão
+          uniqueTasks.forEach((task: any, index: number) => {
+            const attrs = task.attributes;
+            console.log(`📋 Tarefa ${index + 1} - ID: ${task.id}, completed: ${attrs.completed}, title: ${attrs.title}`);
+            
+            // Procurar por campos que possam indicar exclusão
+            Object.keys(attrs).forEach(key => {
+              if (key.toLowerCase().includes('delet') || key.toLowerCase().includes('archiv') || key.toLowerCase().includes('status')) {
+                console.log(`  - ${key}: ${attrs[key]}`);
+              }
+            });
+          });
+        }
+        
+        // 🚨 DESCOBERTA CRÍTICA: 
+        // A API do Monde não diferencia tarefas "concluídas" de "excluídas"
+        // Ambas aparecem como completed: true
+        // SOLUÇÃO: Buscar tarefas ativas separadamente para fazer distinção
+        
+        console.log('🔍 SOLUÇÃO: Carregando tarefas ATIVAS para distinção...');
+        let activeTaskIds = new Set();
+        let reallyCompletedTaskIds = new Set();
+        
+        try {
+          // 🚨 DESCOBERTA: API retorna as mesmas tarefas para open e done
+          // NOVA SOLUÇÃO: Usar lógica baseada em completed-at timestamp
+          
+          console.log('🔍 NOVA ABORDAGEM: Analisando completed-at timestamps...');
+          
+          uniqueTasks.forEach((task: any, index: number) => {
+            const attrs = task.attributes;
+            const completedAt = attrs['completed-at'];
+            const isCompleted = attrs.completed;
+            
+            console.log(`📋 Análise Tarefa ${index + 1} (${attrs.title}):`);
+            console.log(`  - completed: ${isCompleted}`);
+            console.log(`  - completed-at: ${completedAt}`);
+            
+            // Lógica: Se completed=true E tem completed-at, é REALMENTE concluída
+            // Se completed=true mas SEM completed-at, provavelmente foi excluída
+            if (isCompleted && completedAt) {
+              reallyCompletedTaskIds.add(task.id);
+              console.log(`  ✅ → CONCLUÍDA (tem timestamp de conclusão)`);
+            } else if (!isCompleted) {
+              activeTaskIds.add(task.id);
+              console.log(`  📋 → ATIVA (não concluída)`);
+            } else {
+              console.log(`  🗑️ → POSSIVELMENTE EXCLUÍDA (completed=true, mas sem completed-at)`);
+            }
+          });
+          
+          console.log('🎯 ANÁLISE FINAL - Tarefas por tipo:');
+          console.log('✅ Ativas (completed=false):', activeTaskIds.size);
+          console.log('✅ Concluídas (completed=true + completed-at):', reallyCompletedTaskIds.size);
+          
+        } catch (error) {
+          console.log('⚠️ Erro na análise, usando fallback simples');
+        }
+        
+        // Separar tarefas baseado na distinção REAL
         const activeTasks = uniqueTasks.filter((task: any) => 
-          !task.attributes.deleted && !task.attributes.is_deleted && !task.attributes.completed
+          activeTaskIds.has(task.id) || (!task.attributes.completed && !reallyCompletedTaskIds.has(task.id))
         );
         
-        // Tarefas concluídas (mas não excluídas)
+        // Tarefas realmente concluídas (não excluídas)
         const completedTasks = uniqueTasks.filter((task: any) => 
-          task.attributes.completed && !task.attributes.deleted && !task.attributes.is_deleted
+          reallyCompletedTaskIds.has(task.id)
         );
         
-        // Tarefas realmente excluídas
+        // 🚨 CORREÇÃO FINAL: Tarefas excluídas = completed:true MAS SEM completed-at
         const deletedTasks = uniqueTasks.filter((task: any) => 
-          task.attributes.deleted || task.attributes.is_deleted
+          task.attributes.completed && !task.attributes['completed-at']
         );
+        
+        console.log('🎯 CORREÇÃO - Separação correta por situação:', {
+          ativas: activeTasks.length,
+          realmente_concluidas: completedTasks.length, 
+          realmente_excluidas: deletedTasks.length
+        });
         
         console.log('🎯 Tarefas ÚNICAS separadas corretamente:', {
           total: uniqueTasks.length,

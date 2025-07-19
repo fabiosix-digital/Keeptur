@@ -291,17 +291,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       // Para incluir tarefas excluídas separadamente
       else if (req.query.include_deleted === 'true') {
-        // 🔍 EXPERIMENTAR: Primeiro tentar com parâmetro de tarefas excluídas
-        // Se não funcionar, continuar usando situation=done como fallback
-        try {
-          queryParams.append('is_deleted', 'true');
-          console.log('✅ Tentando buscar tarefas EXCLUÍDAS (is_deleted=true)');
-        } catch {
-          // Fallback para tarefas concluídas (que é o que funcionava antes)
-          queryParams.delete('is_deleted');
-          queryParams.append('filter[situation]', 'done');
-          console.log('📋 Fallback: Buscando tarefas concluídas como "excluídas" (situation=done)');
-        }
+        // 🚨 CORREÇÃO: Buscar TODAS as tarefas para detectar as excluídas
+        // A API do Monde não tem parâmetro is_deleted, mas retorna status no response
+        console.log('✅ Buscando TODAS as tarefas para detectar excluídas');
+        // Não adicionar filtros - deixar API retornar todas as tarefas (ativas + excluídas)
       } 
       
       // Filtro padrão se nenhum especificado e não for 'all_company'
@@ -310,8 +303,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('✅ Aplicando filtro padrão: filter[assigned]=user_tasks');
       }
       
-      // 🎯 Filtro de situação - removido pois será feito no frontend
-      // O filtro de situação agora é aplicado no frontend baseado no status completed
+      // 🎯 Filtro de situação - para distinguir ativas, concluídas e excluídas
+      if (req.query.situation === 'open') {
+        queryParams.append('filter[situation]', 'open');
+        console.log('✅ Filtro situação aplicado: ABERTAS (open)');
+      } else if (req.query.situation === 'done') {
+        queryParams.append('filter[situation]', 'done');
+        console.log('✅ Filtro situação aplicado: CONCLUÍDAS (done)');
+      }
       
       // 📂 Filtro de categoria
       if (req.query.category_id) {

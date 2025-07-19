@@ -355,26 +355,26 @@ export default function Dashboard() {
     const loadData = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem("keeptur-token");
+        const mondeToken = localStorage.getItem("keeptur-monde-token");
         const serverUrl =
           localStorage.getItem("keeptur-server-url") ||
           "http://allanacaires.monde.com.br";
 
-        if (!token || !serverUrl) {
-          console.error("Token ou servidor não encontrado");
+        if (!mondeToken || !serverUrl) {
+          console.error("Token do Monde ou servidor não encontrado");
           return;
         }
 
         // Inicializar API do Monde
         const api = new MondeAPI(serverUrl);
-        api.setToken(token);
+        api.setToken(mondeToken);
 
         // Carregar TODAS as tarefas da empresa (uma vez só)
         const tasksResponse = await loadAllTasks();
 
         // Carregar categorias
         const categoriesResponse = await fetch("/api/monde/categorias", {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${mondeToken}` },
         });
         const categoriesData = await categoriesResponse.json();
         console.log('📋 Categorias carregadas:', categoriesData.data?.length || 0);
@@ -382,7 +382,7 @@ export default function Dashboard() {
 
         // Carregar usuários/agentes diretamente
         const usersResponse = await fetch("/api/monde/users", {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${mondeToken}` },
         });
         const usersData = await usersResponse.json();
         
@@ -401,12 +401,21 @@ export default function Dashboard() {
         setCategories(categoriesData?.data || []);
         setUsers(Array.isArray(usersData?.data) ? usersData.data : []);
 
-        // Usar pessoas/clientes carregadas
-        setClients(pessoasData?.data || []);
+        // Carregar pessoas/clientes se necessário
+        try {
+          const pessoasResponse = await fetch("/api/monde/people", {
+            headers: { Authorization: `Bearer ${mondeToken}` },
+          });
+          const pessoasData = await pessoasResponse.json();
+          setClients(pessoasData?.data || []);
+          console.log("📋 Pessoas/clientes carregadas:", pessoasData?.data?.length || 0);
+        } catch (error) {
+          console.log("⚠️ Não foi possível carregar pessoas/clientes");
+          setClients([]);
+        }
         
         // Log para debug
         console.log("📋 Usuários carregados:", usersData?.data?.length || 0);
-        console.log("📋 Pessoas/clientes carregadas:", pessoasData?.data?.length || 0);
         
         // Marcar como inicializado
         setIsInitialized(true);
@@ -1188,7 +1197,7 @@ export default function Dashboard() {
     if (!statusChangeModal.task) return;
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('keeptur-monde-token');
       if (!token) {
         setShowTokenExpiredModal(true);
         return;
@@ -1243,6 +1252,14 @@ export default function Dashboard() {
       if (!response.ok) {
         const errorText = await response.text();
         console.error("❌ Erro na API:", errorText);
+        
+        // Se for erro de token expirado, mostrar modal e não fazer alert
+        if (response.status === 401) {
+          console.log("🔐 Token expirado, mostrando modal de reautenticação");
+          setShowTokenExpiredModal(true);
+          return;
+        }
+        
         throw new Error(`Erro ao atualizar tarefa: ${response.status} - ${errorText}`);
       }
 

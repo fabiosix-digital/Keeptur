@@ -715,28 +715,27 @@ export default function Dashboard() {
       console.log('- UserUUID encontrado:', userUUID);
       console.log('- SourceTasks:', sourceTasks.length);
       
-      // 🎯 CORREÇÃO: Se as tarefas já vem filtradas do servidor para "user_tasks", usar diretamente
-      // O servidor já aplicou filter[assigned]=user_tasks, então tasks já são as "minhas tarefas"
+      // 🚨 CORREÇÃO CRÍTICA: O servidor JÁ filtra as tarefas, não filtrar novamente
+      // tasks = tarefas já filtradas do servidor para o usuário
+      // allTasks = todas as tarefas da empresa
+      
       if (showDeleted) {
-        // Se showDeleted, filtrar manualmente das excluídas + ativas
-        console.log('✅ Usando tarefas ativas para assigned_to_me:', tasks?.length || 0);
+        // Se mostrando excluídas, usar allTasks (que contém ativas + excluídas)
         if (userUUID) {
-          filtered = sourceTasks.filter((task: any) => {
+          filtered = allTasks.filter((task: any) => {
             const assigneeId = task.relationships?.assignee?.data?.id;
             return assigneeId === userUUID;
           });
+          console.log('✅ Usando tarefas ativas para assigned_to_me:', tasks?.length || 0);
           console.log('🔍 Tarefas filtradas para o usuário:', filtered.length);
         } else {
           console.log('❌ UUID do usuário não encontrado');
           filtered = [];
         }
       } else {
-        // 🚀 CORREÇÃO: Se não showDeleted, usar tasks diretamente (já filtradas pelo servidor)
-        // Mas remover tarefas realmente excluídas que possam ter voltado do servidor
-        filtered = (tasks || []).filter((task: any) => {
-          // Remover tarefas que foram realmente excluídas no Monde
-          return !task.attributes.deleted && !task.attributes.is_deleted;
-        });
+        // ✅ SOLUÇÃO: Se não mostrando excluídas, usar tasks diretamente
+        // O servidor já retornou APENAS as tarefas do usuário via filter[assigned]=user_tasks
+        filtered = tasks || [];
         console.log('✅ Usando tarefas do servidor (já filtradas):', filtered.length);
       }
     } else if (filter === 'created_by_me') {
@@ -749,11 +748,14 @@ export default function Dashboard() {
       } else {
         filtered = [];
       }
+    } else if (filter === 'all_company') {
+      // Para 'all_company', usar TODAS as tarefas da empresa (allTasks)
+      filtered = allTasks || [];
+      console.log('✅ Filtro "all_company" - usando todas as tarefas da empresa:', filtered.length);
     } else {
-      // Para 'all', usar TODAS as tarefas disponíveis 
-      // Se estiver no modo "all", sempre usar allTasks que contém todas as tarefas da empresa
-      filtered = allTasks || sourceTasks;
-      console.log('✅ Filtro "all" - usando todas as tarefas:', filtered.length);
+      // Filtro padrão - usar tasks (ativas + concluídas do usuário)
+      filtered = tasks || [];
+      console.log('✅ Filtro padrão - usando tarefas do usuário:', filtered.length);
     }
     
     // Aplicar filtros adicionais
@@ -1152,48 +1154,58 @@ export default function Dashboard() {
     );
   };
 
-  // 🚨 FUNÇÃO CORRIGIDA: Organizar tarefas por status sem duplicação
+  // 🚨 FUNÇÃO CORRIGIDA: Organizar tarefas por status usando separação correta
   const getTasksByStatus = (status: string) => {
     // Usar tarefas filtradas (que já remove duplicatas)
     const filteredTasks = getFilteredTasksWithStatus();
     
     console.log('🔍 getTasksByStatus para', status, '- total de tarefas:', filteredTasks.length);
+    
+    // 🚨 LOG DETALHADO: Verificar como estão chegando as tarefas
+    filteredTasks.forEach((task: any, index: number) => {
+      console.log(`📋 Tarefa ${index + 1}: ${task.attributes.title} - completed: ${task.attributes.completed}`);
+    });
 
     switch (status) {
       case "pending":
-        // Tarefas pendentes (não concluídas e dentro do prazo)
+        // ✅ CORREÇÃO: Tarefas pendentes = NÃO concluídas E dentro do prazo
         const now = new Date();
         const pendingTasks = filteredTasks.filter((task: any) => {
-          if (task.attributes.completed) return false;
+          const isCompleted = task.attributes.completed;
+          if (isCompleted) return false; // Se concluída, não é pendente
+          
           const dueDate = task.attributes.due ? new Date(task.attributes.due) : null;
           return !dueDate || dueDate >= now;
         });
-        console.log('📋 Tarefas pendentes encontradas:', pendingTasks.length);
+        console.log('📋 Tarefas PENDENTES (ativas + dentro do prazo):', pendingTasks.length);
         return pendingTasks;
 
       case "overdue":
-        // Tarefas atrasadas (não concluídas e com prazo vencido)
+        // ✅ CORREÇÃO: Tarefas atrasadas = NÃO concluídas E com prazo vencido
         const nowOverdue = new Date();
         const overdueTasks = filteredTasks.filter((task: any) => {
-          if (task.attributes.completed) return false;
+          const isCompleted = task.attributes.completed;
+          if (isCompleted) return false; // Se concluída, não é atrasada
+          
           const dueDate = task.attributes.due ? new Date(task.attributes.due) : null;
           return dueDate && dueDate < nowOverdue;
         });
-        console.log('📋 Tarefas atrasadas encontradas:', overdueTasks.length);
+        console.log('📋 Tarefas ATRASADAS (ativas + prazo vencido):', overdueTasks.length);
         return overdueTasks;
 
       case "completed":
-        // Tarefas concluídas
+        // ✅ CORREÇÃO: Tarefas concluídas = completed === true
         const completedTasks = filteredTasks.filter((task: any) => 
           task.attributes.completed === true
         );
-        console.log('📋 Tarefas concluídas encontradas:', completedTasks.length);
+        console.log('📋 Tarefas CONCLUÍDAS (completed=true):', completedTasks.length);
+        completedTasks.forEach(task => console.log(`  - ${task.attributes.title}`));
         return completedTasks;
 
       case "archived":
         // 🚨 CORREÇÃO: API do Monde não retorna tarefas excluídas
         // Tarefas excluídas são removidas via hard delete (DELETE /api/v2/tasks/:id)
-        console.log('📋 Tarefas excluídas: 0 (API do Monde não retorna tarefas excluídas)');
+        console.log('📋 Tarefas EXCLUÍDAS: 0 (API do Monde não retorna tarefas excluídas)');
         return [];
 
       default:

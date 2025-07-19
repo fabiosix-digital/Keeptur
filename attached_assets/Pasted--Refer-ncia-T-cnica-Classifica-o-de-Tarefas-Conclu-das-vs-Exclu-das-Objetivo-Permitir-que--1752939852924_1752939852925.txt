@@ -1,0 +1,123 @@
+📚 Referência Técnica: Classificação de Tarefas (Concluídas vs. Excluídas)
+🔹 Objetivo
+Permitir que sistemas ou inteligências artificiais identifiquem, classifiquem e filtrem tarefas com os status:
+
+Concluída
+
+Aberta (Não Concluída)
+
+Excluída
+
+✅ TAREFAS CONCLUÍDAS
+🔸 Origem: GET /api/v2/tasks
+📄 Documentação Original:
+Arquivo: GET_tasks.md
+
+Campo relevante:
+
+json
+Copiar
+Editar
+"attributes": {
+  "completed": false,
+  "completed-at": null
+}
+📌 Descrição técnica:
+A tarefa é considerada concluída quando:
+
+"completed": true ou
+
+"completed-at" contém uma data válida
+
+📌 Filtro por situação:
+A API suporta um filtro explícito via parâmetro:
+
+http
+Copiar
+Editar
+GET /api/v2/tasks?filter[situation]=done
+Da documentação:
+
+markdown
+Copiar
+Editar
+- situation - Filtra pela situação (`done`: finalizada, `open`: não concluída)
+✔️ Lógica para IA/classificação:
+json
+Copiar
+Editar
+IF task.attributes.completed == true OR task.attributes["completed-at"] != null
+THEN status = "concluída"
+❌ TAREFAS EXCLUÍDAS
+🔸 Origem: DELETE /api/v2/tasks/:id
+📄 Documentação Original:
+Arquivo: DELETE_tasks.md
+
+Exemplo de requisição:
+
+http
+Copiar
+Editar
+DELETE https://web.monde.com.br/api/v2/tasks/C73D41F9-EA1E-4A69-8A05-278B15AFC233
+Resposta esperada:
+
+http
+Copiar
+Editar
+204 - No Content
+📌 Comportamento da API:
+A tarefa é excluída por ID e desaparece completamente da listagem.
+
+Não há nenhum campo como:
+
+"is_deleted"
+
+"status": "deleted"
+
+"deleted-at"
+
+A API não oferece endpoint para listar ou visualizar tarefas excluídas.
+
+❗ Observação:
+A exclusão é provavelmente hard delete ou soft delete não acessível externamente.
+
+❌ Lógica para IA/classificação:
+json
+Copiar
+Editar
+IF tarefa foi excluída com sucesso (status 204)
+THEN remover do sistema local
+🔁 TASK HISTORICS (Complementar)
+🔸 Origem: GET /api/v2/task-historics
+📄 Documentação Original:
+Arquivo: GET_task_historics.md
+
+Exemplo de histórico:
+
+json
+Copiar
+Editar
+"attributes": {
+  "text": "First comment",
+  "date-time": "2021-10-27T00:00:00.000-03:00",
+  "historic": null
+}
+📌 Observação:
+Este endpoint não traz status, mas permite auditar ações associadas a uma tarefa.
+
+Útil apenas para rastrear alterações, não status final da tarefa.
+
+🔧 MODELO RESUMIDO DE CLASSIFICAÇÃO
+Status	Campo(s) utilizados na API	Valor esperado
+Concluída	attributes.completed ou attributes.completed-at	true ou data diferente de null
+Aberta	attributes.completed	false e completed-at == null
+Excluída	Operação via DELETE /tasks/:id	Resultado 204 → remover localmente
+
+📥 Recomendação para Integração no Sistema
+Ao sincronizar tarefas via GET /tasks, verificar os campos completed e completed-at.
+
+Quando o usuário excluir uma tarefa, enviar DELETE /tasks/:id e removê-la da base.
+
+Não tente buscar tarefas excluídas – a API não suporta esse tipo de listagem.
+
+Opcional: manter um controle local (ex: flag foi_excluida = true) antes de deletar do seu banco, se quiser log.

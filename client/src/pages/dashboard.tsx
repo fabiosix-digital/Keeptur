@@ -369,7 +369,7 @@ export default function Dashboard() {
         const api = new MondeAPI(serverUrl);
         api.setToken(mondeToken);
 
-        // Carregar TODAS as tarefas da empresa (uma vez só)
+        // Carregar tarefas do usuário logado (uma vez só)
         const tasksResponse = await loadAllTasks();
 
         // Carregar categorias
@@ -390,12 +390,24 @@ export default function Dashboard() {
         await loadClientStats();
 
         // Processar dados do formato JSON:API do Monde
-        const tasks = tasksResponse?.data || [];
+        const allTasksFromServer = tasksResponse?.data || [];
+        
+        // Separar tarefas ativas das excluídas
+        const activeTasks = allTasksFromServer.filter((task: any) => 
+          !task.attributes.deleted && !task.attributes.is_deleted
+        );
+        
+        console.log('🎯 Tarefas separadas:', {
+          total: allTasksFromServer.length,
+          ativas: activeTasks.length,
+          excluidas: allTasksFromServer.length - activeTasks.length
+        });
 
-        // Calcular estatísticas reais das tarefas
-        const realStats = calculateTaskStats(tasks);
+        // Calcular estatísticas apenas das tarefas ativas para o filtro padrão
+        const realStats = calculateTaskStats(activeTasks);
 
-        setAllTasks(tasks);
+        setAllTasks(allTasksFromServer); // Todas (ativas + excluídas) para quando mostrar excluídas
+        setTasks(activeTasks); // Apenas ativas para filtro padrão "Minhas Tarefas"
         
         // Aplicar filtro inicial será feito pelo useEffect do taskFilter
         setCategories(categoriesData?.data || []);
@@ -461,9 +473,9 @@ export default function Dashboard() {
         return { data: [] };
       }
 
-      // Carregar todas as tarefas da empresa (ativas)
-      const url = `/api/monde/tarefas?all=true`;
-      console.log('🔄 Carregando todas as tarefas da empresa...');
+      // Carregar tarefas do usuário logado (filtro padrão)
+      const url = `/api/monde/tarefas`; // Sem all=true para aplicar filtro do usuário
+      console.log('🔄 Carregando tarefas do usuário logado...');
 
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
@@ -484,7 +496,7 @@ export default function Dashboard() {
       localStorage.setItem('lastTasksResponse', JSON.stringify(data));
       
       // Agora carregar tarefas excluídas separadamente
-      const deletedUrl = `/api/monde/tarefas?all=true&include_deleted=true`;
+      const deletedUrl = `/api/monde/tarefas?include_deleted=true`;
       console.log('🗑️ Carregando tarefas excluídas...');
 
       const deletedResponse = await fetch(deletedUrl, {
@@ -624,8 +636,16 @@ export default function Dashboard() {
         console.log('⚠️ UserUUID não encontrado, usando apenas tarefas ativas do servidor');
         console.log('📋 Tasks ativas (primeira requisição):', tasks.length);
         console.log('📋 AllTasks (com excluídas):', allTasks.length);
-        // Usar apenas tarefas ativas (vêm da primeira requisição que já filtra por usuário)
-        filtered = tasks.length > 0 ? tasks : allTasks.filter((task: any) => !task.attributes.completed);
+        // 🎯 CORREÇÃO: Se o servidor retornou tarefas filtradas, usar elas; senão filtrar localmente
+        // O servidor já filtra por usuário quando usa filter[assigned]=user_tasks
+        if (tasks && tasks.length > 0) {
+          console.log('✅ Usando tarefas já filtradas pelo servidor:', tasks.length);
+          filtered = tasks;
+        } else {
+          console.log('⚠️ Nenhuma tarefa do servidor, filtrando apenas não excluídas de allTasks');
+          // Filtrar apenas tarefas não excluídas (as primeiras 3-18 que vêm do servidor)
+          filtered = allTasks.filter((task: any) => !task.attributes.deleted && !task.attributes.is_deleted);
+        }
       } else {
         filtered = allTasks.filter((task: any) => {
           const assigneeId = task.relationships?.assignee?.data?.id;
@@ -3410,13 +3430,34 @@ export default function Dashboard() {
 
               {/* Botões de Ação */}
               <div className="flex justify-between items-center mt-6 pt-4 border-t">
-                <button
-                  type="button"
-                  onClick={completeTask}
-                  className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-                >
-                  Concluída
-                </button>
+                {selectedTask?.attributes?.completed ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Para reabertura, obrigar seleção de nova data/hora
+                      setStatusChangeModal({
+                        isOpen: true,
+                        task: selectedTask,
+                        newStatus: "pending",
+                        isReopen: true
+                      });
+                      setStatusChangeForm({ datetime: "", comment: "", success: "", error: "" });
+                    }}
+                    className="px-4 py-2 bg-orange-600 text-white rounded text-sm hover:bg-orange-700"
+                  >
+                    <i className="ri-refresh-line mr-2"></i>
+                    Reabrir
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={completeTask}
+                    className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                  >
+                    <i className="ri-check-line mr-2"></i>
+                    Concluída
+                  </button>
+                )}
                 <div className="flex space-x-3">
                   <button
                     type="button"

@@ -1,0 +1,70 @@
+📋 Aplicando filtro: assigned_to_me
+VM13 eruda.js:2 🔍 DEBUG FILTRO assigned_to_me:
+VM13 eruda.js:2 - UserEmail: fabio@allanacaires.monde.com.br
+VM13 eruda.js:2 - Users carregados: 0
+VM13 eruda.js:2 - UserUUID encontrado: null
+VM13 eruda.js:2 ⚠️ UserUUID não encontrado, usando apenas tarefas ativas do servidor
+VM13 eruda.js:2 📋 Tasks ativas (primeira requisição): 0
+VM13 eruda.js:2 📋 AllTasks (com excluídas): 34
+VM13 eruda.js:2 ✅ Filtros aplicados. Tarefas exibidas: 18
+VM13 eruda.js:2 ⚠️ Não foi possível carregar pessoas/clientes
+VM13 eruda.js:2 📋 Usuários carregados: 0
+VM13 eruda.js:2 🔥 Drag start iniciado para tarefa: f83a1fb2-f4e4-4389-8e9e-8480fe26fd4d TESTE DE NOVA TAREFA (2)
+VM13 eruda.js:2 🎯 Drop detectado na coluna: pending
+VM13 eruda.js:2 📋 Dados da tarefa arrastada: Object
+VM13 eruda.js:2 📊 Status atual: completed → Status novo: pending
+VM13 eruda.js:2 🔄 Reabertura detectada, abrindo modal
+VM13 eruda.js:2 🔍 Iniciando alteração de status...
+VM13 eruda.js:2 📋 Tarefa: f83a1fb2-f4e4-4389-8e9e-8480fe26fd4d TESTE DE NOVA TAREFA (2)
+VM13 eruda.js:2 🎯 Status atual → novo: completed → pending
+VM13 eruda.js:2 🕐 Data/hora: 2025-07-19T20:00
+VM13 eruda.js:2 📤 Enviando para API do Monde: Object
+d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/monde/tarefas/f83a1fb2-f4e4-4389-8e9e-8480fe26fd4d:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)Entenda o erro
+VM13 eruda.js:2 📡 Resposta da API: 401 Unauthorized
+VM13 eruda.js:2 ❌ Erro na API: {"message":"Token inválido"}
+Mt.forEach.n.<computed> @ VM13 eruda.js:2Entenda o erro
+VM13 eruda.js:2 🔐 Token expirado, mostrando modal de reautenticação
+dashboard:1 [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) <input data-replit-metadata=​"client/​src/​components/​TokenExpiredModal.tsx:​92:​12" data-component-name=​"input" type=​"password" id=​"password" class=​"w-full px-3 py-2 border border-gray-300 dark:​border-gray-600 rounded-md focus:​outline-none focus:​ring-2 focus:​ring-blue-500 dark:​bg-gray-700 dark:​text-white" required value>​
+_app-f10df38f71c1285f.js:38 [Violation] 'setTimeout' handler took 55ms
+VM13 eruda.js:2 🔄 Carregando todas as tarefas da empresa...
+VM13 eruda.js:2 📋 Aplicando filtro: assigned_to_me
+VM13 eruda.js:2 🔍 DEBUG FILTRO assigned_to_me:
+VM13 eruda.js:2 - UserEmail: fabio@allanacaires.monde.com.br
+VM13 eruda.js:2 - Users carregados: 0
+VM13 eruda.js:2 - UserUUID encontrado: null
+VM13 eruda.js:2 ⚠️ UserUUID não encontrado, usando apenas tarefas ativas do servidor
+VM13 eruda.js:2 📋 Tasks ativas (primeira requisição): 18
+VM13 eruda.js:2 📋 AllTasks (com excluídas): 34
+VM13 eruda.js:2 ✅ Filtros aplicados. Tarefas exibidas: 18
+VM13 eruda.js:2 Erro ao carregar tarefas: TypeError: Failed to fetch
+    at window.fetch (VM8 frame_ant.js:2:12357)
+    at window.fetch (VM13 eruda.js:2:218642)
+    at loadAllTasks (VM53 dashboard.tsx:360:30)
+    at reloadTasksAndClients (VM53 dashboard.tsx:619:32)
+    at VM53 dashboard.tsx:630:9
+Mt.forEach.n.<computed> @ VM13 eruda.js:2
+loadAllTasks @ VM53 dashboard.tsx:394Entenda o erro
+_app-f10df38f71c1285f.js:6 [Violation] 'setInterval' handler took 60ms
+DevTools.js:316 [Violation] Added non-passive event listener to a scroll-blocking 'wheel' event. Consider marking event handler as 'passive' to make the page more responsive. See https://www.chromestatus.com/feature/5745543795965952
+add @ delegate.js:81
+(anônimo) @ $event.js:17
+t @ each.js:8
+(anônimo) @ $event.js:16
+on @ $.js:42
+value @ index.js:144
+t @ index.js:17
+value @ DevTools.js:316
+t @ DevTools.js:58
+_initDevTools @ eruda.js:244
+init @ eruda.js:51
+(anônimo) @ injected.js:2
+(anônimo) @ injected.js:156
+Console.js:61 [vite] connecting...
+Console.js:61 [vite] connected.
+Console.js:61 🔄 Carregando todas as tarefas da empresa...
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 0
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 0
+Console.js:61 ✅ Tarefas carregadas: 3
+Console.js:61 🗑️ Carregando tarefas excluídas...

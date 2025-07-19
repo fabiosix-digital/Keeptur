@@ -91,6 +91,11 @@ Preferred communication style: Simple, everyday language in Portuguese.
 - ✅ Coluna "Excluídas" corrigida para mostrar tarefas deletadas usando allTasks
 - ✅ Chaves duplicadas no React eliminadas com IDs únicos por coluna
 - ✅ Sistema de filtros do Kanban otimizado para respeitar filtro principal
+- ✅ Correção crítica: tarefas excluídas não são mais contabilizadas no total geral
+- ✅ Separação correta entre tarefas ativas e excluídas para cálculo de estatísticas
+- ✅ Sistema de controle de requisições implementado para evitar conflitos de status
+- ✅ Modal de conclusão otimizada com cancelamento de requisições anteriores
+- ✅ Timeout ajustado para 800ms para evitar reversão automática de status
 
 ## System Architecture
 

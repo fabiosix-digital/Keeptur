@@ -455,7 +455,12 @@ export default function Dashboard() {
       console.log('📋 Aplicando filtro:', taskFilter);
       const filteredTasks = getFilteredTasks(taskFilter);
       setTasks(filteredTasks);
-      setStats(calculateTaskStats(filteredTasks));
+      
+      // Calcular estatísticas SOMENTE das tarefas ativas (filtrar excluídas)
+      const activeTasksOnly = filteredTasks.filter((task: any) => 
+        !task.attributes.deleted && !task.attributes.is_deleted
+      );
+      setStats(calculateTaskStats(activeTasksOnly));
       console.log('✅ Filtros aplicados. Tarefas exibidas:', filteredTasks.length);
     };
 
@@ -518,15 +523,31 @@ export default function Dashboard() {
         // Combinar tarefas ativas e excluídas evitando duplicatas
         const activeTasks = data.data || [];
         const deletedTasks = deletedData.data || [];
-        const allTasks = [...activeTasks, ...deletedTasks];
+        
+        // Separar corretamente tarefas ativas das excluídas
+        const reallyActiveTasks = activeTasks.filter((task: any) => 
+          !task.attributes.deleted && !task.attributes.is_deleted
+        );
+        
+        const reallyDeletedTasks = deletedTasks.filter((task: any) => 
+          task.attributes.deleted || task.attributes.is_deleted
+        );
+        
+        const allTasks = [...reallyActiveTasks, ...reallyDeletedTasks];
         
         // Remover duplicatas baseado no ID
         const uniqueTasks = allTasks.filter((task, index, self) => 
           index === self.findIndex(t => t.id === task.id)
         );
         
-        console.log('📊 Total de tarefas combinadas:', uniqueTasks.length, '(ativas:', activeTasks.length, '+ excluídas:', deletedTasks.length, ')');
-        return { data: uniqueTasks };
+        console.log('📊 Total de tarefas combinadas:', uniqueTasks.length, '(ativas:', reallyActiveTasks.length, '+ excluídas:', reallyDeletedTasks.length, ')');
+        
+        // Para mostrar estatísticas corretas, separar apenas as ativas
+        return { 
+          data: uniqueTasks,
+          activeTasks: reallyActiveTasks,
+          deletedTasks: reallyDeletedTasks
+        };
       } else {
         console.warn('⚠️ Erro ao carregar tarefas excluídas, continuando apenas com ativas');
         return data;
@@ -910,7 +931,12 @@ export default function Dashboard() {
     // Aplicar filtros
     const filteredTasks = getFilteredTasks(taskFilter);
     setTasks(filteredTasks);
-    setStats(calculateTaskStats(filteredTasks));
+    
+    // Calcular estatísticas SOMENTE das tarefas ativas (filtrar excluídas)
+    const activeTasksOnly = filteredTasks.filter((task: any) => 
+      !task.attributes.deleted && !task.attributes.is_deleted
+    );
+    setStats(calculateTaskStats(activeTasksOnly));
 
     // Recarregar clientes se houver busca ativa
     if (searchTerm.trim()) {
@@ -5071,6 +5097,11 @@ export default function Dashboard() {
                       return;
                     }
 
+                    // Cancelar requisições anteriores se existirem
+                    if (abortControllerRef.current) {
+                      abortControllerRef.current.abort();
+                    }
+
                     // Marcar tarefa como concluída
                     const response = await fetch(`/api/monde/tarefas/${taskToComplete.id}`, {
                       method: 'PUT',
@@ -5088,18 +5119,19 @@ export default function Dashboard() {
                     if (response.ok) {
                       console.log('✅ Tarefa marcada como concluída');
                       
-                      // Fechar modal
+                      // Fechar modal imediatamente
                       setShowCompletionModal(false);
                       setTaskToComplete(null);
                       setNewHistoryText("");
                       
-                      // Recarregar tarefas forçando atualização
-                      await reloadTasks();
-                      
-                      // Force refresh completo para mostrar tarefa na coluna correta
-                      setTimeout(() => {
-                        reloadTasks();
-                      }, 1000);
+                      // Aguardar um momento antes de recarregar
+                      setTimeout(async () => {
+                        try {
+                          await reloadTasks();
+                        } catch (error) {
+                          console.log('⚠️ Erro ao recarregar tarefas após conclusão:', error);
+                        }
+                      }, 800);
                       
                       // Mostrar feedback visual
                       const toast = document.createElement('div');

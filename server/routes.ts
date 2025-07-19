@@ -818,32 +818,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const taskId = req.params.id;
       const mondeUrl = `https://web.monde.com.br/api/v2/tasks/${taskId}`;
       
-      const mondeResponse = await fetch(mondeUrl, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/vnd.api+json",
-          "Accept": "application/vnd.api+json",
-          "Authorization": `Bearer ${req.sessao.access_token}`,
-        },
-      });
-
-      if (mondeResponse.status === 204) {
-        res.status(204).send();
-      } else {
-        const data = await mondeResponse.json();
-        res.status(mondeResponse.status).json(data);
-      }
-    } catch (error) {
-      console.error("Erro ao deletar tarefa:", error);
-      res.status(500).json({ message: "Erro ao deletar tarefa" });
-    }
-  });
-
-  // Endpoint para deletar tarefa
-  app.delete("/api/monde/tarefas/:id", authenticateToken, async (req: any, res) => {
-    try {
-      const taskId = req.params.id;
-      const mondeUrl = `https://web.monde.com.br/api/v2/tasks/${taskId}`;
+      console.log(`🗑️ Tentando excluir tarefa ${taskId} via API do Monde`);
+      console.log(`URL: ${mondeUrl}`);
       
       const mondeResponse = await fetch(mondeUrl, {
         method: "DELETE",
@@ -854,11 +830,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
       });
 
+      console.log(`✅ Resposta da API do Monde: ${mondeResponse.status}`);
+
       if (mondeResponse.status === 204) {
+        console.log(`✅ Tarefa ${taskId} excluída com sucesso na API do Monde`);
         res.status(204).send();
       } else {
-        const data = await mondeResponse.json();
-        res.status(mondeResponse.status).json(data);
+        const responseText = await mondeResponse.text();
+        console.log(`❌ Erro ao excluir tarefa ${taskId}: ${responseText}`);
+        res.status(mondeResponse.status).json({ 
+          message: "Erro ao excluir tarefa", 
+          details: responseText 
+        });
       }
     } catch (error) {
       console.error("Erro ao deletar tarefa:", error);

@@ -518,12 +518,12 @@ export default function Dashboard() {
     applyFilter();
   }, [taskFilter, allTasks, user?.id, selectedSituation, selectedCategory, selectedAssignee, selectedClient, startDate, endDate, taskSearchTerm]);
 
-  // Recarregar tarefas quando taskFilter ou showDeleted mudar
+  // Recarregar tarefas quando taskFilter mudar (removido showDeleted)
   useEffect(() => {
     if (isInitialized) {
       reloadTasks();
     }
-  }, [taskFilter, showDeleted]);
+  }, [taskFilter]);
 
   // Função para carregar TODAS as tarefas da empresa (uma vez só)
   const loadAllTasks = async () => {
@@ -807,71 +807,33 @@ export default function Dashboard() {
   const reloadTasks = async () => {
     console.log('🔄 Carregando tarefas baseado no filtro:', taskFilter);
     
-    // Cancelar requisição anterior se existir
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    
-    // Criar novo controller
-    abortControllerRef.current = new AbortController();
-    const signal = abortControllerRef.current.signal;
-    
     try {
       const token = localStorage.getItem("keeptur-token");
       
-      let activeTasks = [];
-      let deletedTasks = [];
+      // 🚨 SIMPLIFICAÇÃO TOTAL: Um endpoint por filtro, sem combinar tarefas excluídas
+      let endpoint = "/api/monde/tarefas?assignee=me"; // Padrão: minhas tarefas
       
-      // Carregar tarefas baseado no filtro atual
       if (taskFilter === 'assigned_to_me') {
-        // Carregar apenas tarefas atribuídas ao usuário
-        const response = await fetch('/api/monde/tarefas?assignee=me', {
-          headers: { Authorization: `Bearer ${token}` },
-          signal,
-        });
-        
-        if (signal.aborted) return;
-        
-        const data = await response.json();
-        activeTasks = data?.data || [];
-        console.log('✅ Tarefas "Minhas" carregadas:', activeTasks.length);
+        endpoint = "/api/monde/tarefas?assignee=me";
       } else if (taskFilter === 'created_by_me') {
-        // Carregar apenas tarefas criadas pelo usuário
-        const response = await fetch('/api/monde/tarefas?filter[created_by]=me', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await response.json();
-        activeTasks = data?.data || [];
-        console.log('✅ Tarefas "Criadas por Mim" carregadas:', activeTasks.length);
-      } else {
-        // Para "all", carregar TODAS as tarefas da empresa
-        const response = await fetch('/api/monde/tarefas?all_company=true', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await response.json();
-        activeTasks = data?.data || [];
-        console.log('✅ TODAS as tarefas da empresa carregadas:', activeTasks.length);
+        endpoint = "/api/monde/tarefas?author=me";
+      } else if (taskFilter === 'all_company') {
+        endpoint = "/api/monde/tarefas?all=true";
       }
-      
-      // Se showDeleted for true, carregar também tarefas excluídas
-      if (showDeleted) {
-        console.log('🗑️ Carregando tarefas excluídas...');
-        const deletedResponse = await fetch('/api/monde/tarefas?include_deleted=true', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const deletedData = await deletedResponse.json();
-        deletedTasks = deletedData?.data || [];
-        console.log('✅ Tarefas excluídas carregadas:', deletedTasks.length);
+
+      const response = await fetch(endpoint, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Tarefas carregadas:', data.data?.length || 0);
+        
+        // 🚨 USAR APENAS AS TAREFAS DO SERVIDOR (sem combinar)
+        const tasksList = data.data || [];
+        setAllTasks(tasksList);
+        setTasks(tasksList);
       }
-      
-      // Combinar tarefas ativas e excluídas
-      const allTasksCombined = [...activeTasks, ...deletedTasks];
-      console.log('📊 Total de tarefas combinadas:', allTasksCombined.length, '(ativas:', activeTasks.length, '+ excluídas:', deletedTasks.length, ')');
-      
-      // Atualizar estado
-      setTasks(activeTasks); // Apenas ativas
-      setAllTasks(allTasksCombined); // Todas (ativas + excluídas)
-      
     } catch (error) {
       console.error('Erro ao recarregar tarefas:', error);
     }
@@ -1031,19 +993,19 @@ export default function Dashboard() {
 
   // 🚨 FUNÇÃO CORRIGIDA: Evitar duplicação e usar dados corretos
   const getFilteredTasksWithStatus = () => {
-    // 1. Escolher fonte de dados correta: tasks (já filtradas) ou allTasks (incluindo excluídas)
-    let sourceTasks = showDeleted ? allTasks : tasks;
+    // 🚨 SIMPLIFICAÇÃO TOTAL: Usar apenas as tarefas já filtradas do servidor
+    let filtered = tasks || [];
     
-    // 2. Remover duplicatas por ID ANTES de aplicar filtros
+    // Remover duplicatas por ID (se houver)
     const uniqueTasksMap = new Map();
-    (sourceTasks || []).forEach((task: any) => {
+    filtered.forEach((task: any) => {
       if (task && task.id && !uniqueTasksMap.has(task.id)) {
         uniqueTasksMap.set(task.id, task);
       }
     });
-    let filtered = Array.from(uniqueTasksMap.values());
+    filtered = Array.from(uniqueTasksMap.values());
     
-    console.log('🔄 getFilteredTasksWithStatus - tarefas únicas:', filtered.length, 'showDeleted:', showDeleted);
+    console.log('🔄 Usando tarefas do servidor (já filtradas):', filtered.length);
 
     // Aplicar filtros secundários
     if (selectedCategory && selectedCategory !== 'all') {

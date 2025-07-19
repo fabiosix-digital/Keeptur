@@ -1306,27 +1306,29 @@ export default function Dashboard() {
       // Mostrar toast de sucesso
       setStatusChangeForm(prev => ({ ...prev, success: "Status alterado com sucesso!" }));
 
-      // Registrar no histórico se houver comentário
-      if (statusChangeForm.comment) {
-        console.log("📝 Registrando no histórico...");
-        const historyResponse = await fetch(`/api/monde/task-historics`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            task_id: task.id,
-            comment: statusChangeForm.comment,
-            action: `Status alterado para: ${getStatusDisplayName(newStatus)}`
-          }),
-        });
+      // Sempre registrar no histórico a mudança de status
+      console.log("📝 Registrando no histórico...");
+      const historyText = statusChangeForm.comment 
+        ? `Status alterado para: ${getStatusDisplayName(newStatus)}\nComentário: ${statusChangeForm.comment}`
+        : `Status alterado para: ${getStatusDisplayName(newStatus)}`;
         
-        if (historyResponse.ok) {
-          console.log("✅ Histórico salvo com sucesso");
-        } else {
-          console.log("⚠️ Erro ao salvar histórico, mas tarefa foi atualizada");
-        }
+      const historyResponse = await fetch(`/api/monde/task-historics`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          task_id: task.id,
+          comment: historyText,
+          action: `Status alterado para: ${getStatusDisplayName(newStatus)}`
+        }),
+      });
+      
+      if (historyResponse.ok) {
+        console.log("✅ Histórico salvo com sucesso");
+      } else {
+        console.log("⚠️ Erro ao salvar histórico, mas tarefa foi atualizada");
       }
 
       // Aguardar 2 segundos para mostrar mensagem de sucesso

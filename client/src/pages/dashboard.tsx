@@ -60,8 +60,8 @@ export default function Dashboard() {
   const [customFields, setCustomFields] = useState<any[]>([]);
   const [loadingCustomFields, setLoadingCustomFields] = useState(false);
   const [savingCustomFields, setSavingCustomFields] = useState(false);
+  
 
-  // Função para buscar clientes removida (implementada mais abaixo)
 
   // Função para carregar estatísticas de clientes
   const loadClientStats = async () => {
@@ -1086,43 +1086,98 @@ export default function Dashboard() {
     logout();
   };
 
-  const handleDragStart = (
-    e: React.DragEvent,
-    taskId: number,
-    status: string,
-  ) => {
-    e.dataTransfer.setData("text/plain", JSON.stringify({ taskId, status }));
+  // Estado para modal de mudança de status
+  const [statusChangeModal, setStatusChangeModal] = useState({
+    isOpen: false,
+    task: null as any,
+    newStatus: "" as string,
+    isReopen: false
+  });
+
+  const [statusChangeForm, setStatusChangeForm] = useState({
+    datetime: "",
+    comment: ""
+  });
+
+  // Função para drag start
+  const handleDragStart = (e: React.DragEvent, task: any) => {
+    e.dataTransfer.setData("application/json", JSON.stringify(task));
   };
 
+  // Função para drag over
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  // Função para drop
   const handleDrop = async (e: React.DragEvent, newStatus: string) => {
     e.preventDefault();
-    const data = JSON.parse(e.dataTransfer.getData("text/plain"));
-
+    
     try {
-      const token = localStorage.getItem("keeptur-token");
-      if (!token) return;
-
-      // Mapear status do Kanban para status da API
-      const statusMap: any = {
-        "A Fazer": "pending",
-        "Em Andamento": "in_progress",
-        Concluído: "completed",
-        Cancelado: "cancelled",
-      };
-
-      const apiStatus = statusMap[newStatus] || "pending";
-
-      // Se for "Concluído", marcar completed como true
-      const requestBody: any = {
-        status: apiStatus,
-      };
-
-      if (apiStatus === "completed") {
-        requestBody.completed = true;
+      const taskData = JSON.parse(e.dataTransfer.getData("application/json"));
+      const currentStatus = getTaskStatus(taskData);
+      
+      // Se o status é o mesmo, não fazer nada
+      if (currentStatus === newStatus) {
+        return;
       }
 
-      // Atualizar tarefa via API
-      await fetch(`/api/monde/tarefas/${data.taskId}`, {
+      // Se for reabertura (de completed/archived para pending/overdue), mostrar modal
+      if ((currentStatus === "completed" || currentStatus === "archived") && 
+          (newStatus === "pending" || newStatus === "overdue")) {
+        setStatusChangeModal({
+          isOpen: true,
+          task: taskData,
+          newStatus,
+          isReopen: true
+        });
+        return;
+      }
+
+      // Para outras mudanças de status, mostrar modal de confirmação
+      setStatusChangeModal({
+        isOpen: true,
+        task: taskData,
+        newStatus,
+        isReopen: false
+      });
+
+    } catch (error) {
+      console.error("Erro no drop:", error);
+    }
+  };
+
+  // Função para confirmar mudança de status
+  const handleStatusChange = async () => {
+    if (!statusChangeModal.task) return;
+
+    try {
+      const token = getAuthToken();
+      if (!token) {
+        showTokenExpiredModal();
+        return;
+      }
+
+      const task = statusChangeModal.task;
+      const newStatus = statusChangeModal.newStatus;
+      
+      // Preparar body da requisição
+      const requestBody: any = {
+        id: task.id,
+        title: task.attributes?.title || task.attributes?.name || "",
+        description: task.attributes?.description || "",
+        status: mapStatusToMonde(newStatus)
+      };
+
+      // Adicionar data/hora se fornecida
+      if (statusChangeForm.datetime) {
+        const datetime = new Date(statusChangeForm.datetime);
+        requestBody.due_date = datetime.toISOString();
+        requestBody.due_time = datetime.toTimeString().split(' ')[0];
+      }
+
+      // Fazer a requisição para atualizar a tarefa
+      const response = await fetch(`/api/monde/tarefas/${task.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -1131,11 +1186,56 @@ export default function Dashboard() {
         body: JSON.stringify(requestBody),
       });
 
-      // Recarregar tarefas
+      if (!response.ok) {
+        throw new Error("Erro ao atualizar tarefa");
+      }
+
+      // Registrar no histórico se houver comentário
+      if (statusChangeForm.comment) {
+        await fetch(`/api/monde/task-historics`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            task_id: task.id,
+            comment: statusChangeForm.comment,
+            action: `Status alterado para: ${getStatusDisplayName(newStatus)}`
+          }),
+        });
+      }
+
+      // Fechar modal e recarregar tarefas
+      setStatusChangeModal({ isOpen: false, task: null, newStatus: "", isReopen: false });
+      setStatusChangeForm({ datetime: "", comment: "" });
       await reloadTasks();
+
     } catch (error) {
-      console.error("Erro ao atualizar tarefa:", error);
-      alert("Erro ao mover tarefa. Tente novamente.");
+      console.error("Erro ao alterar status:", error);
+      alert("Erro ao alterar status da tarefa. Tente novamente.");
+    }
+  };
+
+  // Função auxiliar para mapear status do Keeptur para Monde
+  const mapStatusToMonde = (status: string) => {
+    switch (status) {
+      case "pending": return "active";
+      case "overdue": return "active";
+      case "completed": return "completed";
+      case "archived": return "archived";
+      default: return "active";
+    }
+  };
+
+  // Função auxiliar para obter nome de exibição do status
+  const getStatusDisplayName = (status: string) => {
+    switch (status) {
+      case "pending": return "Pendente";
+      case "overdue": return "Atrasada";
+      case "completed": return "Concluída";
+      case "archived": return "Excluída";
+      default: return "Pendente";
     }
   };
 
@@ -1633,8 +1733,8 @@ export default function Dashboard() {
                   </div>
                   <div
                     className="space-y-3"
-                    onDrop={(e) => handleDrop(e, "Pendentes")}
-                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => handleDrop(e, "pending")}
+                    onDragOver={handleDragOver}
                   >
                     {getFilteredTasksWithStatus()
                       .filter(task => {
@@ -1647,7 +1747,7 @@ export default function Dashboard() {
                           key={task.id}
                           className="kanban-card rounded-lg p-4 cursor-move"
                           draggable={true}
-                          onDragStart={(e) => handleDragStart(e, task.id, "Pendentes")}
+                          onDragStart={(e) => handleDragStart(e, task)}
                         >
                           <div className="mb-2">
                             <h4
@@ -1720,8 +1820,8 @@ export default function Dashboard() {
                   </div>
                   <div
                     className="space-y-3"
-                    onDrop={(e) => handleDrop(e, "Atrasadas")}
-                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => handleDrop(e, "overdue")}
+                    onDragOver={handleDragOver}
                   >
                     {getFilteredTasksWithStatus()
                       .filter(task => {
@@ -1733,7 +1833,7 @@ export default function Dashboard() {
                           key={task.id}
                           className="kanban-card rounded-lg p-4 cursor-move"
                           draggable={true}
-                          onDragStart={(e) => handleDragStart(e, task.id, "Atrasadas")}
+                          onDragStart={(e) => handleDragStart(e, task)}
                         >
                           <div className="mb-2">
                             <h4
@@ -1817,8 +1917,8 @@ export default function Dashboard() {
                   </div>
                   <div
                     className="space-y-3"
-                    onDrop={(e) => handleDrop(e, "Concluídas")}
-                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => handleDrop(e, "completed")}
+                    onDragOver={handleDragOver}
                   >
                     {allTasks
                       .filter(task => {
@@ -1839,7 +1939,7 @@ export default function Dashboard() {
                           key={task.id}
                           className="kanban-card rounded-lg p-4 cursor-move"
                           draggable={true}
-                          onDragStart={(e) => handleDragStart(e, task.id, "Concluídas")}
+                          onDragStart={(e) => handleDragStart(e, task)}
                         >
                           <div className="mb-2">
                             <h4
@@ -1913,8 +2013,8 @@ export default function Dashboard() {
                   </div>
                   <div
                     className="space-y-3"
-                    onDrop={(e) => handleDrop(e, "Excluídas")}
-                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => handleDrop(e, "archived")}
+                    onDragOver={handleDragOver}
                   >
                     {getFilteredTasksWithStatus()
                       .filter(task => {
@@ -1925,7 +2025,7 @@ export default function Dashboard() {
                           key={task.id}
                           className="kanban-card rounded-lg p-4 cursor-move opacity-60"
                           draggable={true}
-                          onDragStart={(e) => handleDragStart(e, task.id, "Excluídas")}
+                          onDragStart={(e) => handleDragStart(e, task)}
                         >
                           <div className="mb-2">
                             <h4
@@ -4284,6 +4384,78 @@ export default function Dashboard() {
 
       {/* Modal de Cliente */}
       {renderClientModal()}
+
+      {/* Modal de Mudança de Status */}
+      {statusChangeModal.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">
+              {statusChangeModal.isReopen ? "Reabrir Tarefa" : "Alterar Status da Tarefa"}
+            </h3>
+            
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                {statusChangeModal.isReopen 
+                  ? `Você está reabrindo a tarefa "${statusChangeModal.task?.attributes?.title}" para o status "${getStatusDisplayName(statusChangeModal.newStatus)}".`
+                  : `Alterando status da tarefa "${statusChangeModal.task?.attributes?.title}" para "${getStatusDisplayName(statusChangeModal.newStatus)}".`
+                }
+              </p>
+
+              {/* Campo de data/hora obrigatório para reaberturas */}
+              {statusChangeModal.isReopen && (
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Nova Data/Hora de Vencimento *
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={statusChangeForm.datetime}
+                    onChange={(e) => setStatusChangeForm({...statusChangeForm, datetime: e.target.value})}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Obrigatório para reabertura de tarefas
+                  </p>
+                </div>
+              )}
+
+              {/* Campo de comentário opcional */}
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Comentário (opcional)
+                </label>
+                <textarea
+                  value={statusChangeForm.comment}
+                  onChange={(e) => setStatusChangeForm({...statusChangeForm, comment: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg resize-none"
+                  rows={3}
+                  placeholder="Adicione um comentário sobre a mudança..."
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => {
+                  setStatusChangeModal({ isOpen: false, task: null, newStatus: "", isReopen: false });
+                  setStatusChangeForm({ datetime: "", comment: "" });
+                }}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleStatusChange}
+                disabled={statusChangeModal.isReopen && !statusChangeForm.datetime}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+              >
+                {statusChangeModal.isReopen ? "Reabrir" : "Confirmar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -992,8 +992,9 @@ export default function Dashboard() {
 
   // Filtrar tarefas baseado no status e filtros (função principal)
   const getFilteredTasksWithStatus = () => {
-    // Usar TODAS as tarefas (allTasks já contém ativas + excluídas baseado nos filtros)
-    let filtered = allTasks || [];
+    // IMPORTANTE: Para o Kanban, usar APENAS as tarefas já filtradas pelo filtro principal (tasks)
+    // O array 'tasks' já contém apenas as tarefas filtradas corretamente
+    let filtered = tasks || [];
 
     // Aplicar filtros secundários
     if (selectedCategory && selectedCategory !== 'all') {
@@ -2354,8 +2355,8 @@ export default function Dashboard() {
                       Excluídas
                     </h3>
                     <span className="bg-gray-400 text-gray-700 px-2 py-1 rounded-full text-xs">
-                      {getFilteredTasksWithStatus().filter(task => {
-                        return task && task.attributes && (task.attributes.deleted || task.attributes.status === "deleted");
+                      {allTasks.filter(task => {
+                        return task && task.attributes && (task.attributes.deleted || task.attributes.status === "deleted" || task.attributes.is_deleted);
                       }).length}
                     </span>
                   </div>
@@ -2365,7 +2366,7 @@ export default function Dashboard() {
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                   >
-                    {getFilteredTasksWithStatus()
+                    {allTasks
                       .filter(task => {
                         return task && task.attributes && (task.attributes.deleted || task.attributes.status === "deleted" || task.attributes.is_deleted);
                       })

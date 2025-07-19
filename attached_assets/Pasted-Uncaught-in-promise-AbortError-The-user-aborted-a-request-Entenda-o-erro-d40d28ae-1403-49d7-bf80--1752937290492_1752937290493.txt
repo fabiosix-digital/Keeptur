@@ -1,0 +1,252 @@
+Uncaught (in promise) AbortError: The user aborted a request.Entenda o erro
+d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/monde/clientes/estatisticas:1  Failed to load resource: the server responded with a status of 404 (Not Found)Entenda o erro
+Console.js:61 Erro ao carregar estatísticas de clientes: 404
+Mt.forEach.n.<computed> @ Console.js:61Entenda o erro
+Console.js:61 🎯 Tarefas separadas: Object
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 🔍 DEBUG FILTRO assigned_to_me:
+Console.js:61 - UserEmail: fabio@allanacaires.monde.com.br
+Console.js:61 - Users carregados: 14
+Console.js:61 - UserUUID encontrado: 9c409497-5b93-49fa-b6c2-f8381bc880d5
+Console.js:61 - SourceTasks: 34
+Console.js:61 ✅ Usando tarefas ativas para assigned_to_me: 34
+Console.js:61 🔍 Tarefas filtradas para o usuário: 4
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 4
+Console.js:61 ⚠️ Não foi possível carregar pessoas/clientes
+Console.js:61 📋 Usuários carregados: 14
+Console.js:61 📋 Aplicando filtro: all
+Console.js:61 ✅ Filtro "all" - usando todas as tarefas: 34
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 34
+Console.js:61 🔄 Carregando tarefas baseado no filtro: all
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 🔍 DEBUG FILTRO assigned_to_me:
+Console.js:61 - UserEmail: fabio@allanacaires.monde.com.br
+Console.js:61 - Users carregados: 14
+Console.js:61 - UserUUID encontrado: 9c409497-5b93-49fa-b6c2-f8381bc880d5
+Console.js:61 - SourceTasks: 34
+Console.js:61 ✅ Usando tarefas ativas para assigned_to_me: 34
+Console.js:61 🔍 Tarefas filtradas para o usuário: 4
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 4
+Console.js:61 🔄 Carregando tarefas baseado no filtro: assigned_to_me
+Console.js:61 ✅ Tarefas "Minhas" carregadas: 4
+Console.js:61 📊 Total de tarefas combinadas: 4 (ativas: 4 + excluídas: 0 )
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 🔍 DEBUG FILTRO assigned_to_me:
+Console.js:61 - UserEmail: fabio@allanacaires.monde.com.br
+Console.js:61 - Users carregados: 14
+Console.js:61 - UserUUID encontrado: 9c409497-5b93-49fa-b6c2-f8381bc880d5
+Console.js:61 - SourceTasks: 4
+Console.js:61 ✅ Usando tarefas ativas para assigned_to_me: 4
+Console.js:61 🔍 Tarefas filtradas para o usuário: 4
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 4
+Console.js:61 ✅ TODAS as tarefas da empresa carregadas: 34
+Console.js:61 📊 Total de tarefas combinadas: 34 (ativas: 34 + excluídas: 0 )
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 🔍 DEBUG FILTRO assigned_to_me:
+Console.js:61 - UserEmail: fabio@allanacaires.monde.com.br
+Console.js:61 - Users carregados: 14
+Console.js:61 - UserUUID encontrado: 9c409497-5b93-49fa-b6c2-f8381bc880d5
+Console.js:61 - SourceTasks: 34
+Console.js:61 ✅ Usando tarefas ativas para assigned_to_me: 34
+Console.js:61 🔍 Tarefas filtradas para o usuário: 4
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 4
+Console.js:61 🔄 Carregando tarefas baseado no filtro: assigned_to_me
+Console.js:61 ✅ Tarefas "Minhas" carregadas: 4
+Console.js:61 🗑️ Carregando tarefas excluídas...
+Console.js:61 ✅ Tarefas excluídas carregadas: 34
+Console.js:61 📊 Total de tarefas combinadas: 38 (ativas: 4 + excluídas: 34 )
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 🔍 DEBUG FILTRO assigned_to_me:
+Console.js:61 - UserEmail: fabio@allanacaires.monde.com.br
+Console.js:61 - Users carregados: 14
+Console.js:61 - UserUUID encontrado: 9c409497-5b93-49fa-b6c2-f8381bc880d5
+Console.js:61 - SourceTasks: 38
+Console.js:61 ✅ Usando tarefas ativas para assigned_to_me: 4
+Console.js:61 🔍 Tarefas filtradas para o usuário: 4
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 4
+Console.js:61 ✅ Tarefa excluída com sucesso
+Console.js:61 🔄 Carregando tarefas baseado no filtro: assigned_to_me
+Console.js:61 ✅ Tarefas "Minhas" carregadas: 4
+Console.js:61 🗑️ Carregando tarefas excluídas...
+Console.js:61 🔄 Carregando tarefas do usuário logado...
+Console.js:61 ✅ Tarefas carregadas: 4
+Console.js:61 🗑️ Carregando tarefas excluídas...
+Console.js:61 ✅ Tarefas excluídas carregadas: 34
+Console.js:61 📊 Total de tarefas combinadas: 38 (ativas: 4 + excluídas: 34 )
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 🔍 DEBUG FILTRO assigned_to_me:
+Console.js:61 - UserEmail: fabio@allanacaires.monde.com.br
+Console.js:61 - Users carregados: 14
+Console.js:61 - UserUUID encontrado: 9c409497-5b93-49fa-b6c2-f8381bc880d5
+Console.js:61 - SourceTasks: 38
+Console.js:61 ✅ Usando tarefas ativas para assigned_to_me: 4
+Console.js:61 🔍 Tarefas filtradas para o usuário: 4
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 4
+Console.js:61 ✅ Tarefas excluídas carregadas: 34
+Console.js:61 📊 Total de tarefas combinadas: 34 (ativas: 4 + excluídas: 34 )
+Console.js:61 🔍 DEBUG FILTRO assigned_to_me:
+Console.js:61 - UserEmail: fabio@allanacaires.monde.com.br
+Console.js:61 - Users carregados: 14
+Console.js:61 - UserUUID encontrado: 9c409497-5b93-49fa-b6c2-f8381bc880d5
+Console.js:61 - SourceTasks: 34
+Console.js:61 ✅ Usando tarefas ativas para assigned_to_me: 34
+Console.js:61 🔍 Tarefas filtradas para o usuário: 4
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 🔍 DEBUG FILTRO assigned_to_me:
+Console.js:61 - UserEmail: fabio@allanacaires.monde.com.br
+Console.js:61 - Users carregados: 14
+Console.js:61 - UserUUID encontrado: 9c409497-5b93-49fa-b6c2-f8381bc880d5
+Console.js:61 - SourceTasks: 34
+Console.js:61 ✅ Usando tarefas ativas para assigned_to_me: 4
+Console.js:61 🔍 Tarefas filtradas para o usuário: 4
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 4
+_app-f10df38f71c1285f.js:38 [Violation] 'setTimeout' handler took 72ms
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.
+e @ frame_ant.js:2
+s @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+s @ frame_ant.js:2
+window.fetch @ frame_ant.js:2
+(anônimo) @ _app-f10df38f71c1285f.js:38
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+e.consumeQueue @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:25
+n @ _app-f10df38f71c1285f.js:38
+setTimeout
+(anônimo) @ _app-f10df38f71c1285f.js:38
+e.scheduleQueueConsumption @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+e.try @ _app-f10df38f71c1285f.js:25
+e.start @ _app-f10df38f71c1285f.js:25
+t.request @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:14
+e.execute @ _app-f10df38f71c1285f.js:14
+e.getObservableFromLink @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+s @ _app-f10df38f71c1285f.js:11
+e.mutate @ _app-f10df38f71c1285f.js:11
+e.mutate @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:14
+e.wait @ 3430-3d770cc90d759bc9.js:1
+u @ 8830-667e99a8edcebcee.js:1
+(anônimo) @ 8830-667e99a8edcebcee.js:1
+n @ _app-f10df38f71c1285f.js:38Entenda o erro
+Console.js:61 🔄 Carregando tarefas do usuário logado...
+_app-f10df38f71c1285f.js:38 [Violation] 'setTimeout' handler took 57ms
+[Violation] Forced reflow while executing JavaScript took 32ms
+Console.js:61 ✅ Tarefas carregadas: 4
+Console.js:61 🗑️ Carregando tarefas excluídas...
+Console.js:61 ✅ Tarefas excluídas carregadas: 34
+Console.js:61 📊 Total de tarefas combinadas: 34 (ativas: 4 + excluídas: 34 )
+Console.js:61 🔍 DEBUG FILTRO assigned_to_me:
+Console.js:61 - UserEmail: fabio@allanacaires.monde.com.br
+Console.js:61 - Users carregados: 14
+Console.js:61 - UserUUID encontrado: 9c409497-5b93-49fa-b6c2-f8381bc880d5
+Console.js:61 - SourceTasks: 34
+Console.js:61 ✅ Usando tarefas ativas para assigned_to_me: 34
+Console.js:61 🔍 Tarefas filtradas para o usuário: 4
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 🔍 DEBUG FILTRO assigned_to_me:
+Console.js:61 - UserEmail: fabio@allanacaires.monde.com.br
+Console.js:61 - Users carregados: 14
+Console.js:61 - UserUUID encontrado: 9c409497-5b93-49fa-b6c2-f8381bc880d5
+Console.js:61 - SourceTasks: 34
+Console.js:61 ✅ Usando tarefas ativas para assigned_to_me: 4
+Console.js:61 🔍 Tarefas filtradas para o usuário: 4
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 4
+_app-f10df38f71c1285f.js:38 [Violation] 'setTimeout' handler took 50ms
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.
+e @ frame_ant.js:2
+s @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+s @ frame_ant.js:2
+window.fetch @ frame_ant.js:2
+(anônimo) @ _app-f10df38f71c1285f.js:38
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+e.consumeQueue @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:25
+n @ _app-f10df38f71c1285f.js:38
+setTimeout
+(anônimo) @ _app-f10df38f71c1285f.js:38
+e.scheduleQueueConsumption @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+e.try @ _app-f10df38f71c1285f.js:25
+e.start @ _app-f10df38f71c1285f.js:25
+t.request @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:14
+e.execute @ _app-f10df38f71c1285f.js:14
+e.getObservableFromLink @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+s @ _app-f10df38f71c1285f.js:11
+e.mutate @ _app-f10df38f71c1285f.js:11
+e.mutate @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:40
+(anônimo) @ main-b79515c1024d334e.js:1
+n @ main-b79515c1024d334e.js:1
+u @ main-b79515c1024d334e.js:1
+(anônimo) @ main-b79515c1024d334e.js:1
+(anônimo) @ main-b79515c1024d334e.js:1
+n @ _app-f10df38f71c1285f.js:38Entenda o erro
+_app-f10df38f71c1285f.js:6 [Violation] 'setInterval' handler took 51ms
+Console.js:61 🔄 Carregando tarefas do usuário logado...
+Console.js:61 ✅ Tarefas carregadas: 4
+Console.js:61 🗑️ Carregando tarefas excluídas...
+Console.js:61 ✅ Tarefas excluídas carregadas: 34
+Console.js:61 📊 Total de tarefas combinadas: 34 (ativas: 4 + excluídas: 34 )
+Console.js:61 🔍 DEBUG FILTRO assigned_to_me:
+Console.js:61 - UserEmail: fabio@allanacaires.monde.com.br
+Console.js:61 - Users carregados: 14
+Console.js:61 - UserUUID encontrado: 9c409497-5b93-49fa-b6c2-f8381bc880d5
+Console.js:61 - SourceTasks: 34
+Console.js:61 ✅ Usando tarefas ativas para assigned_to_me: 34
+Console.js:61 🔍 Tarefas filtradas para o usuário: 4
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 🔍 DEBUG FILTRO assigned_to_me:
+Console.js:61 - UserEmail: fabio@allanacaires.monde.com.br
+Console.js:61 - Users carregados: 14
+Console.js:61 - UserUUID encontrado: 9c409497-5b93-49fa-b6c2-f8381bc880d5
+Console.js:61 - SourceTasks: 34
+Console.js:61 ✅ Usando tarefas ativas para assigned_to_me: 4
+Console.js:61 🔍 Tarefas filtradas para o usuário: 4
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas:

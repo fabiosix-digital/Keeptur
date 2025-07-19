@@ -86,6 +86,11 @@ Preferred communication style: Simple, everyday language in Portuguese.
 - ✅ Botão "Copiar Nome" implementado para facilitar busca de arquivos
 - ✅ Toast notifications implementadas para feedback visual sem interferir na modal
 - ✅ Sistema de anexos finalizado com interface user-friendly e funcional
+- ✅ Problema crítico do Kanban resolvido - função getFilteredTasksWithStatus() corrigida
+- ✅ Filtros "Minhas Tarefas" agora funcionam corretamente no Kanban
+- ✅ Coluna "Excluídas" corrigida para mostrar tarefas deletadas usando allTasks
+- ✅ Chaves duplicadas no React eliminadas com IDs únicos por coluna
+- ✅ Sistema de filtros do Kanban otimizado para respeitar filtro principal
 
 ## System Architecture
 

@@ -1101,30 +1101,64 @@ export default function Dashboard() {
 
   // Função para drag start
   const handleDragStart = (e: React.DragEvent, task: any) => {
+    console.log("🔥 Drag start iniciado para tarefa:", task.id, task.attributes?.title);
     e.dataTransfer.setData("application/json", JSON.stringify(task));
+    e.dataTransfer.effectAllowed = "move";
   };
 
   // Função para drag over
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    
+    // Adicionar indicação visual de drop zone
+    const dropZone = e.currentTarget as HTMLElement;
+    dropZone.style.backgroundColor = "rgba(59, 130, 246, 0.1)";
+    dropZone.style.border = "2px dashed #3b82f6";
+  };
+
+  // Função para drag leave
+  const handleDragLeave = (e: React.DragEvent) => {
+    const dropZone = e.currentTarget as HTMLElement;
+    dropZone.style.backgroundColor = "";
+    dropZone.style.border = "";
   };
 
   // Função para drop
   const handleDrop = async (e: React.DragEvent, newStatus: string) => {
     e.preventDefault();
+    e.stopPropagation();
+    console.log("🎯 Drop detectado na coluna:", newStatus);
+    
+    // Limpar indicação visual
+    const dropZone = e.currentTarget as HTMLElement;
+    dropZone.style.backgroundColor = "";
+    dropZone.style.border = "";
     
     try {
-      const taskData = JSON.parse(e.dataTransfer.getData("application/json"));
-      const currentStatus = getTaskStatus(taskData);
+      const dragData = e.dataTransfer.getData("application/json");
+      if (!dragData) {
+        console.error("❌ Nenhum dado de drag encontrado");
+        return;
+      }
+      
+      const taskData = JSON.parse(dragData);
+      console.log("📋 Dados da tarefa arrastada:", taskData);
+      
+      const currentStatusObj = getTaskStatus(taskData);
+      const currentStatus = currentStatusObj.status;
+      console.log("📊 Status atual:", currentStatus, "→ Status novo:", newStatus);
       
       // Se o status é o mesmo, não fazer nada
       if (currentStatus === newStatus) {
+        console.log("⚠️ Status iguais, ignorando");
         return;
       }
 
       // Se for reabertura (de completed/archived para pending/overdue), mostrar modal
       if ((currentStatus === "completed" || currentStatus === "archived") && 
           (newStatus === "pending" || newStatus === "overdue")) {
+        console.log("🔄 Reabertura detectada, abrindo modal");
         setStatusChangeModal({
           isOpen: true,
           task: taskData,
@@ -1135,6 +1169,7 @@ export default function Dashboard() {
       }
 
       // Para outras mudanças de status, mostrar modal de confirmação
+      console.log("✅ Mudança de status normal, abrindo modal");
       setStatusChangeModal({
         isOpen: true,
         task: taskData,
@@ -1143,7 +1178,8 @@ export default function Dashboard() {
       });
 
     } catch (error) {
-      console.error("Erro no drop:", error);
+      console.error("❌ Erro no drop:", error);
+      console.error("❌ Stack trace:", error.stack);
     }
   };
 
@@ -1161,20 +1197,20 @@ export default function Dashboard() {
       const task = statusChangeModal.task;
       const newStatus = statusChangeModal.newStatus;
       
-      // Preparar body da requisição
+      // Preparar body da requisição baseado na estrutura esperada pelo servidor
       const requestBody: any = {
-        id: task.id,
         title: task.attributes?.title || task.attributes?.name || "",
         description: task.attributes?.description || "",
-        status: mapStatusToMonde(newStatus)
+        completed: newStatus === "completed"
       };
 
       // Adicionar data/hora se fornecida
       if (statusChangeForm.datetime) {
         const datetime = new Date(statusChangeForm.datetime);
-        requestBody.due_date = datetime.toISOString();
-        requestBody.due_time = datetime.toTimeString().split(' ')[0];
+        requestBody.due = datetime.toISOString();
       }
+
+      console.log("📤 Enviando para API do Monde:", requestBody);
 
       // Fazer a requisição para atualizar a tarefa
       const response = await fetch(`/api/monde/tarefas/${task.id}`, {
@@ -1732,9 +1768,10 @@ export default function Dashboard() {
                     </span>
                   </div>
                   <div
-                    className="space-y-3"
+                    className="space-y-3 min-h-[200px]"
                     onDrop={(e) => handleDrop(e, "pending")}
                     onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
                   >
                     {getFilteredTasksWithStatus()
                       .filter(task => {
@@ -1819,9 +1856,10 @@ export default function Dashboard() {
                     </span>
                   </div>
                   <div
-                    className="space-y-3"
+                    className="space-y-3 min-h-[200px]"
                     onDrop={(e) => handleDrop(e, "overdue")}
                     onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
                   >
                     {getFilteredTasksWithStatus()
                       .filter(task => {
@@ -1916,9 +1954,10 @@ export default function Dashboard() {
                     </span>
                   </div>
                   <div
-                    className="space-y-3"
+                    className="space-y-3 min-h-[200px]"
                     onDrop={(e) => handleDrop(e, "completed")}
                     onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
                   >
                     {allTasks
                       .filter(task => {
@@ -2012,9 +2051,10 @@ export default function Dashboard() {
                     </span>
                   </div>
                   <div
-                    className="space-y-3"
+                    className="space-y-3 min-h-[200px]"
                     onDrop={(e) => handleDrop(e, "archived")}
                     onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
                   >
                     {getFilteredTasksWithStatus()
                       .filter(task => {

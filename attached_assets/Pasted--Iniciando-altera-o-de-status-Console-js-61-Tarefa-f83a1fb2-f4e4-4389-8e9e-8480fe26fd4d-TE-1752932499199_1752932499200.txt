@@ -1,0 +1,45 @@
+🔍 Iniciando alteração de status...
+Console.js:61 📋 Tarefa: f83a1fb2-f4e4-4389-8e9e-8480fe26fd4d TESTE DE NOVA TAREFA (2)
+Console.js:61 🎯 Status atual → novo: completed → pending
+Console.js:61 🕐 Data/hora: 2025-07-19T20:00
+Console.js:61 📤 Enviando para API do Monde: {title: 'TESTE DE NOVA TAREFA (2)', description: '', completed: false, due: '2025-07-19T23:00:00.000Z'}
+frame_ant.js:2  PUT https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/monde/tarefas/f83a1fb2-f4e4-4389-8e9e-8480fe26fd4d 401 (Unauthorized)
+window.fetch @ frame_ant.js:2
+window.fetch @ Network.js:219
+handleStatusChange @ dashboard.tsx:1278
+callCallback2 @ chunk-WERSD76P.js?v=3af817f4:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=3af817f4:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=3af817f4:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=3af817f4:3736
+executeDispatch @ chunk-WERSD76P.js?v=3af817f4:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=3af817f4:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=3af817f4:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=3af817f4:7051
+(anônimo) @ chunk-WERSD76P.js?v=3af817f4:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=3af817f4:18913
+batchedUpdates @ chunk-WERSD76P.js?v=3af817f4:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=3af817f4:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=3af817f4:5478
+dispatchEvent @ chunk-WERSD76P.js?v=3af817f4:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=3af817f4:5449Entenda o erro
+Console.js:61 📡 Resposta da API: 401 Unauthorized
+Console.js:61 ❌ Erro na API: {"message":"Token inválido"}
+Mt.forEach.n.<computed> @ Console.js:61
+handleStatusChange @ dashboard.tsx:1291
+await in handleStatusChange
+callCallback2 @ chunk-WERSD76P.js?v=3af817f4:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=3af817f4:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=3af817f4:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=3af817f4:3736
+executeDispatch @ chunk-WERSD76P.js?v=3af817f4:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=3af817f4:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=3af817f4:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=3af817f4:7051
+(anônimo) @ chunk-WERSD76P.js?v=3af817f4:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=3af817f4:18913
+batchedUpdates @ chunk-WERSD76P.js?v=3af817f4:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=3af817f4:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=3af817f4:5478
+dispatchEvent @ chunk-WERSD76P.js?v=3af817f4:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=3af817f4:5449Entenda o erro
+Console.js:61 🔐 Token expirado, mostrando modal de reautenticação

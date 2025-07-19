@@ -355,26 +355,26 @@ export default function Dashboard() {
     const loadData = async () => {
       try {
         setLoading(true);
-        const mondeToken = localStorage.getItem("keeptur-monde-token");
+        const token = localStorage.getItem("keeptur-token");
         const serverUrl =
           localStorage.getItem("keeptur-server-url") ||
           "http://allanacaires.monde.com.br";
 
-        if (!mondeToken || !serverUrl) {
-          console.error("Token do Monde ou servidor não encontrado");
+        if (!token || !serverUrl) {
+          console.error("Token ou servidor não encontrado");
           return;
         }
 
         // Inicializar API do Monde
         const api = new MondeAPI(serverUrl);
-        api.setToken(mondeToken);
+        api.setToken(token);
 
         // Carregar tarefas do usuário logado (uma vez só)
         const tasksResponse = await loadAllTasks();
 
         // Carregar categorias
         const categoriesResponse = await fetch("/api/monde/categorias", {
-          headers: { Authorization: `Bearer ${mondeToken}` },
+          headers: { Authorization: `Bearer ${token}` },
         });
         const categoriesData = await categoriesResponse.json();
         console.log('📋 Categorias carregadas:', categoriesData.data?.length || 0);
@@ -382,7 +382,7 @@ export default function Dashboard() {
 
         // Carregar usuários/agentes diretamente
         const usersResponse = await fetch("/api/monde/users", {
-          headers: { Authorization: `Bearer ${mondeToken}` },
+          headers: { Authorization: `Bearer ${token}` },
         });
         const usersData = await usersResponse.json();
         
@@ -416,7 +416,7 @@ export default function Dashboard() {
         // Carregar pessoas/clientes se necessário
         try {
           const pessoasResponse = await fetch("/api/monde/people", {
-            headers: { Authorization: `Bearer ${mondeToken}` },
+            headers: { Authorization: `Bearer ${token}` },
           });
           const pessoasData = await pessoasResponse.json();
           setClients(pessoasData?.data || []);
@@ -1233,7 +1233,7 @@ export default function Dashboard() {
     if (!statusChangeModal.task) return;
 
     try {
-      const token = localStorage.getItem('keeptur-monde-token');
+      const token = localStorage.getItem('keeptur-token');
       if (!token) {
         setShowTokenExpiredModal(true);
         return;

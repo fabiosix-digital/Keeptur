@@ -1,0 +1,259 @@
+Unrecognized feature: 'navigation-override'.
+_ @ framework-d6ce62f547324137.js:1
+(anônimo) @ framework-d6ce62f547324137.js:1
+uD @ framework-d6ce62f547324137.js:1
+uI @ framework-d6ce62f547324137.js:1
+uM @ framework-d6ce62f547324137.js:1
+uS @ framework-d6ce62f547324137.js:1
+C @ framework-d6ce62f547324137.js:1
+z @ framework-d6ce62f547324137.js:1Entenda o aviso
+framework-d6ce62f547324137.js:1 Unrecognized feature: 'oversized-images'.
+_ @ framework-d6ce62f547324137.js:1
+(anônimo) @ framework-d6ce62f547324137.js:1
+uD @ framework-d6ce62f547324137.js:1
+uI @ framework-d6ce62f547324137.js:1
+uM @ framework-d6ce62f547324137.js:1
+uS @ framework-d6ce62f547324137.js:1
+C @ framework-d6ce62f547324137.js:1
+z @ framework-d6ce62f547324137.js:1Entenda o aviso
+framework-d6ce62f547324137.js:1 Unrecognized feature: 'publickey-credentials'.
+_ @ framework-d6ce62f547324137.js:1
+(anônimo) @ framework-d6ce62f547324137.js:1
+uD @ framework-d6ce62f547324137.js:1
+uI @ framework-d6ce62f547324137.js:1
+uM @ framework-d6ce62f547324137.js:1
+uS @ framework-d6ce62f547324137.js:1
+C @ framework-d6ce62f547324137.js:1
+z @ framework-d6ce62f547324137.js:1Entenda o aviso
+framework-d6ce62f547324137.js:1 Unrecognized feature: 'speaker-selection'.
+_ @ framework-d6ce62f547324137.js:1
+(anônimo) @ framework-d6ce62f547324137.js:1
+uD @ framework-d6ce62f547324137.js:1
+uI @ framework-d6ce62f547324137.js:1
+uM @ framework-d6ce62f547324137.js:1
+uS @ framework-d6ce62f547324137.js:1
+C @ framework-d6ce62f547324137.js:1
+z @ framework-d6ce62f547324137.js:1Entenda o aviso
+framework-d6ce62f547324137.js:1 Unrecognized feature: 'unoptimized-images'.
+_ @ framework-d6ce62f547324137.js:1
+(anônimo) @ framework-d6ce62f547324137.js:1
+uD @ framework-d6ce62f547324137.js:1
+uI @ framework-d6ce62f547324137.js:1
+uM @ framework-d6ce62f547324137.js:1
+uS @ framework-d6ce62f547324137.js:1
+C @ framework-d6ce62f547324137.js:1
+z @ framework-d6ce62f547324137.js:1Entenda o aviso
+framework-d6ce62f547324137.js:1 Unrecognized feature: 'unsized-media'.
+_ @ framework-d6ce62f547324137.js:1
+(anônimo) @ framework-d6ce62f547324137.js:1
+uD @ framework-d6ce62f547324137.js:1
+uI @ framework-d6ce62f547324137.js:1
+uM @ framework-d6ce62f547324137.js:1
+uS @ framework-d6ce62f547324137.js:1
+C @ framework-d6ce62f547324137.js:1
+z @ framework-d6ce62f547324137.js:1Entenda o aviso
+framework-d6ce62f547324137.js:1 Unrecognized feature: 'pointer-lock'.
+_ @ framework-d6ce62f547324137.js:1
+(anônimo) @ framework-d6ce62f547324137.js:1
+uD @ framework-d6ce62f547324137.js:1
+uI @ framework-d6ce62f547324137.js:1
+uM @ framework-d6ce62f547324137.js:1
+uS @ framework-d6ce62f547324137.js:1
+C @ framework-d6ce62f547324137.js:1
+z @ framework-d6ce62f547324137.js:1Entenda o aviso
+framework-d6ce62f547324137.js:1 Allow attribute will take precedence over 'allowfullscreen'.
+_ @ framework-d6ce62f547324137.js:1
+(anônimo) @ framework-d6ce62f547324137.js:1
+uD @ framework-d6ce62f547324137.js:1
+uI @ framework-d6ce62f547324137.js:1
+uM @ framework-d6ce62f547324137.js:1
+uS @ framework-d6ce62f547324137.js:1
+C @ framework-d6ce62f547324137.js:1
+z @ framework-d6ce62f547324137.js:1Entenda o aviso
+framework-d6ce62f547324137.js:1 Allow attribute will take precedence over 'allowpaymentrequest'.
+_ @ framework-d6ce62f547324137.js:1
+(anônimo) @ framework-d6ce62f547324137.js:1
+uD @ framework-d6ce62f547324137.js:1
+uI @ framework-d6ce62f547324137.js:1
+uM @ framework-d6ce62f547324137.js:1
+uS @ framework-d6ce62f547324137.js:1
+C @ framework-d6ce62f547324137.js:1
+z @ framework-d6ce62f547324137.js:1Entenda o aviso
+2frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.
+e @ frame_ant.js:2
+s @ frame_ant.js:2Entenda o erro
+27frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.Entenda o erro
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.
+e @ frame_ant.js:2
+s @ frame_ant.js:2Entenda o erro
+12frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.Entenda o erro
+2frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.
+e @ frame_ant.js:2
+s @ frame_ant.js:2Entenda o erro
+3frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.Entenda o erro
+workspace_iframe.html:32 Unrecognized feature: 'ambient-light-sensor'.Entenda o aviso
+workspace_iframe.html:32 Unrecognized feature: 'battery'.Entenda o aviso
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-not-rendered'.Entenda o aviso
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-out-of-viewport'.Entenda o aviso
+workspace_iframe.html:32 Unrecognized feature: 'layout-animations'.Entenda o aviso
+workspace_iframe.html:32 Unrecognized feature: 'legacy-image-formats'.Entenda o aviso
+workspace_iframe.html:32 Unrecognized feature: 'navigation-override'.Entenda o aviso
+workspace_iframe.html:32 Unrecognized feature: 'oversized-images'.Entenda o aviso
+workspace_iframe.html:32 Unrecognized feature: 'publickey-credentials'.Entenda o aviso
+workspace_iframe.html:32 Unrecognized feature: 'speaker-selection'.Entenda o aviso
+workspace_iframe.html:32 Unrecognized feature: 'unoptimized-images'.Entenda o aviso
+workspace_iframe.html:32 Unrecognized feature: 'unsized-media'.Entenda o aviso
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowfullscreen'.Entenda o aviso
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowpaymentrequest'.Entenda o aviso
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.Entenda o erro
+Console.js:61 [vite] connecting...
+Console.js:61 [vite] connected.
+d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/:1 [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) <input data-replit-metadata=​"client/​src/​pages/​login.tsx:​136:​14" data-component-name=​"Input" type=​"password" class=​"flex h-10 w-full rounded-md border border-input bg-background px-3 text-base ring-offset-background file:​border-0 file:​bg-transparent file:​text-sm file:​font-medium file:​text-foreground placeholder:​text-muted-foreground focus-visible:​outline-none focus-visible:​ring-2 focus-visible:​ring-ring focus-visible:​ring-offset-2 disabled:​cursor-not-allowed disabled:​opacity-50 md:​text-sm form-input input-with-icon pl-10 pr-10 py-3" id=​"password" placeholder=​"Digite sua senha" required value=​"Farosi06@@">​
+Console.js:61 🔄 Carregando tarefas do usuário logado...
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 0
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 0
+Console.js:61 ✅ Tarefas carregadas: 3
+Console.js:61 🗑️ Carregando tarefas excluídas...
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.Entenda o erro
+Console.js:61 ✅ Tarefas excluídas carregadas: 34
+Console.js:61 📊 Total de tarefas combinadas: 34 (ativas: 3 + excluídas: 34 )
+Console.js:61 📋 Categorias carregadas: 10
+Console.js:61 📋 Primeira categoria: Object
+d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/monde/clientes/estatisticas:1  Failed to load resource: the server responded with a status of 404 (Not Found)Entenda o erro
+Console.js:61 Erro ao carregar estatísticas de clientes: 404
+Mt.forEach.n.<computed> @ Console.js:61Entenda o erro
+Console.js:61 🎯 Tarefas separadas: Object
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 🔍 DEBUG FILTRO assigned_to_me:
+Console.js:61 - UserEmail: fabio@allanacaires.monde.com.br
+Console.js:61 - Users carregados: 14
+Console.js:61 - UserUUID encontrado: 9c409497-5b93-49fa-b6c2-f8381bc880d5
+Console.js:61 - SourceTasks: 34
+Console.js:61 ✅ Usando tarefas ativas para assigned_to_me: 34
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 34
+Console.js:61 ⚠️ Não foi possível carregar pessoas/clientes
+Console.js:61 📋 Usuários carregados: 14
+Console.js:61 🔄 Carregando tarefas do usuário logado...
+Console.js:61 ✅ Tarefas carregadas: 3
+Console.js:61 🗑️ Carregando tarefas excluídas...
+Console.js:61 ✅ Tarefas excluídas carregadas: 34
+Console.js:61 📊 Total de tarefas combinadas: 34 (ativas: 3 + excluídas: 34 )
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 0
+[Violation] Forced reflow while executing JavaScript took 33ms
+Console.js:61 🔄 Carregando tarefas do usuário logado...
+Console.js:61 ✅ Tarefas carregadas: 3
+Console.js:61 🗑️ Carregando tarefas excluídas...
+Console.js:61 ✅ Tarefas excluídas carregadas: 34
+Console.js:61 📊 Total de tarefas combinadas: 34 (ativas: 3 + excluídas: 34 )
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 0
+Console.js:61 🔄 Carregando tarefas do usuário logado...
+Console.js:61 ✅ Tarefas carregadas: 3
+Console.js:61 🗑️ Carregando tarefas excluídas...
+Console.js:61 ✅ Tarefas excluídas carregadas: 34
+Console.js:61 📊 Total de tarefas combinadas: 34 (ativas: 3 + excluídas: 34 )
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 0
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.
+e @ frame_ant.js:2
+s @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+s @ frame_ant.js:2
+window.fetch @ frame_ant.js:2
+(anônimo) @ _app-f10df38f71c1285f.js:38
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+e.consumeQueue @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:25
+n @ _app-f10df38f71c1285f.js:38
+setTimeout
+(anônimo) @ _app-f10df38f71c1285f.js:38
+e.scheduleQueueConsumption @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+e.try @ _app-f10df38f71c1285f.js:25
+e.start @ _app-f10df38f71c1285f.js:25
+t.request @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:14
+e.execute @ _app-f10df38f71c1285f.js:14
+e.getObservableFromLink @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+s @ _app-f10df38f71c1285f.js:11
+e.mutate @ _app-f10df38f71c1285f.js:11
+e.mutate @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:40
+(anônimo) @ main-b79515c1024d334e.js:1
+n @ main-b79515c1024d334e.js:1
+u @ main-b79515c1024d334e.js:1
+(anônimo) @ main-b79515c1024d334e.js:1
+(anônimo) @ main-b79515c1024d334e.js:1
+n @ _app-f10df38f71c1285f.js:38Entenda o erro
+Console.js:61 🔄 Carregando tarefas do usuário logado...
+Console.js:61 ✅ Tarefas carregadas: 3
+Console.js:61 🗑️ Carregando tarefas excluídas...
+Console.js:61 🔄 Carregando tarefas do usuário logado...
+Console.js:61 ✅ Tarefas carregadas: 3
+Console.js:61 🗑️ Carregando tarefas excluídas...
+Console.js:61 🔄 Carregando tarefas do usuário logado...
+Console.js:61 ✅ Tarefas excluídas carregadas: 34
+Console.js:61 📊 Total de tarefas combinadas: 34 (ativas: 3 + excluídas: 34 )
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 🔍 DEBUG FILTRO assigned_to_me:
+Console.js:61 - UserEmail: fabio@allanacaires.monde.com.br
+Console.js:61 - Users carregados: 14
+Console.js:61 - UserUUID encontrado: 9c409497-5b93-49fa-b6c2-f8381bc880d5
+Console.js:61 - SourceTasks: 34
+Console.js:61 ✅ Usando tarefas ativas para assigned_to_me: 0
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 0
+Console.js:61 ✅ Tarefas carregadas: 3
+Console.js:61 🗑️ Carregando tarefas excluídas...
+Console.js:61 ✅ Tarefas excluídas carregadas: 34
+Console.js:61 📊 Total de tarefas combinadas: 34 (ativas: 3 + excluídas: 34 )
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 🔍 DEBUG FILTRO assigned_to_me:
+Console.js:61 - UserEmail: fabio@allanacaires.monde.com.br
+Console.js:61 - Users carregados: 14
+Console.js:61 - UserUUID encontrado: 9c409497-5b93-49fa-b6c2-f8381bc880d5
+Console.js:61 - SourceTasks: 34
+Console.js:61 ✅ Usando tarefas ativas para assigned_to_me: 0
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 0
+Console.js:61 🔄 Carregando tarefas do usuário logado...
+Console.js:61 ✅ Tarefas excluídas carregadas: 34
+Console.js:61 📊 Total de tarefas combinadas: 34 (ativas: 3 + excluídas: 34 )
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 0
+Console.js:61 ✅ Tarefas carregadas: 3
+Console.js:61 🗑️ Carregando tarefas excluídas...
+Console.js:61 ✅ Tarefas excluídas carregadas: 34
+Console.js:61 📊 Total de tarefas combinadas: 34 (ativas: 3 + excluídas: 34 )
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 0
+Console.js:61 🔄 Carregando tarefas do usuário logado...
+Console.js:61 ✅ Tarefas carregadas: 3
+Console.js:61 🗑️ Carregando tarefas excluídas...
+Console.js:61 ✅ Tarefas excluídas carregadas: 34
+Console.js:61 📊 Total de tarefas combinadas: 34 (ativas: 3 + excluídas: 34 )
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 0

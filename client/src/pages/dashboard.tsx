@@ -641,9 +641,22 @@ export default function Dashboard() {
       console.log('- UserUUID encontrado:', userUUID);
       console.log('- SourceTasks:', sourceTasks.length);
       
-      // Para "assigned_to_me", usar SEMPRE as tarefas ativas (tasks) para evitar filtros duplos
-      console.log('✅ Usando tarefas ativas para assigned_to_me:', tasks.length);
-      filtered = tasks || [];
+      // Para "assigned_to_me", usar as tarefas do usuário correto
+      console.log('✅ Usando tarefas ativas para assigned_to_me:', tasks?.length || 0);
+      // Se temos tarefas carregadas do servidor (já filtradas), usar elas
+      if (tasks && tasks.length > 0) {
+        filtered = tasks;
+      } else {
+        // Caso contrário, filtrar manualmente se temos UUID
+        if (userUUID) {
+          filtered = sourceTasks.filter((task: any) => {
+            const assigneeId = task.relationships?.assignee?.data?.id;
+            return assigneeId === userUUID;
+          });
+        } else {
+          filtered = [];
+        }
+      }
     } else if (filter === 'created_by_me') {
       // Para 'criadas por mim', usar apenas as tarefas ativas do usuário
       if (userUUID) {
@@ -1978,7 +1991,7 @@ export default function Dashboard() {
                       >
                         <i className="ri-arrow-right-s-line text-lg"></i>
                       </button>
-                      <h3 className="font-semibold text-sm transform -rotate-90 whitespace-nowrap" style={{ color: "var(--text-primary)" }}>
+                      <h3 className="font-semibold text-sm whitespace-nowrap" style={{ color: "var(--text-primary)" }}>
                         Pendentes
                       </h3>
                     </div>
@@ -2096,7 +2109,7 @@ export default function Dashboard() {
                       >
                         <i className="ri-arrow-right-s-line text-lg"></i>
                       </button>
-                      <h3 className="font-semibold text-sm transform -rotate-90 whitespace-nowrap" style={{ color: "var(--text-primary)" }}>
+                      <h3 className="font-semibold text-sm whitespace-nowrap" style={{ color: "var(--text-primary)" }}>
                         Atrasadas
                       </h3>
                     </div>
@@ -2214,7 +2227,7 @@ export default function Dashboard() {
                       >
                         <i className="ri-arrow-right-s-line text-lg"></i>
                       </button>
-                      <h3 className="font-semibold text-sm transform -rotate-90 whitespace-nowrap" style={{ color: "var(--text-primary)" }}>
+                      <h3 className="font-semibold text-sm whitespace-nowrap" style={{ color: "var(--text-primary)" }}>
                         Concluídas
                       </h3>
                     </div>

@@ -610,9 +610,12 @@ export default function Dashboard() {
 
   // Filtrar tarefas no frontend baseado no filtro selecionado
   const getFilteredTasks = (filter: string) => {
-    if (!allTasks || allTasks.length === 0) return [];
+    // Usar allTasks se showDeleted for true, senão usar tasks (ativas)
+    const sourceTasks = showDeleted ? allTasks : tasks;
     
-    let filtered = allTasks;
+    if (!sourceTasks || sourceTasks.length === 0) return [];
+    
+    let filtered = sourceTasks;
     
     // Precisamos encontrar o ID correto do usuário atual das tarefas
     const userEmail = user?.email;
@@ -636,38 +639,33 @@ export default function Dashboard() {
       console.log('- UserEmail:', userEmail);
       console.log('- Users carregados:', users.length);
       console.log('- UserUUID encontrado:', userUUID);
+      console.log('- SourceTasks:', sourceTasks.length);
       
-      // Para "assigned_to_me", usar apenas as tarefas ativas da primeira requisição
-      if (!userUUID || users.length === 0) {
-        console.log('⚠️ UserUUID não encontrado, usando apenas tarefas ativas do servidor');
-        console.log('📋 Tasks ativas (primeira requisição):', tasks.length);
-        console.log('📋 AllTasks (com excluídas):', allTasks.length);
-        // 🎯 CORREÇÃO: Sempre usar as tarefas do usuário, se vazias recarregar
-        console.log('✅ Usando tarefas filtradas do usuário logado:', tasks.length);
-        // Se não temos tarefas do usuário mas temos tarefas gerais, pode ter problema de filtro
-        if ((tasks || []).length === 0 && allTasks.length > 0) {
-          console.log('⚠️ Tarefas do usuário vazias mas allTasks tem dados, recarregando...');
-          reloadTasks();
-        }
-        filtered = tasks || [];
-      } else {
-        // Filtrar pelo userUUID nas tarefas do usuário
-        filtered = tasks.filter((task: any) => {
+      // Para "assigned_to_me", filtrar pelo UUID se disponível
+      if (userUUID) {
+        filtered = sourceTasks.filter((task: any) => {
           const assigneeId = task.relationships?.assignee?.data?.id;
           return assigneeId === userUUID;
         });
+      } else {
+        // Se não temos UUID, usar as tarefas do servidor (já filtradas)
+        console.log('⚠️ UserUUID não encontrado, usando tarefas do servidor');
+        filtered = tasks || [];
       }
     } else if (filter === 'created_by_me') {
       // Para 'criadas por mim', usar apenas as tarefas ativas do usuário
-      filtered = tasks.filter((task: any) => {
-        const authorId = task.relationships?.author?.data?.id;
-        return authorId === userUUID;
-      });
+      if (userUUID) {
+        filtered = sourceTasks.filter((task: any) => {
+          const authorId = task.relationships?.author?.data?.id;
+          return authorId === userUUID;
+        });
+      } else {
+        filtered = [];
+      }
     } else {
-      // Para 'all', usar apenas as tarefas ativas do usuário
-      filtered = tasks || [];
+      // Para 'all', usar todas as tarefas da fonte
+      filtered = sourceTasks;
     }
-    // Para 'all', usar todas as tarefas
     
     // Aplicar filtros adicionais
     
@@ -1528,30 +1526,17 @@ export default function Dashboard() {
               </button>
             </div>
             <div className="flex items-center space-x-2">
-              {/* Radio buttons para exibição */}
-              <div className="flex items-center space-x-3 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+              {/* Checkbox para tarefas excluídas */}
+              <div className="flex items-center">
                 <label className="flex items-center space-x-2 cursor-pointer px-3 py-1 rounded-md">
                   <input
-                    type="radio"
-                    name="taskView"
-                    checked={!showDeleted}
-                    onChange={() => setShowDeleted(false)}
-                    className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                  />
-                  <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
-                    Ativas
-                  </span>
-                </label>
-                <label className="flex items-center space-x-2 cursor-pointer px-3 py-1 rounded-md">
-                  <input
-                    type="radio"
-                    name="taskView"
+                    type="checkbox"
                     checked={showDeleted}
-                    onChange={() => setShowDeleted(true)}
+                    onChange={(e) => setShowDeleted(e.target.checked)}
                     className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                   />
                   <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
-                    Excluídas
+                    Mostrar Tarefas Excluídas
                   </span>
                 </label>
               </div>
@@ -1888,9 +1873,9 @@ export default function Dashboard() {
           {/* Kanban View */}
           {activeView === "kanban" && (
             <div className="view-content">
-              <div className="flex space-x-6 overflow-x-auto pb-4">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 w-full overflow-x-auto pb-4">
                 {/* Pendentes */}
-                <div className="kanban-column rounded-lg p-4 min-w-80">
+                <div className="kanban-column rounded-lg p-4 w-full min-h-fit">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-2">
                       <button
@@ -1992,7 +1977,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Atrasadas */}
-                <div className="kanban-column rounded-lg p-4 min-w-80">
+                <div className="kanban-column rounded-lg p-4 w-full min-h-fit">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-2">
                       <button
@@ -2096,7 +2081,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Concluídas */}
-                <div className="kanban-column rounded-lg p-4 min-w-80">
+                <div className="kanban-column rounded-lg p-4 w-full min-h-fit">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-2">
                       <button
@@ -2201,7 +2186,7 @@ export default function Dashboard() {
 
                 {/* Excluídas - só mostrar se showDeleted for true */}
                 {showDeleted && (
-                  <div className="kanban-column rounded-lg p-4 min-w-80">
+                  <div className="kanban-column rounded-lg p-4 w-full min-h-fit">
                   <div className="flex items-center justify-between mb-4">
                     <h3
                       className="font-semibold text-sm"

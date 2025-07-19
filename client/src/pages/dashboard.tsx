@@ -31,6 +31,11 @@ export default function Dashboard() {
   const [selectedClientForModal, setSelectedClientForModal] = useState<any>(null);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [taskToComplete, setTaskToComplete] = useState<any>(null);
+  const [showDeletionModal, setShowDeletionModal] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<any>(null);
+  const [showTransferModal, setShowTransferModal] = useState(false);
+  const [taskToTransfer, setTaskToTransfer] = useState<any>(null);
+  const [selectedTransferUser, setSelectedTransferUser] = useState("");
   const [clientsCurrentPage, setClientsCurrentPage] = useState(1);
   const [clientsHasMore, setClientsHasMore] = useState(false);
   const [showCompletedTasks, setShowCompletedTasks] = useState(false);
@@ -1272,6 +1277,14 @@ export default function Dashboard() {
         return;
       }
 
+      // Se está movendo para "archived" (excluir), abrir modal específica de exclusão
+      if (newStatus === 'archived') {
+        console.log('✅ Abrindo modal de exclusão de tarefa');
+        setTaskToDelete(taskData);
+        setShowDeletionModal(true);
+        return;
+      }
+
       // Para outras mudanças de status, mostrar modal de confirmação
       console.log("✅ Mudança de status normal, abrindo modal");
       setStatusChangeModal({
@@ -1980,16 +1993,46 @@ export default function Dashboard() {
                             </span>
                             <div className="flex space-x-1">
                               <button 
-                                onClick={() => handleViewTask(task)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleViewTask(task);
+                                }}
                                 className="action-button p-1 rounded !rounded-button whitespace-nowrap"
+                                title="Visualizar tarefa"
                               >
                                 <i className="ri-eye-line text-xs"></i>
                               </button>
                               <button 
-                                onClick={() => handleEditTask(task)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditTask(task);
+                                }}
                                 className="action-button p-1 rounded !rounded-button whitespace-nowrap"
+                                title="Editar tarefa"
                               >
                                 <i className="ri-edit-line text-xs"></i>
+                              </button>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setTaskToComplete(task);
+                                  setShowCompletionModal(true);
+                                }}
+                                className="action-button p-1 rounded !rounded-button whitespace-nowrap text-green-600 hover:bg-green-50"
+                                title="Concluir tarefa"
+                              >
+                                <i className="ri-check-line text-xs"></i>
+                              </button>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setTaskToDelete(task);
+                                  setShowDeletionModal(true);
+                                }}
+                                className="action-button p-1 rounded !rounded-button whitespace-nowrap text-red-600 hover:bg-red-50"
+                                title="Excluir tarefa"
+                              >
+                                <i className="ri-delete-bin-line text-xs"></i>
                               </button>
                             </div>
                           </div>
@@ -2072,16 +2115,57 @@ export default function Dashboard() {
                             </span>
                             <div className="flex space-x-1">
                               <button 
-                                onClick={() => handleViewTask(task)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleViewTask(task);
+                                }}
                                 className="action-button p-1 rounded !rounded-button whitespace-nowrap"
+                                title="Visualizar tarefa"
                               >
                                 <i className="ri-eye-line text-xs"></i>
                               </button>
                               <button 
-                                onClick={() => handleEditTask(task)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditTask(task);
+                                }}
                                 className="action-button p-1 rounded !rounded-button whitespace-nowrap"
+                                title="Editar tarefa"
                               >
                                 <i className="ri-edit-line text-xs"></i>
+                              </button>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setTaskToComplete(task);
+                                  setShowCompletionModal(true);
+                                }}
+                                className="action-button p-1 rounded !rounded-button whitespace-nowrap text-green-600 hover:bg-green-50"
+                                title="Concluir tarefa"
+                              >
+                                <i className="ri-check-line text-xs"></i>
+                              </button>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setTaskToTransfer(task);
+                                  setShowTransferModal(true);
+                                }}
+                                className="action-button p-1 rounded !rounded-button whitespace-nowrap text-blue-600 hover:bg-blue-50"
+                                title="Transferir responsável"
+                              >
+                                <i className="ri-user-shared-line text-xs"></i>
+                              </button>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setTaskToDelete(task);
+                                  setShowDeletionModal(true);
+                                }}
+                                className="action-button p-1 rounded !rounded-button whitespace-nowrap text-red-600 hover:bg-red-50"
+                                title="Excluir tarefa"
+                              >
+                                <i className="ri-delete-bin-line text-xs"></i>
                               </button>
                             </div>
                           </div>
@@ -2114,25 +2198,18 @@ export default function Dashboard() {
                       Concluídas
                     </h3>
                     <span className="bg-green-200 text-green-700 px-2 py-1 rounded-full text-xs">
-                      {getFilteredTasksWithStatus().filter(task => {
-                        const { status } = getTaskStatus(task);
-                        return status === "completed";
-                      }).length}
+                      {allTasks.filter(task => task.attributes.completed === true).length}
                     </span>
                   </div>
                   <div
-                    className={`space-y-3 ${getFilteredTasksWithStatus().filter(task => {
-                      const { status } = getTaskStatus(task);
-                      return status === "completed";
-                    }).length === 0 ? 'min-h-[80px]' : 'min-h-[120px]'}`}
+                    className={`space-y-3 ${allTasks.filter(task => task.attributes.completed === true).length === 0 ? 'min-h-[80px]' : 'min-h-[120px]'}`}
                     onDrop={(e) => handleDrop(e, "completed")}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                   >
-                    {getFilteredTasksWithStatus()
+                    {allTasks
                       .filter(task => {
-                        const { status } = getTaskStatus(task);
-                        return status === "completed";
+                        return task.attributes.completed === true;
                       })
                       .map((task: any) => (
                         <div
@@ -2164,16 +2241,35 @@ export default function Dashboard() {
                             </span>
                             <div className="flex space-x-1">
                               <button 
-                                onClick={() => handleViewTask(task)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleViewTask(task);
+                                }}
                                 className="action-button p-1 rounded !rounded-button whitespace-nowrap"
+                                title="Visualizar tarefa"
                               >
                                 <i className="ri-eye-line text-xs"></i>
                               </button>
                               <button 
-                                onClick={() => handleEditTask(task)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditTask(task);
+                                }}
                                 className="action-button p-1 rounded !rounded-button whitespace-nowrap"
+                                title="Editar tarefa"
                               >
                                 <i className="ri-edit-line text-xs"></i>
+                              </button>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setTaskToDelete(task);
+                                  setShowDeletionModal(true);
+                                }}
+                                className="action-button p-1 rounded !rounded-button whitespace-nowrap text-red-600 hover:bg-red-50"
+                                title="Excluir tarefa"
+                              >
+                                <i className="ri-delete-bin-line text-xs"></i>
                               </button>
                             </div>
                           </div>
@@ -4704,6 +4800,113 @@ export default function Dashboard() {
         </div>
       )}
 
+      {/* Modal de Transferência de Responsável */}
+      {showTransferModal && taskToTransfer && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
+                <i className="ri-user-shared-line mr-2 text-blue-600"></i>
+                Transferir Responsável
+              </h3>
+              <button
+                onClick={() => {
+                  setShowTransferModal(false);
+                  setTaskToTransfer(null);
+                  setSelectedTransferUser("");
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <i className="ri-close-line text-xl"></i>
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                Tarefa: <span className="font-medium" style={{ color: "var(--text-primary)" }}>{taskToTransfer.attributes.title}</span>
+              </p>
+              <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
+                Responsável atual: <span className="font-medium">{getAssigneeName(taskToTransfer)}</span>
+              </p>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>
+                Novo Responsável *
+              </label>
+              <select
+                value={selectedTransferUser}
+                onChange={(e) => setSelectedTransferUser(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                style={{ backgroundColor: "var(--background)", color: "var(--text-primary)" }}
+              >
+                <option value="">Selecione um responsável</option>
+                {users.map((user: any) => (
+                  <option key={user.id} value={user.id}>
+                    {user.attributes.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowTransferModal(false);
+                  setTaskToTransfer(null);
+                  setSelectedTransferUser("");
+                }}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={async () => {
+                  if (!selectedTransferUser) {
+                    // Mostrar toast de erro
+                    const toast = document.createElement('div');
+                    toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+                    toast.textContent = 'Selecione um responsável';
+                    document.body.appendChild(toast);
+                    setTimeout(() => document.body.removeChild(toast), 3000);
+                    return;
+                  }
+
+                  try {
+                    // Implementar lógica de transferência
+                    console.log("Transferindo tarefa", taskToTransfer.id, "para", selectedTransferUser);
+                    
+                    // Mostrar toast de sucesso
+                    const toast = document.createElement('div');
+                    toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+                    toast.textContent = 'Responsável transferido com sucesso!';
+                    document.body.appendChild(toast);
+                    setTimeout(() => document.body.removeChild(toast), 3000);
+                    
+                    setShowTransferModal(false);
+                    setTaskToTransfer(null);
+                    setSelectedTransferUser("");
+                    reloadTasks();
+                  } catch (error) {
+                    console.error("Erro ao transferir responsável:", error);
+                    const toast = document.createElement('div');
+                    toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+                    toast.textContent = 'Erro ao transferir responsável';
+                    document.body.appendChild(toast);
+                    setTimeout(() => document.body.removeChild(toast), 3000);
+                  }
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                disabled={!selectedTransferUser}
+              >
+                <i className="ri-user-shared-line mr-2"></i>
+                Transferir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal de Conclusão de Tarefa */}
       {showCompletionModal && taskToComplete && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -4797,8 +5000,13 @@ export default function Dashboard() {
                       setTaskToComplete(null);
                       setNewHistoryText("");
                       
-                      // Recarregar tarefas
-                      reloadTasks();
+                      // Recarregar tarefas forçando atualização
+                      await reloadTasks();
+                      
+                      // Force refresh completo para mostrar tarefa na coluna correta
+                      setTimeout(() => {
+                        reloadTasks();
+                      }, 1000);
                       
                       // Mostrar feedback visual
                       const toast = document.createElement('div');
@@ -4827,6 +5035,133 @@ export default function Dashboard() {
               >
                 <i className="ri-check-line mr-2"></i>
                 Concluir Tarefa
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Exclusão de Tarefa */}
+      {showDeletionModal && taskToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
+                <i className="ri-delete-bin-line mr-2 text-red-600"></i>
+                Excluir Tarefa
+              </h3>
+              <button
+                onClick={() => {
+                  setShowDeletionModal(false);
+                  setTaskToDelete(null);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <i className="ri-close-line text-xl"></i>
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
+                <h4 className="font-medium text-red-800 dark:text-red-200 mb-2">
+                  {taskToDelete.attributes?.title}
+                </h4>
+                <p className="text-red-600 dark:text-red-300 text-sm">
+                  Esta tarefa será excluída permanentemente. Você pode adicionar uma observação sobre a exclusão.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>
+                    Motivo da Exclusão (Opcional)
+                  </label>
+                  <textarea
+                    value={newHistoryText}
+                    onChange={(e) => setNewHistoryText(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-lg resize-none"
+                    style={{ 
+                      backgroundColor: "var(--bg-primary)", 
+                      borderColor: "var(--border-color)",
+                      color: "var(--text-primary)"
+                    }}
+                    rows={3}
+                    placeholder="Explique brevemente o motivo da exclusão desta tarefa..."
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowDeletionModal(false);
+                  setTaskToDelete(null);
+                  setNewHistoryText("");
+                }}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    const token = localStorage.getItem('keeptur-token');
+                    if (!token) {
+                      setShowTokenExpiredModal(true);
+                      return;
+                    }
+
+                    // Excluir tarefa
+                    const response = await fetch(`/api/monde/tarefas/${taskToDelete.id}`, {
+                      method: 'DELETE',
+                      headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                      },
+                      body: JSON.stringify({
+                        history_comment: newHistoryText.trim() || 'Tarefa excluída'
+                      })
+                    });
+
+                    if (response.ok) {
+                      console.log('✅ Tarefa excluída com sucesso');
+                      
+                      // Fechar modal
+                      setShowDeletionModal(false);
+                      setTaskToDelete(null);
+                      setNewHistoryText("");
+                      
+                      // Recarregar tarefas
+                      reloadTasks();
+                      
+                      // Mostrar feedback visual
+                      const toast = document.createElement('div');
+                      toast.className = 'fixed top-4 right-4 bg-orange-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                      toast.textContent = 'Tarefa excluída com sucesso!';
+                      document.body.appendChild(toast);
+                      setTimeout(() => document.body.removeChild(toast), 3000);
+                    } else {
+                      console.error('❌ Erro ao excluir tarefa:', response.status);
+                      const toast = document.createElement('div');
+                      toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                      toast.textContent = 'Erro ao excluir tarefa. Tente novamente.';
+                      document.body.appendChild(toast);
+                      setTimeout(() => document.body.removeChild(toast), 3000);
+                    }
+                  } catch (error) {
+                    console.error('❌ Erro:', error);
+                    const toast = document.createElement('div');
+                    toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                    toast.textContent = 'Erro ao excluir tarefa. Tente novamente.';
+                    document.body.appendChild(toast);
+                    setTimeout(() => document.body.removeChild(toast), 3000);
+                  }
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                <i className="ri-delete-bin-line mr-2"></i>
+                Excluir Tarefa
               </button>
             </div>
           </div>

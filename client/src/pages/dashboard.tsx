@@ -619,10 +619,13 @@ export default function Dashboard() {
       console.log('- Users carregados:', users.length);
       console.log('- UserUUID encontrado:', userUUID);
       
-      // Se não conseguir identificar o usuário, mostrar tarefas ativas
+      // Para "assigned_to_me", usar apenas as tarefas ativas da primeira requisição
       if (!userUUID || users.length === 0) {
-        console.log('⚠️ UserUUID não encontrado, mostrando tarefas ativas como fallback');
-        filtered = allTasks.filter((task: any) => !task.attributes.completed);
+        console.log('⚠️ UserUUID não encontrado, usando apenas tarefas ativas do servidor');
+        console.log('📋 Tasks ativas (primeira requisição):', tasks.length);
+        console.log('📋 AllTasks (com excluídas):', allTasks.length);
+        // Usar apenas tarefas ativas (vêm da primeira requisição que já filtra por usuário)
+        filtered = tasks.length > 0 ? tasks : allTasks.filter((task: any) => !task.attributes.completed);
       } else {
         filtered = allTasks.filter((task: any) => {
           const assigneeId = task.relationships?.assignee?.data?.id;
@@ -1116,7 +1119,9 @@ export default function Dashboard() {
 
   const [statusChangeForm, setStatusChangeForm] = useState({
     datetime: "",
-    comment: ""
+    comment: "",
+    success: "",
+    error: ""
   });
 
   // Função para drag start
@@ -1217,13 +1222,14 @@ export default function Dashboard() {
       const task = statusChangeModal.task;
       const newStatus = statusChangeModal.newStatus;
       
-      // Validar data futura para status "pending"
+      // Validar data futura para status "pending" - APENAS se data foi fornecida
       if (newStatus === "pending" && statusChangeForm.datetime) {
         const selectedDate = new Date(statusChangeForm.datetime);
         const now = new Date();
         
         if (selectedDate <= now) {
-          alert("Para tarefas pendentes, a data deve ser futura para evitar que fique atrasada automaticamente.");
+          console.log("⚠️ Data inválida para tarefa pendente");
+          setStatusChangeForm(prev => ({ ...prev, error: "Para tarefas pendentes, a data deve ser futura para evitar que fique atrasada." }));
           return;
         }
       }
@@ -1276,6 +1282,9 @@ export default function Dashboard() {
 
       const responseData = await response.json();
       console.log("✅ Tarefa atualizada com sucesso:", responseData);
+      
+      // Mostrar toast de sucesso
+      setStatusChangeForm(prev => ({ ...prev, success: "Status alterado com sucesso!" }));
 
       // Registrar no histórico se houver comentário
       if (statusChangeForm.comment) {
@@ -1300,16 +1309,19 @@ export default function Dashboard() {
         }
       }
 
-      // Fechar modal e recarregar tarefas
-      console.log("🔄 Fechando modal e recarregando tarefas...");
-      setStatusChangeModal({ isOpen: false, task: null, newStatus: "", isReopen: false });
-      setStatusChangeForm({ datetime: "", comment: "" });
-      await reloadTasks();
-      console.log("✅ Processo concluído com sucesso!");
+      // Aguardar 2 segundos para mostrar mensagem de sucesso
+      setTimeout(() => {
+        // Fechar modal e recarregar tarefas
+        console.log("🔄 Fechando modal e recarregando tarefas...");
+        setStatusChangeModal({ isOpen: false, task: null, newStatus: "", isReopen: false });
+        setStatusChangeForm({ datetime: "", comment: "", success: "", error: "" });
+        reloadTasks();
+        console.log("✅ Processo concluído com sucesso!");
+      }, 2000);
 
     } catch (error) {
       console.error("❌ Erro ao alterar status:", error);
-      alert(`Erro ao alterar status da tarefa: ${error.message}`);
+      setStatusChangeForm(prev => ({ ...prev, error: `Erro ao alterar status: ${error.message}` }));
     }
   };
 
@@ -4537,13 +4549,32 @@ export default function Dashboard() {
                   placeholder="Adicione uma atualização sobre a mudança de status..."
                 />
               </div>
+
+              {/* Mensagens de sucesso e erro */}
+              {statusChangeForm.success && (
+                <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg text-sm">
+                  <div className="flex items-center">
+                    <i className="ri-check-line mr-2"></i>
+                    {statusChangeForm.success}
+                  </div>
+                </div>
+              )}
+
+              {statusChangeForm.error && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-sm">
+                  <div className="flex items-center">
+                    <i className="ri-error-warning-line mr-2"></i>
+                    {statusChangeForm.error}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end space-x-3 mt-6">
               <button
                 onClick={() => {
                   setStatusChangeModal({ isOpen: false, task: null, newStatus: "", isReopen: false });
-                  setStatusChangeForm({ datetime: "", comment: "" });
+                  setStatusChangeForm({ datetime: "", comment: "", success: "", error: "" });
                 }}
                 className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
               >

@@ -198,7 +198,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Middleware to verify JWT token
+  // Middleware to verify JWT token and handle Monde token expiration
   const authenticateToken = async (req: any, res: any, next: any) => {
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(" ")[1];
@@ -220,7 +220,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Sessão não encontrada" });
       }
 
+      // Check if Monde token is expired
       if (sessao.expires_at && sessao.expires_at < new Date()) {
+        console.log("❌ Token do Monde expirado, necessária reautenticação");
         await storage.deleteSessao(decoded.sessaoId);
         return res.status(401).json({ message: "Token expirado" });
       }

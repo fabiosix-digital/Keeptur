@@ -614,10 +614,21 @@ export default function Dashboard() {
     
     // Aplicar filtros específicos
     if (filter === 'assigned_to_me') {
-      filtered = allTasks.filter((task: any) => {
-        const assigneeId = task.relationships?.assignee?.data?.id;
-        return assigneeId === userUUID;
-      });
+      console.log('🔍 DEBUG FILTRO assigned_to_me:');
+      console.log('- UserEmail:', userEmail);
+      console.log('- Users carregados:', users.length);
+      console.log('- UserUUID encontrado:', userUUID);
+      
+      // Se não conseguir identificar o usuário, mostrar tarefas ativas
+      if (!userUUID || users.length === 0) {
+        console.log('⚠️ UserUUID não encontrado, mostrando tarefas ativas como fallback');
+        filtered = allTasks.filter((task: any) => !task.attributes.completed);
+      } else {
+        filtered = allTasks.filter((task: any) => {
+          const assigneeId = task.relationships?.assignee?.data?.id;
+          return assigneeId === userUUID;
+        });
+      }
     } else if (filter === 'created_by_me') {
       filtered = allTasks.filter((task: any) => {
         const authorId = task.relationships?.author?.data?.id;

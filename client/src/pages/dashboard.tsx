@@ -397,25 +397,44 @@ export default function Dashboard() {
         // Carregar estatísticas de clientes
         await loadClientStats();
 
-        // Processar dados do formato JSON:API do Monde
+        // 🚨 CORREÇÃO CRÍTICA: Evitar duplicação de tarefas
         const allTasksFromServer = tasksResponse?.data || [];
         
-        // Separar tarefas ativas das excluídas
-        const activeTasks = allTasksFromServer.filter((task: any) => 
-          !task.attributes.deleted && !task.attributes.is_deleted
+        // Remover duplicatas baseado no ID único das tarefas
+        const uniqueTasks = allTasksFromServer.filter((task: any, index: number, array: any[]) => 
+          array.findIndex((t: any) => t.id === task.id) === index
         );
         
-        console.log('🎯 Tarefas separadas:', {
-          total: allTasksFromServer.length,
+        // Separar tarefas ativas das excluídas baseado no status REAL da API
+        const activeTasks = uniqueTasks.filter((task: any) => 
+          !task.attributes.deleted && !task.attributes.is_deleted && !task.attributes.completed
+        );
+        
+        // Tarefas concluídas (mas não excluídas)
+        const completedTasks = uniqueTasks.filter((task: any) => 
+          task.attributes.completed && !task.attributes.deleted && !task.attributes.is_deleted
+        );
+        
+        // Tarefas realmente excluídas
+        const deletedTasks = uniqueTasks.filter((task: any) => 
+          task.attributes.deleted || task.attributes.is_deleted
+        );
+        
+        console.log('🎯 Tarefas ÚNICAS separadas corretamente:', {
+          total: uniqueTasks.length,
           ativas: activeTasks.length,
-          excluidas: allTasksFromServer.length - activeTasks.length
+          concluidas: completedTasks.length,
+          excluidas: deletedTasks.length
         });
 
-        // Calcular estatísticas apenas das tarefas ativas para o filtro padrão
-        const realStats = calculateTaskStats(activeTasks);
+        // Combinar ativas + concluídas para exibição normal
+        const visibleTasks = [...activeTasks, ...completedTasks];
+        
+        // Calcular estatísticas apenas das tarefas ativas
+        const realStats = calculateTaskStats(visibleTasks);
 
-        setAllTasks(allTasksFromServer); // Todas (ativas + excluídas) para quando mostrar excluídas
-        setTasks(activeTasks); // Apenas ativas para filtro padrão "Minhas Tarefas"
+        setAllTasks([...visibleTasks, ...deletedTasks]); // Todas únicas
+        setTasks(visibleTasks); // Apenas ativas + concluídas para visualização normal
         
         // Aplicar filtro inicial será feito pelo useEffect do taskFilter
         setCategories(categoriesData?.data || []);
@@ -1016,11 +1035,21 @@ export default function Dashboard() {
     console.log("Deletar tarefa:", taskId);
   };
 
-  // Filtrar tarefas baseado no status e filtros (função principal)
+  // 🚨 FUNÇÃO CORRIGIDA: Evitar duplicação e usar dados corretos
   const getFilteredTasksWithStatus = () => {
-    // IMPORTANTE: Para o Kanban, usar APENAS as tarefas já filtradas pelo filtro principal (tasks)
-    // O array 'tasks' já contém apenas as tarefas filtradas corretamente
-    let filtered = tasks || [];
+    // 1. Escolher fonte de dados correta: tasks (já filtradas) ou allTasks (incluindo excluídas)
+    let sourceTasks = showDeleted ? allTasks : tasks;
+    
+    // 2. Remover duplicatas por ID ANTES de aplicar filtros
+    const uniqueTasksMap = new Map();
+    (sourceTasks || []).forEach((task: any) => {
+      if (task && task.id && !uniqueTasksMap.has(task.id)) {
+        uniqueTasksMap.set(task.id, task);
+      }
+    });
+    let filtered = Array.from(uniqueTasksMap.values());
+    
+    console.log('🔄 getFilteredTasksWithStatus - tarefas únicas:', filtered.length, 'showDeleted:', showDeleted);
 
     // Aplicar filtros secundários
     if (selectedCategory && selectedCategory !== 'all') {
@@ -1072,6 +1101,7 @@ export default function Dashboard() {
       });
     }
 
+    console.log('✅ Tarefas filtradas finais:', filtered.length);
     return filtered;
   };
 
@@ -1090,37 +1120,57 @@ export default function Dashboard() {
     );
   };
 
-  // Função para organizar tarefas por status no Kanban (mantida para compatibilidade)
+  // 🚨 FUNÇÃO CORRIGIDA: Organizar tarefas por status sem duplicação
   const getTasksByStatus = (status: string) => {
-    // Usar TODAS as tarefas combinadas (ativas + excluídas) para o Kanban
-    const allCombinedTasks = allTasks;
+    // Usar tarefas filtradas (que já remove duplicatas)
+    const filteredTasks = getFilteredTasksWithStatus();
+    
+    console.log('🔍 getTasksByStatus para', status, '- total de tarefas:', filteredTasks.length);
 
     switch (status) {
-      case "A Fazer":
-        // Tarefas não concluídas e sem status específico
-        return allCombinedTasks.filter(
-          (task: any) =>
-            !task.attributes.completed &&
-            (!task.attributes.status || task.attributes.status === "pending"),
+      case "pending":
+        // Tarefas pendentes (não concluídas e dentro do prazo)
+        const now = new Date();
+        const pendingTasks = filteredTasks.filter((task: any) => {
+          if (task.attributes.completed) return false;
+          const dueDate = task.attributes.due ? new Date(task.attributes.due) : null;
+          return !dueDate || dueDate >= now;
+        });
+        console.log('📋 Tarefas pendentes encontradas:', pendingTasks.length);
+        return pendingTasks;
+
+      case "overdue":
+        // Tarefas atrasadas (não concluídas e com prazo vencido)
+        const nowOverdue = new Date();
+        const overdueTasks = filteredTasks.filter((task: any) => {
+          if (task.attributes.completed) return false;
+          const dueDate = task.attributes.due ? new Date(task.attributes.due) : null;
+          return dueDate && dueDate < nowOverdue;
+        });
+        console.log('📋 Tarefas atrasadas encontradas:', overdueTasks.length);
+        return overdueTasks;
+
+      case "completed":
+        // Tarefas concluídas
+        const completedTasks = filteredTasks.filter((task: any) => 
+          task.attributes.completed === true
         );
-      case "Em Andamento":
-        // Tarefas com status in_progress
-        return allCombinedTasks.filter(
-          (task: any) =>
-            !task.attributes.completed &&
-            task.attributes.status === "in_progress",
-        );
-      case "Concluído":
-        // Tarefas marcadas como concluídas - usar todas as tarefas combinadas
-        return allCombinedTasks.filter(
-          (task: any) => task.attributes.completed === true,
-        );
-      case "Cancelado":
-        // Tarefas com status cancelled
-        return allCombinedTasks.filter(
-          (task: any) => task.attributes.status === "cancelled",
-        );
+        console.log('📋 Tarefas concluídas encontradas:', completedTasks.length);
+        return completedTasks;
+
+      case "archived":
+        // Tarefas excluídas (só mostrar se estiver em modo showDeleted)
+        if (showDeleted) {
+          const archivedTasks = filteredTasks.filter((task: any) => 
+            task.attributes.deleted || task.attributes.is_deleted
+          );
+          console.log('📋 Tarefas excluídas encontradas:', archivedTasks.length);
+          return archivedTasks;
+        }
+        return [];
+
       default:
+        console.log('⚠️ Status desconhecido:', status);
         return [];
     }
   };
@@ -1231,8 +1281,8 @@ export default function Dashboard() {
     };
   };
 
-  // Aplicar debounce na função reloadTasks
-  const debouncedReloadTasks = debounce(reloadTasks, 500);
+  // 🚨 CORREÇÃO: Debounce otimizado para evitar violation de setTimeout
+  const debouncedReloadTasks = debounce(reloadTasks, 200);
 
   // Função para lidar com mudanças de filtro
   const handleFilterChange = (filterType: string, value: string) => {

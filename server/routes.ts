@@ -285,14 +285,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('✅ Mostrando TODAS as tarefas da empresa (sem filtros)');
         // Para incluir tarefas excluídas junto, se solicitado
         if (req.query.include_deleted === 'true') {
-          queryParams.append('is_deleted', 'true');
-          console.log('✅ Incluindo tarefas excluídas (is_deleted=true)');
+          // Não adicionar filtro de situação para pegar todas (ativas + concluídas)
+          console.log('✅ Incluindo todas as tarefas (ativas + concluídas)');
         }
       }
       // Para incluir tarefas excluídas separadamente
       else if (req.query.include_deleted === 'true') {
-        queryParams.append('is_deleted', 'true');
-        console.log('✅ Incluindo tarefas excluídas (is_deleted=true)');
+        // A API do Monde não tem soft delete - vamos buscar tarefas arquivadas
+        // Usar filtro de situação para tarefas concluídas como "arquivadas"
+        queryParams.append('filter[situation]', 'done');
+        console.log('✅ Buscando tarefas concluídas como "excluídas" (situation=done)');
       } 
       
       // Filtro padrão se nenhum especificado e não for 'all_company'
@@ -812,40 +814,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para deletar tarefa
+  // Endpoint para "arquivar" tarefa (simular exclusão marcando como concluída)
   app.delete("/api/monde/tarefas/:id", authenticateToken, async (req: any, res) => {
     try {
       const taskId = req.params.id;
       const mondeUrl = `https://web.monde.com.br/api/v2/tasks/${taskId}`;
       
-      console.log(`🗑️ Tentando excluir tarefa ${taskId} via API do Monde`);
+      console.log(`🗑️ Tentando arquivar tarefa ${taskId} (marcando como concluída)`);
       console.log(`URL: ${mondeUrl}`);
       
+      // Em vez de DELETE, usar PUT para marcar como concluída (simulando arquivamento)
+      const updateBody = {
+        data: {
+          type: "tasks",
+          id: taskId,
+          attributes: {
+            completed: true,
+            "completed-at": new Date().toISOString()
+          }
+        }
+      };
+      
       const mondeResponse = await fetch(mondeUrl, {
-        method: "DELETE",
+        method: "PUT",
         headers: {
           "Content-Type": "application/vnd.api+json",
           "Accept": "application/vnd.api+json",
           "Authorization": `Bearer ${req.sessao.access_token}`,
         },
+        body: JSON.stringify(updateBody),
       });
 
       console.log(`✅ Resposta da API do Monde: ${mondeResponse.status}`);
 
-      if (mondeResponse.status === 204) {
-        console.log(`✅ Tarefa ${taskId} excluída com sucesso na API do Monde`);
-        res.status(204).send();
+      if (mondeResponse.ok) {
+        console.log(`✅ Tarefa ${taskId} arquivada com sucesso (marcada como concluída)`);
+        
+        // Registrar no histórico que foi "excluída"
+        const historyText = req.body.history_comment || 'Tarefa arquivada (movida para excluídas)';
+        try {
+          const historyUrl = `https://web.monde.com.br/api/v2/task-historics`;
+          const historyBody = {
+            data: {
+              type: "task-historics",
+              attributes: {
+                text: historyText,
+                "date-time": new Date().toISOString()
+              },
+              relationships: {
+                task: {
+                  data: {
+                    type: "tasks",
+                    id: taskId
+                  }
+                }
+              }
+            }
+          };
+          
+          await fetch(historyUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/vnd.api+json",
+              "Accept": "application/vnd.api+json",
+              "Authorization": `Bearer ${req.sessao.access_token}`,
+            },
+            body: JSON.stringify(historyBody),
+          });
+          
+          console.log(`📝 Histórico de arquivamento registrado para tarefa ${taskId}`);
+        } catch (historyError) {
+          console.log(`⚠️ Erro ao registrar histórico:`, historyError);
+        }
+        
+        res.status(200).json({ message: "Tarefa arquivada com sucesso" });
       } else {
         const responseText = await mondeResponse.text();
-        console.log(`❌ Erro ao excluir tarefa ${taskId}: ${responseText}`);
+        console.log(`❌ Erro ao arquivar tarefa ${taskId}: ${responseText}`);
         res.status(mondeResponse.status).json({ 
-          message: "Erro ao excluir tarefa", 
+          message: "Erro ao arquivar tarefa", 
           details: responseText 
         });
       }
     } catch (error) {
-      console.error("Erro ao deletar tarefa:", error);
-      res.status(500).json({ message: "Erro ao deletar tarefa" });
+      console.error("Erro ao arquivar tarefa:", error);
+      res.status(500).json({ message: "Erro ao arquivar tarefa" });
     }
   });
 

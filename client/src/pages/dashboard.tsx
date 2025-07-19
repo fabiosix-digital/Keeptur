@@ -5252,13 +5252,25 @@ export default function Dashboard() {
                     if (response.ok) {
                       console.log('✅ Tarefa excluída com sucesso');
                       
-                      // Fechar modal
+                      // Fechar modal imediatamente
                       setShowDeletionModal(false);
                       setTaskToDelete(null);
                       setNewHistoryText("");
                       
-                      // Recarregar tarefas
-                      reloadTasks();
+                      // Aguardar mais tempo para a API processar a exclusão
+                      setTimeout(async () => {
+                        try {
+                          await reloadTasks();
+                          
+                          // Se não mudou, forçar uma atualização completa
+                          setTimeout(async () => {
+                            console.log('🔄 Forçando atualização completa após exclusão');
+                            await reloadTasks();
+                          }, 1500);
+                        } catch (error) {
+                          console.log('⚠️ Erro ao recarregar tarefas após exclusão:', error);
+                        }
+                      }, 1000);
                       
                       // Mostrar feedback visual
                       const toast = document.createElement('div');

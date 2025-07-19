@@ -427,73 +427,32 @@ export default function Dashboard() {
           });
         }
         
-        // 🚨 DESCOBERTA CRÍTICA: 
-        // A API do Monde não diferencia tarefas "concluídas" de "excluídas"
-        // Ambas aparecem como completed: true
-        // SOLUÇÃO: Buscar tarefas ativas separadamente para fazer distinção
+        // 🚨 CORREÇÃO DEFINITIVA baseada na documentação oficial do Monde:
+        // 1. Tarefas excluídas NÃO são retornadas pela API (hard delete)
+        // 2. Tarefas na resposta são apenas: ativas (completed=false) ou concluídas (completed=true)
+        // 3. Não existe campo "deleted" ou status de exclusão
         
-        console.log('🔍 SOLUÇÃO: Carregando tarefas ATIVAS para distinção...');
-        let activeTaskIds = new Set();
-        let reallyCompletedTaskIds = new Set();
+        console.log('🎯 IMPLEMENTAÇÃO CORRETA: Apenas ativas e concluídas (sem excluídas)');
         
-        try {
-          // 🚨 DESCOBERTA: API retorna as mesmas tarefas para open e done
-          // NOVA SOLUÇÃO: Usar lógica baseada em completed-at timestamp
-          
-          console.log('🔍 NOVA ABORDAGEM: Analisando completed-at timestamps...');
-          
-          uniqueTasks.forEach((task: any, index: number) => {
-            const attrs = task.attributes;
-            const completedAt = attrs['completed-at'];
-            const isCompleted = attrs.completed;
-            
-            console.log(`📋 Análise Tarefa ${index + 1} (${attrs.title}):`);
-            console.log(`  - completed: ${isCompleted}`);
-            console.log(`  - completed-at: ${completedAt}`);
-            
-            // Lógica: Se completed=true E tem completed-at, é REALMENTE concluída
-            // Se completed=true mas SEM completed-at, provavelmente foi excluída
-            if (isCompleted && completedAt) {
-              reallyCompletedTaskIds.add(task.id);
-              console.log(`  ✅ → CONCLUÍDA (tem timestamp de conclusão)`);
-            } else if (!isCompleted) {
-              activeTaskIds.add(task.id);
-              console.log(`  📋 → ATIVA (não concluída)`);
-            } else {
-              console.log(`  🗑️ → POSSIVELMENTE EXCLUÍDA (completed=true, mas sem completed-at)`);
-            }
-          });
-          
-          console.log('🎯 ANÁLISE FINAL - Tarefas por tipo:');
-          console.log('✅ Ativas (completed=false):', activeTaskIds.size);
-          console.log('✅ Concluídas (completed=true + completed-at):', reallyCompletedTaskIds.size);
-          
-        } catch (error) {
-          console.log('⚠️ Erro na análise, usando fallback simples');
-        }
-        
-        // Separar tarefas baseado na distinção REAL
+        // Separar tarefas usando APENAS os campos oficiais do Monde
         const activeTasks = uniqueTasks.filter((task: any) => 
-          activeTaskIds.has(task.id) || (!task.attributes.completed && !reallyCompletedTaskIds.has(task.id))
+          !task.attributes.completed  // completed = false = ATIVA
         );
         
-        // Tarefas realmente concluídas (não excluídas)
         const completedTasks = uniqueTasks.filter((task: any) => 
-          reallyCompletedTaskIds.has(task.id)
+          task.attributes.completed   // completed = true = CONCLUÍDA
         );
         
-        // 🚨 CORREÇÃO FINAL: Tarefas excluídas = completed:true MAS SEM completed-at
-        const deletedTasks = uniqueTasks.filter((task: any) => 
-          task.attributes.completed && !task.attributes['completed-at']
-        );
+        // Tarefas excluídas NÃO existem na resposta da API
+        const deletedTasks: any[] = [];
         
-        console.log('🎯 CORREÇÃO - Separação correta por situação:', {
+        console.log('🎯 SEPARAÇÃO OFICIAL baseada na API do Monde:', {
           ativas: activeTasks.length,
-          realmente_concluidas: completedTasks.length, 
-          realmente_excluidas: deletedTasks.length
+          concluidas: completedTasks.length,
+          excluidas: deletedTasks.length // Sempre 0 - API não retorna excluídas
         });
         
-        console.log('🎯 Tarefas ÚNICAS separadas corretamente:', {
+        console.log('🎯 Tarefas separadas conforme API oficial do Monde:', {
           total: uniqueTasks.length,
           ativas: activeTasks.length,
           concluidas: completedTasks.length,
@@ -1232,14 +1191,9 @@ export default function Dashboard() {
         return completedTasks;
 
       case "archived":
-        // Tarefas excluídas (só mostrar se estiver em modo showDeleted)
-        if (showDeleted) {
-          const archivedTasks = filteredTasks.filter((task: any) => 
-            task.attributes.deleted || task.attributes.is_deleted
-          );
-          console.log('📋 Tarefas excluídas encontradas:', archivedTasks.length);
-          return archivedTasks;
-        }
+        // 🚨 CORREÇÃO: API do Monde não retorna tarefas excluídas
+        // Tarefas excluídas são removidas via hard delete (DELETE /api/v2/tasks/:id)
+        console.log('📋 Tarefas excluídas: 0 (API do Monde não retorna tarefas excluídas)');
         return [];
 
       default:

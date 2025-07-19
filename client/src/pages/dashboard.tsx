@@ -559,50 +559,10 @@ export default function Dashboard() {
       // Salvar dados incluídos no localStorage para uso nas funções getPerson
       localStorage.setItem('lastTasksResponse', JSON.stringify(data));
       
-      // Agora carregar tarefas excluídas separadamente
-      const deletedUrl = `/api/monde/tarefas?include_deleted=true`;
-      console.log('🗑️ Carregando tarefas excluídas...');
-
-      const deletedResponse = await fetch(deletedUrl, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (deletedResponse.ok) {
-        const deletedData = await deletedResponse.json();
-        console.log('✅ Tarefas excluídas carregadas:', deletedData.data?.length || 0);
-        
-        // Combinar tarefas ativas e excluídas evitando duplicatas
-        const activeTasks = data.data || [];
-        const deletedTasks = deletedData.data || [];
-        
-        // Separar corretamente tarefas ativas das excluídas
-        const reallyActiveTasks = activeTasks.filter((task: any) => 
-          !task.attributes.deleted && !task.attributes.is_deleted
-        );
-        
-        const reallyDeletedTasks = deletedTasks.filter((task: any) => 
-          task.attributes.deleted || task.attributes.is_deleted
-        );
-        
-        const allTasks = [...reallyActiveTasks, ...reallyDeletedTasks];
-        
-        // Remover duplicatas baseado no ID
-        const uniqueTasks = allTasks.filter((task, index, self) => 
-          index === self.findIndex(t => t.id === task.id)
-        );
-        
-        console.log('📊 Total de tarefas combinadas:', uniqueTasks.length, '(ativas:', reallyActiveTasks.length, '+ excluídas:', reallyDeletedTasks.length, ')');
-        
-        // Para mostrar estatísticas corretas, separar apenas as ativas
-        return { 
-          data: uniqueTasks,
-          activeTasks: reallyActiveTasks,
-          deletedTasks: reallyDeletedTasks
-        };
-      } else {
-        console.warn('⚠️ Erro ao carregar tarefas excluídas, continuando apenas com ativas');
-        return data;
-      }
+      // 🚨 SIMPLIFICAÇÃO: API do Monde não tem tarefas excluídas (hard delete)
+      // Retornar apenas as tarefas ativas/concluídas da resposta
+      console.log('✅ Sistema simplificado: usando apenas tarefas da API (ativas + concluídas)');
+      return data;
     } catch (error) {
       console.error("Erro ao carregar tarefas:", error);
       return { data: [] };
@@ -1203,9 +1163,10 @@ export default function Dashboard() {
         return completedTasks;
 
       case "archived":
-        // 🚨 CORREÇÃO: API do Monde não retorna tarefas excluídas
-        // Tarefas excluídas são removidas via hard delete (DELETE /api/v2/tasks/:id)
-        console.log('📋 Tarefas EXCLUÍDAS: 0 (API do Monde não retorna tarefas excluídas)');
+        // 🚨 CORREÇÃO DEFINITIVA: API do Monde NÃO TEM tarefas excluídas
+        // Tarefas excluídas são removidas definitivamente (hard delete)
+        // Esta coluna sempre retorna 0 tarefas conforme documentação oficial
+        console.log('📋 Tarefas EXCLUÍDAS: 0 (API do Monde não mantém tarefas excluídas - hard delete)');
         return [];
 
       default:

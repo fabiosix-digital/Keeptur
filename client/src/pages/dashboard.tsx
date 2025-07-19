@@ -1197,6 +1197,22 @@ export default function Dashboard() {
       const task = statusChangeModal.task;
       const newStatus = statusChangeModal.newStatus;
       
+      // Validar data futura para status "pending"
+      if (newStatus === "pending" && statusChangeForm.datetime) {
+        const selectedDate = new Date(statusChangeForm.datetime);
+        const now = new Date();
+        
+        if (selectedDate <= now) {
+          alert("Para tarefas pendentes, a data deve ser futura para evitar que fique atrasada automaticamente.");
+          return;
+        }
+      }
+
+      console.log("🔍 Iniciando alteração de status...");
+      console.log("📋 Tarefa:", task.id, task.attributes?.title);
+      console.log("🎯 Status atual → novo:", getTaskStatus(task, tasks, []).status, "→", newStatus);
+      console.log("🕐 Data/hora:", statusChangeForm.datetime);
+      
       // Preparar body da requisição baseado na estrutura esperada pelo servidor
       const requestBody: any = {
         title: task.attributes?.title || task.attributes?.name || "",
@@ -1222,13 +1238,21 @@ export default function Dashboard() {
         body: JSON.stringify(requestBody),
       });
 
+      console.log("📡 Resposta da API:", response.status, response.statusText);
+
       if (!response.ok) {
-        throw new Error("Erro ao atualizar tarefa");
+        const errorText = await response.text();
+        console.error("❌ Erro na API:", errorText);
+        throw new Error(`Erro ao atualizar tarefa: ${response.status} - ${errorText}`);
       }
+
+      const responseData = await response.json();
+      console.log("✅ Tarefa atualizada com sucesso:", responseData);
 
       // Registrar no histórico se houver comentário
       if (statusChangeForm.comment) {
-        await fetch(`/api/monde/task-historics`, {
+        console.log("📝 Registrando no histórico...");
+        const historyResponse = await fetch(`/api/monde/task-historics`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -1240,16 +1264,24 @@ export default function Dashboard() {
             action: `Status alterado para: ${getStatusDisplayName(newStatus)}`
           }),
         });
+        
+        if (historyResponse.ok) {
+          console.log("✅ Histórico salvo com sucesso");
+        } else {
+          console.log("⚠️ Erro ao salvar histórico, mas tarefa foi atualizada");
+        }
       }
 
       // Fechar modal e recarregar tarefas
+      console.log("🔄 Fechando modal e recarregando tarefas...");
       setStatusChangeModal({ isOpen: false, task: null, newStatus: "", isReopen: false });
       setStatusChangeForm({ datetime: "", comment: "" });
       await reloadTasks();
+      console.log("✅ Processo concluído com sucesso!");
 
     } catch (error) {
-      console.error("Erro ao alterar status:", error);
-      alert("Erro ao alterar status da tarefa. Tente novamente.");
+      console.error("❌ Erro ao alterar status:", error);
+      alert(`Erro ao alterar status da tarefa: ${error.message}`);
     }
   };
 
@@ -4452,11 +4484,14 @@ export default function Dashboard() {
                   onChange={(e) => setStatusChangeForm({...statusChangeForm, datetime: e.target.value})}
                   className="w-full px-3 py-2 border rounded-lg"
                   required
+                  min={statusChangeModal.newStatus === "pending" ? new Date().toISOString().slice(0, 16) : ""}
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  {statusChangeModal.isReopen 
-                    ? "Obrigatório para reabertura de tarefas"
-                    : "Obrigatório para mudança de status"
+                  {statusChangeModal.newStatus === "pending" 
+                    ? "⚠️ Para tarefas pendentes, a data deve ser FUTURA para evitar ficar atrasada"
+                    : statusChangeModal.isReopen 
+                      ? "Obrigatório para reabertura de tarefas"
+                      : "Obrigatório para mudança de status"
                   }
                 </p>
               </div>

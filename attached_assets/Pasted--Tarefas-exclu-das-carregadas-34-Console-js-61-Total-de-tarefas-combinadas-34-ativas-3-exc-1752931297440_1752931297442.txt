@@ -1,0 +1,66 @@
+✅ Tarefas excluídas carregadas: 34
+Console.js:61 📊 Total de tarefas combinadas: 34 (ativas: 3 + excluídas: 34 )
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 3
+_app-f10df38f71c1285f.js:38 [Violation] 'setTimeout' handler took 55ms
+[Violation] Forced reflow while executing JavaScript took 31ms
+Console.js:61 🔄 Carregando todas as tarefas da empresa...
+Console.js:61 ✅ Tarefas carregadas: 3
+Console.js:61 🗑️ Carregando tarefas excluídas...
+Console.js:61 ✅ Tarefas excluídas carregadas: 34
+Console.js:61 📊 Total de tarefas combinadas: 34 (ativas: 3 + excluídas: 34 )
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 3
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.
+e @ frame_ant.js:2
+s @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+s @ frame_ant.js:2
+window.fetch @ frame_ant.js:2
+(anônimo) @ _app-f10df38f71c1285f.js:38
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+e.consumeQueue @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:25
+n @ _app-f10df38f71c1285f.js:38
+setTimeout
+(anônimo) @ _app-f10df38f71c1285f.js:38
+e.scheduleQueueConsumption @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+e.try @ _app-f10df38f71c1285f.js:25
+e.start @ _app-f10df38f71c1285f.js:25
+t.request @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:14
+e.execute @ _app-f10df38f71c1285f.js:14
+e.getObservableFromLink @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+s @ _app-f10df38f71c1285f.js:11
+e.mutate @ _app-f10df38f71c1285f.js:11
+e.mutate @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:40
+(anônimo) @ main-b79515c1024d334e.js:1
+n @ main-b79515c1024d334e.js:1
+u @ main-b79515c1024d334e.js:1
+(anônimo) @ main-b79515c1024d334e.js:1
+(anônimo) @ main-b79515c1024d334e.js:1
+n @ _app-f10df38f71c1285f.js:38Entenda o erro

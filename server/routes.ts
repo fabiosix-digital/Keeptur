@@ -823,14 +823,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`🗑️ Tentando arquivar tarefa ${taskId} (marcando como concluída)`);
       console.log(`URL: ${mondeUrl}`);
       
-      // Em vez de DELETE, usar PUT para marcar como concluída (simulando arquivamento)
+      // Tentar duas abordagens: 1) usar visualized como "arquivado" ou 2) completed
+      // Como exclusão ≠ conclusão, vou tentar marcar como visualized=false (oculta) primeiro
       const updateBody = {
         data: {
           type: "tasks",
           id: taskId,
           attributes: {
-            completed: true,
-            "completed-at": new Date().toISOString()
+            title: "TASK_TO_DELETE_" + taskId, // Marcar título para identificar
+            visualized: false // Tentar ocultar tarefa
           }
         }
       };

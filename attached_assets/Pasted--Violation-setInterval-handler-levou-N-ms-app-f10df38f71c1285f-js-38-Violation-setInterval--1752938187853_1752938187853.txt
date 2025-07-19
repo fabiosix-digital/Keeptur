@@ -1,0 +1,71 @@
+[Violation] 'setInterval' handler levou <N> ms
+_app-f10df38f71c1285f.js:38 [Violation] 'setInterval' handler took 57ms
+_app-f10df38f71c1285f.js:6 [Violation] 'setInterval' handler took 62ms
+_app-f10df38f71c1285f.js:6 [Violation] 'setInterval' handler took 61ms
+_app-f10df38f71c1285f.js:38 [Violation] 'setInterval' handler took 58ms
+_app-f10df38f71c1285f.js:6 [Violation] 'setInterval' handler took 60ms
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.
+e @ frame_ant.js:2
+s @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+s @ frame_ant.js:2
+window.fetch @ frame_ant.js:2
+(anônimo) @ _app-f10df38f71c1285f.js:38
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+e.consumeQueue @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:25
+n @ _app-f10df38f71c1285f.js:38
+setTimeout
+(anônimo) @ _app-f10df38f71c1285f.js:38
+e.scheduleQueueConsumption @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+e.try @ _app-f10df38f71c1285f.js:25
+e.start @ _app-f10df38f71c1285f.js:25
+t.request @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:14
+e.execute @ _app-f10df38f71c1285f.js:14
+e.getObservableFromLink @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+s @ _app-f10df38f71c1285f.js:11
+e.mutate @ _app-f10df38f71c1285f.js:11
+e.mutate @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:40
+(anônimo) @ main-b79515c1024d334e.js:1
+n @ main-b79515c1024d334e.js:1
+u @ main-b79515c1024d334e.js:1
+(anônimo) @ main-b79515c1024d334e.js:1
+(anônimo) @ main-b79515c1024d334e.js:1
+(anônimo) @ _app-f10df38f71c1285f.js:40
+v @ _app-f10df38f71c1285f.js:14
+S @ _app-f10df38f71c1285f.js:14
+E @ _app-f10df38f71c1285f.js:14
+n @ _app-f10df38f71c1285f.js:38
+setTimeout
+(anônimo) @ _app-f10df38f71c1285f.js:38
+E @ _app-f10df38f71c1285f.js:14
+n @ _app-f10df38f71c1285f.js:38
+setTimeout
+(anônimo) @ _app-f10df38f71c1285f.js:38
+_ @ _app-f10df38f71c1285f.js:14
+n @ _app-f10df38f71c1285f.js:38Entenda o erro

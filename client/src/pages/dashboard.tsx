@@ -642,10 +642,13 @@ export default function Dashboard() {
         console.log('⚠️ UserUUID não encontrado, usando apenas tarefas ativas do servidor');
         console.log('📋 Tasks ativas (primeira requisição):', tasks.length);
         console.log('📋 AllTasks (com excluídas):', allTasks.length);
-        // 🎯 CORREÇÃO: Se o servidor retornou tarefas filtradas, usar elas; senão filtrar localmente
-        // O servidor já filtra por usuário quando usa filter[assigned]=user_tasks
-        // SEMPRE usar apenas as tarefas do usuário logado (filtradas pelo servidor)
+        // 🎯 CORREÇÃO: Sempre usar as tarefas do usuário, se vazias recarregar
         console.log('✅ Usando tarefas filtradas do usuário logado:', tasks.length);
+        // Se não temos tarefas do usuário mas temos tarefas gerais, pode ter problema de filtro
+        if ((tasks || []).length === 0 && allTasks.length > 0) {
+          console.log('⚠️ Tarefas do usuário vazias mas allTasks tem dados, recarregando...');
+          reloadTasks();
+        }
         filtered = tasks || [];
       } else {
         // Filtrar pelo userUUID nas tarefas do usuário
@@ -1248,14 +1251,20 @@ export default function Dashboard() {
       const task = statusChangeModal.task;
       const newStatus = statusChangeModal.newStatus;
       
-      // Validar data futura para status "pending" - APENAS se data foi fornecida
-      if (newStatus === "pending" && statusChangeForm.datetime) {
+      // Validações de data baseadas no status
+      if (statusChangeForm.datetime) {
         const selectedDate = new Date(statusChangeForm.datetime);
         const now = new Date();
         
-        if (selectedDate <= now) {
+        if (newStatus === "pending" && selectedDate <= now) {
           console.log("⚠️ Data inválida para tarefa pendente");
           setStatusChangeForm(prev => ({ ...prev, error: "Para tarefas pendentes, a data deve ser futura para evitar que fique atrasada." }));
+          return;
+        }
+        
+        if (newStatus === "overdue" && selectedDate >= now) {
+          console.log("⚠️ Data inválida para tarefa atrasada");
+          setStatusChangeForm(prev => ({ ...prev, error: "Para tarefas atrasadas, a data deve ser no passado (antes da data/hora atual)." }));
           return;
         }
       }
@@ -1906,7 +1915,10 @@ export default function Dashboard() {
                   </div>
                   {!collapsedColumns.pending && (
                     <div
-                      className="space-y-3 min-h-[120px]"
+                      className={`space-y-3 ${getFilteredTasksWithStatus().filter(task => {
+                        const { status } = getTaskStatus(task);
+                        return status === "pending";
+                      }).length === 0 ? 'min-h-[80px]' : 'min-h-[120px]'}`}
                       onDrop={(e) => handleDrop(e, "pending")}
                       onDragOver={handleDragOver}
                       onDragLeave={handleDragLeave}
@@ -2005,7 +2017,10 @@ export default function Dashboard() {
                   </div>
                   {!collapsedColumns.overdue && (
                     <div
-                      className="space-y-3 min-h-[120px]"
+                      className={`space-y-3 ${getFilteredTasksWithStatus().filter(task => {
+                        const { status } = getTaskStatus(task);
+                        return status === "overdue";
+                      }).length === 0 ? 'min-h-[80px]' : 'min-h-[120px]'}`}
                       onDrop={(e) => handleDrop(e, "overdue")}
                       onDragOver={handleDragOver}
                       onDragLeave={handleDragLeave}
@@ -2104,12 +2119,16 @@ export default function Dashboard() {
                       }).length}
                     </span>
                   </div>
-                  <div
-                    className="space-y-3 min-h-[120px]"
-                    onDrop={(e) => handleDrop(e, "completed")}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                  >
+                  {!collapsedColumns.completed && (
+                    <div
+                      className={`space-y-3 ${getFilteredTasksWithStatus().filter(task => {
+                        const { status } = getTaskStatus(task);
+                        return status === "completed";
+                      }).length === 0 ? 'min-h-[80px]' : 'min-h-[120px]'}`}
+                      onDrop={(e) => handleDrop(e, "completed")}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                    >
                     {getFilteredTasksWithStatus()
                       .filter(task => {
                         const { status } = getTaskStatus(task);
@@ -2168,13 +2187,16 @@ export default function Dashboard() {
                           </div>
                         </div>
                       ))}
-                  </div>
-                  <button
-                    onClick={() => setShowTaskModal(true)}
-                    className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
-                  >
-                    <i className="ri-add-line mr-2"></i>Nova Tarefa
-                  </button>
+                    </div>
+                  )}
+                  {!collapsedColumns.completed && (
+                    <button
+                      onClick={() => setShowTaskModal(true)}
+                      className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
+                    >
+                      <i className="ri-add-line mr-2"></i>Nova Tarefa
+                    </button>
+                  )}
                 </div>
 
                 {/* Excluídas - só mostrar se showDeleted for true */}

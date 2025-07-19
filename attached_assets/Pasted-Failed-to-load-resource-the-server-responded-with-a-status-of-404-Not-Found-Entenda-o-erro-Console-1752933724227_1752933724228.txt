@@ -1,0 +1,52 @@
+Failed to load resource: the server responded with a status of 404 (Not Found)Entenda o erro
+Console.js:61 Erro ao carregar estatísticas de clientes: 404
+Mt.forEach.n.<computed> @ Console.js:61Entenda o erro
+Console.js:61 🎯 Tarefas separadas: Object
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 🔍 DEBUG FILTRO assigned_to_me:
+Console.js:61 - UserEmail: fabio@allanacaires.monde.com.br
+Console.js:61 - Users carregados: 14
+Console.js:61 - UserUUID encontrado: 9c409497-5b93-49fa-b6c2-f8381bc880d5
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 3
+Console.js:61 ⚠️ Não foi possível carregar pessoas/clientes
+Console.js:61 📋 Usuários carregados: 14
+Console.js:61 🔥 Drag start iniciado para tarefa: c9e59fcd-4383-4425-9e01-498ee433d3fe TESSY ANNE
+Console.js:61 🎯 Drop detectado na coluna: overdue
+Console.js:61 📋 Dados da tarefa arrastada: Object
+Console.js:61 📊 Status atual: pending → Status novo: overdue
+Console.js:61 ✅ Mudança de status normal, abrindo modal
+Console.js:61 🔄 Carregando tarefas do usuário logado...
+Console.js:61 ✅ Tarefas carregadas: 3
+Console.js:61 🗑️ Carregando tarefas excluídas...
+Console.js:61 🔍 Iniciando alteração de status...
+Console.js:61 📋 Tarefa: c9e59fcd-4383-4425-9e01-498ee433d3fe TESSY ANNE
+Console.js:61 🎯 Status atual → novo: pending → overdue
+Console.js:61 🕐 Data/hora: 2025-07-19T20:00
+Console.js:61 📤 Enviando para API do Monde: Object
+Console.js:61 📡 Resposta da API: 200 OK
+Console.js:61 ✅ Tarefa atualizada com sucesso: Object
+Console.js:61 📝 Registrando no histórico...
+Console.js:61 ✅ Histórico salvo com sucesso
+Console.js:61 ✅ Tarefas excluídas carregadas: 34
+Console.js:61 📊 Total de tarefas combinadas: 34 (ativas: 3 + excluídas: 34 )
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 🔍 DEBUG FILTRO assigned_to_me:
+Console.js:61 - UserEmail: fabio@allanacaires.monde.com.br
+Console.js:61 - Users carregados: 14
+Console.js:61 - UserUUID encontrado: 9c409497-5b93-49fa-b6c2-f8381bc880d5
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 0
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.Entenda o erro
+Console.js:61 🔄 Fechando modal e recarregando tarefas...
+Console.js:61 🔄 Carregando tarefas do usuário logado...
+Console.js:61 ✅ Processo concluído com sucesso!
+Console.js:61 ✅ Tarefas carregadas: 3
+Console.js:61 🗑️ Carregando tarefas excluídas...
+Console.js:61 ✅ Tarefas excluídas carregadas: 34
+Console.js:61 📊 Total de tarefas combinadas: 34 (ativas: 3 + excluídas: 34 )
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 🔍 DEBUG FILTRO assigned_to_me:
+Console.js:61 - UserEmail: fabio@allanacaires.monde.com.br
+Console.js:61 - Users carregados: 14
+Console.js:61 - UserUUID encontrado: 9c409497-5b93-49fa-b6c2-f8381bc880d5
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 0
+_app-f10df38f71c1285f.js:38 [Violation] 'setTimeout' handler took 52ms

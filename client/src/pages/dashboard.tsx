@@ -664,18 +664,25 @@ export default function Dashboard() {
       console.log('- UserUUID encontrado:', userUUID);
       console.log('- SourceTasks:', sourceTasks.length);
       
-      // Para "assigned_to_me", SEMPRE filtrar manualmente por UUID para garantir apenas tarefas do usuário
-      console.log('✅ Usando tarefas ativas para assigned_to_me:', tasks?.length || 0);
-      if (userUUID) {
-        // Filtrar das tarefas ativas (tasks) que já vem filtradas do servidor
-        filtered = (tasks || []).filter((task: any) => {
-          const assigneeId = task.relationships?.assignee?.data?.id;
-          return assigneeId === userUUID;
-        });
-        console.log('🔍 Tarefas filtradas para o usuário:', filtered.length);
+      // 🎯 CORREÇÃO: Se as tarefas já vem filtradas do servidor para "user_tasks", usar diretamente
+      // O servidor já aplicou filter[assigned]=user_tasks, então tasks já são as "minhas tarefas"
+      if (showDeleted) {
+        // Se showDeleted, filtrar manualmente das excluídas + ativas
+        console.log('✅ Usando tarefas ativas para assigned_to_me:', tasks?.length || 0);
+        if (userUUID) {
+          filtered = sourceTasks.filter((task: any) => {
+            const assigneeId = task.relationships?.assignee?.data?.id;
+            return assigneeId === userUUID;
+          });
+          console.log('🔍 Tarefas filtradas para o usuário:', filtered.length);
+        } else {
+          console.log('❌ UUID do usuário não encontrado');
+          filtered = [];
+        }
       } else {
-        console.log('❌ UUID do usuário não encontrado');
-        filtered = [];
+        // 🚀 SOLUÇÃO: Se não showDeleted, usar tasks diretamente (já filtradas pelo servidor)
+        filtered = tasks || [];
+        console.log('✅ Usando tarefas do servidor (já filtradas):', filtered.length);
       }
     } else if (filter === 'created_by_me') {
       // Para 'criadas por mim', usar apenas as tarefas ativas do usuário

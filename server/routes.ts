@@ -820,18 +820,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const taskId = req.params.id;
       const mondeUrl = `https://web.monde.com.br/api/v2/tasks/${taskId}`;
       
-      console.log(`🗑️ Tentando arquivar tarefa ${taskId} (marcando como concluída)`);
+      console.log(`🗑️ EXCLUSÃO TEMPORÁRIA: Marcando tarefa ${taskId} como concluída + adicionando marcador no histórico`);
       console.log(`URL: ${mondeUrl}`);
       
-      // Tentar duas abordagens: 1) usar visualized como "arquivado" ou 2) completed
-      // Como exclusão ≠ conclusão, vou tentar marcar como visualized=false (oculta) primeiro
+      // ⚠️ PROBLEMA IDENTIFICADO: API do Monde não suporta soft delete
+      // DELETE = exclusão permanente (não é o que queremos)
+      // Para "excluir" temporariamente, vamos usar uma estratégia diferente:
+      // 1. Marcar tarefa como concluída (completed: true) 
+      // 2. Usar um histórico para identificar como "arquivada pelo Keeptur"
+      
+      // Primeiro, marcar como concluída
       const updateBody = {
         data: {
           type: "tasks",
           id: taskId,
           attributes: {
-            title: "TASK_TO_DELETE_" + taskId, // Marcar título para identificar
-            visualized: false // Tentar ocultar tarefa
+            completed: true  // Apenas este campo é aceito
           }
         }
       };
@@ -851,16 +855,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (mondeResponse.ok) {
         console.log(`✅ Tarefa ${taskId} arquivada com sucesso (marcada como concluída)`);
         
-        // Registrar no histórico que foi "excluída"
-        const historyText = req.body.history_comment || 'Tarefa arquivada (movida para excluídas)';
+        // 📝 Registrar no histórico que foi "excluída pelo Keeptur"
+        const historyText = '🗑️ KEEPTUR_DELETED - Tarefa arquivada pelo sistema Keeptur';
         try {
-          const historyUrl = `https://web.monde.com.br/api/v2/task-historics`;
+          const historyUrl = `https://web.monde.com.br/api/v2/task_historics`;
           const historyBody = {
             data: {
               type: "task-historics",
               attributes: {
-                text: historyText,
-                "date-time": new Date().toISOString()
+                text: historyText
               },
               relationships: {
                 task: {
@@ -873,7 +876,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           };
           
-          await fetch(historyUrl, {
+          const historyResponse = await fetch(historyUrl, {
             method: "POST",
             headers: {
               "Content-Type": "application/vnd.api+json",
@@ -883,9 +886,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             body: JSON.stringify(historyBody),
           });
           
-          console.log(`📝 Histórico de arquivamento registrado para tarefa ${taskId}`);
+          if (historyResponse.ok) {
+            console.log(`✅ Marcador KEEPTUR_DELETED adicionado ao histórico da tarefa ${taskId}`);
+          } else {
+            const historyError = await historyResponse.text();
+            console.log(`⚠️ Falha ao adicionar marcador KEEPTUR_DELETED:`, historyError);
+          }
         } catch (historyError) {
-          console.log(`⚠️ Erro ao registrar histórico:`, historyError);
+          console.log(`⚠️ Erro ao registrar histórico KEEPTUR_DELETED:`, historyError);
         }
         
         res.status(200).json({ message: "Tarefa arquivada com sucesso" });

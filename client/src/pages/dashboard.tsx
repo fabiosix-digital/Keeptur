@@ -660,8 +660,10 @@ export default function Dashboard() {
         filtered = [];
       }
     } else {
-      // Para 'all', usar TODAS as tarefas (que já vem carregadas do servidor)
-      filtered = sourceTasks;
+      // Para 'all', usar TODAS as tarefas disponíveis 
+      // Se estiver no modo "all", sempre usar allTasks que contém todas as tarefas da empresa
+      filtered = allTasks || sourceTasks;
+      console.log('✅ Filtro "all" - usando todas as tarefas:', filtered.length);
     }
     
     // Aplicar filtros adicionais
@@ -748,17 +750,60 @@ export default function Dashboard() {
 
   // Recarregar tarefas quando necessário (mantém as existentes)
   const reloadTasks = async () => {
+    console.log('🔄 Carregando tarefas baseado no filtro:', taskFilter);
+    
     try {
-      const allTasksData = await loadAllTasks();
-      const newTasks = allTasksData.data || [];
+      const token = localStorage.getItem("keeptur-token");
       
-      // Atualizar estado das tarefas
-      setAllTasks(newTasks);
+      let activeTasks = [];
+      let deletedTasks = [];
       
-      // Aguardar um pouco para o estado ser atualizado
-      setTimeout(() => {
-        // Não chamar getFilteredTasks aqui, deixar o useEffect do taskFilter fazer isso
-      }, 50);
+      // Carregar tarefas baseado no filtro atual
+      if (taskFilter === 'assigned_to_me') {
+        // Carregar apenas tarefas atribuídas ao usuário
+        const response = await fetch('/api/monde/tarefas?assignee=me', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await response.json();
+        activeTasks = data?.data || [];
+        console.log('✅ Tarefas "Minhas" carregadas:', activeTasks.length);
+      } else if (taskFilter === 'created_by_me') {
+        // Carregar apenas tarefas criadas pelo usuário
+        const response = await fetch('/api/monde/tarefas?filter[created_by]=me', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await response.json();
+        activeTasks = data?.data || [];
+        console.log('✅ Tarefas "Criadas por Mim" carregadas:', activeTasks.length);
+      } else {
+        // Para "all", carregar TODAS as tarefas da empresa
+        const response = await fetch('/api/monde/tarefas?all_company=true', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await response.json();
+        activeTasks = data?.data || [];
+        console.log('✅ TODAS as tarefas da empresa carregadas:', activeTasks.length);
+      }
+      
+      // Se showDeleted for true, carregar também tarefas excluídas
+      if (showDeleted) {
+        console.log('🗑️ Carregando tarefas excluídas...');
+        const deletedResponse = await fetch('/api/monde/tarefas?include_deleted=true', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const deletedData = await deletedResponse.json();
+        deletedTasks = deletedData?.data || [];
+        console.log('✅ Tarefas excluídas carregadas:', deletedTasks.length);
+      }
+      
+      // Combinar tarefas ativas e excluídas
+      const allTasksCombined = [...activeTasks, ...deletedTasks];
+      console.log('📊 Total de tarefas combinadas:', allTasksCombined.length, '(ativas:', activeTasks.length, '+ excluídas:', deletedTasks.length, ')');
+      
+      // Atualizar estado
+      setTasks(activeTasks); // Apenas ativas
+      setAllTasks(allTasksCombined); // Todas (ativas + excluídas)
+      
     } catch (error) {
       console.error('Erro ao recarregar tarefas:', error);
     }
@@ -1624,6 +1669,7 @@ export default function Dashboard() {
             {/* Botão Limpar Filtros */}
             <button
               onClick={() => {
+                console.log('🧹 Limpando todos os filtros');
                 setTaskFilter('assigned_to_me');
                 setSelectedSituation('');
                 setSelectedCategory('');
@@ -1632,7 +1678,7 @@ export default function Dashboard() {
                 setStartDate('');
                 setEndDate('');
                 setTaskSearchTerm('');
-                // Não chamar reloadTasks, o useEffect do taskFilter irá recarregar
+                // O useEffect do taskFilter irá recarregar automaticamente
               }}
               className="form-input px-3 py-2 rounded-lg text-sm bg-gray-100 hover:bg-gray-200 transition-colors"
             >

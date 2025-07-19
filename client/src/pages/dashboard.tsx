@@ -56,6 +56,12 @@ export default function Dashboard() {
   const [attachments, setAttachments] = useState<File[]>([]);
   const [taskAttachments, setTaskAttachments] = useState<any[]>([]);
   const [showDeleted, setShowDeleted] = useState(false);
+  const [collapsedColumns, setCollapsedColumns] = useState<{[key: string]: boolean}>({
+    pending: false,
+    overdue: false,
+    completed: false,
+    archived: false
+  });
   const [isInitialized, setIsInitialized] = useState(false);
   const [customFields, setCustomFields] = useState<any[]>([]);
   const [loadingCustomFields, setLoadingCustomFields] = useState(false);
@@ -638,25 +644,25 @@ export default function Dashboard() {
         console.log('📋 AllTasks (com excluídas):', allTasks.length);
         // 🎯 CORREÇÃO: Se o servidor retornou tarefas filtradas, usar elas; senão filtrar localmente
         // O servidor já filtra por usuário quando usa filter[assigned]=user_tasks
-        if (tasks && tasks.length > 0) {
-          console.log('✅ Usando tarefas já filtradas pelo servidor:', tasks.length);
-          filtered = tasks;
-        } else {
-          console.log('⚠️ Nenhuma tarefa do servidor, filtrando apenas não excluídas de allTasks');
-          // Filtrar apenas tarefas não excluídas (as primeiras 3-18 que vêm do servidor)
-          filtered = allTasks.filter((task: any) => !task.attributes.deleted && !task.attributes.is_deleted);
-        }
+        // SEMPRE usar apenas as tarefas do usuário logado (filtradas pelo servidor)
+        console.log('✅ Usando tarefas filtradas do usuário logado:', tasks.length);
+        filtered = tasks || [];
       } else {
-        filtered = allTasks.filter((task: any) => {
+        // Filtrar pelo userUUID nas tarefas do usuário
+        filtered = tasks.filter((task: any) => {
           const assigneeId = task.relationships?.assignee?.data?.id;
           return assigneeId === userUUID;
         });
       }
     } else if (filter === 'created_by_me') {
-      filtered = allTasks.filter((task: any) => {
+      // Para 'criadas por mim', usar apenas as tarefas ativas do usuário
+      filtered = tasks.filter((task: any) => {
         const authorId = task.relationships?.author?.data?.id;
         return authorId === userUUID;
       });
+    } else {
+      // Para 'all', usar apenas as tarefas ativas do usuário
+      filtered = tasks || [];
     }
     // Para 'all', usar todas as tarefas
     
@@ -1358,6 +1364,14 @@ export default function Dashboard() {
     }
   };
 
+  // Função para recolher/expandir coluna
+  const toggleColumnCollapse = (columnKey: string) => {
+    setCollapsedColumns(prev => ({
+      ...prev,
+      [columnKey]: !prev[columnKey]
+    }));
+  };
+
   // Função auxiliar para obter nome de exibição do status
   const getStatusDisplayName = (status: string) => {
     switch (status) {
@@ -1505,12 +1519,33 @@ export default function Dashboard() {
               </button>
             </div>
             <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setShowDeleted(!showDeleted)}
-                className={`discrete-button ${showDeleted ? "active" : ""}`}
-              >
-                {showDeleted ? 'Ocultar Excluídas' : 'Mostrar Excluídas'}
-              </button>
+              {/* Radio buttons para exibição */}
+              <div className="flex items-center space-x-3 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+                <label className="flex items-center space-x-2 cursor-pointer px-3 py-1 rounded-md">
+                  <input
+                    type="radio"
+                    name="taskView"
+                    checked={!showDeleted}
+                    onChange={() => setShowDeleted(false)}
+                    className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                  />
+                  <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                    Ativas
+                  </span>
+                </label>
+                <label className="flex items-center space-x-2 cursor-pointer px-3 py-1 rounded-md">
+                  <input
+                    type="radio"
+                    name="taskView"
+                    checked={showDeleted}
+                    onChange={() => setShowDeleted(true)}
+                    className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                  />
+                  <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                    Excluídas
+                  </span>
+                </label>
+              </div>
               <button
                 onClick={() => setShowTaskModal(true)}
                 className="primary-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
@@ -1848,12 +1883,20 @@ export default function Dashboard() {
                 {/* Pendentes */}
                 <div className="kanban-column rounded-lg p-4 min-w-80">
                   <div className="flex items-center justify-between mb-4">
-                    <h3
-                      className="font-semibold text-sm"
-                      style={{ color: "var(--text-primary)" }}
-                    >
-                      Pendentes
-                    </h3>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => toggleColumnCollapse('pending')}
+                        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                      >
+                        <i className={`${collapsedColumns.pending ? 'ri-arrow-right-s-line' : 'ri-arrow-down-s-line'} text-lg`}></i>
+                      </button>
+                      <h3
+                        className="font-semibold text-sm"
+                        style={{ color: "var(--text-primary)" }}
+                      >
+                        Pendentes
+                      </h3>
+                    </div>
                     <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
                       {getFilteredTasksWithStatus().filter(task => {
                         const { status } = getTaskStatus(task);
@@ -1861,12 +1904,13 @@ export default function Dashboard() {
                       }).length}
                     </span>
                   </div>
-                  <div
-                    className="space-y-3 min-h-[120px]"
-                    onDrop={(e) => handleDrop(e, "pending")}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                  >
+                  {!collapsedColumns.pending && (
+                    <div
+                      className="space-y-3 min-h-[120px]"
+                      onDrop={(e) => handleDrop(e, "pending")}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                    >
                     {getFilteredTasksWithStatus()
                       .filter(task => {
                         const { status } = getTaskStatus(task);
@@ -1926,22 +1970,32 @@ export default function Dashboard() {
                           </div>
                         </div>
                       ))}
-
-                  </div>
-                  <button className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
-                    <i className="ri-add-line mr-2"></i>Nova Tarefa
-                  </button>
+                    </div>
+                  )}
+                  {!collapsedColumns.pending && (
+                    <button className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+                      <i className="ri-add-line mr-2"></i>Nova Tarefa
+                    </button>
+                  )}
                 </div>
 
                 {/* Atrasadas */}
                 <div className="kanban-column rounded-lg p-4 min-w-80">
                   <div className="flex items-center justify-between mb-4">
-                    <h3
-                      className="font-semibold text-sm"
-                      style={{ color: "var(--text-primary)" }}
-                    >
-                      Atrasadas
-                    </h3>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => toggleColumnCollapse('overdue')}
+                        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                      >
+                        <i className={`${collapsedColumns.overdue ? 'ri-arrow-right-s-line' : 'ri-arrow-down-s-line'} text-lg`}></i>
+                      </button>
+                      <h3
+                        className="font-semibold text-sm"
+                        style={{ color: "var(--text-primary)" }}
+                      >
+                        Atrasadas
+                      </h3>
+                    </div>
                     <span className="bg-red-200 text-red-700 px-2 py-1 rounded-full text-xs">
                       {getFilteredTasksWithStatus().filter(task => {
                         const { status } = getTaskStatus(task);
@@ -1949,12 +2003,13 @@ export default function Dashboard() {
                       }).length}
                     </span>
                   </div>
-                  <div
-                    className="space-y-3 min-h-[120px]"
-                    onDrop={(e) => handleDrop(e, "overdue")}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                  >
+                  {!collapsedColumns.overdue && (
+                    <div
+                      className="space-y-3 min-h-[120px]"
+                      onDrop={(e) => handleDrop(e, "overdue")}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                    >
                     {getFilteredTasksWithStatus()
                       .filter(task => {
                         const { status } = getTaskStatus(task);
@@ -2013,37 +2068,39 @@ export default function Dashboard() {
                           </div>
                         </div>
                       ))}
-                  </div>
-                  <button
-                    onClick={() => setShowTaskModal(true)}
-                    className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
-                  >
-                    <i className="ri-add-line mr-2"></i>Nova Tarefa
-                  </button>
+                    </div>
+                  )}
+                  {!collapsedColumns.overdue && (
+                    <button
+                      onClick={() => setShowTaskModal(true)}
+                      className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
+                    >
+                      <i className="ri-add-line mr-2"></i>Nova Tarefa
+                    </button>
+                  )}
                 </div>
 
                 {/* Concluídas */}
                 <div className="kanban-column rounded-lg p-4 min-w-80">
                   <div className="flex items-center justify-between mb-4">
-                    <h3
-                      className="font-semibold text-sm"
-                      style={{ color: "var(--text-primary)" }}
-                    >
-                      Concluídas
-                    </h3>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => toggleColumnCollapse('completed')}
+                        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                      >
+                        <i className={`${collapsedColumns.completed ? 'ri-arrow-right-s-line' : 'ri-arrow-down-s-line'} text-lg`}></i>
+                      </button>
+                      <h3
+                        className="font-semibold text-sm"
+                        style={{ color: "var(--text-primary)" }}
+                      >
+                        Concluídas
+                      </h3>
+                    </div>
                     <span className="bg-green-200 text-green-700 px-2 py-1 rounded-full text-xs">
-                      {allTasks.filter(task => {
-                        // Primeiro filtra por status concluído
+                      {getFilteredTasksWithStatus().filter(task => {
                         const { status } = getTaskStatus(task);
-                        if (status !== "completed") return false;
-                        
-                        // Depois aplica filtros de busca, categoria, responsável e cliente
-                        if (selectedCategory && getCategoryName(task) !== selectedCategory) return false;
-                        if (selectedAssignee && getAssigneeName(task) !== selectedAssignee) return false;
-                        if (selectedClient && getClientName(task) !== selectedClient) return false;
-                        if (taskSearchTerm && !task.attributes.title.toLowerCase().includes(taskSearchTerm.toLowerCase())) return false;
-                        
-                        return true;
+                        return status === "completed";
                       }).length}
                     </span>
                   </div>
@@ -2053,19 +2110,10 @@ export default function Dashboard() {
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                   >
-                    {allTasks
+                    {getFilteredTasksWithStatus()
                       .filter(task => {
-                        // Primeiro filtra por status concluído
                         const { status } = getTaskStatus(task);
-                        if (status !== "completed") return false;
-                        
-                        // Depois aplica filtros de busca, categoria, responsável e cliente
-                        if (selectedCategory && getCategoryName(task) !== selectedCategory) return false;
-                        if (selectedAssignee && getAssigneeName(task) !== selectedAssignee) return false;
-                        if (selectedClient && getClientName(task) !== selectedClient) return false;
-                        if (taskSearchTerm && !task.attributes.title.toLowerCase().includes(taskSearchTerm.toLowerCase())) return false;
-                        
-                        return true;
+                        return status === "completed";
                       })
                       .map((task: any) => (
                         <div
@@ -2129,8 +2177,9 @@ export default function Dashboard() {
                   </button>
                 </div>
 
-                {/* Excluídas */}
-                <div className="kanban-column rounded-lg p-4 min-w-80">
+                {/* Excluídas - só mostrar se showDeleted for true */}
+                {showDeleted && (
+                  <div className="kanban-column rounded-lg p-4 min-w-80">
                   <div className="flex items-center justify-between mb-4">
                     <h3
                       className="font-semibold text-sm"
@@ -2201,14 +2250,15 @@ export default function Dashboard() {
                           </div>
                         </div>
                       ))}
+                    </div>
+                    <button
+                      onClick={() => setShowTaskModal(true)}
+                      className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
+                    >
+                      <i className="ri-add-line mr-2"></i>Nova Tarefa
+                    </button>
                   </div>
-                  <button
-                    onClick={() => setShowTaskModal(true)}
-                    className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
-                  >
-                    <i className="ri-add-line mr-2"></i>Nova Tarefa
-                  </button>
-                </div>
+                )}
               </div>
             </div>
           )}

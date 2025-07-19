@@ -1,0 +1,89 @@
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.
+e @ frame_ant.js:2
+s @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+s @ frame_ant.js:2
+window.fetch @ frame_ant.js:2
+(anônimo) @ _app-f10df38f71c1285f.js:38
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+e.consumeQueue @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:25
+n @ _app-f10df38f71c1285f.js:38
+setTimeout
+(anônimo) @ _app-f10df38f71c1285f.js:38
+e.scheduleQueueConsumption @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+e.try @ _app-f10df38f71c1285f.js:25
+e.start @ _app-f10df38f71c1285f.js:25
+t.request @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:14
+e.execute @ _app-f10df38f71c1285f.js:14
+e.getObservableFromLink @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+s @ _app-f10df38f71c1285f.js:11
+e.mutate @ _app-f10df38f71c1285f.js:11
+e.mutate @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:40
+(anônimo) @ main-b79515c1024d334e.js:1
+n @ main-b79515c1024d334e.js:1
+u @ main-b79515c1024d334e.js:1
+(anônimo) @ main-b79515c1024d334e.js:1
+(anônimo) @ main-b79515c1024d334e.js:1
+n @ _app-f10df38f71c1285f.js:38Entenda o erro
+[Violation] Forced reflow while executing JavaScript took 32ms
+5[Violation] 'setTimeout' handler levou <N> ms
+_app-f10df38f71c1285f.js:38 [Violation] 'setTimeout' handler took 51ms
+_app-f10df38f71c1285f.js:38 [Violation] 'setTimeout' handler took 50ms
+_app-f10df38f71c1285f.js:38 [Violation] 'setTimeout' handler took 59ms
+_app-f10df38f71c1285f.js:38 [Violation] 'setTimeout' handler took 50ms
+_app-f10df38f71c1285f.js:38 [Violation] 'setTimeout' handler took 57ms
+Console.js:61 🔄 Carregando tarefas do usuário logado...
+Console.js:61 ✅ Tarefas carregadas: 4
+Console.js:61 🗑️ Carregando tarefas excluídas...
+Console.js:61 ✅ Tarefas excluídas carregadas: 16
+Console.js:61 📊 Total de tarefas combinadas: 4 (ativas: 4 + excluídas: 0 )
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 🔍 DEBUG FILTRO assigned_to_me:
+Console.js:61 - UserEmail: fabio@allanacaires.monde.com.br
+Console.js:61 - Users carregados: 14
+Console.js:61 - UserUUID encontrado: 9c409497-5b93-49fa-b6c2-f8381bc880d5
+Console.js:61 - SourceTasks: 4
+Console.js:61 ✅ Usando tarefas ativas para assigned_to_me: 0
+Console.js:61 🔍 Tarefas filtradas para o usuário: 4
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 4
+[Violation] Forced reflow while executing JavaScript took 36ms
+Console.js:61 🔄 Carregando tarefas do usuário logado...
+Console.js:61 ✅ Tarefas carregadas: 4
+Console.js:61 🗑️ Carregando tarefas excluídas...
+Console.js:61 ✅ Tarefas excluídas carregadas: 16
+Console.js:61 📊 Total de tarefas combinadas: 4 (ativas: 4 + excluídas: 0 )
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 🔍 DEBUG FILTRO assigned_to_me:
+Console.js:61 - UserEmail: fabio@allanacaires.monde.com.br
+Console.js:61 - Users carregados: 14
+Console.js:61 - UserUUID encontrado: 9c409497-5b93-49fa-b6c2-f8381bc880d5
+Console.js:61 - SourceTasks: 4
+Console.js:61 ✅ Usando tarefas ativas para assigned_to_me: 0
+Console.js:61 🔍 Tarefas filtradas para o usuário: 4
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 4

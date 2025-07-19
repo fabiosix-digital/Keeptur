@@ -291,10 +291,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       // Para incluir tarefas excluídas separadamente
       else if (req.query.include_deleted === 'true') {
-        // A API do Monde não tem soft delete - vamos buscar tarefas arquivadas
-        // Usar filtro de situação para tarefas concluídas como "arquivadas"
-        queryParams.append('filter[situation]', 'done');
-        console.log('✅ Buscando tarefas concluídas como "excluídas" (situation=done)');
+        // 🔍 EXPERIMENTAR: Primeiro tentar com parâmetro de tarefas excluídas
+        // Se não funcionar, continuar usando situation=done como fallback
+        try {
+          queryParams.append('is_deleted', 'true');
+          console.log('✅ Tentando buscar tarefas EXCLUÍDAS (is_deleted=true)');
+        } catch {
+          // Fallback para tarefas concluídas (que é o que funcionava antes)
+          queryParams.delete('is_deleted');
+          queryParams.append('filter[situation]', 'done');
+          console.log('📋 Fallback: Buscando tarefas concluídas como "excluídas" (situation=done)');
+        }
       } 
       
       // Filtro padrão se nenhum especificado e não for 'all_company'

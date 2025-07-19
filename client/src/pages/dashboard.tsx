@@ -680,8 +680,12 @@ export default function Dashboard() {
           filtered = [];
         }
       } else {
-        // 🚀 SOLUÇÃO: Se não showDeleted, usar tasks diretamente (já filtradas pelo servidor)
-        filtered = tasks || [];
+        // 🚀 CORREÇÃO: Se não showDeleted, usar tasks diretamente (já filtradas pelo servidor)
+        // Mas remover tarefas realmente excluídas que possam ter voltado do servidor
+        filtered = (tasks || []).filter((task: any) => {
+          // Remover tarefas que foram realmente excluídas no Monde
+          return !task.attributes.deleted && !task.attributes.is_deleted;
+        });
         console.log('✅ Usando tarefas do servidor (já filtradas):', filtered.length);
       }
     } else if (filter === 'created_by_me') {
@@ -951,25 +955,14 @@ export default function Dashboard() {
     }
   };
 
-  // Polling para atualizar dados a cada 30 segundos
-  useEffect(() => {
-    const interval = setInterval(() => {
-      reloadTasksAndClients();
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, [
-    taskFilter,
-    taskSearchTerm,
-    selectedCategory,
-    // selectedPriority removido - não existe na API do Monde
-    selectedSituation,
-
-    selectedClient,
-    startDate,
-    endDate,
-    searchTerm,
-  ]);
+  // 🛑 POLLING DESABILITADO: Sistema estava piscando por atualizações desnecessárias
+  // Agora atualiza apenas quando há mudanças reais (drag-drop, edições manuais)
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     reloadTasksAndClients();
+  //   }, 30000);
+  //   return () => clearInterval(interval);
+  // }, [taskFilter, taskSearchTerm, selectedCategory, selectedSituation, selectedClient, startDate, endDate, searchTerm]);
 
   // Função para determinar o status da tarefa
   const getTaskStatus = (task: any) => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "../lib/auth";
 import { MondeAPI } from "../lib/monde-api";
 import { useTheme } from "../hooks/use-theme";
@@ -755,9 +755,21 @@ export default function Dashboard() {
     return filtered;
   };
 
+  // Ref para controlar requisições
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   // Recarregar tarefas quando necessário (mantém as existentes)
   const reloadTasks = async () => {
     console.log('🔄 Carregando tarefas baseado no filtro:', taskFilter);
+    
+    // Cancelar requisição anterior se existir
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    
+    // Criar novo controller
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
     
     try {
       const token = localStorage.getItem("keeptur-token");
@@ -770,7 +782,11 @@ export default function Dashboard() {
         // Carregar apenas tarefas atribuídas ao usuário
         const response = await fetch('/api/monde/tarefas?assignee=me', {
           headers: { Authorization: `Bearer ${token}` },
+          signal,
         });
+        
+        if (signal.aborted) return;
+        
         const data = await response.json();
         activeTasks = data?.data || [];
         console.log('✅ Tarefas "Minhas" carregadas:', activeTasks.length);
@@ -2198,16 +2214,16 @@ export default function Dashboard() {
                       Concluídas
                     </h3>
                     <span className="bg-green-200 text-green-700 px-2 py-1 rounded-full text-xs">
-                      {allTasks.filter(task => task.attributes.completed === true).length}
+                      {getFilteredTasksWithStatus().filter(task => task.attributes.completed === true).length}
                     </span>
                   </div>
                   <div
-                    className={`space-y-3 ${allTasks.filter(task => task.attributes.completed === true).length === 0 ? 'min-h-[80px]' : 'min-h-[120px]'}`}
+                    className={`space-y-3 ${getFilteredTasksWithStatus().filter(task => task.attributes.completed === true).length === 0 ? 'min-h-[80px]' : 'min-h-[120px]'}`}
                     onDrop={(e) => handleDrop(e, "completed")}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                   >
-                    {allTasks
+                    {getFilteredTasksWithStatus()
                       .filter(task => {
                         return task.attributes.completed === true;
                       })
@@ -4873,22 +4889,63 @@ export default function Dashboard() {
                   }
 
                   try {
-                    // Implementar lógica de transferência
-                    console.log("Transferindo tarefa", taskToTransfer.id, "para", selectedTransferUser);
+                    console.log("🔄 Transferindo tarefa", taskToTransfer.id, "para", selectedTransferUser);
                     
-                    // Mostrar toast de sucesso
-                    const toast = document.createElement('div');
-                    toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-                    toast.textContent = 'Responsável transferido com sucesso!';
-                    document.body.appendChild(toast);
-                    setTimeout(() => document.body.removeChild(toast), 3000);
+                    // Buscar dados atuais da tarefa
+                    const currentTask = taskToTransfer;
+                    const taskData = {
+                      title: currentTask.attributes.title,
+                      description: currentTask.attributes.description || "",
+                      completed: currentTask.attributes.completed,
+                      due: currentTask.attributes.due,
+                      assignee_id: selectedTransferUser // Novo responsável
+                    };
                     
-                    setShowTransferModal(false);
-                    setTaskToTransfer(null);
-                    setSelectedTransferUser("");
-                    reloadTasks();
+                    // Atualizar tarefa via API do Monde
+                    const response = await fetch(`/api/monde/tarefas/${taskToTransfer.id}`, {
+                      method: 'PUT',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+                      },
+                      body: JSON.stringify(taskData)
+                    });
+                    
+                    if (response.ok) {
+                      console.log("✅ Tarefa transferida com sucesso");
+                      
+                      // Registrar no histórico
+                      const selectedUser = users.find((u: any) => u.id === selectedTransferUser);
+                      const historyText = `Responsável transferido para ${selectedUser?.attributes?.name || 'Usuário'}`;
+                      
+                      await fetch('/api/monde/task-historics', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+                        },
+                        body: JSON.stringify({
+                          task_id: taskToTransfer.id,
+                          text: historyText
+                        })
+                      });
+                      
+                      // Mostrar toast de sucesso
+                      const toast = document.createElement('div');
+                      toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+                      toast.textContent = 'Responsável transferido com sucesso!';
+                      document.body.appendChild(toast);
+                      setTimeout(() => document.body.removeChild(toast), 3000);
+                      
+                      setShowTransferModal(false);
+                      setTaskToTransfer(null);
+                      setSelectedTransferUser("");
+                      reloadTasks();
+                    } else {
+                      throw new Error('Erro na API');
+                    }
                   } catch (error) {
-                    console.error("Erro ao transferir responsável:", error);
+                    console.error("❌ Erro ao transferir responsável:", error);
                     const toast = document.createElement('div');
                     toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
                     toast.textContent = 'Erro ao transferir responsável';

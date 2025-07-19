@@ -1,0 +1,937 @@
+🔄 Carregando tarefas do usuário logado...
+Console.js:61 ✅ Tarefas carregadas: 4
+Console.js:61 🗑️ Carregando tarefas excluídas...
+Console.js:61 ✅ Tarefas excluídas carregadas: 34
+Console.js:61 📊 Total de tarefas combinadas: 34 (ativas: 4 + excluídas: 34 )
+Console.js:61 🔍 DEBUG FILTRO assigned_to_me:
+Console.js:61 - UserEmail: fabio@allanacaires.monde.com.br
+Console.js:61 - Users carregados: 14
+Console.js:61 - UserUUID encontrado: 9c409497-5b93-49fa-b6c2-f8381bc880d5
+Console.js:61 - SourceTasks: 34
+Console.js:61 ✅ Usando tarefas ativas para assigned_to_me: 34
+Console.js:61 🔍 Tarefas filtradas para o usuário: 4
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 🔍 DEBUG FILTRO assigned_to_me:
+Console.js:61 - UserEmail: fabio@allanacaires.monde.com.br
+Console.js:61 - Users carregados: 14
+Console.js:61 - UserUUID encontrado: 9c409497-5b93-49fa-b6c2-f8381bc880d5
+Console.js:61 - SourceTasks: 4
+Console.js:61 ✅ Usando tarefas ativas para assigned_to_me: 4
+Console.js:61 🔍 Tarefas filtradas para o usuário: 4
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 4
+Console.js:61 ✅ Tarefa excluída com sucesso
+Console.js:61 🔄 Carregando tarefas baseado no filtro: assigned_to_me
+Console.js:61 ✅ Tarefas "Minhas" carregadas: 4
+Console.js:61 📊 Total de tarefas combinadas: 4 (ativas: 4 + excluídas: 0 )
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 🔍 DEBUG FILTRO assigned_to_me:
+Console.js:61 - UserEmail: fabio@allanacaires.monde.com.br
+Console.js:61 - Users carregados: 14
+Console.js:61 - UserUUID encontrado: 9c409497-5b93-49fa-b6c2-f8381bc880d5
+Console.js:61 - SourceTasks: 4
+Console.js:61 ✅ Usando tarefas ativas para assigned_to_me: 4
+Console.js:61 🔍 Tarefas filtradas para o usuário: 4
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 4
+Console.js:61 🔄 Carregando tarefas baseado no filtro: assigned_to_me
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.
+e @ frame_ant.js:2
+s @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+s @ frame_ant.js:2
+window.fetch @ frame_ant.js:2
+(anônimo) @ _app-f10df38f71c1285f.js:38
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+e.consumeQueue @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:25
+n @ _app-f10df38f71c1285f.js:38
+setTimeout
+(anônimo) @ _app-f10df38f71c1285f.js:38
+e.scheduleQueueConsumption @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+e.try @ _app-f10df38f71c1285f.js:25
+e.start @ _app-f10df38f71c1285f.js:25
+t.request @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:14
+e.execute @ _app-f10df38f71c1285f.js:14
+e.getObservableFromLink @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+s @ _app-f10df38f71c1285f.js:11
+e.mutate @ _app-f10df38f71c1285f.js:11
+e.mutate @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:14
+e.wait @ 3430-3d770cc90d759bc9.js:1
+u @ 8830-667e99a8edcebcee.js:1
+(anônimo) @ 8830-667e99a8edcebcee.js:1
+n @ _app-f10df38f71c1285f.js:38Entenda o erro
+Console.js:61 ✅ Tarefas "Minhas" carregadas: 4
+Console.js:61 🗑️ Carregando tarefas excluídas...
+Console.js:61 ✅ Tarefas excluídas carregadas: 34
+Console.js:61 📊 Total de tarefas combinadas: 38 (ativas: 4 + excluídas: 34 )
+Console.js:61 📋 Aplicando filtro: assigned_to_me
+Console.js:61 🔍 DEBUG FILTRO assigned_to_me:
+Console.js:61 - UserEmail: fabio@allanacaires.monde.com.br
+Console.js:61 - Users carregados: 14
+Console.js:61 - UserUUID encontrado: 9c409497-5b93-49fa-b6c2-f8381bc880d5
+Console.js:61 - SourceTasks: 38
+Console.js:61 ✅ Usando tarefas ativas para assigned_to_me: 4
+Console.js:61 🔍 Tarefas filtradas para o usuário: 4
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 4
+Console.js:61 🔄 Carregando tarefas do usuário logado...
+Console.js:61 📋 Aplicando filtro: all
+Console.js:61 ✅ Filtro "all" - usando todas as tarefas: 38
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 38
+Console.js:61 🔄 Carregando tarefas baseado no filtro: all
+Console.js:61 Warning: Encountered two children with the same key, `e77068cc-3a6a-4bb8-aa1a-370a77869bd3`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at main
+    at div
+    at div
+    at Dashboard (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/pages/dashboard.tsx:30:28)
+    at Route (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:323:16)
+    at Switch (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:379:17)
+    at Router
+    at Provider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-KVC5H6OX.js?v=3af817f4:25:15)
+    at TooltipProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=3af817f4:2219:5)
+    at AuthProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/lib/auth.tsx:21:32)
+    at ThemeProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/hooks/use-theme.ts:3:33)
+    at QueryClientProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=3af817f4:2805:3)
+    at App
+Mt.forEach.n.<computed> @ Console.js:61
+printWarning @ chunk-WERSD76P.js?v=3af817f4:521
+error @ chunk-WERSD76P.js?v=3af817f4:505
+warnOnInvalidKey @ chunk-WERSD76P.js?v=3af817f4:10219
+reconcileChildrenArray @ chunk-WERSD76P.js?v=3af817f4:10235
+reconcileChildFibers2 @ chunk-WERSD76P.js?v=3af817f4:10559
+reconcileChildren @ chunk-WERSD76P.js?v=3af817f4:14292
+updateHostComponent @ chunk-WERSD76P.js?v=3af817f4:14807
+beginWork @ chunk-WERSD76P.js?v=3af817f4:15935
+beginWork$1 @ chunk-WERSD76P.js?v=3af817f4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=3af817f4:19198
+workLoopSync @ chunk-WERSD76P.js?v=3af817f4:19137
+renderRootSync @ chunk-WERSD76P.js?v=3af817f4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=3af817f4:18678
+workLoop @ chunk-WERSD76P.js?v=3af817f4:197
+flushWork @ chunk-WERSD76P.js?v=3af817f4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=3af817f4:384Entenda o erro
+Console.js:61 Warning: Encountered two children with the same key, `3a32b7f9-af2b-490e-911d-6f223c203edb`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at main
+    at div
+    at div
+    at Dashboard (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/pages/dashboard.tsx:30:28)
+    at Route (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:323:16)
+    at Switch (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:379:17)
+    at Router
+    at Provider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-KVC5H6OX.js?v=3af817f4:25:15)
+    at TooltipProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=3af817f4:2219:5)
+    at AuthProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/lib/auth.tsx:21:32)
+    at ThemeProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/hooks/use-theme.ts:3:33)
+    at QueryClientProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=3af817f4:2805:3)
+    at App
+Mt.forEach.n.<computed> @ Console.js:61
+printWarning @ chunk-WERSD76P.js?v=3af817f4:521
+error @ chunk-WERSD76P.js?v=3af817f4:505
+warnOnInvalidKey @ chunk-WERSD76P.js?v=3af817f4:10219
+reconcileChildrenArray @ chunk-WERSD76P.js?v=3af817f4:10235
+reconcileChildFibers2 @ chunk-WERSD76P.js?v=3af817f4:10559
+reconcileChildren @ chunk-WERSD76P.js?v=3af817f4:14292
+updateHostComponent @ chunk-WERSD76P.js?v=3af817f4:14807
+beginWork @ chunk-WERSD76P.js?v=3af817f4:15935
+beginWork$1 @ chunk-WERSD76P.js?v=3af817f4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=3af817f4:19198
+workLoopSync @ chunk-WERSD76P.js?v=3af817f4:19137
+renderRootSync @ chunk-WERSD76P.js?v=3af817f4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=3af817f4:18678
+workLoop @ chunk-WERSD76P.js?v=3af817f4:197
+flushWork @ chunk-WERSD76P.js?v=3af817f4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=3af817f4:384Entenda o erro
+Console.js:61 Warning: Encountered two children with the same key, `f83a1fb2-f4e4-4389-8e9e-8480fe26fd4d`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at main
+    at div
+    at div
+    at Dashboard (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/pages/dashboard.tsx:30:28)
+    at Route (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:323:16)
+    at Switch (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:379:17)
+    at Router
+    at Provider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-KVC5H6OX.js?v=3af817f4:25:15)
+    at TooltipProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=3af817f4:2219:5)
+    at AuthProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/lib/auth.tsx:21:32)
+    at ThemeProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/hooks/use-theme.ts:3:33)
+    at QueryClientProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=3af817f4:2805:3)
+    at App
+Mt.forEach.n.<computed> @ Console.js:61
+printWarning @ chunk-WERSD76P.js?v=3af817f4:521
+error @ chunk-WERSD76P.js?v=3af817f4:505
+warnOnInvalidKey @ chunk-WERSD76P.js?v=3af817f4:10219
+reconcileChildrenArray @ chunk-WERSD76P.js?v=3af817f4:10235
+reconcileChildFibers2 @ chunk-WERSD76P.js?v=3af817f4:10559
+reconcileChildren @ chunk-WERSD76P.js?v=3af817f4:14292
+updateHostComponent @ chunk-WERSD76P.js?v=3af817f4:14807
+beginWork @ chunk-WERSD76P.js?v=3af817f4:15935
+beginWork$1 @ chunk-WERSD76P.js?v=3af817f4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=3af817f4:19198
+workLoopSync @ chunk-WERSD76P.js?v=3af817f4:19137
+renderRootSync @ chunk-WERSD76P.js?v=3af817f4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=3af817f4:18678
+workLoop @ chunk-WERSD76P.js?v=3af817f4:197
+flushWork @ chunk-WERSD76P.js?v=3af817f4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=3af817f4:384Entenda o erro
+Console.js:61 ✅ Tarefas carregadas: 4
+Console.js:61 🗑️ Carregando tarefas excluídas...
+Console.js:61 ✅ TODAS as tarefas da empresa carregadas: 34
+Console.js:61 🗑️ Carregando tarefas excluídas...
+Console.js:61 ✅ Tarefas excluídas carregadas: 34
+Console.js:61 📊 Total de tarefas combinadas: 34 (ativas: 4 + excluídas: 34 )
+Console.js:61 🔍 DEBUG FILTRO assigned_to_me:
+Console.js:61 - UserEmail: fabio@allanacaires.monde.com.br
+Console.js:61 - Users carregados: 14
+Console.js:61 - UserUUID encontrado: 9c409497-5b93-49fa-b6c2-f8381bc880d5
+Console.js:61 - SourceTasks: 34
+Console.js:61 ✅ Usando tarefas ativas para assigned_to_me: 34
+Console.js:61 🔍 Tarefas filtradas para o usuário: 4
+Console.js:61 📋 Aplicando filtro: all
+Console.js:61 ✅ Filtro "all" - usando todas as tarefas: 34
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 34
+_app-f10df38f71c1285f.js:38 [Violation] 'setTimeout' handler took 53ms
+Console.js:61 ✅ Tarefas excluídas carregadas: 34
+Console.js:61 📊 Total de tarefas combinadas: 68 (ativas: 34 + excluídas: 34 )
+Console.js:61 📋 Aplicando filtro: all
+Console.js:61 ✅ Filtro "all" - usando todas as tarefas: 68
+Console.js:61 ✅ Filtros aplicados. Tarefas exibidas: 68
+Console.js:61 Warning: Encountered two children with the same key, `4156d9ac-335e-4472-b8e7-a4829e917095`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at main
+    at div
+    at div
+    at Dashboard (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/pages/dashboard.tsx:30:28)
+    at Route (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:323:16)
+    at Switch (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:379:17)
+    at Router
+    at Provider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-KVC5H6OX.js?v=3af817f4:25:15)
+    at TooltipProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=3af817f4:2219:5)
+    at AuthProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/lib/auth.tsx:21:32)
+    at ThemeProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/hooks/use-theme.ts:3:33)
+    at QueryClientProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=3af817f4:2805:3)
+    at App
+Mt.forEach.n.<computed> @ Console.js:61
+printWarning @ chunk-WERSD76P.js?v=3af817f4:521
+error @ chunk-WERSD76P.js?v=3af817f4:505
+warnOnInvalidKey @ chunk-WERSD76P.js?v=3af817f4:10219
+reconcileChildrenArray @ chunk-WERSD76P.js?v=3af817f4:10235
+reconcileChildFibers2 @ chunk-WERSD76P.js?v=3af817f4:10559
+reconcileChildren @ chunk-WERSD76P.js?v=3af817f4:14292
+updateHostComponent @ chunk-WERSD76P.js?v=3af817f4:14807
+beginWork @ chunk-WERSD76P.js?v=3af817f4:15935
+beginWork$1 @ chunk-WERSD76P.js?v=3af817f4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=3af817f4:19198
+workLoopSync @ chunk-WERSD76P.js?v=3af817f4:19137
+renderRootSync @ chunk-WERSD76P.js?v=3af817f4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=3af817f4:18678
+workLoop @ chunk-WERSD76P.js?v=3af817f4:197
+flushWork @ chunk-WERSD76P.js?v=3af817f4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=3af817f4:384Entenda o erro
+Console.js:61 Warning: Encountered two children with the same key, `e77068cc-3a6a-4bb8-aa1a-370a77869bd3`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at main
+    at div
+    at div
+    at Dashboard (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/pages/dashboard.tsx:30:28)
+    at Route (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:323:16)
+    at Switch (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:379:17)
+    at Router
+    at Provider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-KVC5H6OX.js?v=3af817f4:25:15)
+    at TooltipProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=3af817f4:2219:5)
+    at AuthProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/lib/auth.tsx:21:32)
+    at ThemeProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/hooks/use-theme.ts:3:33)
+    at QueryClientProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=3af817f4:2805:3)
+    at App
+Mt.forEach.n.<computed> @ Console.js:61
+printWarning @ chunk-WERSD76P.js?v=3af817f4:521
+error @ chunk-WERSD76P.js?v=3af817f4:505
+warnOnInvalidKey @ chunk-WERSD76P.js?v=3af817f4:10219
+reconcileChildrenArray @ chunk-WERSD76P.js?v=3af817f4:10235
+reconcileChildFibers2 @ chunk-WERSD76P.js?v=3af817f4:10559
+reconcileChildren @ chunk-WERSD76P.js?v=3af817f4:14292
+updateHostComponent @ chunk-WERSD76P.js?v=3af817f4:14807
+beginWork @ chunk-WERSD76P.js?v=3af817f4:15935
+beginWork$1 @ chunk-WERSD76P.js?v=3af817f4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=3af817f4:19198
+workLoopSync @ chunk-WERSD76P.js?v=3af817f4:19137
+renderRootSync @ chunk-WERSD76P.js?v=3af817f4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=3af817f4:18678
+workLoop @ chunk-WERSD76P.js?v=3af817f4:197
+flushWork @ chunk-WERSD76P.js?v=3af817f4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=3af817f4:384Entenda o erro
+Console.js:61 Warning: Encountered two children with the same key, `040e2f8f-177d-47c7-98c5-1d0929606980`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at main
+    at div
+    at div
+    at Dashboard (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/pages/dashboard.tsx:30:28)
+    at Route (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:323:16)
+    at Switch (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:379:17)
+    at Router
+    at Provider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-KVC5H6OX.js?v=3af817f4:25:15)
+    at TooltipProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=3af817f4:2219:5)
+    at AuthProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/lib/auth.tsx:21:32)
+    at ThemeProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/hooks/use-theme.ts:3:33)
+    at QueryClientProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=3af817f4:2805:3)
+    at App
+Mt.forEach.n.<computed> @ Console.js:61
+printWarning @ chunk-WERSD76P.js?v=3af817f4:521
+error @ chunk-WERSD76P.js?v=3af817f4:505
+warnOnInvalidKey @ chunk-WERSD76P.js?v=3af817f4:10219
+reconcileChildrenArray @ chunk-WERSD76P.js?v=3af817f4:10235
+reconcileChildFibers2 @ chunk-WERSD76P.js?v=3af817f4:10559
+reconcileChildren @ chunk-WERSD76P.js?v=3af817f4:14292
+updateHostComponent @ chunk-WERSD76P.js?v=3af817f4:14807
+beginWork @ chunk-WERSD76P.js?v=3af817f4:15935
+beginWork$1 @ chunk-WERSD76P.js?v=3af817f4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=3af817f4:19198
+workLoopSync @ chunk-WERSD76P.js?v=3af817f4:19137
+renderRootSync @ chunk-WERSD76P.js?v=3af817f4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=3af817f4:18678
+workLoop @ chunk-WERSD76P.js?v=3af817f4:197
+flushWork @ chunk-WERSD76P.js?v=3af817f4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=3af817f4:384Entenda o erro
+Console.js:61 Warning: Encountered two children with the same key, `2b35f46b-0e69-420d-a0dc-f52d21453ded`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at main
+    at div
+    at div
+    at Dashboard (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/pages/dashboard.tsx:30:28)
+    at Route (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:323:16)
+    at Switch (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:379:17)
+    at Router
+    at Provider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-KVC5H6OX.js?v=3af817f4:25:15)
+    at TooltipProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=3af817f4:2219:5)
+    at AuthProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/lib/auth.tsx:21:32)
+    at ThemeProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/hooks/use-theme.ts:3:33)
+    at QueryClientProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=3af817f4:2805:3)
+    at App
+Mt.forEach.n.<computed> @ Console.js:61
+printWarning @ chunk-WERSD76P.js?v=3af817f4:521
+error @ chunk-WERSD76P.js?v=3af817f4:505
+warnOnInvalidKey @ chunk-WERSD76P.js?v=3af817f4:10219
+reconcileChildrenArray @ chunk-WERSD76P.js?v=3af817f4:10235
+reconcileChildFibers2 @ chunk-WERSD76P.js?v=3af817f4:10559
+reconcileChildren @ chunk-WERSD76P.js?v=3af817f4:14292
+updateHostComponent @ chunk-WERSD76P.js?v=3af817f4:14807
+beginWork @ chunk-WERSD76P.js?v=3af817f4:15935
+beginWork$1 @ chunk-WERSD76P.js?v=3af817f4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=3af817f4:19198
+workLoopSync @ chunk-WERSD76P.js?v=3af817f4:19137
+renderRootSync @ chunk-WERSD76P.js?v=3af817f4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=3af817f4:18678
+workLoop @ chunk-WERSD76P.js?v=3af817f4:197
+flushWork @ chunk-WERSD76P.js?v=3af817f4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=3af817f4:384Entenda o erro
+Console.js:61 Warning: Encountered two children with the same key, `3a32b7f9-af2b-490e-911d-6f223c203edb`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at main
+    at div
+    at div
+    at Dashboard (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/pages/dashboard.tsx:30:28)
+    at Route (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:323:16)
+    at Switch (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:379:17)
+    at Router
+    at Provider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-KVC5H6OX.js?v=3af817f4:25:15)
+    at TooltipProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=3af817f4:2219:5)
+    at AuthProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/lib/auth.tsx:21:32)
+    at ThemeProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/hooks/use-theme.ts:3:33)
+    at QueryClientProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=3af817f4:2805:3)
+    at App
+Mt.forEach.n.<computed> @ Console.js:61
+printWarning @ chunk-WERSD76P.js?v=3af817f4:521
+error @ chunk-WERSD76P.js?v=3af817f4:505
+warnOnInvalidKey @ chunk-WERSD76P.js?v=3af817f4:10219
+reconcileChildrenArray @ chunk-WERSD76P.js?v=3af817f4:10235
+reconcileChildFibers2 @ chunk-WERSD76P.js?v=3af817f4:10559
+reconcileChildren @ chunk-WERSD76P.js?v=3af817f4:14292
+updateHostComponent @ chunk-WERSD76P.js?v=3af817f4:14807
+beginWork @ chunk-WERSD76P.js?v=3af817f4:15935
+beginWork$1 @ chunk-WERSD76P.js?v=3af817f4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=3af817f4:19198
+workLoopSync @ chunk-WERSD76P.js?v=3af817f4:19137
+renderRootSync @ chunk-WERSD76P.js?v=3af817f4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=3af817f4:18678
+workLoop @ chunk-WERSD76P.js?v=3af817f4:197
+flushWork @ chunk-WERSD76P.js?v=3af817f4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=3af817f4:384Entenda o erro
+Console.js:61 Warning: Encountered two children with the same key, `47391b52-2b4f-42bf-99d1-3e92a3c1aee6`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at main
+    at div
+    at div
+    at Dashboard (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/pages/dashboard.tsx:30:28)
+    at Route (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:323:16)
+    at Switch (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:379:17)
+    at Router
+    at Provider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-KVC5H6OX.js?v=3af817f4:25:15)
+    at TooltipProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=3af817f4:2219:5)
+    at AuthProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/lib/auth.tsx:21:32)
+    at ThemeProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/hooks/use-theme.ts:3:33)
+    at QueryClientProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=3af817f4:2805:3)
+    at App
+Mt.forEach.n.<computed> @ Console.js:61
+printWarning @ chunk-WERSD76P.js?v=3af817f4:521
+error @ chunk-WERSD76P.js?v=3af817f4:505
+warnOnInvalidKey @ chunk-WERSD76P.js?v=3af817f4:10219
+reconcileChildrenArray @ chunk-WERSD76P.js?v=3af817f4:10235
+reconcileChildFibers2 @ chunk-WERSD76P.js?v=3af817f4:10559
+reconcileChildren @ chunk-WERSD76P.js?v=3af817f4:14292
+updateHostComponent @ chunk-WERSD76P.js?v=3af817f4:14807
+beginWork @ chunk-WERSD76P.js?v=3af817f4:15935
+beginWork$1 @ chunk-WERSD76P.js?v=3af817f4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=3af817f4:19198
+workLoopSync @ chunk-WERSD76P.js?v=3af817f4:19137
+renderRootSync @ chunk-WERSD76P.js?v=3af817f4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=3af817f4:18678
+workLoop @ chunk-WERSD76P.js?v=3af817f4:197
+flushWork @ chunk-WERSD76P.js?v=3af817f4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=3af817f4:384Entenda o erro
+Console.js:61 Warning: Encountered two children with the same key, `6d10365a-8744-48a4-b6ea-3c3db5af690d`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at main
+    at div
+    at div
+    at Dashboard (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/pages/dashboard.tsx:30:28)
+    at Route (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:323:16)
+    at Switch (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:379:17)
+    at Router
+    at Provider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-KVC5H6OX.js?v=3af817f4:25:15)
+    at TooltipProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=3af817f4:2219:5)
+    at AuthProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/lib/auth.tsx:21:32)
+    at ThemeProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/hooks/use-theme.ts:3:33)
+    at QueryClientProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=3af817f4:2805:3)
+    at App
+Mt.forEach.n.<computed> @ Console.js:61
+printWarning @ chunk-WERSD76P.js?v=3af817f4:521
+error @ chunk-WERSD76P.js?v=3af817f4:505
+warnOnInvalidKey @ chunk-WERSD76P.js?v=3af817f4:10219
+reconcileChildrenArray @ chunk-WERSD76P.js?v=3af817f4:10235
+reconcileChildFibers2 @ chunk-WERSD76P.js?v=3af817f4:10559
+reconcileChildren @ chunk-WERSD76P.js?v=3af817f4:14292
+updateHostComponent @ chunk-WERSD76P.js?v=3af817f4:14807
+beginWork @ chunk-WERSD76P.js?v=3af817f4:15935
+beginWork$1 @ chunk-WERSD76P.js?v=3af817f4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=3af817f4:19198
+workLoopSync @ chunk-WERSD76P.js?v=3af817f4:19137
+renderRootSync @ chunk-WERSD76P.js?v=3af817f4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=3af817f4:18678
+workLoop @ chunk-WERSD76P.js?v=3af817f4:197
+flushWork @ chunk-WERSD76P.js?v=3af817f4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=3af817f4:384Entenda o erro
+Console.js:61 Warning: Encountered two children with the same key, `6fe03db5-b7de-4957-9a2a-a7bfe18229d5`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at main
+    at div
+    at div
+    at Dashboard (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/pages/dashboard.tsx:30:28)
+    at Route (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:323:16)
+    at Switch (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:379:17)
+    at Router
+    at Provider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-KVC5H6OX.js?v=3af817f4:25:15)
+    at TooltipProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=3af817f4:2219:5)
+    at AuthProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/lib/auth.tsx:21:32)
+    at ThemeProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/hooks/use-theme.ts:3:33)
+    at QueryClientProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=3af817f4:2805:3)
+    at App
+Mt.forEach.n.<computed> @ Console.js:61
+printWarning @ chunk-WERSD76P.js?v=3af817f4:521
+error @ chunk-WERSD76P.js?v=3af817f4:505
+warnOnInvalidKey @ chunk-WERSD76P.js?v=3af817f4:10219
+reconcileChildrenArray @ chunk-WERSD76P.js?v=3af817f4:10235
+reconcileChildFibers2 @ chunk-WERSD76P.js?v=3af817f4:10559
+reconcileChildren @ chunk-WERSD76P.js?v=3af817f4:14292
+updateHostComponent @ chunk-WERSD76P.js?v=3af817f4:14807
+beginWork @ chunk-WERSD76P.js?v=3af817f4:15935
+beginWork$1 @ chunk-WERSD76P.js?v=3af817f4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=3af817f4:19198
+workLoopSync @ chunk-WERSD76P.js?v=3af817f4:19137
+renderRootSync @ chunk-WERSD76P.js?v=3af817f4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=3af817f4:18678
+workLoop @ chunk-WERSD76P.js?v=3af817f4:197
+flushWork @ chunk-WERSD76P.js?v=3af817f4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=3af817f4:384Entenda o erro
+Console.js:61 Warning: Encountered two children with the same key, `71fe2635-efa7-469a-8b1c-602366f9dfa1`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at main
+    at div
+    at div
+    at Dashboard (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/pages/dashboard.tsx:30:28)
+    at Route (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:323:16)
+    at Switch (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:379:17)
+    at Router
+    at Provider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-KVC5H6OX.js?v=3af817f4:25:15)
+    at TooltipProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=3af817f4:2219:5)
+    at AuthProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/lib/auth.tsx:21:32)
+    at ThemeProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/hooks/use-theme.ts:3:33)
+    at QueryClientProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=3af817f4:2805:3)
+    at App
+Mt.forEach.n.<computed> @ Console.js:61
+printWarning @ chunk-WERSD76P.js?v=3af817f4:521
+error @ chunk-WERSD76P.js?v=3af817f4:505
+warnOnInvalidKey @ chunk-WERSD76P.js?v=3af817f4:10219
+reconcileChildrenArray @ chunk-WERSD76P.js?v=3af817f4:10235
+reconcileChildFibers2 @ chunk-WERSD76P.js?v=3af817f4:10559
+reconcileChildren @ chunk-WERSD76P.js?v=3af817f4:14292
+updateHostComponent @ chunk-WERSD76P.js?v=3af817f4:14807
+beginWork @ chunk-WERSD76P.js?v=3af817f4:15935
+beginWork$1 @ chunk-WERSD76P.js?v=3af817f4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=3af817f4:19198
+workLoopSync @ chunk-WERSD76P.js?v=3af817f4:19137
+renderRootSync @ chunk-WERSD76P.js?v=3af817f4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=3af817f4:18678
+workLoop @ chunk-WERSD76P.js?v=3af817f4:197
+flushWork @ chunk-WERSD76P.js?v=3af817f4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=3af817f4:384Entenda o erro
+Console.js:61 Warning: Encountered two children with the same key, `72603a59-a4fa-42c3-bc04-2e21fe7e49e1`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at main
+    at div
+    at div
+    at Dashboard (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/pages/dashboard.tsx:30:28)
+    at Route (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:323:16)
+    at Switch (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:379:17)
+    at Router
+    at Provider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-KVC5H6OX.js?v=3af817f4:25:15)
+    at TooltipProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=3af817f4:2219:5)
+    at AuthProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/lib/auth.tsx:21:32)
+    at ThemeProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/hooks/use-theme.ts:3:33)
+    at QueryClientProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=3af817f4:2805:3)
+    at App
+Mt.forEach.n.<computed> @ Console.js:61
+printWarning @ chunk-WERSD76P.js?v=3af817f4:521
+error @ chunk-WERSD76P.js?v=3af817f4:505
+warnOnInvalidKey @ chunk-WERSD76P.js?v=3af817f4:10219
+reconcileChildrenArray @ chunk-WERSD76P.js?v=3af817f4:10235
+reconcileChildFibers2 @ chunk-WERSD76P.js?v=3af817f4:10559
+reconcileChildren @ chunk-WERSD76P.js?v=3af817f4:14292
+updateHostComponent @ chunk-WERSD76P.js?v=3af817f4:14807
+beginWork @ chunk-WERSD76P.js?v=3af817f4:15935
+beginWork$1 @ chunk-WERSD76P.js?v=3af817f4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=3af817f4:19198
+workLoopSync @ chunk-WERSD76P.js?v=3af817f4:19137
+renderRootSync @ chunk-WERSD76P.js?v=3af817f4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=3af817f4:18678
+workLoop @ chunk-WERSD76P.js?v=3af817f4:197
+flushWork @ chunk-WERSD76P.js?v=3af817f4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=3af817f4:384Entenda o erro
+Console.js:61 Warning: Encountered two children with the same key, `8cbeb97b-ce5b-4c58-b866-05bc29ffd233`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at main
+    at div
+    at div
+    at Dashboard (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/pages/dashboard.tsx:30:28)
+    at Route (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:323:16)
+    at Switch (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:379:17)
+    at Router
+    at Provider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-KVC5H6OX.js?v=3af817f4:25:15)
+    at TooltipProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=3af817f4:2219:5)
+    at AuthProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/lib/auth.tsx:21:32)
+    at ThemeProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/hooks/use-theme.ts:3:33)
+    at QueryClientProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=3af817f4:2805:3)
+    at App
+Mt.forEach.n.<computed> @ Console.js:61
+printWarning @ chunk-WERSD76P.js?v=3af817f4:521
+error @ chunk-WERSD76P.js?v=3af817f4:505
+warnOnInvalidKey @ chunk-WERSD76P.js?v=3af817f4:10219
+reconcileChildrenArray @ chunk-WERSD76P.js?v=3af817f4:10235
+reconcileChildFibers2 @ chunk-WERSD76P.js?v=3af817f4:10559
+reconcileChildren @ chunk-WERSD76P.js?v=3af817f4:14292
+updateHostComponent @ chunk-WERSD76P.js?v=3af817f4:14807
+beginWork @ chunk-WERSD76P.js?v=3af817f4:15935
+beginWork$1 @ chunk-WERSD76P.js?v=3af817f4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=3af817f4:19198
+workLoopSync @ chunk-WERSD76P.js?v=3af817f4:19137
+renderRootSync @ chunk-WERSD76P.js?v=3af817f4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=3af817f4:18678
+workLoop @ chunk-WERSD76P.js?v=3af817f4:197
+flushWork @ chunk-WERSD76P.js?v=3af817f4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=3af817f4:384Entenda o erro
+Console.js:61 Warning: Encountered two children with the same key, `95792f7a-2b09-4599-8274-fc13b829098f`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at main
+    at div
+    at div
+    at Dashboard (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/pages/dashboard.tsx:30:28)
+    at Route (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:323:16)
+    at Switch (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:379:17)
+    at Router
+    at Provider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-KVC5H6OX.js?v=3af817f4:25:15)
+    at TooltipProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=3af817f4:2219:5)
+    at AuthProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/lib/auth.tsx:21:32)
+    at ThemeProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/hooks/use-theme.ts:3:33)
+    at QueryClientProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=3af817f4:2805:3)
+    at App
+Mt.forEach.n.<computed> @ Console.js:61
+printWarning @ chunk-WERSD76P.js?v=3af817f4:521
+error @ chunk-WERSD76P.js?v=3af817f4:505
+warnOnInvalidKey @ chunk-WERSD76P.js?v=3af817f4:10219
+reconcileChildrenArray @ chunk-WERSD76P.js?v=3af817f4:10235
+reconcileChildFibers2 @ chunk-WERSD76P.js?v=3af817f4:10559
+reconcileChildren @ chunk-WERSD76P.js?v=3af817f4:14292
+updateHostComponent @ chunk-WERSD76P.js?v=3af817f4:14807
+beginWork @ chunk-WERSD76P.js?v=3af817f4:15935
+beginWork$1 @ chunk-WERSD76P.js?v=3af817f4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=3af817f4:19198
+workLoopSync @ chunk-WERSD76P.js?v=3af817f4:19137
+renderRootSync @ chunk-WERSD76P.js?v=3af817f4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=3af817f4:18678
+workLoop @ chunk-WERSD76P.js?v=3af817f4:197
+flushWork @ chunk-WERSD76P.js?v=3af817f4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=3af817f4:384Entenda o erro
+Console.js:61 Warning: Encountered two children with the same key, `9cb9766e-a9ef-4d80-a9bf-1f286d98f84b`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at main
+    at div
+    at div
+    at Dashboard (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/pages/dashboard.tsx:30:28)
+    at Route (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:323:16)
+    at Switch (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:379:17)
+    at Router
+    at Provider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-KVC5H6OX.js?v=3af817f4:25:15)
+    at TooltipProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=3af817f4:2219:5)
+    at AuthProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/lib/auth.tsx:21:32)
+    at ThemeProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/hooks/use-theme.ts:3:33)
+    at QueryClientProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=3af817f4:2805:3)
+    at App
+Mt.forEach.n.<computed> @ Console.js:61
+printWarning @ chunk-WERSD76P.js?v=3af817f4:521
+error @ chunk-WERSD76P.js?v=3af817f4:505
+warnOnInvalidKey @ chunk-WERSD76P.js?v=3af817f4:10219
+reconcileChildrenArray @ chunk-WERSD76P.js?v=3af817f4:10235
+reconcileChildFibers2 @ chunk-WERSD76P.js?v=3af817f4:10559
+reconcileChildren @ chunk-WERSD76P.js?v=3af817f4:14292
+updateHostComponent @ chunk-WERSD76P.js?v=3af817f4:14807
+beginWork @ chunk-WERSD76P.js?v=3af817f4:15935
+beginWork$1 @ chunk-WERSD76P.js?v=3af817f4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=3af817f4:19198
+workLoopSync @ chunk-WERSD76P.js?v=3af817f4:19137
+renderRootSync @ chunk-WERSD76P.js?v=3af817f4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=3af817f4:18678
+workLoop @ chunk-WERSD76P.js?v=3af817f4:197
+flushWork @ chunk-WERSD76P.js?v=3af817f4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=3af817f4:384Entenda o erro
+Console.js:61 Warning: Encountered two children with the same key, `b4344829-1947-4a63-a0d2-97a4ac91f1dd`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at main
+    at div
+    at div
+    at Dashboard (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/pages/dashboard.tsx:30:28)
+    at Route (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:323:16)
+    at Switch (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:379:17)
+    at Router
+    at Provider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-KVC5H6OX.js?v=3af817f4:25:15)
+    at TooltipProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=3af817f4:2219:5)
+    at AuthProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/lib/auth.tsx:21:32)
+    at ThemeProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/hooks/use-theme.ts:3:33)
+    at QueryClientProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=3af817f4:2805:3)
+    at App
+Mt.forEach.n.<computed> @ Console.js:61
+printWarning @ chunk-WERSD76P.js?v=3af817f4:521
+error @ chunk-WERSD76P.js?v=3af817f4:505
+warnOnInvalidKey @ chunk-WERSD76P.js?v=3af817f4:10219
+reconcileChildrenArray @ chunk-WERSD76P.js?v=3af817f4:10235
+reconcileChildFibers2 @ chunk-WERSD76P.js?v=3af817f4:10559
+reconcileChildren @ chunk-WERSD76P.js?v=3af817f4:14292
+updateHostComponent @ chunk-WERSD76P.js?v=3af817f4:14807
+beginWork @ chunk-WERSD76P.js?v=3af817f4:15935
+beginWork$1 @ chunk-WERSD76P.js?v=3af817f4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=3af817f4:19198
+workLoopSync @ chunk-WERSD76P.js?v=3af817f4:19137
+renderRootSync @ chunk-WERSD76P.js?v=3af817f4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=3af817f4:18678
+workLoop @ chunk-WERSD76P.js?v=3af817f4:197
+flushWork @ chunk-WERSD76P.js?v=3af817f4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=3af817f4:384Entenda o erro
+Console.js:61 Warning: Encountered two children with the same key, `c45cec61-012e-4421-bff7-526ef8c51dfd`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at main
+    at div
+    at div
+    at Dashboard (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/pages/dashboard.tsx:30:28)
+    at Route (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:323:16)
+    at Switch (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:379:17)
+    at Router
+    at Provider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-KVC5H6OX.js?v=3af817f4:25:15)
+    at TooltipProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=3af817f4:2219:5)
+    at AuthProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/lib/auth.tsx:21:32)
+    at ThemeProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/hooks/use-theme.ts:3:33)
+    at QueryClientProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=3af817f4:2805:3)
+    at App
+Mt.forEach.n.<computed> @ Console.js:61
+printWarning @ chunk-WERSD76P.js?v=3af817f4:521
+error @ chunk-WERSD76P.js?v=3af817f4:505
+warnOnInvalidKey @ chunk-WERSD76P.js?v=3af817f4:10219
+reconcileChildrenArray @ chunk-WERSD76P.js?v=3af817f4:10235
+reconcileChildFibers2 @ chunk-WERSD76P.js?v=3af817f4:10559
+reconcileChildren @ chunk-WERSD76P.js?v=3af817f4:14292
+updateHostComponent @ chunk-WERSD76P.js?v=3af817f4:14807
+beginWork @ chunk-WERSD76P.js?v=3af817f4:15935
+beginWork$1 @ chunk-WERSD76P.js?v=3af817f4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=3af817f4:19198
+workLoopSync @ chunk-WERSD76P.js?v=3af817f4:19137
+renderRootSync @ chunk-WERSD76P.js?v=3af817f4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=3af817f4:18678
+workLoop @ chunk-WERSD76P.js?v=3af817f4:197
+flushWork @ chunk-WERSD76P.js?v=3af817f4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=3af817f4:384Entenda o erro
+Console.js:61 Warning: Encountered two children with the same key, `cc92faaf-d75f-4d46-9389-e5096a407416`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at main
+    at div
+    at div
+    at Dashboard (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/pages/dashboard.tsx:30:28)
+    at Route (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:323:16)
+    at Switch (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:379:17)
+    at Router
+    at Provider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-KVC5H6OX.js?v=3af817f4:25:15)
+    at TooltipProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=3af817f4:2219:5)
+    at AuthProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/lib/auth.tsx:21:32)
+    at ThemeProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/hooks/use-theme.ts:3:33)
+    at QueryClientProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=3af817f4:2805:3)
+    at App
+Mt.forEach.n.<computed> @ Console.js:61
+printWarning @ chunk-WERSD76P.js?v=3af817f4:521
+error @ chunk-WERSD76P.js?v=3af817f4:505
+warnOnInvalidKey @ chunk-WERSD76P.js?v=3af817f4:10219
+reconcileChildrenArray @ chunk-WERSD76P.js?v=3af817f4:10235
+reconcileChildFibers2 @ chunk-WERSD76P.js?v=3af817f4:10559
+reconcileChildren @ chunk-WERSD76P.js?v=3af817f4:14292
+updateHostComponent @ chunk-WERSD76P.js?v=3af817f4:14807
+beginWork @ chunk-WERSD76P.js?v=3af817f4:15935
+beginWork$1 @ chunk-WERSD76P.js?v=3af817f4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=3af817f4:19198
+workLoopSync @ chunk-WERSD76P.js?v=3af817f4:19137
+renderRootSync @ chunk-WERSD76P.js?v=3af817f4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=3af817f4:18678
+workLoop @ chunk-WERSD76P.js?v=3af817f4:197
+flushWork @ chunk-WERSD76P.js?v=3af817f4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=3af817f4:384Entenda o erro
+Console.js:61 Warning: Encountered two children with the same key, `db247b62-d272-4a06-9de7-eda25c182ddb`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at main
+    at div
+    at div
+    at Dashboard (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/pages/dashboard.tsx:30:28)
+    at Route (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:323:16)
+    at Switch (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:379:17)
+    at Router
+    at Provider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-KVC5H6OX.js?v=3af817f4:25:15)
+    at TooltipProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=3af817f4:2219:5)
+    at AuthProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/lib/auth.tsx:21:32)
+    at ThemeProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/hooks/use-theme.ts:3:33)
+    at QueryClientProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=3af817f4:2805:3)
+    at App
+Mt.forEach.n.<computed> @ Console.js:61
+printWarning @ chunk-WERSD76P.js?v=3af817f4:521
+error @ chunk-WERSD76P.js?v=3af817f4:505
+warnOnInvalidKey @ chunk-WERSD76P.js?v=3af817f4:10219
+reconcileChildrenArray @ chunk-WERSD76P.js?v=3af817f4:10235
+reconcileChildFibers2 @ chunk-WERSD76P.js?v=3af817f4:10559
+reconcileChildren @ chunk-WERSD76P.js?v=3af817f4:14292
+updateHostComponent @ chunk-WERSD76P.js?v=3af817f4:14807
+beginWork @ chunk-WERSD76P.js?v=3af817f4:15935
+beginWork$1 @ chunk-WERSD76P.js?v=3af817f4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=3af817f4:19198
+workLoopSync @ chunk-WERSD76P.js?v=3af817f4:19137
+renderRootSync @ chunk-WERSD76P.js?v=3af817f4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=3af817f4:18678
+workLoop @ chunk-WERSD76P.js?v=3af817f4:197
+flushWork @ chunk-WERSD76P.js?v=3af817f4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=3af817f4:384Entenda o erro
+Console.js:61 Warning: Encountered two children with the same key, `f33a4adb-0dc4-46f5-900f-e5533f7df584`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at main
+    at div
+    at div
+    at Dashboard (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/pages/dashboard.tsx:30:28)
+    at Route (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:323:16)
+    at Switch (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:379:17)
+    at Router
+    at Provider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-KVC5H6OX.js?v=3af817f4:25:15)
+    at TooltipProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=3af817f4:2219:5)
+    at AuthProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/lib/auth.tsx:21:32)
+    at ThemeProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/hooks/use-theme.ts:3:33)
+    at QueryClientProvider (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=3af817f4:2805:3)
+    at App
+Mt.forEach.n.<computed> @ Console.js:61
+printWarning @ chunk-WERSD76P.js?v=3af817f4:521
+error @ chunk-WERSD76P.js?v=3af817f4:505
+warnOnInvalidKey @ chunk-WERSD76P.js?v=3af817f4:10219
+reconcileChildrenArray @ chunk-WERSD76P.js?v=3af817f4:10235
+reconcileChildFibers2 @ chunk-WERSD76P.js?v=3af817f4:10559
+reconcileChildren @ chunk-WERSD76P.js?v=3af817f4:14292
+updateHostComponent @ chunk-WERSD76P.js?v=3af817f4:14807
+beginWork @ chunk-WERSD76P.js?v=3af817f4:15935
+beginWork$1 @ chunk-WERSD76P.js?v=3af817f4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=3af817f4:19198
+workLoopSync @ chunk-WERSD76P.js?v=3af817f4:19137
+renderRootSync @ chunk-WERSD76P.js?v=3af817f4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=3af817f4:18678
+workLoop @ chunk-WERSD76P.js?v=3af817f4:197
+flushWork @ chunk-WERSD76P.js?v=3af817f4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=3af817f4:384Entenda o erro
+Console.js:61 Warning: Encountered two children with the same key, `f83a1fb2-f4e4-4389-8e9e-8480fe26fd4d`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at main
+    at div
+    at div
+    at Dashboard (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/src/pages/dashboard.tsx:30:28)
+    at Route (https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3af817f4:323:16)
+    at Switch (

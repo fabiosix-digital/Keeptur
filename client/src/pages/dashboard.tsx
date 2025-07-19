@@ -992,23 +992,58 @@ export default function Dashboard() {
 
   // Filtrar tarefas baseado no status e filtros (função principal)
   const getFilteredTasksWithStatus = () => {
-    let filtered = tasks;
+    // Usar TODAS as tarefas (allTasks já contém ativas + excluídas baseado nos filtros)
+    let filtered = allTasks || [];
 
-    // Filtrar por status concluído/aberto
-    if (!showCompletedTasks) {
-      filtered = filtered.filter((task: any) => !task.attributes.completed);
-    } else {
-      filtered = filtered.filter((task: any) => task.attributes.completed);
-    }
-
-    // Aplicar outros filtros secundários
-    if (selectedCategory) {
+    // Aplicar filtros secundários
+    if (selectedCategory && selectedCategory !== 'all') {
       filtered = filtered.filter((task: any) =>
         task.relationships?.category?.data?.id === selectedCategory,
       );
     }
 
-    // Prioridade removida - não existe na API do Monde
+    // Filtro por responsável
+    if (selectedAssignee && selectedAssignee !== 'all') {
+      filtered = filtered.filter((task: any) => {
+        const assigneeId = task.relationships?.assignee?.data?.id;
+        return assigneeId === selectedAssignee;
+      });
+    }
+
+    // Filtro por cliente
+    if (selectedClient && selectedClient !== 'all') {
+      filtered = filtered.filter((task: any) => {
+        const clientId = task.relationships?.person?.data?.id;
+        return clientId === selectedClient;
+      });
+    }
+
+    // Filtro por data
+    if (startDate || endDate) {
+      filtered = filtered.filter((task: any) => {
+        const taskDate = task.attributes.due ? new Date(task.attributes.due) : null;
+        if (!taskDate) return false;
+        
+        if (startDate && taskDate < new Date(startDate)) return false;
+        if (endDate && taskDate > new Date(endDate)) return false;
+        
+        return true;
+      });
+    }
+
+    // Filtro por termo de busca
+    if (taskSearchTerm && taskSearchTerm.trim()) {
+      const searchTerm = taskSearchTerm.toLowerCase();
+      filtered = filtered.filter((task: any) => {
+        const title = task.attributes.title?.toLowerCase() || '';
+        const description = task.attributes.description?.toLowerCase() || '';
+        const clientName = task.client_name?.toLowerCase() || '';
+        
+        return title.includes(searchTerm) || 
+               description.includes(searchTerm) || 
+               clientName.includes(searchTerm);
+      });
+    }
 
     return filtered;
   };
@@ -1979,9 +2014,9 @@ export default function Dashboard() {
                         // Filtrar apenas tarefas reais (não mockadas)
                         return status === "pending" && task.id && !task.attributes.title?.includes("Follow-up");
                       })
-                      .map((task: any) => (
+                      .map((task: any, index: number) => (
                         <div
-                          key={task.id}
+                          key={`pending-${task.id}-${index}`}
                           className="kanban-card rounded-lg p-4 cursor-move"
                           draggable={true}
                           onDragStart={(e) => handleDragStart(e, task)}
@@ -2101,9 +2136,9 @@ export default function Dashboard() {
                         const { status } = getTaskStatus(task);
                         return status === "overdue";
                       })
-                      .map((task: any) => (
+                      .map((task: any, index: number) => (
                         <div
-                          key={task.id}
+                          key={`overdue-${task.id}-${index}`}
                           className="kanban-card rounded-lg p-4 cursor-move"
                           draggable={true}
                           onDragStart={(e) => handleDragStart(e, task)}
@@ -2227,9 +2262,9 @@ export default function Dashboard() {
                       .filter(task => {
                         return task.attributes.completed === true;
                       })
-                      .map((task: any) => (
+                      .map((task: any, index: number) => (
                         <div
-                          key={task.id}
+                          key={`completed-${task.id}-${index}`}
                           className="kanban-card rounded-lg p-4 cursor-move"
                           draggable={true}
                           onDragStart={(e) => handleDragStart(e, task)}
@@ -2332,11 +2367,11 @@ export default function Dashboard() {
                   >
                     {getFilteredTasksWithStatus()
                       .filter(task => {
-                        return task && task.attributes && (task.attributes.deleted || task.attributes.status === "deleted");
+                        return task && task.attributes && (task.attributes.deleted || task.attributes.status === "deleted" || task.attributes.is_deleted);
                       })
-                      .map((task: any) => (
+                      .map((task: any, index: number) => (
                         <div
-                          key={task.id}
+                          key={`deleted-${task.id}-${index}`}
                           className="kanban-card rounded-lg p-4 cursor-move opacity-60"
                           draggable={true}
                           onDragStart={(e) => handleDragStart(e, task)}

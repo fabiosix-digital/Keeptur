@@ -1188,9 +1188,9 @@ export default function Dashboard() {
     if (!statusChangeModal.task) return;
 
     try {
-      const token = getAuthToken();
+      const token = localStorage.getItem('token');
       if (!token) {
-        showTokenExpiredModal();
+        setShowTokenExpiredModal(true);
         return;
       }
 
@@ -1768,7 +1768,7 @@ export default function Dashboard() {
                     </span>
                   </div>
                   <div
-                    className="space-y-3 min-h-[200px]"
+                    className="space-y-3 min-h-[120px]"
                     onDrop={(e) => handleDrop(e, "pending")}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
@@ -1856,7 +1856,7 @@ export default function Dashboard() {
                     </span>
                   </div>
                   <div
-                    className="space-y-3 min-h-[200px]"
+                    className="space-y-3 min-h-[120px]"
                     onDrop={(e) => handleDrop(e, "overdue")}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
@@ -1954,7 +1954,7 @@ export default function Dashboard() {
                     </span>
                   </div>
                   <div
-                    className="space-y-3 min-h-[200px]"
+                    className="space-y-3 min-h-[120px]"
                     onDrop={(e) => handleDrop(e, "completed")}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
@@ -2051,7 +2051,7 @@ export default function Dashboard() {
                     </span>
                   </div>
                   <div
-                    className="space-y-3 min-h-[200px]"
+                    className="space-y-3 min-h-[120px]"
                     onDrop={(e) => handleDrop(e, "archived")}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
@@ -4441,36 +4441,37 @@ export default function Dashboard() {
                 }
               </p>
 
-              {/* Campo de data/hora obrigatório para reaberturas */}
-              {statusChangeModal.isReopen && (
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Nova Data/Hora de Vencimento *
-                  </label>
-                  <input
-                    type="datetime-local"
-                    value={statusChangeForm.datetime}
-                    onChange={(e) => setStatusChangeForm({...statusChangeForm, datetime: e.target.value})}
-                    className="w-full px-3 py-2 border rounded-lg"
-                    required
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Obrigatório para reabertura de tarefas
-                  </p>
-                </div>
-              )}
-
-              {/* Campo de comentário opcional */}
+              {/* Campo de data/hora obrigatório para mudanças de status */}
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Comentário (opcional)
+                  Nova Data/Hora de Vencimento *
+                </label>
+                <input
+                  type="datetime-local"
+                  value={statusChangeForm.datetime}
+                  onChange={(e) => setStatusChangeForm({...statusChangeForm, datetime: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {statusChangeModal.isReopen 
+                    ? "Obrigatório para reabertura de tarefas"
+                    : "Obrigatório para mudança de status"
+                  }
+                </p>
+              </div>
+
+              {/* Campo de atualização opcional */}
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Atualização (opcional)
                 </label>
                 <textarea
                   value={statusChangeForm.comment}
                   onChange={(e) => setStatusChangeForm({...statusChangeForm, comment: e.target.value})}
                   className="w-full px-3 py-2 border rounded-lg resize-none"
                   rows={3}
-                  placeholder="Adicione um comentário sobre a mudança..."
+                  placeholder="Adicione uma atualização sobre a mudança de status..."
                 />
               </div>
             </div>
@@ -4487,7 +4488,7 @@ export default function Dashboard() {
               </button>
               <button
                 onClick={handleStatusChange}
-                disabled={statusChangeModal.isReopen && !statusChangeForm.datetime}
+                disabled={!statusChangeForm.datetime}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
               >
                 {statusChangeModal.isReopen ? "Reabrir" : "Confirmar"}

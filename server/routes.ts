@@ -279,8 +279,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('✅ Filtro "Criadas por Mim" aplicado: filter[assigned]=author');
       }
       
-      // Se for 'all=true', não adicionar filtros (mostrar todas as tarefas da empresa)
-      else if (req.query.all === 'true') {
+      // Se for 'all_company=true', não adicionar filtros (mostrar todas as tarefas da empresa)
+      else if (req.query.all_company === 'true') {
         // Não adicionar filtros, deixar API retornar todas as tarefas
         console.log('✅ Mostrando TODAS as tarefas da empresa (sem filtros)');
       }

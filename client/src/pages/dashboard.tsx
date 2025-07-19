@@ -56,12 +56,7 @@ export default function Dashboard() {
   const [attachments, setAttachments] = useState<File[]>([]);
   const [taskAttachments, setTaskAttachments] = useState<any[]>([]);
   const [showDeleted, setShowDeleted] = useState(false);
-  const [collapsedColumns, setCollapsedColumns] = useState<{[key: string]: boolean}>({
-    pending: false,
-    overdue: false,
-    completed: false,
-    archived: false
-  });
+
   const [isInitialized, setIsInitialized] = useState(false);
   const [customFields, setCustomFields] = useState<any[]>([]);
   const [loadingCustomFields, setLoadingCustomFields] = useState(false);
@@ -460,12 +455,12 @@ export default function Dashboard() {
     applyFilter();
   }, [taskFilter, allTasks, user?.id, selectedSituation, selectedCategory, selectedAssignee, selectedClient, startDate, endDate, taskSearchTerm]);
 
-  // Recarregar tarefas quando showDeleted mudar
+  // Recarregar tarefas quando taskFilter ou showDeleted mudar
   useEffect(() => {
     if (isInitialized) {
       reloadTasks();
     }
-  }, [showDeleted]);
+  }, [taskFilter, showDeleted]);
 
   // Função para carregar TODAS as tarefas da empresa (uma vez só)
   const loadAllTasks = async () => {
@@ -665,7 +660,7 @@ export default function Dashboard() {
         filtered = [];
       }
     } else {
-      // Para 'all', usar todas as tarefas da fonte
+      // Para 'all', usar TODAS as tarefas (que já vem carregadas do servidor)
       filtered = sourceTasks;
     }
     
@@ -1373,14 +1368,6 @@ export default function Dashboard() {
     }
   };
 
-  // Função para recolher/expandir coluna
-  const toggleColumnCollapse = (columnKey: string) => {
-    setCollapsedColumns(prev => ({
-      ...prev,
-      [columnKey]: !prev[columnKey]
-    }));
-  };
-
   // Função auxiliar para obter nome de exibição do status
   const getStatusDisplayName = (status: string) => {
     switch (status) {
@@ -1877,23 +1864,14 @@ export default function Dashboard() {
             <div className="view-content">
               <div className={`grid gap-4 w-full overflow-x-auto pb-4 ${showDeleted ? 'grid-cols-1 lg:grid-cols-4' : 'grid-cols-1 lg:grid-cols-3'}`}>
                 {/* Pendentes */}
-                {!collapsedColumns.pending ? (
-                  <div className="kanban-column rounded-lg p-4 w-full min-h-fit">
+                <div className="kanban-column rounded-lg p-4 w-full min-h-fit">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => toggleColumnCollapse('pending')}
-                        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                      >
-                        <i className={`${collapsedColumns.pending ? 'ri-arrow-right-s-line' : 'ri-arrow-down-s-line'} text-lg`}></i>
-                      </button>
-                      <h3
-                        className="font-semibold text-sm"
-                        style={{ color: "var(--text-primary)" }}
-                      >
-                        Pendentes
-                      </h3>
-                    </div>
+                    <h3
+                      className="font-semibold text-sm"
+                      style={{ color: "var(--text-primary)" }}
+                    >
+                      Pendentes
+                    </h3>
                     <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
                       {getFilteredTasksWithStatus().filter(task => {
                         const { status } = getTaskStatus(task);
@@ -1901,16 +1879,15 @@ export default function Dashboard() {
                       }).length}
                     </span>
                   </div>
-                  {!collapsedColumns.pending && (
-                    <div
-                      className={`space-y-3 ${getFilteredTasksWithStatus().filter(task => {
-                        const { status } = getTaskStatus(task);
-                        return status === "pending";
-                      }).length === 0 ? 'min-h-[80px]' : 'min-h-[120px]'}`}
-                      onDrop={(e) => handleDrop(e, "pending")}
-                      onDragOver={handleDragOver}
-                      onDragLeave={handleDragLeave}
-                    >
+                  <div
+                    className={`space-y-3 ${getFilteredTasksWithStatus().filter(task => {
+                      const { status } = getTaskStatus(task);
+                      return status === "pending";
+                    }).length === 0 ? 'min-h-[80px]' : 'min-h-[120px]'}`}
+                    onDrop={(e) => handleDrop(e, "pending")}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                  >
                     {getFilteredTasksWithStatus()
                       .filter(task => {
                         const { status } = getTaskStatus(task);
@@ -1970,47 +1947,24 @@ export default function Dashboard() {
                           </div>
                         </div>
                       ))}
-                    </div>
-                  )}
-                    <button
-                      onClick={() => setShowTaskModal(true)}
-                      className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
-                    >
-                      <i className="ri-add-line mr-2"></i>Nova Tarefa
-                    </button>
                   </div>
-                ) : (
-                  <div className="kanban-column-collapsed rounded-lg">
-                    <button
-                      onClick={() => toggleColumnCollapse('pending')}
-                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 mb-2"
-                    >
-                      <i className="ri-arrow-right-s-line text-lg"></i>
-                    </button>
-                    <h3 className="font-semibold text-sm transform -rotate-90 whitespace-nowrap" style={{ color: "var(--text-primary)" }}>
-                      Pendentes
-                    </h3>
-                  </div>
-                )}
+                  <button
+                    onClick={() => setShowTaskModal(true)}
+                    className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
+                  >
+                    <i className="ri-add-line mr-2"></i>Nova Tarefa
+                  </button>
+                </div>
 
                 {/* Atrasadas */}
-                {!collapsedColumns.overdue ? (
-                  <div className="kanban-column rounded-lg p-4 w-full min-h-fit">
+                <div className="kanban-column rounded-lg p-4 w-full min-h-fit">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => toggleColumnCollapse('overdue')}
-                        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                      >
-                        <i className={`${collapsedColumns.overdue ? 'ri-arrow-right-s-line' : 'ri-arrow-down-s-line'} text-lg`}></i>
-                      </button>
-                      <h3
-                        className="font-semibold text-sm"
-                        style={{ color: "var(--text-primary)" }}
-                      >
-                        Atrasadas
-                      </h3>
-                    </div>
+                    <h3
+                      className="font-semibold text-sm"
+                      style={{ color: "var(--text-primary)" }}
+                    >
+                      Atrasadas
+                    </h3>
                     <span className="bg-red-200 text-red-700 px-2 py-1 rounded-full text-xs">
                       {getFilteredTasksWithStatus().filter(task => {
                         const { status } = getTaskStatus(task);
@@ -2018,16 +1972,15 @@ export default function Dashboard() {
                       }).length}
                     </span>
                   </div>
-                  {!collapsedColumns.overdue && (
-                    <div
-                      className={`space-y-3 ${getFilteredTasksWithStatus().filter(task => {
-                        const { status } = getTaskStatus(task);
-                        return status === "overdue";
-                      }).length === 0 ? 'min-h-[80px]' : 'min-h-[120px]'}`}
-                      onDrop={(e) => handleDrop(e, "overdue")}
-                      onDragOver={handleDragOver}
-                      onDragLeave={handleDragLeave}
-                    >
+                  <div
+                    className={`space-y-3 ${getFilteredTasksWithStatus().filter(task => {
+                      const { status } = getTaskStatus(task);
+                      return status === "overdue";
+                    }).length === 0 ? 'min-h-[80px]' : 'min-h-[120px]'}`}
+                    onDrop={(e) => handleDrop(e, "overdue")}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                  >
                     {getFilteredTasksWithStatus()
                       .filter(task => {
                         const { status } = getTaskStatus(task);
@@ -2086,47 +2039,24 @@ export default function Dashboard() {
                           </div>
                         </div>
                       ))}
-                    </div>
-                  )}
-                    <button
-                      onClick={() => setShowTaskModal(true)}
-                      className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
-                    >
-                      <i className="ri-add-line mr-2"></i>Nova Tarefa
-                    </button>
                   </div>
-                ) : (
-                  <div className="kanban-column-collapsed rounded-lg">
-                    <button
-                      onClick={() => toggleColumnCollapse('overdue')}
-                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 mb-2"
-                    >
-                      <i className="ri-arrow-right-s-line text-lg"></i>
-                    </button>
-                    <h3 className="font-semibold text-sm transform -rotate-90 whitespace-nowrap" style={{ color: "var(--text-primary)" }}>
-                      Atrasadas
-                    </h3>
-                  </div>
-                )}
+                  <button
+                    onClick={() => setShowTaskModal(true)}
+                    className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
+                  >
+                    <i className="ri-add-line mr-2"></i>Nova Tarefa
+                  </button>
+                </div>
 
                 {/* Concluídas */}
-                {!collapsedColumns.completed ? (
-                  <div className="kanban-column rounded-lg p-4 w-full min-h-fit">
+                <div className="kanban-column rounded-lg p-4 w-full min-h-fit">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => toggleColumnCollapse('completed')}
-                        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                      >
-                        <i className={`${collapsedColumns.completed ? 'ri-arrow-right-s-line' : 'ri-arrow-down-s-line'} text-lg`}></i>
-                      </button>
-                      <h3
-                        className="font-semibold text-sm"
-                        style={{ color: "var(--text-primary)" }}
-                      >
-                        Concluídas
-                      </h3>
-                    </div>
+                    <h3
+                      className="font-semibold text-sm"
+                      style={{ color: "var(--text-primary)" }}
+                    >
+                      Concluídas
+                    </h3>
                     <span className="bg-green-200 text-green-700 px-2 py-1 rounded-full text-xs">
                       {getFilteredTasksWithStatus().filter(task => {
                         const { status } = getTaskStatus(task);
@@ -2134,16 +2064,15 @@ export default function Dashboard() {
                       }).length}
                     </span>
                   </div>
-                  {!collapsedColumns.completed && (
-                    <div
-                      className={`space-y-3 ${getFilteredTasksWithStatus().filter(task => {
-                        const { status } = getTaskStatus(task);
-                        return status === "completed";
-                      }).length === 0 ? 'min-h-[80px]' : 'min-h-[120px]'}`}
-                      onDrop={(e) => handleDrop(e, "completed")}
-                      onDragOver={handleDragOver}
-                      onDragLeave={handleDragLeave}
-                    >
+                  <div
+                    className={`space-y-3 ${getFilteredTasksWithStatus().filter(task => {
+                      const { status } = getTaskStatus(task);
+                      return status === "completed";
+                    }).length === 0 ? 'min-h-[80px]' : 'min-h-[120px]'}`}
+                    onDrop={(e) => handleDrop(e, "completed")}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                  >
                     {getFilteredTasksWithStatus()
                       .filter(task => {
                         const { status } = getTaskStatus(task);
@@ -2202,28 +2131,14 @@ export default function Dashboard() {
                           </div>
                         </div>
                       ))}
-                    </div>
-                  )}
-                    <button
-                      onClick={() => setShowTaskModal(true)}
-                      className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
-                    >
-                      <i className="ri-add-line mr-2"></i>Nova Tarefa
-                    </button>
                   </div>
-                ) : (
-                  <div className="kanban-column-collapsed rounded-lg">
-                    <button
-                      onClick={() => toggleColumnCollapse('completed')}
-                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 mb-2"
-                    >
-                      <i className="ri-arrow-right-s-line text-lg"></i>
-                    </button>
-                    <h3 className="font-semibold text-sm transform -rotate-90 whitespace-nowrap" style={{ color: "var(--text-primary)" }}>
-                      Concluídas
-                    </h3>
-                  </div>
-                )}
+                  <button
+                    onClick={() => setShowTaskModal(true)}
+                    className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
+                  >
+                    <i className="ri-add-line mr-2"></i>Nova Tarefa
+                  </button>
+                </div>
 
                 {/* Excluídas - só mostrar se showDeleted for true */}
                 {showDeleted && (
@@ -2298,13 +2213,13 @@ export default function Dashboard() {
                           </div>
                         </div>
                       ))}
-                    </div>
-                    <button
-                      onClick={() => setShowTaskModal(true)}
-                      className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
-                    >
-                      <i className="ri-add-line mr-2"></i>Nova Tarefa
-                    </button>
+                  </div>
+                  <button
+                    onClick={() => setShowTaskModal(true)}
+                    className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
+                  >
+                    <i className="ri-add-line mr-2"></i>Nova Tarefa
+                  </button>
                   </div>
                 )}
               </div>

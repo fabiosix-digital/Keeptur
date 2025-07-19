@@ -430,13 +430,13 @@ body {
   border: 1px solid var(--border-color);
   min-height: 500px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   width: 60px;
   min-width: 60px;
   max-width: 60px;
-  writing-mode: vertical-lr;
-  text-orientation: mixed;
+  padding: 8px 4px;
 }
 
 .kanban-card {

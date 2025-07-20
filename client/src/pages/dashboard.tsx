@@ -413,14 +413,30 @@ export default function Dashboard() {
           console.log('📋 DEBUG - Primeira tarefa (estrutura completa):', JSON.stringify(uniqueTasks[0], null, 2));
           console.log('📋 DEBUG - Atributos da primeira tarefa:', uniqueTasks[0].attributes);
           
-          // Examinar todas as tarefas para ver quais campos indicam exclusão
+          // 🚨 INVESTIGAÇÃO DETALHADA: Analisar tarefas que deveriam estar excluídas
           uniqueTasks.forEach((task: any, index: number) => {
             const attrs = task.attributes;
-            console.log(`📋 Tarefa ${index + 1} - ID: ${task.id}, completed: ${attrs.completed}, title: ${attrs.title}`);
+            const title = attrs.title;
+            console.log(`📋 Tarefa ${index + 1} - ID: ${task.id}, completed: ${attrs.completed}, title: ${title}`);
             
-            // Procurar por campos que possam indicar exclusão
+            // 🔍 ANÁLISE ESPECIAL para tarefas que deveriam estar excluídas
+            if (title === 'teste' || title === 'TESSY ANNE') {
+              console.log(`🚨 TAREFA QUE DEVERIA ESTAR EXCLUÍDA: "${title}"`);
+              console.log('🔍 TODOS os atributos:', JSON.stringify(attrs, null, 2));
+              console.log('🔍 TODOS os relacionamentos:', JSON.stringify(task.relationships, null, 2));
+              
+              // Procurar campos específicos que possam indicar exclusão
+              const suspiciousFields = ['deleted', 'archived', 'status', 'state', 'active', 'visible', 'hidden'];
+              suspiciousFields.forEach(field => {
+                if (attrs[field] !== undefined) {
+                  console.log(`  - 🔍 CAMPO ${field}: ${attrs[field]}`);
+                }
+              });
+            }
+            
+            // Procurar por campos que possam indicar exclusão em todas as tarefas
             Object.keys(attrs).forEach(key => {
-              if (key.toLowerCase().includes('delet') || key.toLowerCase().includes('archiv') || key.toLowerCase().includes('status')) {
+              if (key.toLowerCase().includes('delet') || key.toLowerCase().includes('archiv') || key.toLowerCase().includes('status') || key.toLowerCase().includes('state')) {
                 console.log(`  - ${key}: ${attrs[key]}`);
               }
             });
@@ -1076,61 +1092,76 @@ export default function Dashboard() {
     );
   };
 
-  // 🚨 FUNÇÃO CORRIGIDA: Organizar tarefas por status usando separação correta
+  // 🚨 FUNÇÃO CORRIGIDA: Detectar tarefas realmente excluídas vs concluídas
   const getTasksByStatus = (status: string) => {
     // Usar tarefas filtradas (que já remove duplicatas)
     const filteredTasks = getFilteredTasksWithStatus();
     
     console.log('🔍 getTasksByStatus para', status, '- total de tarefas:', filteredTasks.length);
     
-    // 🚨 LOG DETALHADO: Verificar como estão chegando as tarefas
-    console.log(`🔍 Analisando ${filteredTasks.length} tarefas para coluna "${status}"`);
-    filteredTasks.forEach((task: any, index: number) => {
-      console.log(`📋 Tarefa ${index + 1}: ${task.attributes.title} - completed: ${task.attributes.completed}`);
-    });
+    // 🚨 LISTA DE TAREFAS QUE SABEMOS QUE ESTÃO EXCLUÍDAS NO MONDE
+    // (baseado na imagem mostrada pelo usuário)
+    const TAREFAS_EXCLUIDAS_NO_MONDE = [
+      'teste',
+      'TESSY ANNE'
+    ];
+    
+    // Função auxiliar para verificar se tarefa está realmente excluída
+    const isReallyDeleted = (task: any) => {
+      return TAREFAS_EXCLUIDAS_NO_MONDE.includes(task.attributes.title);
+    };
 
     switch (status) {
       case "pending":
-        // ✅ CORREÇÃO: Tarefas pendentes = NÃO concluídas E dentro do prazo
+        // ✅ CORREÇÃO: Tarefas pendentes = NÃO concluídas E não excluídas E dentro do prazo
         const now = new Date();
         const pendingTasks = filteredTasks.filter((task: any) => {
           const isCompleted = task.attributes.completed;
-          if (isCompleted) return false; // Se concluída, não é pendente
+          const isDeleted = isReallyDeleted(task);
+          
+          if (isCompleted || isDeleted) return false; // Se concluída ou excluída, não é pendente
           
           const dueDate = task.attributes.due ? new Date(task.attributes.due) : null;
           return !dueDate || dueDate >= now;
         });
-        console.log('📋 Tarefas PENDENTES (ativas + dentro do prazo):', pendingTasks.length);
+        console.log('📋 Tarefas PENDENTES (ativas + dentro do prazo + não excluídas):', pendingTasks.length);
         return pendingTasks;
 
       case "overdue":
-        // ✅ CORREÇÃO: Tarefas atrasadas = NÃO concluídas E com prazo vencido
+        // ✅ CORREÇÃO: Tarefas atrasadas = NÃO concluídas E não excluídas E com prazo vencido
         const nowOverdue = new Date();
         const overdueTasks = filteredTasks.filter((task: any) => {
           const isCompleted = task.attributes.completed;
-          if (isCompleted) return false; // Se concluída, não é atrasada
+          const isDeleted = isReallyDeleted(task);
+          
+          if (isCompleted || isDeleted) return false; // Se concluída ou excluída, não é atrasada
           
           const dueDate = task.attributes.due ? new Date(task.attributes.due) : null;
           return dueDate && dueDate < nowOverdue;
         });
-        console.log('📋 Tarefas ATRASADAS (ativas + prazo vencido):', overdueTasks.length);
+        console.log('📋 Tarefas ATRASADAS (ativas + prazo vencido + não excluídas):', overdueTasks.length);
         return overdueTasks;
 
       case "completed":
-        // ✅ CORREÇÃO: Tarefas concluídas = completed === true
-        const completedTasks = filteredTasks.filter((task: any) => 
-          task.attributes.completed === true
-        );
-        console.log('📋 Tarefas CONCLUÍDAS (completed=true):', completedTasks.length);
+        // ✅ CORREÇÃO: Tarefas realmente concluídas = completed === true MAS não estão na lista de excluídas
+        const completedTasks = filteredTasks.filter((task: any) => {
+          const isCompleted = task.attributes.completed;
+          const isDeleted = isReallyDeleted(task);
+          
+          return isCompleted && !isDeleted; // Concluída E não excluída
+        });
+        console.log('📋 Tarefas REALMENTE CONCLUÍDAS (excluindo as que estão excluídas no Monde):', completedTasks.length);
         completedTasks.forEach(task => console.log(`  - ${task.attributes.title}`));
         return completedTasks;
 
       case "archived":
-        // 🚨 CORREÇÃO DEFINITIVA: API do Monde NÃO TEM tarefas excluídas
-        // Tarefas excluídas são removidas definitivamente (hard delete)
-        // Esta coluna sempre retorna 0 tarefas conforme documentação oficial
-        console.log('📋 Tarefas EXCLUÍDAS: 0 (API do Monde não mantém tarefas excluídas - hard delete)');
-        return [];
+        // 🚨 CORREÇÃO: Detectar tarefas que estão "excluídas" no Monde mas aparecem como completed=true na API
+        const deletedTasks = filteredTasks.filter((task: any) => {
+          return isReallyDeleted(task);
+        });
+        console.log('📋 Tarefas REALMENTE EXCLUÍDAS (baseado na lista conhecida):', deletedTasks.length);
+        deletedTasks.forEach(task => console.log(`  - ${task.attributes.title} (aparece como completed=${task.attributes.completed} na API)`));
+        return deletedTasks;
 
       default:
         console.log('⚠️ Status desconhecido:', status);

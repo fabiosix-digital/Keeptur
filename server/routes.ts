@@ -513,6 +513,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para buscar clientes com parâmetro de busca
+  app.get('/api/monde/people/search', authenticateToken, async (req: any, res) => {
+    try {
+      const searchTerm = req.query.q as string;
+      if (!searchTerm || searchTerm.length < 2) {
+        return res.json({ data: [] });
+      }
+
+      const response = await fetch(
+        `https://web.monde.com.br/api/v2/people?filter[search]=${encodeURIComponent(searchTerm)}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${req.sessao.access_token}`,
+            'Accept': 'application/vnd.api+json',
+            'Content-Type': 'application/vnd.api+json'
+          }
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        res.json(data);
+      } else {
+        console.error(`Erro ao buscar pessoas: ${response.status} ${response.statusText}`);
+        res.status(response.status).json({ error: 'Erro ao buscar pessoas' });
+      }
+    } catch (error) {
+      console.error('Erro na busca de pessoas:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Endpoint para obter empresas do usuário
+  app.get('/api/monde/user-companies', authenticateToken, async (req: any, res) => {
+    try {
+      // Primeiro tenta obter dados do usuário via /me
+      const meResponse = await fetch(`https://web.monde.com.br/api/v2/me`, {
+        headers: {
+          'Authorization': `Bearer ${req.sessao.access_token}`,
+          'Accept': 'application/vnd.api+json',
+          'Content-Type': 'application/vnd.api+json'
+        }
+      });
+
+      if (meResponse.ok) {
+        const userData = await meResponse.json();
+        // Retorna dados da empresa do usuário
+        res.json({ 
+          data: [userData.data],
+          source: 'me_endpoint'
+        });
+      } else {
+        // Fallback: buscar via organizations
+        const orgResponse = await fetch(`https://web.monde.com.br/api/v2/organizations`, {
+          headers: {
+            'Authorization': `Bearer ${req.sessao.access_token}`,
+            'Accept': 'application/vnd.api+json',
+            'Content-Type': 'application/vnd.api+json'
+          }
+        });
+
+        if (orgResponse.ok) {
+          const orgData = await orgResponse.json();
+          res.json({ 
+            data: orgData.data || [],
+            source: 'organizations_endpoint'
+          });
+        } else {
+          console.error(`Erro ao buscar empresas: ${orgResponse.status}`);
+          res.status(404).json({ error: 'Erro ao buscar empresas do usuário' });
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao buscar empresas do usuário:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
   // Endpoint para buscar pessoas (clientes) - sempre sob demanda
   app.get("/api/monde/pessoas", authenticateToken, async (req: any, res) => {
     try {

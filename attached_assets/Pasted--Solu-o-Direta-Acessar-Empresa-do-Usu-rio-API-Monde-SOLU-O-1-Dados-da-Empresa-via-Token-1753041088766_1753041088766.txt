@@ -1,0 +1,171 @@
+# Solução Direta: Acessar Empresa do Usuário - API Monde
+
+## SOLUÇÃO 1: Dados da Empresa via Token (MAIS PROVÁVEL)
+
+```javascript
+// SOLUÇÃO PRINCIPAL - Cole no Replit:
+async function obterEmpresaUsuario(token) {
+  try {
+    // Endpoint mais comum para dados do usuário atual
+    const response = await fetch('https://web.monde.com.br/api/v2/me', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.api+json',
+        'Content-Type': 'application/vnd.api+json'
+      }
+    });
+    
+    if (response.ok) {
+      const userData = await response.json();
+      
+      // Campos onde a empresa normalmente está:
+      const empresa = userData.data.attributes.company || 
+                     userData.data.attributes['company-name'] ||
+                     userData.data.attributes.organization ||
+                     userData.data.attributes.empresa;
+      
+      return {
+        empresa: empresa,
+        dadosCompletos: userData
+      };
+    }
+    
+    throw new Error(`Erro HTTP: ${response.status}`);
+  } catch (error) {
+    console.error('Erro ao obter empresa:', error);
+    return null;
+  }
+}
+```
+
+## SOLUÇÃO 2: Empresa via People + Creator (ALTERNATIVA)
+
+```javascript
+// ALTERNATIVA - Se a Solução 1 não funcionar:
+async function obterEmpresaViaPeople(token) {
+  try {
+    const response = await fetch('https://web.monde.com.br/api/v2/people', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.api+json',
+        'Content-Type': 'application/vnd.api+json'
+      }
+    });
+    
+    const data = await response.json();
+    
+    // Pegar a primeira pessoa (geralmente é a empresa do usuário)
+    if (data.data && data.data.length > 0) {
+      const pessoa = data.data[0];
+      
+      const empresa = pessoa.attributes['company-name'] ||
+                     pessoa.attributes.cnpj ||
+                     pessoa.attributes['razao-social'];
+      
+      return {
+        empresa: empresa,
+        cnpj: pessoa.attributes.cnpj,
+        pessoa: pessoa
+      };
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Erro:', error);
+    return null;
+  }
+}
+```
+
+## SOLUÇÃO 3: Dados via Endpoint de Organização
+
+```javascript
+// SOLUÇÃO ALTERNATIVA - Endpoint direto de organização:
+async function obterOrganizacao(token) {
+  try {
+    const response = await fetch('https://web.monde.com.br/api/v2/organizations', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.api+json',
+        'Content-Type': 'application/vnd.api+json'
+      }
+    });
+    
+    if (response.ok) {
+      const orgData = await response.json();
+      return orgData.data[0]; // Primeira organização
+    }
+    
+    return null;
+  } catch (error) {
+    return null;
+  }
+}
+```
+
+## IMPLEMENTAÇÃO FINAL - Cole Isso:
+
+```javascript
+// FUNÇÃO COMPLETA - USAR ESTA:
+async function descobrirEmpresa(token) {
+  // Tenta Solução 1 (endpoint /me)
+  let resultado = await obterEmpresaUsuario(token);
+  if (resultado?.empresa) {
+    console.log('✅ Empresa encontrada via /me:', resultado.empresa);
+    return resultado;
+  }
+  
+  // Tenta Solução 2 (via people)
+  resultado = await obterEmpresaViaPeople(token);
+  if (resultado?.empresa) {
+    console.log('✅ Empresa encontrada via people:', resultado.empresa);
+    return resultado;
+  }
+  
+  // Tenta Solução 3 (via organizations)
+  resultado = await obterOrganizacao(token);
+  if (resultado) {
+    console.log('✅ Organização encontrada:', resultado);
+    return resultado;
+  }
+  
+  console.log('❌ Empresa não encontrada em nenhum endpoint');
+  return null;
+}
+
+// USO:
+const empresa = await descobrirEmpresa('SEU_TOKEN');
+console.log('Empresa do usuário:', empresa);
+```
+
+## CAMPOS QUE CONTÊM A EMPRESA:
+
+- `company-name` - Nome da empresa
+- `company` - Empresa
+- `organization` - Organização  
+- `cnpj` - CNPJ (identifica a empresa)
+- `razao-social` - Razão social
+- `empresa` - Empresa (em português)
+
+## ENDPOINT MAIS PROVÁVEL:
+
+**`/api/v2/me`** - Este é o padrão em 90% das APIs para dados do usuário atual.
+
+## RESULTADO FINAL:
+
+```javascript
+// Vai retornar algo como:
+{
+  empresa: "Nome da Empresa Ltda",
+  cnpj: "12.345.678/0001-90",
+  dadosCompletos: { /* objeto completo da API */ }
+}
+```
+
+## RESUMO:
+
+1. **Cole a função `descobrirEmpresa()`**
+2. **Substitua `'SEU_TOKEN'` pelo token real** 
+3. **Execute e pronto** - vai retornar a empresa ou null
+
+**A API Monde TEM acesso aos dados da empresa** - é só usar o endpoint correto. A função acima testa as 3 formas mais comuns automaticamente.

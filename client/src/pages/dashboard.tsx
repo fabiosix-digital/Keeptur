@@ -72,7 +72,62 @@ export default function Dashboard() {
   const [loadingCustomFields, setLoadingCustomFields] = useState(false);
   const [savingCustomFields, setSavingCustomFields] = useState(false);
   const [isModalMaximized, setIsModalMaximized] = useState(false);
+  const [clientSearchTerm, setClientSearchTerm] = useState("");
+  const [clientSearchResults, setClientSearchResults] = useState<any[]>([]);
+  const [isSearchingClients, setIsSearchingClients] = useState(false);
+  const [selectedPersonForTask, setSelectedPersonForTask] = useState<any>(null);
+  const [showClientSearchModal, setShowClientSearchModal] = useState(false);
+  const [userCompanies, setUserCompanies] = useState<any[]>([]);
 
+
+  // Função para buscar clientes na API do Monde
+  const searchClientsInMonde = async (searchTerm: string) => {
+    if (!searchTerm || searchTerm.length < 2) {
+      setClientSearchResults([]);
+      return;
+    }
+
+    setIsSearchingClients(true);
+    try {
+      const response = await fetch(`/api/monde/people/search?q=${encodeURIComponent(searchTerm)}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setClientSearchResults(data.data || []);
+      } else {
+        console.error('Erro ao buscar clientes:', response.status);
+        setClientSearchResults([]);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar clientes:', error);
+      setClientSearchResults([]);
+    }
+    setIsSearchingClients(false);
+  };
+
+  // Função para carregar empresas do usuário
+  const loadUserCompanies = async () => {
+    try {
+      const response = await fetch('/api/monde/user-companies', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUserCompanies(data.data || []);
+      } else {
+        console.error('Erro ao carregar empresas do usuário:', response.status);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar empresas do usuário:', error);
+    }
+  };
 
   // Função para carregar estatísticas de clientes
   const loadClientStats = async () => {
@@ -2807,7 +2862,7 @@ export default function Dashboard() {
         
         if (response.ok) {
           // Recarregar dados completamente para atualizar o status
-          await loadTasks();
+          await reloadTasks();
           
           // Atualizar a tarefa selecionada com os novos dados
           const updatedAllTasks = await loadAllTasks();
@@ -3092,7 +3147,7 @@ export default function Dashboard() {
                   setShowTaskModal(false);
                   setSelectedTask(null);
                   setNewHistoryText('');
-                  loadTasks(); // Recarregar lista de tarefas em vez de reload da página
+                  reloadTasks(); // Recarregar lista de tarefas em vez de reload da página
                 } else {
                   console.error('❌ Erro ao salvar tarefa:', result);
                   alert('Erro ao salvar tarefa. Verifique os dados e tente novamente.');
@@ -3164,7 +3219,11 @@ export default function Dashboard() {
                         name="assignee_id"
                         className="form-input w-full px-3 py-2 text-sm"
                         style={{ backgroundColor: "var(--bg-secondary)" }}
-                        defaultValue={selectedTask?.relationships?.assignee?.data?.id || ''}
+                        defaultValue={
+                          isEditing 
+                            ? selectedTask?.relationships?.assignee?.data?.id || ''
+                            : users.find((u: any) => u.attributes?.email === localStorage.getItem('user-email'))?.id || ''
+                        }
                         onChange={(e) => saveTaskChanges({ assignee_id: e.target.value })}
                       >
                         <option value="">Selecione um responsável</option>
@@ -3240,40 +3299,85 @@ export default function Dashboard() {
                           readOnly
                         />
                       ) : (
-                        <select 
-                          name="person_id"
-                          className="form-input w-full px-3 py-2 text-sm"
-                          style={{ backgroundColor: "var(--bg-secondary)" }}
-                          defaultValue=""
-                          onChange={(e) => {
-                            // Para nova tarefa, permitir seleção de pessoa
-                            const selectedPerson = clients.find((p: any) => p.id === e.target.value);
-                            if (selectedPerson) {
-                              // Atualizar campos de pessoa na nova tarefa
-                              console.log('Pessoa selecionada:', selectedPerson);
-                            }
-                          }}
-                        >
-                          <option value="">Selecione uma pessoa</option>
-                          {clients.map((person: any) => (
-                            <option key={person.id} value={person.id}>
-                              {person.attributes?.name || person.name}
-                            </option>
-                          ))}
-                        </select>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            placeholder="Digite para buscar cliente..."
+                            className="form-input w-full px-3 py-2 pr-10 text-sm"
+                            style={{ backgroundColor: "var(--bg-secondary)" }}
+                            value={clientSearchTerm}
+                            onChange={(e) => {
+                              setClientSearchTerm(e.target.value);
+                              searchClientsInMonde(e.target.value);
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowClientSearchModal(true)}
+                            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                          >
+                            <i className="ri-user-add-line text-lg"></i>
+                          </button>
+                          
+                          {/* Dropdown de resultados */}
+                          {clientSearchResults.length > 0 && (
+                            <div className="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                              {clientSearchResults.map((client: any) => (
+                                <div
+                                  key={client.id}
+                                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm border-b"
+                                  onClick={() => {
+                                    setSelectedPersonForTask(client);
+                                    setClientSearchTerm(client.attributes.name || client.attributes['company-name'] || 'Cliente');
+                                    setClientSearchResults([]);
+                                  }}
+                                >
+                                  <div className="font-medium">{client.attributes.name || client.attributes['company-name']}</div>
+                                  <div className="text-xs text-gray-500">
+                                    {client.attributes.cpf && `CPF: ${client.attributes.cpf}`}
+                                    {client.attributes.email && ` • ${client.attributes.email}`}
+                                    {client.attributes.phone && ` • ${client.attributes.phone}`}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          
+                          {isSearchingClients && (
+                            <div className="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg p-3 text-sm text-center">
+                              Buscando clientes...
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
                     <div className="col-span-6">
                       <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
                         Empresa:
                       </label>
-                      <input
-                        type="text"
-                        className="form-input w-full px-3 py-2 text-sm"
-                        style={{ backgroundColor: "var(--bg-secondary)" }}
-                        value={selectedTask?.client_company || 'Empresa não encontrada'}
-                        readOnly
-                      />
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          className="form-input w-full px-3 py-2 text-sm"
+                          style={{ backgroundColor: "var(--bg-secondary)" }}
+                          value={selectedTask?.client_company || 'Empresa não encontrada'}
+                          readOnly
+                        />
+                      ) : (
+                        <select 
+                          name="company_id"
+                          className="form-input w-full px-3 py-2 text-sm"
+                          style={{ backgroundColor: "var(--bg-secondary)" }}
+                          defaultValue=""
+                        >
+                          <option value="">Selecione uma empresa</option>
+                          {userCompanies.map((company: any) => (
+                            <option key={company.id} value={company.id}>
+                              {company.attributes?.name || company.attributes?.['company-name'] || 'Empresa'}
+                            </option>
+                          ))}
+                        </select>
+                      )}
                     </div>
                   </div>
 
@@ -3764,7 +3868,7 @@ export default function Dashboard() {
                                 }, 3000);
                                 
                                 // Recarregar dados da tarefa
-                                loadTasks();
+                                reloadTasks();
                               } else {
                                 console.error('❌ Erro ao salvar campos personalizados');
                                 

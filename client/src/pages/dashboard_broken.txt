@@ -5348,15 +5348,30 @@ export default function Dashboard() {
             <form onSubmit={submitPersonFisica} className="overflow-y-auto max-h-[calc(85vh-120px)]">
               <div className="p-4 space-y-4">
                 {/* Dados Pessoais - Layout compacto */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   <div className="lg:col-span-3">
                     <label className="block text-xs font-medium mb-1">Nome: *</label>
                     <input name="name" type="text" required className="w-full px-2 py-1.5 text-sm border rounded" />
                   </div>
                   
                   <div>
+                    <label className="block text-xs font-medium mb-1">CPF:</label>
+                    <input name="cpf" type="text" placeholder="000.000.000-00" className="w-full px-2 py-1.5 text-sm border rounded" />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium mb-1">RG:</label>
+                    <input name="rg" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Nascimento:</label>
+                    <input name="birthDate" type="date" className="w-full px-2 py-1.5 text-sm border rounded" />
+                  </div>
+                  
+                  <div>
                     <label className="block text-xs font-medium mb-1">Sexo:</label>
-                    <select name="sex" className="w-full px-2 py-1.5 text-sm border rounded">
+                    <select name="gender" className="w-full px-2 py-1.5 text-sm border rounded">
                       <option value="">Selecione</option>
                       <option value="M">Masculino</option>
                       <option value="F">Feminino</option>
@@ -5371,32 +5386,6 @@ export default function Dashboard() {
                   <div>
                     <label className="block text-xs font-medium mb-1">Código:</label>
                     <input name="code" type="number" disabled className="w-full px-2 py-1.5 text-sm border rounded bg-gray-100" placeholder="Automático" />
-                  </div>
-                </div>
-
-                {/* Documentos */}
-                <div className="border-t pt-3">
-                  <h4 className="text-sm font-medium mb-2">Documentos</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium mb-1">CPF:</label>
-                      <input name="cpf" type="text" placeholder="000.000.000-00" className="w-full px-2 py-1.5 text-sm border rounded" />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-medium mb-1">RG:</label>
-                      <input name="rg" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-medium mb-1">Passport:</label>
-                      <input name="passport" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-medium mb-1">Data Nascimento:</label>
-                      <input name="birthDate" type="date" className="w-full px-2 py-1.5 text-sm border rounded" />
-                    </div>
                   </div>
                 </div>
 
@@ -5457,7 +5446,7 @@ export default function Dashboard() {
                     </div>
                     
                     <div>
-                      <label className="block text-xs font-medium mb-1">Telefone Comercial:</label>
+                      <label className="block text-xs font-medium mb-1">Tel. Comercial:</label>
                       <input name="businessPhone" type="text" placeholder="(11) 2222-3333" className="w-full px-2 py-1.5 text-sm border rounded" />
                     </div>
                     
@@ -5473,42 +5462,30 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* Informações Profissionais */}
+                {/* Documentos Adicionais */}
                 <div className="border-t pt-3">
-                  <h4 className="text-sm font-medium mb-2">Informações Profissionais</h4>
+                  <h4 className="text-sm font-medium mb-2">Documentos</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     <div>
-                      <label className="block text-xs font-medium mb-1">Estado Civil:</label>
-                      <select name="maritalStatus" className="w-full px-2 py-1.5 text-sm border rounded">
-                        <option value="">Selecione</option>
-                        <option value="single">Solteiro(a)</option>
-                        <option value="married">Casado(a)</option>
-                        <option value="divorced">Divorciado(a)</option>
-                        <option value="widowed">Viúvo(a)</option>
-                      </select>
+                      <label className="block text-xs font-medium mb-1">Passaporte Nº:</label>
+                      <input name="passportNumber" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
                     </div>
                     
                     <div>
-                      <label className="block text-xs font-medium mb-1">Profissão:</label>
-                      <input name="profession" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
+                      <label className="block text-xs font-medium mb-1">Validade Passaporte:</label>
+                      <input name="passportExpiration" type="date" className="w-full px-2 py-1.5 text-sm border rounded" />
                     </div>
                     
                     <div>
-                      <label className="block text-xs font-medium mb-1">Nacionalidade:</label>
-                      <input name="nationality" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
+                      <label className="block text-xs font-medium mb-1">Insc. Municipal:</label>
+                      <input name="cityInscription" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
                     </div>
                   </div>
                 </div>
 
                 {/* Outros */}
                 <div className="border-t pt-3">
-                  <h4 className="text-sm font-medium mb-2">Outros</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium mb-1">Observações:</label>
-                      <textarea name="observations" rows={3} className="w-full px-2 py-1.5 text-sm border rounded"></textarea>
-                    </div>
-                    
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-medium mb-1">Vendedor:</label>
                       <select name="vendorId" className="w-full px-2 py-1.5 text-sm border rounded">
@@ -5518,7 +5495,165 @@ export default function Dashboard() {
                         ))}
                       </select>
                     </div>
+                    
+                    <div>
+                      <label className="block text-xs font-medium mb-1">Observações:</label>
+                      <textarea name="observations" rows={2} className="w-full px-2 py-1.5 text-sm border rounded"></textarea>
+                    </div>
                   </div>
+                </div>
+              </div>
+              
+              <div className="p-4 border-t bg-gray-50 flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setShowPersonFisicaModal(false)}
+                  className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50"
+                >
+                  Cancelar
+                </button>
+                <button type="submit" className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700" disabled={savingPerson}>
+                  {savingPerson ? 'Salvando...' : 'Salvar'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+                
+                {/* Segunda linha - CEP, Endereço, Número */}
+                <div className="grid grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">CEP:</label>
+                    <input name="zip" type="text" placeholder="00000-000" className="form-input w-full px-3 py-2 border rounded" />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium mb-2">Endereço:</label>
+                    <input name="address" type="text" className="form-input w-full px-3 py-2 border rounded" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Número:</label>
+                    <input name="number" type="text" className="form-input w-full px-3 py-2 border rounded" />
+                  </div>
+                </div>
+                
+                {/* Terceira linha - Complemento, Bairro */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Complemento:</label>
+                    <input name="complement" type="text" className="form-input w-full px-3 py-2 border rounded" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Bairro:</label>
+                    <input name="district" type="text" className="form-input w-full px-3 py-2 border rounded" />
+                  </div>
+                </div>
+                
+                {/* Quarta linha - Cidade, Estrangeiro */}
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="col-span-3">
+                    <label className="block text-sm font-medium mb-2">Cidade:</label>
+                    <select name="cityId" className="form-input w-full px-3 py-2 border rounded" onClick={loadCities}>
+                      <option value="">Selecione uma cidade</option>
+                      {cities.map(city => (
+                        <option key={city.id} value={city.id}>{city.attributes.name}</option>
+                      ))}
+                    </select>
+                    {loadingCities && <p className="text-sm text-gray-500 mt-1">Carregando cidades...</p>}
+                  </div>
+                  <div className="flex items-center">
+                    <input name="foreign" type="checkbox" id="estrangeiro-pf" className="mr-2" />
+                    <label htmlFor="estrangeiro-pf" className="text-sm">Estrangeiro</label>
+                  </div>
+                </div>
+                
+                {/* Quinta linha - Nascimento, Sexo */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Nascimento:</label>
+                    <input name="birthDate" type="date" className="form-input w-full px-3 py-2 border rounded" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Sexo:</label>
+                    <select name="gender" className="form-input w-full px-3 py-2 border rounded">
+                      <option value="">Selecione</option>
+                      <option value="M">Masculino</option>
+                      <option value="F">Feminino</option>
+                    </select>
+                  </div>
+                </div>
+                
+                {/* Sexta linha - CPF, RG, Inscrição Municipal */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">CPF:</label>
+                    <input name="cpf" type="text" placeholder="000.000.000-00" className="form-input w-full px-3 py-2 border rounded" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">RG:</label>
+                    <input name="rg" type="text" className="form-input w-full px-3 py-2 border rounded" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Inscrição Municipal:</label>
+                    <input name="cityInscription" type="text" className="form-input w-full px-3 py-2 border rounded" />
+                  </div>
+                </div>
+                
+                {/* Sétima linha - Passaporte e Validade */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Passaporte Nº:</label>
+                    <input name="passportNumber" type="text" className="form-input w-full px-3 py-2 border rounded" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Validade Passaporte:</label>
+                    <input name="passportExpiration" type="date" className="form-input w-full px-3 py-2 border rounded" />
+                  </div>
+                </div>
+                
+                {/* Oitava linha - Telefones */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Telefone:</label>
+                    <input name="phone" type="text" placeholder="(11) 3333-4444" className="form-input w-full px-3 py-2 border rounded" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Celular:</label>
+                    <input name="mobilePhone" type="text" placeholder="(11) 99999-8888" className="form-input w-full px-3 py-2 border rounded" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Telefone Comercial:</label>
+                    <input name="businessPhone" type="text" placeholder="(11) 2222-3333" className="form-input w-full px-3 py-2 border rounded" />
+                  </div>
+                </div>
+                
+                {/* Nona linha - E-mail */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">E-mail:</label>
+                  <input name="email" type="email" className="form-input w-full px-3 py-2 border rounded" />
+                </div>
+                
+                {/* Décima linha - Website */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Website:</label>
+                  <input name="website" type="url" className="form-input w-full px-3 py-2 border rounded" />
+                </div>
+                
+                {/* Observações */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Observações:</label>
+                  <textarea name="observations" rows={4} className="form-input w-full px-3 py-2 border rounded"></textarea>
+                </div>
+                
+                {/* Vendedor */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Vendedor:</label>
+                  <select name="vendorId" className="form-input w-full px-3 py-2 border rounded">
+                    <option value="">Selecione um vendedor</option>
+                    {users.map((user: any) => (
+                      <option key={user.id} value={user.id}>{user.attributes.name}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
               
@@ -5538,6 +5673,1182 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+      {/* Modal de cadastro - Pessoa Jurídica */}
+      {showPersonJuridicaModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full mx-4 max-h-[85vh] overflow-hidden">
+            <div className="p-4 border-b flex justify-between items-center">
+              <h2 className="text-xl font-semibold">🏢 Cadastrar Pessoa Jurídica</h2>
+              <button
+                onClick={() => setShowPersonJuridicaModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <i className="ri-close-line text-xl"></i>
+              </button>
+            </div>
+            
+            <form onSubmit={submitPersonJuridica} className="overflow-y-auto max-h-[calc(85vh-120px)]">
+              <div className="p-4 space-y-4">
+                {/* Dados da Empresa - Layout compacto */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div className="lg:col-span-3">
+                    <label className="block text-xs font-medium mb-1">Nome/Nome Fantasia: *</label>
+                    <input name="name" type="text" required className="w-full px-2 py-1.5 text-sm border rounded" />
+                  </div>
+                  
+                  <div className="lg:col-span-2">
+                    <label className="block text-xs font-medium mb-1">Razão Social:</label>
+                    <input name="corporateName" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Código:</label>
+                    <input name="code" type="number" disabled className="w-full px-2 py-1.5 text-sm border rounded bg-gray-100" placeholder="Automático" />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium mb-1">CNPJ:</label>
+                    <input name="cnpj" type="text" placeholder="00.000.000/0000-00" className="w-full px-2 py-1.5 text-sm border rounded" />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Insc. Estadual:</label>
+                    <input name="stateInscription" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Insc. Municipal:</label>
+                    <input name="cityInscription" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
+                  </div>
+                </div>
+
+                {/* Endereço */}
+                <div className="border-t pt-3">
+                  <h4 className="text-sm font-medium mb-2">Endereço</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium mb-1">CEP:</label>
+                      <input name="zip" type="text" placeholder="00000-000" className="w-full px-2 py-1.5 text-sm border rounded" />
+                    </div>
+                    
+                    <div className="lg:col-span-2">
+                      <label className="block text-xs font-medium mb-1">Endereço:</label>
+                      <input name="address" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-xs font-medium mb-1">Número:</label>
+                      <input name="number" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-xs font-medium mb-1">Complemento:</label>
+                      <input name="complement" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-xs font-medium mb-1">Bairro:</label>
+                      <input name="district" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
+                    </div>
+                    
+                    <div className="lg:col-span-2">
+                      <label className="block text-xs font-medium mb-1">Cidade:</label>
+                      <select name="cityId" className="w-full px-2 py-1.5 text-sm border rounded" onClick={loadCities}>
+                        <option value="">Selecione uma cidade</option>
+                        {cities.map(city => (
+                          <option key={city.id} value={city.id}>{city.attributes.name}</option>
+                        ))}
+                      </select>
+                      {loadingCities && <p className="text-xs text-gray-500 mt-1">Carregando...</p>}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Contato */}
+                <div className="border-t pt-3">
+                  <h4 className="text-sm font-medium mb-2">Contato</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium mb-1">Telefone:</label>
+                      <input name="phone" type="text" placeholder="(11) 3333-4444" className="w-full px-2 py-1.5 text-sm border rounded" />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-xs font-medium mb-1">Tel. Comercial:</label>
+                      <input name="businessPhone" type="text" placeholder="(11) 2222-3333" className="w-full px-2 py-1.5 text-sm border rounded" />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-xs font-medium mb-1">Celular:</label>
+                      <input name="mobilePhone" type="text" placeholder="(11) 99999-8888" className="w-full px-2 py-1.5 text-sm border rounded" />
+                    </div>
+                    
+                    <div className="lg:col-span-2">
+                      <label className="block text-xs font-medium mb-1">E-mail:</label>
+                      <input name="email" type="email" className="w-full px-2 py-1.5 text-sm border rounded" />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-xs font-medium mb-1">Website:</label>
+                      <input name="website" type="url" className="w-full px-2 py-1.5 text-sm border rounded" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Outros */}
+                <div className="border-t pt-3">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium mb-1">Vendedor:</label>
+                      <select name="vendorId" className="w-full px-2 py-1.5 text-sm border rounded">
+                        <option value="">Selecione um vendedor</option>
+                        {users.map((user: any) => (
+                          <option key={user.id} value={user.id}>{user.attributes.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-xs font-medium mb-1">Observações:</label>
+                      <textarea name="observations" rows={2} className="w-full px-2 py-1.5 text-sm border rounded"></textarea>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-4 border-t bg-gray-50 flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setShowPersonJuridicaModal(false)}
+                  className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50"
+                >
+                  Cancelar
+                </button>
+                <button type="submit" className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700" disabled={savingPerson}>
+                  {savingPerson ? 'Salvando...' : 'Salvar'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Token Expirado */}
+      {showTokenExpiredModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6 text-center">
+              <h2 className="text-xl font-semibold mb-4">🔐 Sessão Expirada</h2>
+              <p className="text-gray-600 mb-6">Sua sessão expirou. Você será redirecionado para a tela de login.</p>
+              <button
+                onClick={() => {
+                  setShowTokenExpiredModal(false);
+                  window.location.href = '/login';
+                }}
+                className="w-full py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                Ir para Login
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Renderizar modal de cliente */}
+      {renderClientModal()}
+
+      {/* Modal de alteração de status */}
+      {statusChangeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <h3 className="text-lg font-semibold mb-4">
+                🔄 Alterar Status: {statusChangeModal.title}
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                De: {getStatusDisplayName(statusChangeModal.fromStatus)} → Para: {getStatusDisplayName(statusChangeModal.toStatus)}
+              </p>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Data/Hora da Alteração:</label>
+                  <input
+                    type="datetime-local"
+                    value={statusChangeForm.date}
+                    onChange={(e) => setStatusChangeForm({ ...statusChangeForm, date: e.target.value })}
+                    className="w-full px-3 py-2 border rounded"
+                  />
+                </div>
+                
+                {statusChangeModal.toStatus === 'completed' && (
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Data de Conclusão:</label>
+                    <input
+                      type="date"
+                      value={statusChangeForm.completedDate}
+                      onChange={(e) => setStatusChangeForm({ ...statusChangeForm, completedDate: e.target.value })}
+                      className="w-full px-3 py-2 border rounded"
+                    />
+                  </div>
+                )}
+                
+                <div>
+                  <label className="block text-sm font-medium mb-2">Observações sobre a alteração:</label>
+                  <textarea
+                    value={statusChangeForm.description}
+                    onChange={(e) => setStatusChangeForm({ ...statusChangeForm, description: e.target.value })}
+                    rows={3}
+                    className="w-full px-3 py-2 border rounded"
+                    placeholder="Descreva o motivo da alteração..."
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => {
+                    setStatusChangeModal(null);
+                    setStatusChangeForm({
+                      date: new Date().toISOString().slice(0, 16),
+                      completedDate: new Date().toISOString().slice(0, 10),
+                      description: ''
+                    });
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => handleStatusChange(
+                    statusChangeForm.description,
+                    statusChangeForm.date,
+                    statusChangeForm.completedDate
+                  )}
+                  disabled={!statusChangeModal}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                >
+                  Confirmar Alteração
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de transferência de tarefa */}
+      {showTransferModal && taskToTransfer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">↗️ Transferir Tarefa</h3>
+                <button
+                  onClick={() => {
+                    setShowTransferModal(false);
+                    setTaskToTransfer(null);
+                    setSelectedTransferUser('');
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <i className="ri-close-line text-xl"></i>
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Tarefa:</label>
+                  <p className="text-sm bg-gray-50 p-2 rounded border">{taskToTransfer.attributes.title}</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Responsável atual: {getAssigneeName(taskToTransfer)}
+                  </p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Transferir para:</label>
+                  <select
+                    value={selectedTransferUser}
+                    onChange={(e) => setSelectedTransferUser(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  >
+                    <option value="">Selecione um usuário</option>
+                    {users.map((user) => (
+                      <option key={user.id} value={user.id}>
+                        {user.attributes.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => {
+                    setShowTransferModal(false);
+                    setTaskToTransfer(null);
+                    setSelectedTransferUser('');
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!selectedTransferUser) {
+                      alert('Selecione um usuário para transferir a tarefa');
+                      return;
+                    }
+                    
+                    try {
+                      const response = await fetch(`/api/tasks/${taskToTransfer.id}`, {
+                        method: 'PUT',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({
+                          data: {
+                            type: 'tasks',
+                            id: taskToTransfer.id,
+                            attributes: {
+                              ...taskToTransfer.attributes
+                            },
+                            relationships: {
+                              ...taskToTransfer.relationships,
+                              assignee: {
+                                data: {
+                                  type: 'users',
+                                  id: selectedTransferUser
+                                }
+                              }
+                            }
+                          }
+                        })
+                      });
+
+                      if (response.ok) {
+                        const selectedUser = users.find(u => u.id === selectedTransferUser);
+                        alert(`Tarefa transferida para ${selectedUser?.attributes.name || 'usuário selecionado'} com sucesso!`);
+                        setShowTransferModal(false);
+                        setTaskToTransfer(null);
+                        setSelectedTransferUser('');
+                        reloadTasks();
+                      } else {
+                        throw new Error(`Erro: ${response.status}`);
+                      }
+                    } catch (error) {
+                      console.error('Erro ao transferir tarefa:', error);
+                      alert('Erro ao transferir tarefa');
+                    }
+                  }}
+                  disabled={!selectedTransferUser}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                >
+                  Transferir
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de conclusão */}
+      {showCompletionModal && taskToComplete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">✅ Concluir Tarefa</h3>
+                <button
+                  onClick={() => {
+                    setShowCompletionModal(false);
+                    setTaskToComplete(null);
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <i className="ri-close-line text-xl"></i>
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Tarefa:</label>
+                  <p className="text-sm bg-gray-50 p-2 rounded border">{taskToComplete.attributes.title}</p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Observações sobre a conclusão:
+                  </label>
+                  <textarea
+                    value={newHistoryText}
+                    onChange={(e) => setNewHistoryText(e.target.value)}
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    placeholder="Descreva como a tarefa foi concluída..."
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => {
+                    setShowCompletionModal(false);
+                    setTaskToComplete(null);
+                    setNewHistoryText('');
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      if (!localStorage.getItem('token')) {
+                        setShowTokenExpiredModal(true);
+                        return;
+                      }
+
+                      // Cancelar requisição anterior se existir
+                      if (abortControllerRef.current) {
+                        abortControllerRef.current.abort();
+                      }
+
+                      // Criar novo controller
+                      abortControllerRef.current = new AbortController();
+
+                      const response = await fetch(`/api/tasks/${taskToComplete.id}/complete`, {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({
+                          historyText: newHistoryText || 'Tarefa concluída'
+                        }),
+                        signal: abortControllerRef.current.signal
+                      });
+
+                      if (response.ok) {
+                        alert('Tarefa concluída com sucesso!');
+                        setShowCompletionModal(false);
+                        setTaskToComplete(null);
+                        setNewHistoryText('');
+                        
+                        // Aguardar um pouco antes de recarregar para garantir sincronização
+                        setTimeout(() => {
+                          reloadTasks();
+                        }, 800);
+                      } else {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.message || `Erro: ${response.status}`);
+                      }
+                    } catch (error: any) {
+                      if (error.name === 'AbortError') {
+                        console.log('Requisição cancelada');
+                        return;
+                      }
+                      console.error('Erro ao concluir tarefa:', error);
+                      alert('Erro ao concluir tarefa: ' + error.message);
+                    }
+                  }}
+                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                >
+                  Concluir
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de exclusão */}
+      {showDeletionModal && taskToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">🗑️ Excluir Tarefa</h3>
+                <button
+                  onClick={() => {
+                    setShowDeletionModal(false);
+                    setTaskToDelete(null);
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <i className="ri-close-line text-xl"></i>
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Tarefa:</label>
+                  <p className="text-sm bg-gray-50 p-2 rounded border">{taskToDelete.attributes.title}</p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Motivo da exclusão:
+                  </label>
+                  <textarea
+                    value={newHistoryText}
+                    onChange={(e) => setNewHistoryText(e.target.value)}
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    placeholder="Descreva o motivo da exclusão..."
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => {
+                    setShowDeletionModal(false);
+                    setTaskToDelete(null);
+                    setNewHistoryText('');
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      if (!localStorage.getItem('token')) {
+                        setShowTokenExpiredModal(true);
+                        return;
+                      }
+
+                      const response = await fetch(`/api/tasks/${taskToDelete.id}`, {
+                        method: 'DELETE',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({
+                          historyText: newHistoryText || 'Tarefa excluída'
+                        })
+                      });
+
+                      if (response.ok) {
+                        alert('Tarefa excluída com sucesso!');
+                        setShowDeletionModal(false);
+                        setTaskToDelete(null);
+                        setNewHistoryText('');
+                        
+                        // Aguardar um pouco antes de recarregar para garantir sincronização
+                        setTimeout(() => {
+                          reloadTasks();
+                        }, 500);
+                        
+                        // Recarregar novamente após mais tempo para garantir
+                        setTimeout(() => {
+                          reloadTasks();
+                        }, 1500);
+                      } else {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.message || `Erro: ${response.status}`);
+                      }
+                    } catch (error: any) {
+                      console.error('Erro ao excluir tarefa:', error);
+                      alert('Erro ao excluir tarefa: ' + error.message);
+                    }
+                  }}
+                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                >
+                  Excluir
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+                    <input name="phone" type="text" placeholder="(11) 3333-4444" className="form-input w-full px-3 py-2 border rounded" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Celular:</label>
+                    <input name="mobilePhone" type="text" placeholder="(11) 99999-8888" className="form-input w-full px-3 py-2 border rounded" />
+                  </div>
+                </div>
+                
+                {/* Décima linha - E-mail */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">E-mail:</label>
+                  <input name="email" type="email" className="form-input w-full px-3 py-2 border rounded" />
+                </div>
+                
+                {/* Décima primeira linha - Website */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Website:</label>
+                  <input name="website" type="url" className="form-input w-full px-3 py-2 border rounded" />
+                </div>
+                
+                {/* Observações */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Observações:</label>
+                  <textarea name="observations" rows={4} className="form-input w-full px-3 py-2 border rounded"></textarea>
+                </div>
+                
+                {/* Vendedor */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Vendedor:</label>
+                  <select name="vendorId" className="form-input w-full px-3 py-2 border rounded">
+                    <option value="">Selecione um vendedor</option>
+                    {users.map((user: any) => (
+                      <option key={user.id} value={user.id}>{user.attributes.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-3 mt-6 pt-6 border-t">
+                <button
+                  type="button"
+                  onClick={() => setShowPersonJuridicaModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
+                >
+                  Cancelar
+                </button>
+                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" disabled={savingPerson}>
+                  {savingPerson ? 'Salvando...' : 'Salvar'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de token expirado */}
+      <TokenExpiredModal
+        isOpen={showTokenExpiredModal}
+        onClose={() => setShowTokenExpiredModal(false)}
+      />
+
+      {/* Modal de Cliente */}
+      {renderClientModal()}
+
+      {/* Modal de Mudança de Status */}
+      {statusChangeModal.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">
+              {statusChangeModal.isReopen ? "Reabrir Tarefa" : "Alterar Status da Tarefa"}
+            </h3>
+            
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                {statusChangeModal.isReopen 
+                  ? `Você está reabrindo a tarefa "${statusChangeModal.task?.attributes?.title}" para o status "${getStatusDisplayName(statusChangeModal.newStatus)}".`
+                  : `Alterando status da tarefa "${statusChangeModal.task?.attributes?.title}" para "${getStatusDisplayName(statusChangeModal.newStatus)}".`
+                }
+              </p>
+
+              {/* Campo de data/hora obrigatório para mudanças de status */}
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Nova Data/Hora de Vencimento *
+                </label>
+                <input
+                  type="datetime-local"
+                  value={statusChangeForm.datetime}
+                  onChange={(e) => setStatusChangeForm({...statusChangeForm, datetime: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  required
+                  min={statusChangeModal.newStatus === "pending" ? new Date().toISOString().slice(0, 16) : ""}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {statusChangeModal.newStatus === "pending" 
+                    ? "⚠️ Para tarefas pendentes, a data deve ser FUTURA para evitar ficar atrasada"
+                    : statusChangeModal.isReopen 
+                      ? "Obrigatório para reabertura de tarefas"
+                      : "Obrigatório para mudança de status"
+                  }
+                </p>
+              </div>
+
+              {/* Campo de atualização opcional */}
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Atualização (opcional)
+                </label>
+                <textarea
+                  value={statusChangeForm.comment}
+                  onChange={(e) => setStatusChangeForm({...statusChangeForm, comment: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg resize-none"
+                  rows={3}
+                  placeholder="Adicione uma atualização sobre a mudança de status..."
+                />
+              </div>
+
+              {/* Mensagens de sucesso e erro */}
+              {statusChangeForm.success && (
+                <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg text-sm">
+                  <div className="flex items-center">
+                    <i className="ri-check-line mr-2"></i>
+                    {statusChangeForm.success}
+                  </div>
+                </div>
+              )}
+
+              {statusChangeForm.error && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-sm">
+                  <div className="flex items-center">
+                    <i className="ri-error-warning-line mr-2"></i>
+                    {statusChangeForm.error}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => {
+                  setStatusChangeModal({ isOpen: false, task: null, newStatus: "", isReopen: false });
+                  setStatusChangeForm({ datetime: "", comment: "", success: "", error: "" });
+                }}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleStatusChange}
+                disabled={!statusChangeForm.datetime}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+              >
+                {statusChangeModal.isReopen ? "Reabrir" : "Confirmar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Transferência de Responsável */}
+      {showTransferModal && taskToTransfer && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
+                <i className="ri-user-shared-line mr-2 text-blue-600"></i>
+                Transferir Responsável
+              </h3>
+              <button
+                onClick={() => {
+                  setShowTransferModal(false);
+                  setTaskToTransfer(null);
+                  setSelectedTransferUser("");
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <i className="ri-close-line text-xl"></i>
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                Tarefa: <span className="font-medium" style={{ color: "var(--text-primary)" }}>{taskToTransfer.attributes.title}</span>
+              </p>
+              <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
+                Responsável atual: <span className="font-medium">{getAssigneeName(taskToTransfer)}</span>
+              </p>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>
+                Novo Responsável *
+              </label>
+              <select
+                value={selectedTransferUser}
+                onChange={(e) => setSelectedTransferUser(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                style={{ backgroundColor: "var(--background)", color: "var(--text-primary)" }}
+              >
+                <option value="">Selecione um responsável</option>
+                {users.map((user: any) => (
+                  <option key={user.id} value={user.id}>
+                    {user.attributes.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowTransferModal(false);
+                  setTaskToTransfer(null);
+                  setSelectedTransferUser("");
+                }}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={async () => {
+                  if (!selectedTransferUser) {
+                    // Mostrar toast de erro
+                    const toast = document.createElement('div');
+                    toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+                    toast.textContent = 'Selecione um responsável';
+                    document.body.appendChild(toast);
+                    setTimeout(() => document.body.removeChild(toast), 3000);
+                    return;
+                  }
+
+                  try {
+                    console.log("🔄 Transferindo tarefa", taskToTransfer.id, "para", selectedTransferUser);
+                    
+                    // Buscar dados atuais da tarefa
+                    const currentTask = taskToTransfer;
+                    const taskData = {
+                      title: currentTask.attributes.title,
+                      description: currentTask.attributes.description || "",
+                      completed: currentTask.attributes.completed,
+                      due: currentTask.attributes.due,
+                      assignee_id: selectedTransferUser // Novo responsável
+                    };
+                    
+                    // Atualizar tarefa via API do Monde
+                    const response = await fetch(`/api/monde/tarefas/${taskToTransfer.id}`, {
+                      method: 'PUT',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+                      },
+                      body: JSON.stringify(taskData)
+                    });
+                    
+                    if (response.ok) {
+                      console.log("✅ Tarefa transferida com sucesso");
+                      
+                      // Registrar no histórico
+                      const selectedUser = users.find((u: any) => u.id === selectedTransferUser);
+                      const historyText = `Responsável transferido para ${selectedUser?.attributes?.name || 'Usuário'}`;
+                      
+                      await fetch('/api/monde/task-historics', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+                        },
+                        body: JSON.stringify({
+                          task_id: taskToTransfer.id,
+                          text: historyText
+                        })
+                      });
+                      
+                      // Mostrar toast de sucesso
+                      const toast = document.createElement('div');
+                      toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+                      toast.textContent = 'Responsável transferido com sucesso!';
+                      document.body.appendChild(toast);
+                      setTimeout(() => document.body.removeChild(toast), 3000);
+                      
+                      setShowTransferModal(false);
+                      setTaskToTransfer(null);
+                      setSelectedTransferUser("");
+                      reloadTasks();
+                    } else {
+                      throw new Error('Erro na API');
+                    }
+                  } catch (error) {
+                    console.error("❌ Erro ao transferir responsável:", error);
+                    const toast = document.createElement('div');
+                    toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+                    toast.textContent = 'Erro ao transferir responsável';
+                    document.body.appendChild(toast);
+                    setTimeout(() => document.body.removeChild(toast), 3000);
+                  }
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                disabled={!selectedTransferUser}
+              >
+                <i className="ri-user-shared-line mr-2"></i>
+                Transferir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Conclusão de Tarefa */}
+      {showCompletionModal && taskToComplete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
+                <i className="ri-check-double-line mr-2 text-green-600"></i>
+                Concluir Tarefa
+              </h3>
+              <button
+                onClick={() => {
+                  setShowCompletionModal(false);
+                  setTaskToComplete(null);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <i className="ri-close-line text-xl"></i>
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+                <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-2">
+                  {taskToComplete.attributes?.title}
+                </h4>
+                <p className="text-blue-600 dark:text-blue-300 text-sm">
+                  Esta tarefa será marcada como concluída. Você pode adicionar uma observação opcional sobre a conclusão.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>
+                    Observação da Conclusão (Opcional)
+                  </label>
+                  <textarea
+                    value={newHistoryText}
+                    onChange={(e) => setNewHistoryText(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-lg resize-none"
+                    style={{ 
+                      backgroundColor: "var(--bg-primary)", 
+                      borderColor: "var(--border-color)",
+                      color: "var(--text-primary)"
+                    }}
+                    rows={3}
+                    placeholder="Descreva brevemente o que foi realizado ou concluído..."
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowCompletionModal(false);
+                  setTaskToComplete(null);
+                  setNewHistoryText("");
+                }}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    const token = localStorage.getItem('keeptur-token');
+                    if (!token) {
+                      setShowTokenExpiredModal(true);
+                      return;
+                    }
+
+                    // Cancelar requisições anteriores se existirem
+                    if (abortControllerRef.current) {
+                      abortControllerRef.current.abort();
+                    }
+
+                    // Marcar tarefa como concluída
+                    const response = await fetch(`/api/monde/tarefas/${taskToComplete.id}`, {
+                      method: 'PUT',
+                      headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                      },
+                      body: JSON.stringify({
+                        completed: true,
+                        completed_at: new Date().toISOString(),
+                        history_comment: newHistoryText.trim() || 'Tarefa concluída'
+                      })
+                    });
+
+                    if (response.ok) {
+                      console.log('✅ Tarefa marcada como concluída');
+                      
+                      // Fechar modal imediatamente
+                      setShowCompletionModal(false);
+                      setTaskToComplete(null);
+                      setNewHistoryText("");
+                      
+                      // Aguardar um momento antes de recarregar
+                      setTimeout(async () => {
+                        try {
+                          await reloadTasks();
+                        } catch (error) {
+                          console.log('⚠️ Erro ao recarregar tarefas após conclusão:', error);
+                        }
+                      }, 800);
+                      
+                      // Mostrar feedback visual
+                      const toast = document.createElement('div');
+                      toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                      toast.textContent = 'Tarefa concluída com sucesso!';
+                      document.body.appendChild(toast);
+                      setTimeout(() => document.body.removeChild(toast), 3000);
+                    } else {
+                      console.error('❌ Erro ao concluir tarefa:', response.status);
+                      const toast = document.createElement('div');
+                      toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                      toast.textContent = 'Erro ao concluir tarefa. Tente novamente.';
+                      document.body.appendChild(toast);
+                      setTimeout(() => document.body.removeChild(toast), 3000);
+                    }
+                  } catch (error) {
+                    console.error('❌ Erro:', error);
+                    const toast = document.createElement('div');
+                    toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                    toast.textContent = 'Erro ao concluir tarefa. Tente novamente.';
+                    document.body.appendChild(toast);
+                    setTimeout(() => document.body.removeChild(toast), 3000);
+                  }
+                }}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              >
+                <i className="ri-check-line mr-2"></i>
+                Concluir Tarefa
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Exclusão de Tarefa */}
+      {showDeletionModal && taskToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
+                <i className="ri-delete-bin-line mr-2 text-red-600"></i>
+                Excluir Tarefa
+              </h3>
+              <button
+                onClick={() => {
+                  setShowDeletionModal(false);
+                  setTaskToDelete(null);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <i className="ri-close-line text-xl"></i>
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
+                <h4 className="font-medium text-red-800 dark:text-red-200 mb-2">
+                  {taskToDelete.attributes?.title}
+                </h4>
+                <p className="text-red-600 dark:text-red-300 text-sm">
+                  Esta tarefa será excluída permanentemente. Você pode adicionar uma observação sobre a exclusão.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>
+                    Motivo da Exclusão (Opcional)
+                  </label>
+                  <textarea
+                    value={newHistoryText}
+                    onChange={(e) => setNewHistoryText(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-lg resize-none"
+                    style={{ 
+                      backgroundColor: "var(--bg-primary)", 
+                      borderColor: "var(--border-color)",
+                      color: "var(--text-primary)"
+                    }}
+                    rows={3}
+                    placeholder="Explique brevemente o motivo da exclusão desta tarefa..."
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowDeletionModal(false);
+                  setTaskToDelete(null);
+                  setNewHistoryText("");
+                }}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    const token = localStorage.getItem('keeptur-token');
+                    if (!token) {
+                      setShowTokenExpiredModal(true);
+                      return;
+                    }
+
+                    // Excluir tarefa
+                    const response = await fetch(`/api/monde/tarefas/${taskToDelete.id}`, {
+                      method: 'DELETE',
+                      headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                      },
+                      body: JSON.stringify({
+                        history_comment: newHistoryText.trim() || 'Tarefa excluída'
+                      })
+                    });
+
+                    if (response.ok) {
+                      console.log('✅ Tarefa excluída com sucesso');
+                      
+                      // Fechar modal imediatamente
+                      setShowDeletionModal(false);
+                      setTaskToDelete(null);
+                      setNewHistoryText("");
+                      
+                      // Aguardar mais tempo para a API processar a exclusão
+                      setTimeout(async () => {
+                        try {
+                          await reloadTasks();
+                          
+                          // Se não mudou, forçar uma atualização completa
+                          setTimeout(async () => {
+                            console.log('🔄 Forçando atualização completa após exclusão');
+                            await reloadTasks();
+                          }, 1500);
+                        } catch (error) {
+                          console.log('⚠️ Erro ao recarregar tarefas após exclusão:', error);
+                        }
+                      }, 1000);
+                      
+                      // Mostrar feedback visual
+                      const toast = document.createElement('div');
+                      toast.className = 'fixed top-4 right-4 bg-orange-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                      toast.textContent = 'Tarefa excluída com sucesso!';
+                      document.body.appendChild(toast);
+                      setTimeout(() => document.body.removeChild(toast), 3000);
+                    } else {
+                      console.error('❌ Erro ao excluir tarefa:', response.status);
+                      const toast = document.createElement('div');
+                      toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                      toast.textContent = 'Erro ao excluir tarefa. Tente novamente.';
+                      document.body.appendChild(toast);
+                      setTimeout(() => document.body.removeChild(toast), 3000);
+                    }
+                  } catch (error) {
+                    console.error('❌ Erro:', error);
+                    const toast = document.createElement('div');
+                    toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                    toast.textContent = 'Erro ao excluir tarefa. Tente novamente.';
+                    document.body.appendChild(toast);
+                    setTimeout(() => document.body.removeChild(toast), 3000);
+                  }
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                <i className="ri-delete-bin-line mr-2"></i>
+                Excluir Tarefa
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-};
+}

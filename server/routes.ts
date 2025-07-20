@@ -2880,6 +2880,166 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para cadastrar pessoa física no Monde
+  app.post("/api/monde/pessoas/fisica", authenticateToken, async (req: any, res) => {
+    try {
+      const personData = req.body;
+      console.log('📋 Cadastrando pessoa física:', personData);
+      
+      // Mapear campos do formulário para a API do Monde
+      const mondePayload = {
+        data: {
+          type: "people",
+          attributes: {
+            name: personData.name,
+            "birth-date": personData.birthDate || null,
+            cpf: personData.cpf?.replace(/\D/g, '') || null, // Remover formatação
+            rg: personData.rg || null,
+            "passport-number": personData.passportNumber || null,
+            "passport-expiration": personData.passportExpiration || null,
+            gender: personData.gender || null,
+            address: personData.address || null,
+            number: personData.number || null,
+            complement: personData.complement || null,
+            district: personData.district || null,
+            zip: personData.zip?.replace(/\D/g, '') || null, // Remover formatação
+            email: personData.email || null,
+            phone: personData.phone || null,
+            "mobile-phone": personData.mobilePhone || null,
+            "business-phone": personData.businessPhone || null,
+            website: personData.website || null,
+            observations: personData.observations || null,
+            code: personData.code ? parseInt(personData.code) : null,
+            kind: "individual"
+          }
+        }
+      };
+
+      // Se cidade foi selecionada, adicionar relacionamento
+      if (personData.cityId) {
+        mondePayload.data.relationships = {
+          city: {
+            data: { type: "cities", id: personData.cityId }
+          }
+        };
+      }
+
+      console.log('📋 Payload para o Monde:', JSON.stringify(mondePayload, null, 2));
+
+      const mondeResponse = await fetch("https://web.monde.com.br/api/v2/people", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/vnd.api+json",
+          "Accept": "application/vnd.api+json",
+          "Authorization": `Bearer ${req.sessao.access_token}`,
+        },
+        body: JSON.stringify(mondePayload),
+      });
+
+      const result = await mondeResponse.json();
+      
+      if (mondeResponse.ok) {
+        console.log('✅ Pessoa física cadastrada com sucesso:', result.data.id);
+        res.status(201).json(result);
+      } else {
+        console.error('❌ Erro ao cadastrar pessoa física:', result);
+        res.status(mondeResponse.status).json(result);
+      }
+    } catch (error) {
+      console.error("Erro ao cadastrar pessoa física:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Endpoint para cadastrar pessoa jurídica no Monde
+  app.post("/api/monde/pessoas/juridica", authenticateToken, async (req: any, res) => {
+    try {
+      const companyData = req.body;
+      console.log('📋 Cadastrando pessoa jurídica:', companyData);
+      
+      // Mapear campos do formulário para a API do Monde
+      const mondePayload = {
+        data: {
+          type: "people",
+          attributes: {
+            name: companyData.name, // Nome fantasia
+            "company-name": companyData.companyName || null, // Razão social
+            cnpj: companyData.cnpj?.replace(/\D/g, '') || null, // Remover formatação
+            "city-inscription": companyData.cityInscription || null,
+            "state-inscription": companyData.stateInscription || null,
+            "founded-date": companyData.foundedDate || null,
+            address: companyData.address || null,
+            number: companyData.number || null,
+            complement: companyData.complement || null,
+            district: companyData.district || null,
+            zip: companyData.zip?.replace(/\D/g, '') || null, // Remover formatação
+            "business-phone": companyData.businessPhone || null,
+            "mobile-phone": companyData.mobilePhone || null,
+            email: companyData.email || null,
+            website: companyData.website || null,
+            observations: companyData.observations || null,
+            code: companyData.code ? parseInt(companyData.code) : null,
+            kind: "company"
+          }
+        }
+      };
+
+      // Se cidade foi selecionada, adicionar relacionamento
+      if (companyData.cityId) {
+        mondePayload.data.relationships = {
+          city: {
+            data: { type: "cities", id: companyData.cityId }
+          }
+        };
+      }
+
+      console.log('📋 Payload para o Monde:', JSON.stringify(mondePayload, null, 2));
+
+      const mondeResponse = await fetch("https://web.monde.com.br/api/v2/people", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/vnd.api+json",
+          "Accept": "application/vnd.api+json",
+          "Authorization": `Bearer ${req.sessao.access_token}`,
+        },
+        body: JSON.stringify(mondePayload),
+      });
+
+      const result = await mondeResponse.json();
+      
+      if (mondeResponse.ok) {
+        console.log('✅ Pessoa jurídica cadastrada com sucesso:', result.data.id);
+        res.status(201).json(result);
+      } else {
+        console.error('❌ Erro ao cadastrar pessoa jurídica:', result);
+        res.status(mondeResponse.status).json(result);
+      }
+    } catch (error) {
+      console.error("Erro ao cadastrar pessoa jurídica:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Endpoint para buscar cidades
+  app.get("/api/monde/cidades", authenticateToken, async (req: any, res) => {
+    try {
+      const mondeResponse = await fetch("https://web.monde.com.br/api/v2/cities", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/vnd.api+json",
+          "Accept": "application/vnd.api+json",
+          "Authorization": `Bearer ${req.sessao.access_token}`,
+        },
+      });
+
+      const data = await mondeResponse.json();
+      res.status(mondeResponse.status).json(data);
+    } catch (error) {
+      console.error("Erro ao buscar cidades:", error);
+      res.status(500).json({ message: "Erro ao buscar cidades" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -97,6 +97,9 @@ export default function Dashboard() {
   const [activeTabPF, setActiveTabPF] = useState('dados'); // dados, endereco, contatos
   const [activeTabPJ, setActiveTabPJ] = useState('dados'); // dados, endereco, contatos
   const [userCompanies, setUserCompanies] = useState<any[]>([]);
+  const [cities, setCities] = useState<any[]>([]);
+  const [loadingCities, setLoadingCities] = useState(false);
+  const [savingPerson, setSavingPerson] = useState(false);
 
 
   // Debounce timeout ref
@@ -159,6 +162,146 @@ export default function Dashboard() {
     } catch (error) {
       console.error('Erro ao carregar empresas do usuário:', error);
     }
+  };
+
+  // Função para carregar cidades do Monde
+  const loadCities = async () => {
+    if (cities.length > 0) return; // Já carregadas
+    
+    setLoadingCities(true);
+    try {
+      const response = await fetch('/api/monde/cidades', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCities(data.data || []);
+      } else {
+        console.error('Erro ao carregar cidades:', response.status);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar cidades:', error);
+    }
+    setLoadingCities(false);
+  };
+
+  // Função para submeter formulário de pessoa física
+  const submitPersonFisica = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSavingPerson(true);
+
+    const formData = new FormData(event.currentTarget);
+    const personData = {
+      name: formData.get('name') as string,
+      birthDate: formData.get('birthDate') as string,
+      cpf: formData.get('cpf') as string,
+      rg: formData.get('rg') as string,
+      passportNumber: formData.get('passportNumber') as string,
+      passportExpiration: formData.get('passportExpiration') as string,
+      gender: formData.get('gender') as string,
+      address: formData.get('address') as string,
+      number: formData.get('number') as string,
+      complement: formData.get('complement') as string,
+      district: formData.get('district') as string,
+      zip: formData.get('zip') as string,
+      cityId: formData.get('cityId') as string,
+      email: formData.get('email') as string,
+      phone: formData.get('phone') as string,
+      mobilePhone: formData.get('mobilePhone') as string,
+      businessPhone: formData.get('businessPhone') as string,
+      website: formData.get('website') as string,
+      observations: formData.get('observations') as string,
+      code: formData.get('code') as string,
+    };
+
+    try {
+      const response = await fetch('/api/monde/pessoas/fisica', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+        },
+        body: JSON.stringify(personData)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Pessoa física cadastrada:', result.data.id);
+        alert('Pessoa física cadastrada com sucesso!');
+        setShowPersonFisicaModal(false);
+        // Limpar o formulário
+        event.currentTarget.reset();
+      } else {
+        const error = await response.json();
+        console.error('❌ Erro ao cadastrar pessoa física:', error);
+        alert(`Erro ao cadastrar: ${error.message || 'Erro desconhecido'}`);
+      }
+    } catch (error) {
+      console.error('Erro ao cadastrar pessoa física:', error);
+      alert('Erro de conexão ao cadastrar pessoa física');
+    }
+
+    setSavingPerson(false);
+  };
+
+  // Função para submeter formulário de pessoa jurídica
+  const submitPersonJuridica = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSavingPerson(true);
+
+    const formData = new FormData(event.currentTarget);
+    const companyData = {
+      name: formData.get('name') as string, // Nome fantasia
+      companyName: formData.get('companyName') as string, // Razão social
+      cnpj: formData.get('cnpj') as string,
+      cityInscription: formData.get('cityInscription') as string,
+      stateInscription: formData.get('stateInscription') as string,
+      foundedDate: formData.get('foundedDate') as string,
+      address: formData.get('address') as string,
+      number: formData.get('number') as string,
+      complement: formData.get('complement') as string,
+      district: formData.get('district') as string,
+      zip: formData.get('zip') as string,
+      cityId: formData.get('cityId') as string,
+      businessPhone: formData.get('businessPhone') as string,
+      mobilePhone: formData.get('mobilePhone') as string,
+      email: formData.get('email') as string,
+      website: formData.get('website') as string,
+      observations: formData.get('observations') as string,
+      code: formData.get('code') as string,
+    };
+
+    try {
+      const response = await fetch('/api/monde/pessoas/juridica', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+        },
+        body: JSON.stringify(companyData)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Pessoa jurídica cadastrada:', result.data.id);
+        alert('Pessoa jurídica cadastrada com sucesso!');
+        setShowPersonJuridicaModal(false);
+        // Limpar o formulário
+        event.currentTarget.reset();
+      } else {
+        const error = await response.json();
+        console.error('❌ Erro ao cadastrar pessoa jurídica:', error);
+        alert(`Erro ao cadastrar: ${error.message || 'Erro desconhecido'}`);
+      }
+    } catch (error) {
+      console.error('Erro ao cadastrar pessoa jurídica:', error);
+      alert('Erro de conexão ao cadastrar pessoa jurídica');
+    }
+
+    setSavingPerson(false);
   };
 
   // Função para carregar estatísticas de clientes
@@ -5202,46 +5345,76 @@ export default function Dashboard() {
               </button>
             </div>
             
-            <div className="p-6">
-              {/* Abas */}
-              <div className="border-b mb-6">
-                <nav className="flex space-x-8">
-                  <button 
-                    onClick={() => setActiveTabPF('dados')}
-                    className={`py-2 px-1 border-b-2 font-medium ${activeTabPF === 'dados' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-                  >
-                    Dados Pessoais
-                  </button>
-                  <button 
-                    onClick={() => setActiveTabPF('endereco')}
-                    className={`py-2 px-1 border-b-2 font-medium ${activeTabPF === 'endereco' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-                  >
-                    Endereço
-                  </button>
-                  <button 
-                    onClick={() => setActiveTabPF('contatos')}
-                    className={`py-2 px-1 border-b-2 font-medium ${activeTabPF === 'contatos' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-                  >
-                    Contatos
-                  </button>
-                </nav>
-              </div>
-              
-              {/* Conteúdo das abas */}
-              {activeTabPF === 'dados' && (
+            <form onSubmit={submitPersonFisica} className="p-6">
+              {/* Formulário Completo - Pessoa Física */}
               <div className="space-y-6">
-                <div className="grid grid-cols-3 gap-4">
+                {/* Primeira linha - Código e Nome */}
+                <div className="grid grid-cols-4 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Nome Completo *</label>
-                    <input type="text" className="form-input w-full px-3 py-2 border rounded" />
+                    <label className="block text-sm font-medium mb-2">Código:</label>
+                    <input name="code" type="number" className="form-input w-full px-3 py-2 border rounded" />
+                  </div>
+                  <div className="col-span-3">
+                    <label className="block text-sm font-medium mb-2">Nome: *</label>
+                    <input name="name" type="text" required className="form-input w-full px-3 py-2 border rounded" />
+                  </div>
+                </div>
+                
+                {/* Segunda linha - CEP, Endereço, Número */}
+                <div className="grid grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">CEP:</label>
+                    <input name="zip" type="text" placeholder="00000-000" className="form-input w-full px-3 py-2 border rounded" />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium mb-2">Endereço:</label>
+                    <input name="address" type="text" className="form-input w-full px-3 py-2 border rounded" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Data de Nascimento</label>
-                    <input type="date" className="form-input w-full px-3 py-2 border rounded" />
+                    <label className="block text-sm font-medium mb-2">Número:</label>
+                    <input name="number" type="text" className="form-input w-full px-3 py-2 border rounded" />
+                  </div>
+                </div>
+                
+                {/* Terceira linha - Complemento, Bairro */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Complemento:</label>
+                    <input name="complement" type="text" className="form-input w-full px-3 py-2 border rounded" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Sexo</label>
-                    <select className="form-input w-full px-3 py-2 border rounded">
+                    <label className="block text-sm font-medium mb-2">Bairro:</label>
+                    <input name="district" type="text" className="form-input w-full px-3 py-2 border rounded" />
+                  </div>
+                </div>
+                
+                {/* Quarta linha - Cidade, Estrangeiro */}
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="col-span-3">
+                    <label className="block text-sm font-medium mb-2">Cidade:</label>
+                    <select name="cityId" className="form-input w-full px-3 py-2 border rounded" onClick={loadCities}>
+                      <option value="">Selecione uma cidade</option>
+                      {cities.map(city => (
+                        <option key={city.id} value={city.id}>{city.attributes.name}</option>
+                      ))}
+                    </select>
+                    {loadingCities && <p className="text-sm text-gray-500 mt-1">Carregando cidades...</p>}
+                  </div>
+                  <div className="flex items-center">
+                    <input name="foreign" type="checkbox" id="estrangeiro-pf" className="mr-2" />
+                    <label htmlFor="estrangeiro-pf" className="text-sm">Estrangeiro</label>
+                  </div>
+                </div>
+                
+                {/* Quinta linha - Nascimento, Sexo */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Nascimento:</label>
+                    <input name="birthDate" type="date" className="form-input w-full px-3 py-2 border rounded" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Sexo:</label>
+                    <select name="gender" className="form-input w-full px-3 py-2 border rounded">
                       <option value="">Selecione</option>
                       <option value="M">Masculino</option>
                       <option value="F">Feminino</option>
@@ -5249,122 +5422,93 @@ export default function Dashboard() {
                   </div>
                 </div>
                 
+                {/* Sexta linha - CPF, RG, Inscrição Municipal */}
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">CPF</label>
-                    <input type="text" placeholder="000.000.000-00" className="form-input w-full px-3 py-2 border rounded" />
+                    <label className="block text-sm font-medium mb-2">CPF:</label>
+                    <input name="cpf" type="text" placeholder="000.000.000-00" className="form-input w-full px-3 py-2 border rounded" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">RG</label>
-                    <input type="text" className="form-input w-full px-3 py-2 border rounded" />
+                    <label className="block text-sm font-medium mb-2">RG:</label>
+                    <input name="rg" type="text" className="form-input w-full px-3 py-2 border rounded" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Código</label>
-                    <input type="number" className="form-input w-full px-3 py-2 border rounded" />
+                    <label className="block text-sm font-medium mb-2">Inscrição Municipal:</label>
+                    <input name="cityInscription" type="text" className="form-input w-full px-3 py-2 border rounded" />
                   </div>
                 </div>
                 
+                {/* Sétima linha - Passaporte e Validade */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Número do Passaporte</label>
-                    <input type="text" className="form-input w-full px-3 py-2 border rounded" />
+                    <label className="block text-sm font-medium mb-2">Passaporte Nº:</label>
+                    <input name="passportNumber" type="text" className="form-input w-full px-3 py-2 border rounded" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Validade do Passaporte</label>
-                    <input type="date" className="form-input w-full px-3 py-2 border rounded" />
+                    <label className="block text-sm font-medium mb-2">Validade Passaporte:</label>
+                    <input name="passportExpiration" type="date" className="form-input w-full px-3 py-2 border rounded" />
                   </div>
                 </div>
                 
+                {/* Oitava linha - Telefones */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Telefone:</label>
+                    <input name="phone" type="text" placeholder="(11) 3333-4444" className="form-input w-full px-3 py-2 border rounded" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Celular:</label>
+                    <input name="mobilePhone" type="text" placeholder="(11) 99999-8888" className="form-input w-full px-3 py-2 border rounded" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Telefone Comercial:</label>
+                    <input name="businessPhone" type="text" placeholder="(11) 2222-3333" className="form-input w-full px-3 py-2 border rounded" />
+                  </div>
+                </div>
+                
+                {/* Nona linha - E-mail */}
                 <div>
-                  <label className="block text-sm font-medium mb-2">Observações</label>
-                  <textarea rows={3} className="form-input w-full px-3 py-2 border rounded"></textarea>
-                </div>
-              </div>
-              )}
-              
-              {/* Aba Endereço PF */}
-              {activeTabPF === 'endereco' && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="col-span-2">
-                    <label className="block text-sm font-medium mb-2">Logradouro/Endereço</label>
-                    <input type="text" className="form-input w-full px-3 py-2 border rounded" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Número</label>
-                    <input type="text" className="form-input w-full px-3 py-2 border rounded" />
-                  </div>
+                  <label className="block text-sm font-medium mb-2">E-mail:</label>
+                  <input name="email" type="email" className="form-input w-full px-3 py-2 border rounded" />
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Complemento</label>
-                    <input type="text" className="form-input w-full px-3 py-2 border rounded" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Bairro</label>
-                    <input type="text" className="form-input w-full px-3 py-2 border rounded" />
-                  </div>
+                {/* Décima linha - Website */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Website:</label>
+                  <input name="website" type="url" className="form-input w-full px-3 py-2 border rounded" />
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">CEP</label>
-                    <input type="text" placeholder="00000-000" className="form-input w-full px-3 py-2 border rounded" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Cidade</label>
-                    <select className="form-input w-full px-3 py-2 border rounded">
-                      <option value="">Selecione uma cidade</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-              )}
-              
-              {/* Aba Contatos PF */}
-              {activeTabPF === 'contatos' && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">E-mail</label>
-                    <input type="email" className="form-input w-full px-3 py-2 border rounded" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Website</label>
-                    <input type="url" className="form-input w-full px-3 py-2 border rounded" />
-                  </div>
+                {/* Observações */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Observações:</label>
+                  <textarea name="observations" rows={4} className="form-input w-full px-3 py-2 border rounded"></textarea>
                 </div>
                 
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Telefone Residencial</label>
-                    <input type="text" placeholder="(11) 3333-4444" className="form-input w-full px-3 py-2 border rounded" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Celular/WhatsApp</label>
-                    <input type="text" placeholder="(11) 99999-8888" className="form-input w-full px-3 py-2 border rounded" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Telefone Comercial</label>
-                    <input type="text" placeholder="(11) 2222-3333" className="form-input w-full px-3 py-2 border rounded" />
-                  </div>
+                {/* Vendedor */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Vendedor:</label>
+                  <select name="vendorId" className="form-input w-full px-3 py-2 border rounded">
+                    <option value="">Selecione um vendedor</option>
+                    {users.map((user: any) => (
+                      <option key={user.id} value={user.id}>{user.attributes.name}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
-              )}
               
               <div className="flex justify-end space-x-3 mt-6 pt-6 border-t">
                 <button
+                  type="button"
                   onClick={() => setShowPersonFisicaModal(false)}
                   className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
                 >
                   Cancelar
                 </button>
-                <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                  Salvar
+                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" disabled={savingPerson}>
+                  {savingPerson ? 'Salvando...' : 'Salvar'}
                 </button>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       )}
@@ -5383,201 +5527,150 @@ export default function Dashboard() {
               </button>
             </div>
             
-            <div className="p-6">
-              {/* Abas */}
-              <div className="border-b mb-6">
-                <nav className="flex space-x-8">
-                  <button 
-                    onClick={() => setActiveTabPJ('dados')}
-                    className={`py-2 px-1 border-b-2 font-medium ${activeTabPJ === 'dados' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-                  >
-                    Dados da Empresa
-                  </button>
-                  <button 
-                    onClick={() => setActiveTabPJ('endereco')}
-                    className={`py-2 px-1 border-b-2 font-medium ${activeTabPJ === 'endereco' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-                  >
-                    Endereço
-                  </button>
-                  <button 
-                    onClick={() => setActiveTabPJ('contatos')}
-                    className={`py-2 px-1 border-b-2 font-medium ${activeTabPJ === 'contatos' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-                  >
-                    Contatos
-                  </button>
-                </nav>
-              </div>
-              
-              {/* Aba Dados da Empresa */}
-              {activeTabPJ === 'dados' && (
+            <form onSubmit={submitPersonJuridica} className="p-6">
+              {/* Formulário Completo - Pessoa Jurídica */}
               <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Nome Fantasia *</label>
-                    <input type="text" className="form-input w-full px-3 py-2 border rounded" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Razão Social *</label>
-                    <input type="text" className="form-input w-full px-3 py-2 border rounded" />
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">CNPJ</label>
-                    <input type="text" placeholder="00.000.000/0000-00" className="form-input w-full px-3 py-2 border rounded" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Inscrição Municipal</label>
-                    <input type="text" className="form-input w-full px-3 py-2 border rounded" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Inscrição Estadual</label>
-                    <input type="text" className="form-input w-full px-3 py-2 border rounded" />
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Data de Fundação</label>
-                    <input type="date" className="form-input w-full px-3 py-2 border rounded" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Natureza Jurídica</label>
-                    <input type="text" className="form-input w-full px-3 py-2 border rounded" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Porte da Empresa</label>
-                    <select className="form-input w-full px-3 py-2 border rounded">
-                      <option value="">Selecione</option>
-                      <option value="MEI">MEI</option>
-                      <option value="Micro">Microempresa</option>
-                      <option value="Pequena">Pequena Empresa</option>
-                      <option value="Media">Média Empresa</option>
-                      <option value="Grande">Grande Empresa</option>
-                    </select>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Atividade Principal</label>
-                    <input type="text" className="form-input w-full px-3 py-2 border rounded" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Código</label>
-                    <input type="number" className="form-input w-full px-3 py-2 border rounded" />
-                  </div>
-                </div>
-                
+                {/* Primeira linha - Código */}
                 <div>
-                  <label className="block text-sm font-medium mb-2">Observações</label>
-                  <textarea rows={3} className="form-input w-full px-3 py-2 border rounded"></textarea>
+                  <label className="block text-sm font-medium mb-2">Código:</label>
+                  <input name="code" type="number" className="form-input w-20 px-3 py-2 border rounded" />
                 </div>
-              </div>
-              )}
-              
-              {/* Aba Endereço PJ */}
-              {activeTabPJ === 'endereco' && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-3 gap-4">
+                
+                {/* Segunda linha - Nome (Nome Fantasia) */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Nome: *</label>
+                  <input name="name" type="text" required className="form-input w-full px-3 py-2 border rounded" />
+                </div>
+                
+                {/* Terceira linha - Razão Social */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Razão Social:</label>
+                  <input name="corporateName" type="text" className="form-input w-full px-3 py-2 border rounded" />
+                </div>
+                
+                {/* Quarta linha - CEP, Endereço, Número */}
+                <div className="grid grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">CEP:</label>
+                    <input name="zip" type="text" placeholder="00000-000" className="form-input w-full px-3 py-2 border rounded" />
+                  </div>
                   <div className="col-span-2">
-                    <label className="block text-sm font-medium mb-2">Logradouro/Endereço</label>
-                    <input type="text" className="form-input w-full px-3 py-2 border rounded" />
+                    <label className="block text-sm font-medium mb-2">Endereço:</label>
+                    <input name="address" type="text" className="form-input w-full px-3 py-2 border rounded" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Número</label>
-                    <input type="text" className="form-input w-full px-3 py-2 border rounded" />
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Complemento</label>
-                    <input type="text" className="form-input w-full px-3 py-2 border rounded" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Bairro</label>
-                    <input type="text" className="form-input w-full px-3 py-2 border rounded" />
+                    <label className="block text-sm font-medium mb-2">Número:</label>
+                    <input name="number" type="text" className="form-input w-full px-3 py-2 border rounded" />
                   </div>
                 </div>
                 
+                {/* Quinta linha - Complemento, Bairro */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">CEP</label>
-                    <input type="text" placeholder="00000-000" className="form-input w-full px-3 py-2 border rounded" />
+                    <label className="block text-sm font-medium mb-2">Complemento:</label>
+                    <input name="complement" type="text" className="form-input w-full px-3 py-2 border rounded" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Cidade</label>
-                    <select className="form-input w-full px-3 py-2 border rounded">
+                    <label className="block text-sm font-medium mb-2">Bairro:</label>
+                    <input name="district" type="text" className="form-input w-full px-3 py-2 border rounded" />
+                  </div>
+                </div>
+                
+                {/* Sexta linha - Cidade, Estrangeiro */}
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="col-span-3">
+                    <label className="block text-sm font-medium mb-2">Cidade:</label>
+                    <select name="cityId" className="form-input w-full px-3 py-2 border rounded" onClick={loadCities}>
                       <option value="">Selecione uma cidade</option>
+                      {cities.map(city => (
+                        <option key={city.id} value={city.id}>{city.attributes.name}</option>
+                      ))}
                     </select>
+                    {loadingCities && <p className="text-sm text-gray-500 mt-1">Carregando cidades...</p>}
                   </div>
-                </div>
-              </div>
-              )}
-              
-              {/* Aba Contatos PJ */}
-              {activeTabPJ === 'contatos' && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">E-mail Empresarial</label>
-                    <input type="email" className="form-input w-full px-3 py-2 border rounded" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Website</label>
-                    <input type="url" className="form-input w-full px-3 py-2 border rounded" />
+                  <div className="flex items-center">
+                    <input name="foreign" type="checkbox" id="estrangeiro-pj" className="mr-2" />
+                    <label htmlFor="estrangeiro-pj" className="text-sm">Estrangeiro</label>
                   </div>
                 </div>
                 
+                {/* Sétima linha - Nascimento (Fundação) */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Nascimento (Fundação):</label>
+                  <input name="birthDate" type="date" className="form-input w-40 px-3 py-2 border rounded" />
+                </div>
+                
+                {/* Oitava linha - CNPJ, Inscrição Estadual, Inscrição Municipal */}
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Telefone Principal</label>
-                    <input type="text" placeholder="(11) 3333-4444" className="form-input w-full px-3 py-2 border rounded" />
+                    <label className="block text-sm font-medium mb-2">CNPJ:</label>
+                    <input name="cnpj" type="text" placeholder="00.000.000/0000-00" className="form-input w-full px-3 py-2 border rounded" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Celular Empresarial</label>
-                    <input type="text" placeholder="(11) 99999-8888" className="form-input w-full px-3 py-2 border rounded" />
+                    <label className="block text-sm font-medium mb-2">Inscrição Estadual:</label>
+                    <input name="stateInscription" type="text" className="form-input w-full px-3 py-2 border rounded" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Fax</label>
-                    <input type="text" placeholder="(11) 2222-3333" className="form-input w-full px-3 py-2 border rounded" />
+                    <label className="block text-sm font-medium mb-2">Inscrição Municipal:</label>
+                    <input name="cityInscription" type="text" className="form-input w-full px-3 py-2 border rounded" />
                   </div>
                 </div>
                 
-                <div className="border-t pt-4">
-                  <h4 className="font-medium mb-3">Responsável/Contato Principal</h4>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Nome</label>
-                      <input type="text" className="form-input w-full px-3 py-2 border rounded" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Cargo</label>
-                      <input type="text" className="form-input w-full px-3 py-2 border rounded" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">E-mail</label>
-                      <input type="email" className="form-input w-full px-3 py-2 border rounded" />
-                    </div>
+                {/* Nona linha - Telefone, Celular */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Telefone:</label>
+                    <input name="phone" type="text" placeholder="(11) 3333-4444" className="form-input w-full px-3 py-2 border rounded" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Celular:</label>
+                    <input name="mobilePhone" type="text" placeholder="(11) 99999-8888" className="form-input w-full px-3 py-2 border rounded" />
                   </div>
                 </div>
+                
+                {/* Décima linha - E-mail */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">E-mail:</label>
+                  <input name="email" type="email" className="form-input w-full px-3 py-2 border rounded" />
+                </div>
+                
+                {/* Décima primeira linha - Website */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Website:</label>
+                  <input name="website" type="url" className="form-input w-full px-3 py-2 border rounded" />
+                </div>
+                
+                {/* Observações */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Observações:</label>
+                  <textarea name="observations" rows={4} className="form-input w-full px-3 py-2 border rounded"></textarea>
+                </div>
+                
+                {/* Vendedor */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Vendedor:</label>
+                  <select name="vendorId" className="form-input w-full px-3 py-2 border rounded">
+                    <option value="">Selecione um vendedor</option>
+                    {users.map((user: any) => (
+                      <option key={user.id} value={user.id}>{user.attributes.name}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
-              )}
               
               <div className="flex justify-end space-x-3 mt-6 pt-6 border-t">
                 <button
+                  type="button"
                   onClick={() => setShowPersonJuridicaModal(false)}
                   className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
                 >
                   Cancelar
                 </button>
-                <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                  Salvar
+                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" disabled={savingPerson}>
+                  {savingPerson ? 'Salvando...' : 'Salvar'}
                 </button>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       )}

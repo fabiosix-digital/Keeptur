@@ -71,7 +71,7 @@ export default function Dashboard() {
   const [customFields, setCustomFields] = useState<any[]>([]);
   const [loadingCustomFields, setLoadingCustomFields] = useState(false);
   const [savingCustomFields, setSavingCustomFields] = useState(false);
-  
+  const [isModalMaximized, setIsModalMaximized] = useState(false);
 
 
   // Função para carregar estatísticas de clientes
@@ -2953,7 +2953,7 @@ export default function Dashboard() {
       <div
         className={`fixed inset-0 modal-overlay flex items-center justify-center z-50 ${showTaskModal ? "" : "hidden"}`}
       >
-        <div className="modal-content rounded-xl shadow-xl max-w-5xl w-full mx-4 max-h-[95vh] overflow-y-auto" style={{ backgroundColor: "var(--bg-primary)" }}>
+        <div className={`modal-content rounded-xl shadow-xl w-full mx-4 max-h-[95vh] overflow-y-auto ${isModalMaximized ? 'max-w-[98vw] h-[95vh]' : 'max-w-5xl'}`} style={{ backgroundColor: "var(--bg-primary)" }}>
           <div className="border-0 p-4 pb-0">
             <div className="flex items-center justify-between">
               <h3
@@ -2965,9 +2965,10 @@ export default function Dashboard() {
               </h3>
               <div className="flex items-center space-x-2">
                 <button
+                  onClick={() => setIsModalMaximized(!isModalMaximized)}
                   className="theme-toggle p-2 rounded-lg !rounded-button whitespace-nowrap"
                 >
-                  <i className="ri-fullscreen-line text-lg"></i>
+                  <i className={`${isModalMaximized ? 'ri-fullscreen-exit-line' : 'ri-fullscreen-line'} text-lg`}></i>
                 </button>
                 <button
                   onClick={() => {
@@ -2975,6 +2976,9 @@ export default function Dashboard() {
                     setSelectedTask(null);
                     setAttachments([]);
                     setTaskAttachments([]);
+                    setIsModalMaximized(false);
+                    setIsEditing(false);
+                    setTaskHistory([]);
                   }}
                   className="theme-toggle p-2 rounded-lg !rounded-button whitespace-nowrap"
                 >
@@ -3227,14 +3231,37 @@ export default function Dashboard() {
                       <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
                         Pessoa/Cliente:
                       </label>
-                      <input
-                        type="text"
-                        className="form-input w-full px-3 py-2 text-sm"
-                        style={{ backgroundColor: "var(--bg-secondary)" }}
-                        value={selectedTask?.client_name || 'Cliente não encontrado'}
-                        readOnly
-                      />
-
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          className="form-input w-full px-3 py-2 text-sm"
+                          style={{ backgroundColor: "var(--bg-secondary)" }}
+                          value={selectedTask?.client_name || 'Cliente não encontrado'}
+                          readOnly
+                        />
+                      ) : (
+                        <select 
+                          name="person_id"
+                          className="form-input w-full px-3 py-2 text-sm"
+                          style={{ backgroundColor: "var(--bg-secondary)" }}
+                          defaultValue=""
+                          onChange={(e) => {
+                            // Para nova tarefa, permitir seleção de pessoa
+                            const selectedPerson = clients.find((p: any) => p.id === e.target.value);
+                            if (selectedPerson) {
+                              // Atualizar campos de pessoa na nova tarefa
+                              console.log('Pessoa selecionada:', selectedPerson);
+                            }
+                          }}
+                        >
+                          <option value="">Selecione uma pessoa</option>
+                          {clients.map((person: any) => (
+                            <option key={person.id} value={person.id}>
+                              {person.attributes?.name || person.name}
+                            </option>
+                          ))}
+                        </select>
+                      )}
                     </div>
                     <div className="col-span-6">
                       <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
@@ -3297,68 +3324,77 @@ export default function Dashboard() {
                   {/* Área de Descrição/Atualizações */}
                   <div className="mt-6">
                     <div className="grid grid-cols-12 gap-4 mb-4">
-                      <div className="col-span-6">
+                      <div className="col-span-4">
                         <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                          Vencimento:
+                          Data de Vencimento:
                         </label>
                         <input
-                          type="datetime-local"
-                          name="due"
+                          type="date"
+                          name="due_date"
                           className="form-input w-full px-3 py-2 text-sm"
                           defaultValue={selectedTask?.attributes?.due ? 
-                            (() => {
-                              const date = new Date(selectedTask.attributes.due);
-                              // Converter para o fuso horário local
-                              const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-                              return localDate.toISOString().slice(0, 16);
-                            })() : ''
+                            new Date(selectedTask.attributes.due).toISOString().slice(0, 10) : ''
                           }
                           style={{ backgroundColor: "var(--bg-secondary)" }}
-                          onChange={(e) => saveTaskChanges({ due: e.target.value })}
+                          onChange={(e) => {
+                            const time = document.querySelector('input[name="due_time"]')?.value || '00:00';
+                            const datetime = `${e.target.value}T${time}:00`;
+                            saveTaskChanges({ due: datetime });
+                          }}
                         />
                       </div>
-                      <div className="col-span-6"></div>
+                      <div className="col-span-4">
+                        <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                          Hora de Vencimento:
+                        </label>
+                        <input
+                          type="time"
+                          name="due_time"
+                          className="form-input w-full px-3 py-2 text-sm"
+                          defaultValue={selectedTask?.attributes?.due ? 
+                            new Date(selectedTask.attributes.due).toTimeString().slice(0, 5) : ''
+                          }
+                          style={{ backgroundColor: "var(--bg-secondary)" }}
+                          onChange={(e) => {
+                            const date = document.querySelector('input[name="due_date"]')?.value || new Date().toISOString().slice(0, 10);
+                            const datetime = `${date}T${e.target.value}:00`;
+                            saveTaskChanges({ due: datetime });
+                          }}
+                        />
+                      </div>
+                      <div className="col-span-4"></div>
                     </div>
 
-                    {/* Área de histórico com scroll */}
-                    <div className="border rounded-lg p-4 max-h-[140px] overflow-y-auto mb-4" style={{ backgroundColor: "var(--bg-secondary)" }}>
-                      {/* Histórico existente */}
-                      {taskHistory.length > 0 ? (
-                        <div className="space-y-3">
-                          {taskHistory.map((entry: any, index: number) => (
-                            <div key={index} className="border-b pb-3">
-                              <div className="text-sm font-medium text-purple-600">
-                                {new Date(entry.attributes?.['date-time'] || entry.attributes?.['registered-at']).toLocaleDateString('pt-BR', {
-                                  day: '2-digit',
-                                  month: '2-digit',
-                                  year: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })} - {entry.author_name || entry.attributes?.person?.name || 'Usuário'}
+                    {/* Área de histórico com scroll - só aparece para tarefas existentes */}
+                    {isEditing && (
+                      <div className="border rounded-lg p-4 max-h-[140px] overflow-y-auto mb-4" style={{ backgroundColor: "var(--bg-secondary)" }}>
+                        {/* Histórico existente */}
+                        {taskHistory.length > 0 ? (
+                          <div className="space-y-3">
+                            {taskHistory.map((entry: any, index: number) => (
+                              <div key={index} className="border-b pb-3">
+                                <div className="text-sm font-medium text-purple-600">
+                                  {new Date(entry.attributes?.['date-time'] || entry.attributes?.['registered-at']).toLocaleDateString('pt-BR', {
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })} - {entry.author_name || entry.attributes?.person?.name || 'Usuário'}
+                                </div>
+                                <div className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
+                                  {entry.attributes?.historic || entry.attributes?.text || entry.attributes?.description || 'Sem descrição'}
+                                </div>
                               </div>
-                              <div className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
-                                {entry.attributes?.historic || entry.attributes?.text || entry.attributes?.description || 'Sem descrição'}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="space-y-3">
-                          <div className="text-sm font-medium text-purple-600">
-                            16/07/2025 15:08:24 - Fabio Silva
+                            ))}
                           </div>
-                          <div className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                            mais um teste
+                        ) : (
+                          <div className="text-sm text-center" style={{ color: "var(--text-secondary)" }}>
+                            Nenhum histórico encontrado para esta tarefa.
                           </div>
-                          <div className="text-sm font-medium text-green-600">
-                            16/07/2025 15:08:08 - Fabio Silva
-                          </div>
-                          <div className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                            testando atualização
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                        )}
+                      </div>
+                    )}
                     
                     {/* Campo para nova atualização */}
                     <div className="mt-4">
@@ -3785,47 +3821,59 @@ export default function Dashboard() {
 
               {/* Botões de Ação */}
               <div className="flex justify-between items-center mt-6 pt-4 border-t">
-                {selectedTask?.attributes?.completed ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      // Para reabertura, obrigar seleção de nova data/hora
-                      setStatusChangeModal({
-                        isOpen: true,
-                        task: selectedTask,
-                        newStatus: "pending",
-                        isReopen: true
-                      });
-                      setStatusChangeForm({ datetime: "", comment: "", success: "", error: "" });
-                    }}
-                    className="px-4 py-2 bg-orange-600 text-white rounded text-sm hover:bg-orange-700"
-                  >
-                    <i className="ri-refresh-line mr-2"></i>
-                    Reabrir
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={completeTask}
-                    className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-                  >
-                    <i className="ri-check-line mr-2"></i>
-                    Concluída
-                  </button>
+                {/* Para tarefas existentes - mostrar botão de completar/reabrir */}
+                {isEditing && (
+                  selectedTask?.attributes?.completed ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // Para reabertura, obrigar seleção de nova data/hora
+                        setStatusChangeModal({
+                          isOpen: true,
+                          task: selectedTask,
+                          newStatus: "pending",
+                          isReopen: true
+                        });
+                        setStatusChangeForm({ datetime: "", comment: "", success: "", error: "" });
+                      }}
+                      className="px-4 py-2 bg-orange-600 text-white rounded text-sm hover:bg-orange-700"
+                    >
+                      <i className="ri-refresh-line mr-2"></i>
+                      Reabrir
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={completeTask}
+                      className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                    >
+                      <i className="ri-check-line mr-2"></i>
+                      Concluída
+                    </button>
+                  )
                 )}
+                
+                {/* Para novas tarefas - espaço vazio à esquerda */}
+                {!isEditing && <div></div>}
+                
                 <div className="flex space-x-3">
-                  <button
-                    type="button"
-                    onClick={deleteTask}
-                    className="px-4 py-2 bg-red-600 text-white rounded text-sm hover:bg-red-700"
-                  >
-                    Excluir
-                  </button>
+                  {/* Botão Excluir - só para tarefas existentes */}
+                  {isEditing && (
+                    <button
+                      type="button"
+                      onClick={deleteTask}
+                      className="px-4 py-2 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+                    >
+                      Excluir
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => {
                       setShowTaskModal(false);
                       setSelectedTask(null);
+                      setIsEditing(false);
+                      setTaskHistory([]);
                     }}
                     className="px-4 py-2 bg-gray-600 text-white rounded text-sm hover:bg-gray-700"
                   >
@@ -3836,7 +3884,7 @@ export default function Dashboard() {
                     onClick={saveAndCloseModal}
                     className="px-4 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700"
                   >
-                    Salvar
+                    {isEditing ? 'Salvar' : 'Criar Tarefa'}
                   </button>
                 </div>
               </div>

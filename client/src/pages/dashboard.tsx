@@ -63,6 +63,9 @@ export default function Dashboard() {
   const [attachments, setAttachments] = useState<File[]>([]);
   const [taskAttachments, setTaskAttachments] = useState<any[]>([]);
   const [showDeleted, setShowDeleted] = useState(false);
+  
+  // Estado para rastrear status pré-selecionado ao criar nova tarefa
+  const [preSelectedStatus, setPreSelectedStatus] = useState<string>("pending");
 
   const [isInitialized, setIsInitialized] = useState(false);
   const [customFields, setCustomFields] = useState<any[]>([]);
@@ -2182,7 +2185,12 @@ export default function Dashboard() {
                     })()}
                   </div>
                   <button
-                    onClick={() => setShowTaskModal(true)}
+                    onClick={() => {
+                      setPreSelectedStatus("pending");
+                      setSelectedTask(null);
+                      setTaskHistory([]);
+                      setShowTaskModal(true);
+                    }}
                     className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
                   >
                     <i className="ri-add-line mr-2"></i>Nova Tarefa
@@ -2313,7 +2321,12 @@ export default function Dashboard() {
                     })()}
                   </div>
                   <button
-                    onClick={() => setShowTaskModal(true)}
+                    onClick={() => {
+                      setPreSelectedStatus("overdue");
+                      setSelectedTask(null);
+                      setTaskHistory([]);
+                      setShowTaskModal(true);
+                    }}
                     className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
                   >
                     <i className="ri-add-line mr-2"></i>Nova Tarefa
@@ -2422,7 +2435,12 @@ export default function Dashboard() {
                     })()}
                   </div>
                   <button
-                    onClick={() => setShowTaskModal(true)}
+                    onClick={() => {
+                      setPreSelectedStatus("completed");
+                      setSelectedTask(null);
+                      setTaskHistory([]);
+                      setShowTaskModal(true);
+                    }}
                     className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
                   >
                     <i className="ri-add-line mr-2"></i>Nova Tarefa
@@ -2506,12 +2524,7 @@ export default function Dashboard() {
                       ));
                     })()}
                   </div>
-                  <button
-                    onClick={() => setShowTaskModal(true)}
-                    className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
-                  >
-                    <i className="ri-add-line mr-2"></i>Nova Tarefa
-                  </button>
+                  {/* Remover botão "Nova Tarefa" da coluna Excluídas */}
                   </div>
                 )}
               </div>
@@ -3006,26 +3019,29 @@ export default function Dashboard() {
             <form onSubmit={async (e) => {
               e.preventDefault();
               
-              if (!isEditing) return;
-              
               const formData = new FormData(e.target as HTMLFormElement);
+              const status = formData.get('status') as string;
+              
               const taskData = {
                 title: formData.get('title') || selectedTask?.attributes?.title,
                 description: formData.get('description') || selectedTask?.attributes?.description,
-                due: selectedTask?.attributes?.due,
+                due: selectedTask?.attributes?.due || new Date().toISOString(),
                 priority: formData.get('priority') || 'normal',
                 assignee_id: formData.get('assignee_id') || selectedTask?.relationships?.assignee?.data?.id,
                 person_id: formData.get('person_id') || selectedTask?.relationships?.person?.data?.id,
                 category_id: formData.get('category') || selectedTask?.relationships?.category?.data?.id,
-                status: selectedTask?.attributes?.completed ? 'concluida' : 'pendente',
-                completed: selectedTask?.attributes?.completed || false
+                status: status || 'pending',
+                completed: status === 'completed'
               };
               
               try {
-                console.log('💾 Salvando tarefa com dados:', taskData);
+                console.log(isEditing ? '💾 Editando tarefa com dados:' : '✨ Criando nova tarefa com dados:', taskData);
                 
-                const response = await fetch(`/api/monde/tarefas/${selectedTask.id}`, {
-                  method: 'PUT',
+                const url = isEditing ? `/api/monde/tarefas/${selectedTask.id}` : '/api/monde/tarefas';
+                const method = isEditing ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                  method: method,
                   headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
@@ -3037,7 +3053,7 @@ export default function Dashboard() {
                 console.log('📋 Resposta da API:', result);
                 
                 if (response.ok) {
-                  console.log('✅ Tarefa salva com sucesso');
+                  console.log(isEditing ? '✅ Tarefa editada com sucesso' : '✅ Nova tarefa criada com sucesso');
                   
                   // Tentar salvar histórico se houver
                   if (newHistoryText?.trim()) {
@@ -3173,7 +3189,39 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  {/* Terceira linha - Pessoa/Cliente e Empresa */}
+                  {/* Terceira linha - Status */}
+                  <div className="grid grid-cols-12 gap-4">
+                    <div className="col-span-3">
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                        Status:
+                      </label>
+                      <select 
+                        name="status"
+                        className="form-input w-full px-3 py-2 text-sm"
+                        style={{ backgroundColor: "var(--bg-secondary)" }}
+                        defaultValue={
+                          isEditing 
+                            ? (selectedTask?.attributes?.completed ? "completed" : "pending")
+                            : preSelectedStatus || "pending"
+                        }
+                        onChange={(e) => {
+                          const newStatus = e.target.value;
+                          if (isEditing) {
+                            saveTaskChanges({ 
+                              completed: newStatus === "completed",
+                              status: newStatus
+                            });
+                          }
+                        }}
+                      >
+                        <option value="pending">Pendente</option>
+                        <option value="overdue">Atrasada</option>
+                        <option value="completed">Concluída</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Quarta linha - Pessoa/Cliente e Empresa */}
                   <div className="grid grid-cols-12 gap-4">
                     <div className="col-span-6">
                       <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>

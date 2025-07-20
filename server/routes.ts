@@ -922,6 +922,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const mondeUrl = `https://web.monde.com.br/api/v2/tasks`;
       
+      const requestBody = {
+        data: {
+          type: "tasks",
+          attributes: {
+            title: req.body.title,
+            description: req.body.description || '',
+            due: req.body.due || new Date().toISOString(),
+            completed: req.body.completed || false
+          },
+          relationships: {
+            ...(req.body.person_id && {
+              person: {
+                data: {
+                  type: "people",
+                  id: req.body.person_id
+                }
+              }
+            }),
+            ...(req.body.assignee_id && {
+              assignee: {
+                data: {
+                  type: "people",
+                  id: req.body.assignee_id
+                }
+              }
+            }),
+            ...(req.body.category_id && {
+              category: {
+                data: {
+                  type: "task-categories",
+                  id: req.body.category_id
+                }
+              }
+            })
+          }
+        }
+      };
+      
+      console.log('✨ Criando nova tarefa com dados:', JSON.stringify(requestBody, null, 2));
+      
       const mondeResponse = await fetch(mondeUrl, {
         method: "POST",
         headers: {
@@ -929,10 +969,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "Accept": "application/vnd.api+json",
           "Authorization": `Bearer ${req.sessao.access_token}`,
         },
-        body: JSON.stringify(req.body),
+        body: JSON.stringify(requestBody),
       });
 
       const data = await mondeResponse.json();
+      console.log('📋 Resposta da criação:', JSON.stringify(data, null, 2));
+      
       res.status(mondeResponse.status).json(data);
     } catch (error) {
       console.error("Erro ao criar tarefa:", error);

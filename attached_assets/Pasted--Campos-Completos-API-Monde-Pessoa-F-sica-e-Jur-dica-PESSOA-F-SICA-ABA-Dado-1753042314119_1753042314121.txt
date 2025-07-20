@@ -1,0 +1,341 @@
+# Campos Completos API Monde - Pessoa Física e Jurídica
+
+## 👤 PESSOA FÍSICA
+
+### 📋 **ABA: Dados Pessoais**
+```javascript
+{
+  "name": "string",                    // Nome completo
+  "birth-date": "YYYY-MM-DD",         // Data de nascimento  
+  "cpf": "string",                    // CPF (apenas números)
+  "rg": "string",                     // RG
+  "passport-number": "string",        // Número do passaporte
+  "passport-expiration": "YYYY-MM-DD", // Validade do passaporte
+  "gender": "string",                 // Sexo (M/F/null)
+  "observations": "string",           // Observações gerais
+  "code": "integer",                  // Código interno
+  "kind": "individual"                // Tipo: sempre "individual" para PF
+}
+```
+
+### 🏠 **ABA: Endereço**
+```javascript
+{
+  "address": "string",                // Logradouro/Rua
+  "number": "string",                 // Número
+  "complement": "string",             // Complemento
+  "district": "string",               // Bairro
+  "zip": "string",                    // CEP (apenas números)
+  "city": {                          // Relacionamento com cidade
+    "id": "uuid",
+    "name": "string"
+  }
+}
+```
+
+### 📞 **ABA: Contatos**
+```javascript
+{
+  "email": "string",                  // E-mail (múltiplos separados por vírgula)
+  "phone": "string",                  // Telefone residencial
+  "mobile-phone": "string",           // Celular/WhatsApp
+  "business-phone": "string",         // Telefone comercial
+  "website": "string"                 // Website pessoal
+}
+```
+
+### 💼 **ABA: Dados Profissionais**
+```javascript
+{
+  "company-name": "string",           // Nome da empresa onde trabalha
+  "job-title": "string",              // Cargo/Profissão
+  "work-address": "string",           // Endereço comercial
+  "work-phone": "string"              // Telefone comercial
+}
+```
+
+### 💳 **ABA: Dados Financeiros**
+```javascript
+{
+  "salary-range": "string",           // Faixa salarial
+  "credit-card": {
+    "number": "string",               // Número do cartão
+    "holder-name": "string",          // Nome do portador
+    "expiry-date": "YYYY-MM",         // Validade
+    "brand": "string",                // Bandeira (Visa, Master, etc)
+    "security-code": "string"         // CVV (opcional)
+  }
+}
+```
+
+### 👥 **ABA: Relacionamentos**
+```javascript
+{
+  "creator": {                        // Usuário que criou
+    "id": "uuid",
+    "name": "string"
+  },
+  "seller": {                         // Vendedor responsável
+    "id": "uuid", 
+    "name": "string"
+  },
+  "family-members": [                 // Membros da família
+    {
+      "name": "string",
+      "relationship": "string",       // Parentesco
+      "birth-date": "YYYY-MM-DD"
+    }
+  ]
+}
+```
+
+### 📊 **ABA: Dados do Sistema**
+```javascript
+{
+  "registered-at": "datetime",        // Data de cadastro
+  "updated-at": "datetime",           // Última atualização
+  "status": "string",                 // Status do cadastro
+  "tags": ["string"],                 // Marcadores/Tags
+  "custom-fields": {                  // Campos personalizados
+    "field1": "value1",
+    "field2": "value2"
+  }
+}
+```
+
+---
+
+## 🏢 PESSOA JURÍDICA
+
+### 📋 **ABA: Dados da Empresa**
+```javascript
+{
+  "name": "string",                   // Nome fantasia
+  "company-name": "string",           // Razão social
+  "cnpj": "string",                   // CNPJ (apenas números)
+  "city-inscription": "string",       // Inscrição municipal
+  "state-inscription": "string",      // Inscrição estadual
+  "founded-date": "YYYY-MM-DD",       // Data de fundação
+  "legal-nature": "string",           // Natureza jurídica
+  "company-size": "string",           // Porte da empresa
+  "main-activity": "string",          // Atividade principal
+  "observations": "string",           // Observações
+  "code": "integer",                  // Código interno
+  "kind": "company"                   // Tipo: sempre "company" para PJ
+}
+```
+
+### 🏢 **ABA: Endereço Comercial**
+```javascript
+{
+  "address": "string",                // Logradouro
+  "number": "string",                 // Número
+  "complement": "string",             // Complemento
+  "district": "string",               // Bairro
+  "zip": "string",                    // CEP
+  "city": {                          // Relacionamento com cidade
+    "id": "uuid",
+    "name": "string"
+  }
+}
+```
+
+### 📞 **ABA: Contatos Empresariais**
+```javascript
+{
+  "email": "string",                  // E-mail empresarial
+  "business-phone": "string",         // Telefone principal
+  "mobile-phone": "string",           // Celular empresarial
+  "fax": "string",                    // Fax
+  "website": "string",                // Website da empresa
+  "social-networks": {               // Redes sociais
+    "facebook": "string",
+    "instagram": "string",
+    "linkedin": "string"
+  }
+}
+```
+
+### 👥 **ABA: Responsáveis/Sócios**
+```javascript
+{
+  "legal-representative": {           // Representante legal
+    "name": "string",
+    "cpf": "string",
+    "role": "string"                  // Cargo
+  },
+  "partners": [                       // Sócios
+    {
+      "name": "string",
+      "cpf": "string",
+      "participation": "decimal",      // % de participação
+      "role": "string"                // Função
+    }
+  ],
+  "contacts": [                       // Pessoas de contato
+    {
+      "name": "string",
+      "role": "string",               // Cargo
+      "email": "string",
+      "phone": "string"
+    }
+  ]
+}
+```
+
+### 💰 **ABA: Dados Financeiros**
+```javascript
+{
+  "share-capital": "decimal",         // Capital social
+  "annual-revenue": "decimal",        // Faturamento anual
+  "employee-count": "integer",        // Número de funcionários
+  "tax-regime": "string",             // Regime tributário
+  "bank-account": {                   // Conta bancária
+    "bank": "string",
+    "agency": "string",
+    "account": "string",
+    "account-type": "string"
+  },
+  "credit-limit": "decimal"           // Limite de crédito
+}
+```
+
+### 🏛️ **ABA: Dados Regulatórios**
+```javascript
+{
+  "cnae-primary": "string",           // CNAE principal
+  "cnae-secondary": ["string"],       // CNAEs secundários
+  "simples-nacional": "boolean",      // Optante pelo Simples
+  "mei": "boolean",                   // Microempreendedor Individual
+  "anvisa-license": "string",         // Licença ANVISA
+  "environmental-license": "string",   // Licença ambiental
+  "fire-department-license": "string" // Licença bombeiros
+}
+```
+
+### 📊 **ABA: Dados do Sistema**
+```javascript
+{
+  "registered-at": "datetime",        // Data de cadastro
+  "updated-at": "datetime",           // Última atualização
+  "status": "string",                 // Status do cadastro
+  "tags": ["string"],                 // Marcadores
+  "seller": {                         // Vendedor responsável
+    "id": "uuid",
+    "name": "string"
+  },
+  "creator": {                        // Usuário que criou
+    "id": "uuid", 
+    "name": "string"
+  },
+  "custom-fields": {                  // Campos personalizados
+    "field1": "value1",
+    "field2": "value2"
+  }
+}
+```
+
+## 🔄 RELACIONAMENTOS COMUNS (AMBOS)
+
+```javascript
+{
+  "relationships": {
+    "city": {                         // Cidade
+      "links": {
+        "self": "url",
+        "related": "url"
+      }
+    },
+    "creator": {                      // Criador do cadastro
+      "links": {
+        "self": "url", 
+        "related": "url"
+      }
+    },
+    "seller": {                       // Vendedor responsável
+      "links": {
+        "self": "url",
+        "related": "url"
+      }
+    },
+    "tasks": {                        // Tarefas relacionadas
+      "links": {
+        "self": "url",
+        "related": "url"
+      }
+    }
+  }
+}
+```
+
+## 📝 EXEMPLO DE PAYLOAD COMPLETO
+
+### Criar Pessoa Física:
+```javascript
+POST /api/v2/people
+{
+  "data": {
+    "type": "people",
+    "attributes": {
+      "name": "João Silva Santos",
+      "birth-date": "1985-03-15",
+      "cpf": "12345678901",
+      "rg": "1234567",
+      "gender": "M",
+      "address": "Rua das Flores, 123",
+      "number": "123",
+      "complement": "Apto 45",
+      "district": "Centro",
+      "zip": "01234567",
+      "email": "joao@email.com",
+      "phone": "1134567890",
+      "mobile-phone": "11987654321",
+      "kind": "individual"
+    },
+    "relationships": {
+      "city": {
+        "data": {"type": "cities", "id": "cidade-uuid"}
+      }
+    }
+  }
+}
+```
+
+### Criar Pessoa Jurídica:
+```javascript
+POST /api/v2/people
+{
+  "data": {
+    "type": "people", 
+    "attributes": {
+      "name": "Tech Solutions",
+      "company-name": "Tech Solutions Ltda",
+      "cnpj": "12345678000190",
+      "city-inscription": "123456789",
+      "state-inscription": "987654321",
+      "address": "Av. Paulista, 1000",
+      "number": "1000",
+      "district": "Bela Vista",
+      "zip": "01310100",
+      "business-phone": "1133334444",
+      "email": "contato@techsolutions.com.br",
+      "website": "https://techsolutions.com.br",
+      "kind": "company"
+    },
+    "relationships": {
+      "city": {
+        "data": {"type": "cities", "id": "cidade-uuid"}
+      }
+    }
+  }
+}
+```
+
+## ⚠️ OBSERVAÇÕES IMPORTANTES:
+
+1. **Campo `kind`**: Define se é pessoa física (`"individual"`) ou jurídica (`"company"`)
+2. **Documentos**: CPF/CNPJ devem ser enviados apenas com números
+3. **Telefones**: Sistema adiciona pontuação automaticamente
+4. **E-mails múltiplos**: Separar por vírgula ou ponto-e-vírgula
+5. **Campos obrigatórios**: `name`, `kind` são essenciais
+6. **Relacionamentos**: `city` é obrigatório para endereços completos

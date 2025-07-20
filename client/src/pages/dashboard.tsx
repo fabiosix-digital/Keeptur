@@ -8,6 +8,19 @@ import logoFull from "@assets/LOGO Lilas_1752695672079.png";
 import logoIcon from "@assets/ico Lilas_1752695703171.png";
 import "../modal.css";
 
+// Função debounce para evitar muitas requisições
+const debounce = (func: Function, wait: number) => {
+  let timeout: NodeJS.Timeout;
+  return function executedFunction(...args: any[]) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+};
+
 export default function Dashboard() {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -80,33 +93,33 @@ export default function Dashboard() {
   const [userCompanies, setUserCompanies] = useState<any[]>([]);
 
 
-  // Função para buscar clientes na API do Monde
+  // Função simples para buscar clientes na API do Monde
   const searchClientsInMonde = async (searchTerm: string) => {
-    if (!searchTerm || searchTerm.length < 2) {
-      setClientSearchResults([]);
-      return;
-    }
+      if (!searchTerm || searchTerm.length < 2) {
+        setClientSearchResults([]);
+        return;
+      }
 
-    setIsSearchingClients(true);
-    try {
-      const response = await fetch(`/api/monde/people/search?q=${encodeURIComponent(searchTerm)}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+      setIsSearchingClients(true);
+      try {
+        const response = await fetch(`/api/monde/people/search?q=${encodeURIComponent(searchTerm)}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setClientSearchResults(data.data || []);
+        } else {
+          console.error('Erro ao buscar clientes:', response.status);
+          setClientSearchResults([]);
         }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setClientSearchResults(data.data || []);
-      } else {
-        console.error('Erro ao buscar clientes:', response.status);
+      } catch (error) {
+        console.error('Erro ao buscar clientes:', error);
         setClientSearchResults([]);
       }
-    } catch (error) {
-      console.error('Erro ao buscar clientes:', error);
-      setClientSearchResults([]);
-    }
-    setIsSearchingClients(false);
+      setIsSearchingClients(false);
   };
 
   // Função para carregar empresas do usuário
@@ -3219,7 +3232,7 @@ export default function Dashboard() {
                         name="assignee_id"
                         className="form-input w-full px-3 py-2 text-sm"
                         style={{ backgroundColor: "var(--bg-secondary)" }}
-                        defaultValue={
+                        value={
                           isEditing 
                             ? selectedTask?.relationships?.assignee?.data?.id || ''
                             : users.find((u: any) => u.attributes?.email === localStorage.getItem('user-email'))?.id || ''
@@ -3307,14 +3320,25 @@ export default function Dashboard() {
                             style={{ backgroundColor: "var(--bg-secondary)" }}
                             value={clientSearchTerm}
                             onChange={(e) => {
-                              setClientSearchTerm(e.target.value);
-                              searchClientsInMonde(e.target.value);
+                              const value = e.target.value;
+                              setClientSearchTerm(value);
+                              
+                              // Clear existing timeout
+                              if (window.searchTimeout) {
+                                clearTimeout(window.searchTimeout);
+                              }
+                              
+                              // Set new timeout for debounce
+                              window.searchTimeout = setTimeout(() => {
+                                searchClientsInMonde(value);
+                              }, 500);
                             }}
                           />
                           <button
                             type="button"
                             onClick={() => setShowClientSearchModal(true)}
                             className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                            title="Buscar ou cadastrar cliente"
                           >
                             <i className="ri-user-add-line text-lg"></i>
                           </button>
@@ -3330,6 +3354,15 @@ export default function Dashboard() {
                                     setSelectedPersonForTask(client);
                                     setClientSearchTerm(client.attributes.name || client.attributes['company-name'] || 'Cliente');
                                     setClientSearchResults([]);
+                                    
+                                    // Preencher campos automaticamente
+                                    const emailField = document.querySelector('input[name="client_email"]') as HTMLInputElement;
+                                    const phoneField = document.querySelector('input[name="client_phone"]') as HTMLInputElement;
+                                    const mobileField = document.querySelector('input[name="client_mobile"]') as HTMLInputElement;
+                                    
+                                    if (emailField) emailField.value = client.attributes.email || '';
+                                    if (phoneField) phoneField.value = client.attributes.phone || client.attributes['business-phone'] || '';
+                                    if (mobileField) mobileField.value = client.attributes['mobile-phone'] || '';
                                   }}
                                 >
                                   <div className="font-medium">{client.attributes.name || client.attributes['company-name']}</div>
@@ -3389,11 +3422,11 @@ export default function Dashboard() {
                       </label>
                       <input
                         type="email"
-                        name="email"
-                        className="form-input w-full px-3 py-2 text-sm text-blue-600 underline"
-                        value={selectedTask?.client_email || ''}
+                        name="client_email"
+                        className="form-input w-full px-3 py-2 text-sm"
+                        defaultValue={selectedTask?.client_email || ''}
                         style={{ backgroundColor: "var(--bg-secondary)" }}
-                        readOnly
+                        readOnly={isEditing}
                       />
                     </div>
                     <div className="col-span-4">
@@ -3402,10 +3435,11 @@ export default function Dashboard() {
                       </label>
                       <input
                         type="text"
+                        name="client_phone"
                         className="form-input w-full px-3 py-2 text-sm"
-                        value={selectedTask?.client_phone || ''}
+                        defaultValue={selectedTask?.client_phone || ''}
                         style={{ backgroundColor: "var(--bg-secondary)" }}
-                        readOnly
+                        readOnly={isEditing}
                       />
                     </div>
                     <div className="col-span-4">
@@ -3415,10 +3449,11 @@ export default function Dashboard() {
                       <div className="flex items-center space-x-2">
                         <input
                           type="text"
+                          name="client_mobile"
                           className="form-input flex-1 px-3 py-2 text-sm"
-                          value={selectedTask?.client_mobile || ''}
+                          defaultValue={selectedTask?.client_mobile || ''}
                           style={{ backgroundColor: "var(--bg-secondary)" }}
-                          readOnly
+                          readOnly={isEditing}
                         />
                         <div className="w-4 h-4 rounded-full bg-green-500"></div>
                       </div>
@@ -3436,8 +3471,11 @@ export default function Dashboard() {
                           type="date"
                           name="due_date"
                           className="form-input w-full px-3 py-2 text-sm"
-                          defaultValue={selectedTask?.attributes?.due ? 
-                            new Date(selectedTask.attributes.due).toISOString().slice(0, 10) : ''
+                          defaultValue={
+                            isEditing
+                              ? selectedTask?.attributes?.due ? 
+                                new Date(selectedTask.attributes.due).toISOString().slice(0, 10) : ''
+                              : new Date().toISOString().slice(0, 10)
                           }
                           style={{ backgroundColor: "var(--bg-secondary)" }}
                           onChange={(e) => {
@@ -3455,8 +3493,11 @@ export default function Dashboard() {
                           type="time"
                           name="due_time"
                           className="form-input w-full px-3 py-2 text-sm"
-                          defaultValue={selectedTask?.attributes?.due ? 
-                            new Date(selectedTask.attributes.due).toTimeString().slice(0, 5) : ''
+                          defaultValue={
+                            isEditing
+                              ? selectedTask?.attributes?.due ? 
+                                new Date(selectedTask.attributes.due).toTimeString().slice(0, 5) : ''
+                              : new Date().toTimeString().slice(0, 5)
                           }
                           style={{ backgroundColor: "var(--bg-secondary)" }}
                           onChange={(e) => {
@@ -5030,6 +5071,87 @@ export default function Dashboard() {
                   <i className="ri-edit-line mr-2"></i>
                   Editar
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Busca/Cadastro de Clientes */}
+      {showClientSearchModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold">Buscar ou Cadastrar Cliente</h2>
+                <button
+                  onClick={() => setShowClientSearchModal(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <i className="ri-close-line text-xl"></i>
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                {/* Busca avançada */}
+                <div className="border rounded-lg p-4">
+                  <h3 className="font-medium mb-3">Buscar Cliente Existente</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <input
+                      type="text"
+                      placeholder="Nome completo"
+                      className="form-input px-3 py-2 text-sm border rounded"
+                    />
+                    <input
+                      type="text"
+                      placeholder="CPF"
+                      className="form-input px-3 py-2 text-sm border rounded"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Telefone"
+                      className="form-input px-3 py-2 text-sm border rounded"
+                    />
+                    <input
+                      type="email"
+                      placeholder="E-mail"
+                      className="form-input px-3 py-2 text-sm border rounded"
+                    />
+                  </div>
+                  <button className="mt-3 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                    Buscar
+                  </button>
+                </div>
+                
+                {/* Botões de cadastro */}
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    onClick={() => {
+                      window.open('https://web.monde.com.br/people/new?kind=individual', '_blank');
+                    }}
+                    className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
+                  >
+                    <i className="ri-user-add-line text-2xl text-blue-600 mb-2"></i>
+                    <div className="font-medium">Cadastrar Pessoa Física</div>
+                    <div className="text-sm text-gray-500">Abrir no Monde</div>
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      window.open('https://web.monde.com.br/people/new?kind=company', '_blank');
+                    }}
+                    className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
+                  >
+                    <i className="ri-building-line text-2xl text-blue-600 mb-2"></i>
+                    <div className="font-medium">Cadastrar Pessoa Jurídica</div>
+                    <div className="text-sm text-gray-500">Abrir no Monde</div>
+                  </button>
+                </div>
+                
+                <div className="text-sm text-gray-500 text-center p-3 bg-blue-50 rounded">
+                  <i className="ri-information-line mr-1"></i>
+                  Após cadastrar no Monde, atualize a página para que o cliente apareça na busca.
+                </div>
               </div>
             </div>
           </div>

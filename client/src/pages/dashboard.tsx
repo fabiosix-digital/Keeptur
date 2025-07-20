@@ -1084,6 +1084,7 @@ export default function Dashboard() {
     console.log('🔍 getTasksByStatus para', status, '- total de tarefas:', filteredTasks.length);
     
     // 🚨 LOG DETALHADO: Verificar como estão chegando as tarefas
+    console.log(`🔍 Analisando ${filteredTasks.length} tarefas para coluna "${status}"`);
     filteredTasks.forEach((task: any, index: number) => {
       console.log(`📋 Tarefa ${index + 1}: ${task.attributes.title} - completed: ${task.attributes.completed}`);
     });

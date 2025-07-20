@@ -1,0 +1,321 @@
+# Guia: Diferenciar Tarefas Concluídas e Deletadas na API do Monde
+
+## PROBLEMA IDENTIFICADO
+A API do Monde (`https://web.monde.com.br/api/v2`) não diferencia claramente tarefas "concluídas" e "deletadas" nos endpoints padrão. Preciso implementar uma solução para distinguir esses dois status.
+
+## ESTRUTURA DA API MONDE
+
+### Autenticação
+```bash
+curl "https://web.monde.com.br/api/v2/tokens" \
+  -d '{"data": {"type": "tokens", "attributes": {"login": "SEU_LOGIN", "password": "SUA_SENHA"}}}' \
+  -X POST \
+  -H "Accept: application/vnd.api+json" \
+  -H "Content-Type: application/vnd.api+json"
+```
+
+### Endpoints de Tarefas Disponíveis
+- `GET /api/v2/tasks` - Listar tarefas
+- `GET /api/v2/tasks/:id` - Visualizar tarefa específica
+- `POST /api/v2/tasks` - Criar nova tarefa
+- `PATCH /api/v2/tasks/:id` - Atualizar tarefa
+- `DELETE /api/v2/tasks/:id` - Deletar tarefa
+
+## ESTRATÉGIAS PARA DIFERENCIAR STATUS
+
+### Estratégia 1: Análise de Campos de Status
+```javascript
+// IMPLEMENTAR: Verificar se existe campo 'status' ou 'state' na resposta das tarefas
+async function getTasks(token) {
+  const response = await fetch('https://web.monde.com.br/api/v2/tasks', {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/vnd.api+json',
+      'Content-Type': 'application/vnd.api+json'
+    }
+  });
+  
+  const data = await response.json();
+  
+  // ANALISAR: Verificar se existe campo status nos attributes
+  data.data.forEach(task => {
+    console.log('Task attributes:', task.attributes);
+    // Procurar por: status, state, completed, finished, deleted, archived
+  });
+  
+  return data;
+}
+```
+
+### Estratégia 2: Usar Filtros de Query (Testar se a API suporta)
+```javascript
+// TESTAR: Se a API aceita filtros por status
+const endpoints_para_testar = [
+  '/api/v2/tasks?filter[status]=completed',
+  '/api/v2/tasks?filter[status]=deleted',
+  '/api/v2/tasks?filter[state]=active',
+  '/api/v2/tasks?filter[completed]=true',
+  '/api/v2/tasks?include=status',
+  '/api/v2/tasks?fields[tasks]=status,completed,deleted'
+];
+```
+
+### Estratégia 3: Verificar Relacionamentos
+```javascript
+// IMPLEMENTAR: Analisar relationships para status ou categorias
+function analyzeTaskRelationships(task) {
+  if (task.relationships) {
+    // Verificar se existe relacionamento com status/categoria
+    const possibleStatusRelations = [
+      'status', 'state', 'category', 'task-category', 'workflow-status'
+    ];
+    
+    possibleStatusRelations.forEach(relation => {
+      if (task.relationships[relation]) {
+        console.log(`Found status relation: ${relation}`, task.relationships[relation]);
+      }
+    });
+  }
+}
+```
+
+### Estratégia 4: Usar Task Categories para Status
+```javascript
+// IMPLEMENTAR: Usar categories como status
+async function getTaskCategories(token) {
+  const response = await fetch('https://web.monde.com.br/api/v2/task-categories', {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/vnd.api+json',
+      'Content-Type': 'application/vnd.api+json'
+    }
+  });
+  
+  const categories = await response.json();
+  
+  // PROCURAR categorias como: "Concluído", "Finalizado", "Deletado", "Arquivado"
+  return categories.data;
+}
+```
+
+### Estratégia 5: Implementar Sistema de Status Próprio
+```javascript
+// SOLUÇÃO ALTERNATIVA: Criar sistema próprio de controle
+class TaskStatusManager {
+  constructor() {
+    this.statusMapping = new Map();
+    this.deletedTasks = new Set();
+    this.completedTasks = new Set();
+  }
+  
+  // Marcar tarefa como concluída (sem deletar da API)
+  async markAsCompleted(taskId, token) {
+    try {
+      // Atualizar tarefa na API com campo personalizado ou categoria
+      const updateData = {
+        data: {
+          type: 'tasks',
+          id: taskId,
+          attributes: {
+            // USAR: Campo disponível para marcar como concluída
+            observations: 'STATUS:COMPLETED', // ou outro campo disponível
+            // OU usar categoria específica se disponível
+          }
+        }
+      };
+      
+      const response = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.api+json',
+          'Content-Type': 'application/vnd.api+json'
+        },
+        body: JSON.stringify(updateData)
+      });
+      
+      if (response.ok) {
+        this.completedTasks.add(taskId);
+        this.statusMapping.set(taskId, 'completed');
+      }
+      
+      return response;
+    } catch (error) {
+      console.error('Erro ao marcar como concluída:', error);
+    }
+  }
+  
+  // Deletar tarefa fisicamente
+  async deleteTask(taskId, token) {
+    try {
+      const response = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.api+json',
+          'Content-Type': 'application/vnd.api+json'
+        }
+      });
+      
+      if (response.ok) {
+        this.deletedTasks.add(taskId);
+        this.statusMapping.set(taskId, 'deleted');
+      }
+      
+      return response;
+    } catch (error) {
+      console.error('Erro ao deletar tarefa:', error);
+    }
+  }
+  
+  // Obter tarefas por status
+  async getTasksByStatus(status, token) {
+    const allTasks = await this.getAllTasks(token);
+    
+    switch (status) {
+      case 'completed':
+        return allTasks.filter(task => 
+          this.isTaskCompleted(task) && !this.isTaskDeleted(task.id)
+        );
+      case 'active':
+        return allTasks.filter(task => 
+          !this.isTaskCompleted(task) && !this.isTaskDeleted(task.id)
+        );
+      case 'deleted':
+        // Tarefas deletadas não aparecem na API, usar histórico local
+        return Array.from(this.deletedTasks).map(id => ({ id, status: 'deleted' }));
+      default:
+        return allTasks;
+    }
+  }
+  
+  // Verificar se tarefa está concluída
+  isTaskCompleted(task) {
+    // IMPLEMENTAR baseado na estratégia que funcionar
+    return (
+      this.completedTasks.has(task.id) ||
+      (task.attributes.observations && task.attributes.observations.includes('STATUS:COMPLETED')) ||
+      // Adicionar outras verificações baseadas nos campos disponíveis
+      false
+    );
+  }
+  
+  // Verificar se tarefa foi deletada
+  isTaskDeleted(taskId) {
+    return this.deletedTasks.has(taskId);
+  }
+  
+  async getAllTasks(token) {
+    const response = await fetch('https://web.monde.com.br/api/v2/tasks', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.api+json',
+        'Content-Type': 'application/vnd.api+json'
+      }
+    });
+    
+    const data = await response.json();
+    return data.data || [];
+  }
+}
+```
+
+## IMPLEMENTAÇÃO RECOMENDADA
+
+### Passo 1: Investigar Estrutura
+```javascript
+// PRIMEIRO: Analisar a estrutura completa de uma tarefa
+async function investigateTaskStructure(token) {
+  try {
+    const tasks = await fetch('https://web.monde.com.br/api/v2/tasks', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.api+json',
+        'Content-Type': 'application/vnd.api+json'
+      }
+    });
+    
+    const data = await tasks.json();
+    
+    if (data.data && data.data.length > 0) {
+      console.log('=== ESTRUTURA DA TAREFA ===');
+      console.log(JSON.stringify(data.data[0], null, 2));
+      
+      console.log('=== CAMPOS DISPONÍVEIS ===');
+      Object.keys(data.data[0].attributes).forEach(field => {
+        console.log(`- ${field}: ${typeof data.data[0].attributes[field]}`);
+      });
+      
+      console.log('=== RELACIONAMENTOS ===');
+      if (data.data[0].relationships) {
+        Object.keys(data.data[0].relationships).forEach(rel => {
+          console.log(`- ${rel}`);
+        });
+      }
+    }
+    
+    // Verificar categorias
+    const categories = await fetch('https://web.monde.com.br/api/v2/task-categories', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.api+json',
+        'Content-Type': 'application/vnd.api+json'
+      }
+    });
+    
+    const categoriesData = await categories.json();
+    console.log('=== CATEGORIAS DISPONÍVEIS ===');
+    console.log(JSON.stringify(categoriesData, null, 2));
+    
+  } catch (error) {
+    console.error('Erro na investigação:', error);
+  }
+}
+```
+
+### Passo 2: Implementar Solução
+```javascript
+// APÓS investigar, implementar a solução mais adequada baseada nos campos encontrados
+const taskManager = new TaskStatusManager();
+
+// Exemplo de uso
+async function exemploUso() {
+  const token = 'SEU_TOKEN_AQUI';
+  
+  // Investigar primeiro
+  await investigateTaskStructure(token);
+  
+  // Depois implementar baseado nos resultados
+  // const tarefasAtivas = await taskManager.getTasksByStatus('active', token);
+  // const tarefasConcluidas = await taskManager.getTasksByStatus('completed', token);
+}
+```
+
+## CAMPOS PARA PROCURAR NA RESPOSTA DA API
+- `status`
+- `state`
+- `completed`
+- `finished`
+- `deleted`
+- `archived`
+- `active`
+- `workflow_status`
+- `task_status`
+- `completed_at`
+- `deleted_at`
+- `finished_at`
+
+## PRÓXIMOS PASSOS
+1. Execute a função `investigateTaskStructure()` primeiro
+2. Analise os campos disponíveis nos `attributes`
+3. Verifique se existem relacionamentos com status
+4. Implemente a estratégia mais adequada baseada nos dados encontrados
+5. Teste as operações de conclusão e deleção
+
+## IMPORTANTE
+- Sempre faça backup dos IDs das tarefas antes de deletar
+- Teste primeiro em ambiente de desenvolvimento
+- Documente os campos específicos que a API do Monde utiliza para status

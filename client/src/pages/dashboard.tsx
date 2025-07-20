@@ -1106,6 +1106,9 @@ export default function Dashboard() {
       'TESSY ANNE'
     ];
     
+    console.log(`🚨 getTasksByStatus chamado para: "${status}" com ${filteredTasks.length} tarefas`);
+    console.log('🔍 Lista de tarefas excluídas no Monde:', TAREFAS_EXCLUIDAS_NO_MONDE);
+    
     // Função auxiliar para verificar se tarefa está realmente excluída
     const isReallyDeleted = (task: any) => {
       return TAREFAS_EXCLUIDAS_NO_MONDE.includes(task.attributes.title);
@@ -2064,10 +2067,12 @@ export default function Dashboard() {
                       Pendentes
                     </h3>
                     <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
-                      {getFilteredTasksWithStatus().filter(task => {
-                        const { status } = getTaskStatus(task);
-                        return status === "pending";
-                      }).length}
+                      {(() => {
+                        const pendingTasks = getTasksByStatus("pending");
+                        console.log('🔍 KANBAN COLUNA PENDENTES:', pendingTasks.length, 'tarefas');
+                        pendingTasks.forEach(task => console.log(`  - ${task.attributes.title}`));
+                        return pendingTasks.length;
+                      })()}
                     </span>
                   </div>
                   <div
@@ -2079,13 +2084,10 @@ export default function Dashboard() {
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                   >
-                    {getFilteredTasksWithStatus()
-                      .filter(task => {
-                        const { status } = getTaskStatus(task);
-                        // Filtrar apenas tarefas reais (não mockadas)
-                        return status === "pending" && task.id && !task.attributes.title?.includes("Follow-up");
-                      })
-                      .map((task: any, index: number) => (
+                    {(() => {
+                      const pendingTasks = getTasksByStatus("pending");
+                      console.log('🔍 RENDERIZANDO TAREFAS PENDENTES:', pendingTasks.length);
+                      return pendingTasks.map((task: any, index: number) => (
                         <div
                           key={`pending-${task.id}-${index}`}
                           className="kanban-card rounded-lg p-4 cursor-move"
@@ -2167,7 +2169,8 @@ export default function Dashboard() {
                             </span>
                           </div>
                         </div>
-                      ))}
+                      ));
+                    })()}
                   </div>
                   <button
                     onClick={() => setShowTaskModal(true)}
@@ -2187,27 +2190,24 @@ export default function Dashboard() {
                       Atrasadas
                     </h3>
                     <span className="bg-red-200 text-red-700 px-2 py-1 rounded-full text-xs">
-                      {getFilteredTasksWithStatus().filter(task => {
-                        const { status } = getTaskStatus(task);
-                        return status === "overdue";
-                      }).length}
+                      {(() => {
+                        const overdueTasks = getTasksByStatus("overdue");
+                        console.log('🔍 KANBAN COLUNA ATRASADAS:', overdueTasks.length, 'tarefas');
+                        overdueTasks.forEach(task => console.log(`  - ${task.attributes.title}`));
+                        return overdueTasks.length;
+                      })()}
                     </span>
                   </div>
                   <div
-                    className={`space-y-3 ${getFilteredTasksWithStatus().filter(task => {
-                      const { status } = getTaskStatus(task);
-                      return status === "overdue";
-                    }).length === 0 ? 'min-h-[80px]' : 'min-h-[120px]'}`}
+                    className={`space-y-3 ${getTasksByStatus("overdue").length === 0 ? 'min-h-[80px]' : 'min-h-[120px]'}`}
                     onDrop={(e) => handleDrop(e, "overdue")}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                   >
-                    {getFilteredTasksWithStatus()
-                      .filter(task => {
-                        const { status } = getTaskStatus(task);
-                        return status === "overdue";
-                      })
-                      .map((task: any, index: number) => (
+                    {(() => {
+                      const overdueTasks = getTasksByStatus("overdue");
+                      console.log('🔍 RENDERIZANDO TAREFAS ATRASADAS:', overdueTasks.length);
+                      return overdueTasks.map((task: any, index: number) => (
                         <div
                           key={`overdue-${task.id}-${index}`}
                           className="kanban-card rounded-lg p-4 cursor-move"
@@ -2300,7 +2300,8 @@ export default function Dashboard() {
                             </span>
                           </div>
                         </div>
-                      ))}
+                      ));
+                    })()}
                   </div>
                   <button
                     onClick={() => setShowTaskModal(true)}
@@ -2320,20 +2321,24 @@ export default function Dashboard() {
                       Concluídas
                     </h3>
                     <span className="bg-green-200 text-green-700 px-2 py-1 rounded-full text-xs">
-                      {getFilteredTasksWithStatus().filter(task => task.attributes.completed === true).length}
+                      {(() => {
+                        const completedTasks = getTasksByStatus("completed");
+                        console.log('🔍 KANBAN COLUNA CONCLUÍDAS:', completedTasks.length, 'tarefas');
+                        completedTasks.forEach(task => console.log(`  - ${task.attributes.title}`));
+                        return completedTasks.length;
+                      })()}
                     </span>
                   </div>
                   <div
-                    className={`space-y-3 ${getFilteredTasksWithStatus().filter(task => task.attributes.completed === true).length === 0 ? 'min-h-[80px]' : 'min-h-[120px]'}`}
+                    className={`space-y-3 ${getTasksByStatus("completed").length === 0 ? 'min-h-[80px]' : 'min-h-[120px]'}`}
                     onDrop={(e) => handleDrop(e, "completed")}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                   >
-                    {getFilteredTasksWithStatus()
-                      .filter(task => {
-                        return task.attributes.completed === true;
-                      })
-                      .map((task: any, index: number) => (
+                    {(() => {
+                      const completedTasks = getTasksByStatus("completed");
+                      console.log('🔍 RENDERIZANDO TAREFAS CONCLUÍDAS:', completedTasks.length);
+                      return completedTasks.map((task: any, index: number) => (
                         <div
                           key={`completed-${task.id}-${index}`}
                           className="kanban-card rounded-lg p-4 cursor-move"
@@ -2404,7 +2409,8 @@ export default function Dashboard() {
                             </span>
                           </div>
                         </div>
-                      ))}
+                      ));
+                    })()}
                   </div>
                   <button
                     onClick={() => setShowTaskModal(true)}

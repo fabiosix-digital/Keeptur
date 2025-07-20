@@ -96,6 +96,13 @@ Preferred communication style: Simple, everyday language in Portuguese.
 - ✅ Sistema de controle de requisições implementado para evitar conflitos de status
 - ✅ Modal de conclusão otimizada com cancelamento de requisições anteriores
 - ✅ Timeout ajustado para 800ms para evitar reversão automática de status
+- ✅ Debounce melhorado para busca de clientes (800ms) usando useRef para evitar travamentos
+- ✅ Preenchimento automático de campos (email, telefone, celular) ao selecionar cliente corrigido
+- ✅ Modal de cadastro reformulada com formulários locais para PF e PJ em vez de links externos
+- ✅ Campo de empresa configurado para pré-selecionar primeira empresa disponível
+- ✅ Campo de responsável corrigido para usar defaultValue e pré-selecionar usuário logado
+- ✅ Data e hora atuais configuradas como padrão em novas tarefas
+- ✅ Sistema de eventos DOM implementado para garantir sincronização dos campos preenchidos
 
 ## System Architecture
 

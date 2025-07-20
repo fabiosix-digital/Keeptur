@@ -93,14 +93,26 @@ export default function Dashboard() {
   const [userCompanies, setUserCompanies] = useState<any[]>([]);
 
 
-  // Função simples para buscar clientes na API do Monde
-  const searchClientsInMonde = async (searchTerm: string) => {
-      if (!searchTerm || searchTerm.length < 2) {
-        setClientSearchResults([]);
-        return;
-      }
+  // Debounce timeout ref
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-      setIsSearchingClients(true);
+  // Função para buscar clientes na API do Monde com debounce
+  const searchClientsInMonde = useCallback((searchTerm: string) => {
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    if (!searchTerm || searchTerm.length < 2) {
+      setClientSearchResults([]);
+      setIsSearchingClients(false);
+      return;
+    }
+
+    setIsSearchingClients(true);
+    
+    // Set new timeout
+    searchTimeoutRef.current = setTimeout(async () => {
       try {
         const response = await fetch(`/api/monde/people/search?q=${encodeURIComponent(searchTerm)}`, {
           headers: {
@@ -120,7 +132,8 @@ export default function Dashboard() {
         setClientSearchResults([]);
       }
       setIsSearchingClients(false);
-  };
+    }, 800); // 800ms debounce
+  }, []);
 
   // Função para carregar empresas do usuário
   const loadUserCompanies = async () => {
@@ -3232,7 +3245,7 @@ export default function Dashboard() {
                         name="assignee_id"
                         className="form-input w-full px-3 py-2 text-sm"
                         style={{ backgroundColor: "var(--bg-secondary)" }}
-                        value={
+                        defaultValue={
                           isEditing 
                             ? selectedTask?.relationships?.assignee?.data?.id || ''
                             : users.find((u: any) => u.attributes?.email === localStorage.getItem('user-email'))?.id || ''
@@ -3322,16 +3335,7 @@ export default function Dashboard() {
                             onChange={(e) => {
                               const value = e.target.value;
                               setClientSearchTerm(value);
-                              
-                              // Clear existing timeout
-                              if (window.searchTimeout) {
-                                clearTimeout(window.searchTimeout);
-                              }
-                              
-                              // Set new timeout for debounce
-                              window.searchTimeout = setTimeout(() => {
-                                searchClientsInMonde(value);
-                              }, 500);
+                              searchClientsInMonde(value);
                             }}
                           />
                           <button
@@ -3355,14 +3359,25 @@ export default function Dashboard() {
                                     setClientSearchTerm(client.attributes.name || client.attributes['company-name'] || 'Cliente');
                                     setClientSearchResults([]);
                                     
-                                    // Preencher campos automaticamente
-                                    const emailField = document.querySelector('input[name="client_email"]') as HTMLInputElement;
-                                    const phoneField = document.querySelector('input[name="client_phone"]') as HTMLInputElement;
-                                    const mobileField = document.querySelector('input[name="client_mobile"]') as HTMLInputElement;
-                                    
-                                    if (emailField) emailField.value = client.attributes.email || '';
-                                    if (phoneField) phoneField.value = client.attributes.phone || client.attributes['business-phone'] || '';
-                                    if (mobileField) mobileField.value = client.attributes['mobile-phone'] || '';
+                                    // Preencher campos automaticamente usando setTimeout para aguardar renderização
+                                    setTimeout(() => {
+                                      const emailField = document.querySelector('input[name="client_email"]') as HTMLInputElement;
+                                      const phoneField = document.querySelector('input[name="client_phone"]') as HTMLInputElement;
+                                      const mobileField = document.querySelector('input[name="client_mobile"]') as HTMLInputElement;
+                                      
+                                      if (emailField) {
+                                        emailField.value = client.attributes.email || '';
+                                        emailField.dispatchEvent(new Event('input', { bubbles: true }));
+                                      }
+                                      if (phoneField) {
+                                        phoneField.value = client.attributes.phone || client.attributes['business-phone'] || '';
+                                        phoneField.dispatchEvent(new Event('input', { bubbles: true }));
+                                      }
+                                      if (mobileField) {
+                                        mobileField.value = client.attributes['mobile-phone'] || '';
+                                        mobileField.dispatchEvent(new Event('input', { bubbles: true }));
+                                      }
+                                    }, 100);
                                   }}
                                 >
                                   <div className="font-medium">{client.attributes.name || client.attributes['company-name']}</div>
@@ -3401,7 +3416,7 @@ export default function Dashboard() {
                           name="company_id"
                           className="form-input w-full px-3 py-2 text-sm"
                           style={{ backgroundColor: "var(--bg-secondary)" }}
-                          defaultValue=""
+                          defaultValue={userCompanies.length > 0 ? userCompanies[0].id : ''}
                         >
                           <option value="">Selecione uma empresa</option>
                           {userCompanies.map((company: any) => (
@@ -5125,27 +5140,33 @@ export default function Dashboard() {
                 
                 {/* Botões de cadastro */}
                 <div className="grid grid-cols-2 gap-4">
-                  <button
-                    onClick={() => {
-                      window.open('https://web.monde.com.br/people/new?kind=individual', '_blank');
-                    }}
-                    className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
-                  >
-                    <i className="ri-user-add-line text-2xl text-blue-600 mb-2"></i>
-                    <div className="font-medium">Cadastrar Pessoa Física</div>
-                    <div className="text-sm text-gray-500">Abrir no Monde</div>
-                  </button>
+                  <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg">
+                    <i className="ri-user-add-line text-2xl text-blue-600 mb-2 block"></i>
+                    <div className="font-medium mb-2">Cadastrar Pessoa Física</div>
+                    <form className="space-y-2">
+                      <input type="text" placeholder="Nome completo" className="w-full px-2 py-1 border rounded text-xs" />
+                      <input type="text" placeholder="CPF" className="w-full px-2 py-1 border rounded text-xs" />
+                      <input type="email" placeholder="E-mail" className="w-full px-2 py-1 border rounded text-xs" />
+                      <input type="text" placeholder="Telefone" className="w-full px-2 py-1 border rounded text-xs" />
+                      <button type="submit" className="w-full bg-blue-500 text-white py-1 rounded text-xs hover:bg-blue-600">
+                        Cadastrar
+                      </button>
+                    </form>
+                  </div>
                   
-                  <button
-                    onClick={() => {
-                      window.open('https://web.monde.com.br/people/new?kind=company', '_blank');
-                    }}
-                    className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
-                  >
-                    <i className="ri-building-line text-2xl text-blue-600 mb-2"></i>
-                    <div className="font-medium">Cadastrar Pessoa Jurídica</div>
-                    <div className="text-sm text-gray-500">Abrir no Monde</div>
-                  </button>
+                  <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg">
+                    <i className="ri-building-line text-2xl text-blue-600 mb-2 block"></i>
+                    <div className="font-medium mb-2">Cadastrar Pessoa Jurídica</div>
+                    <form className="space-y-2">
+                      <input type="text" placeholder="Razão Social" className="w-full px-2 py-1 border rounded text-xs" />
+                      <input type="text" placeholder="CNPJ" className="w-full px-2 py-1 border rounded text-xs" />
+                      <input type="email" placeholder="E-mail" className="w-full px-2 py-1 border rounded text-xs" />
+                      <input type="text" placeholder="Telefone" className="w-full px-2 py-1 border rounded text-xs" />
+                      <button type="submit" className="w-full bg-blue-500 text-white py-1 rounded text-xs hover:bg-blue-600">
+                        Cadastrar
+                      </button>
+                    </form>
+                  </div>
                 </div>
                 
                 <div className="text-sm text-gray-500 text-center p-3 bg-blue-50 rounded">

@@ -1159,10 +1159,19 @@ export default function Dashboard() {
 
       case "archived":
         // 🚨 CORREÇÃO: Detectar tarefas que estão "excluídas" no Monde mas aparecem como completed=true na API
+        const archivedTasks = filteredTasks.filter((task: any) => {
+          return isReallyDeleted(task);
+        });
+        console.log('📋 Tarefas REALMENTE EXCLUÍDAS (baseado na lista conhecida):', archivedTasks.length);
+        archivedTasks.forEach(task => console.log(`  - ${task.attributes.title} (aparece como completed=${task.attributes.completed} na API)`));
+        return archivedTasks;
+
+      case "deleted":
+        // ✅ NOVO: Status "deleted" específico para a coluna de excluídas
         const deletedTasks = filteredTasks.filter((task: any) => {
           return isReallyDeleted(task);
         });
-        console.log('📋 Tarefas REALMENTE EXCLUÍDAS (baseado na lista conhecida):', deletedTasks.length);
+        console.log('📋 Tarefas EXCLUÍDAS (coluna Excluídas):', deletedTasks.length);
         deletedTasks.forEach(task => console.log(`  - ${task.attributes.title} (aparece como completed=${task.attributes.completed} na API)`));
         return deletedTasks;
 
@@ -2431,22 +2440,24 @@ export default function Dashboard() {
                       Excluídas
                     </h3>
                     <span className="bg-gray-400 text-gray-700 px-2 py-1 rounded-full text-xs">
-                      {allTasks.filter(task => {
-                        return task && task.attributes && (task.attributes.deleted || task.attributes.status === "deleted" || task.attributes.is_deleted);
-                      }).length}
+                      {(() => {
+                        const deletedTasks = getTasksByStatus("deleted");
+                        console.log('🔍 KANBAN COLUNA EXCLUÍDAS:', deletedTasks.length, 'tarefas');
+                        deletedTasks.forEach(task => console.log(`  - ${task.attributes.title}`));
+                        return deletedTasks.length;
+                      })()}
                     </span>
                   </div>
                   <div
-                    className="space-y-3 min-h-[120px]"
+                    className={`space-y-3 ${getTasksByStatus("deleted").length === 0 ? 'min-h-[80px]' : 'min-h-[120px]'}`}
                     onDrop={(e) => handleDrop(e, "archived")}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                   >
-                    {allTasks
-                      .filter(task => {
-                        return task && task.attributes && (task.attributes.deleted || task.attributes.status === "deleted" || task.attributes.is_deleted);
-                      })
-                      .map((task: any, index: number) => (
+                    {(() => {
+                      const deletedTasks = getTasksByStatus("deleted");
+                      console.log('🔍 RENDERIZANDO TAREFAS EXCLUÍDAS:', deletedTasks.length);
+                      return deletedTasks.map((task: any, index: number) => (
                         <div
                           key={`deleted-${task.id}-${index}`}
                           className="kanban-card rounded-lg p-4 cursor-move opacity-60"
@@ -2492,7 +2503,8 @@ export default function Dashboard() {
                             </span>
                           </div>
                         </div>
-                      ))}
+                      ));
+                    })()}
                   </div>
                   <button
                     onClick={() => setShowTaskModal(true)}

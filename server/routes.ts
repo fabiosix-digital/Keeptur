@@ -3290,20 +3290,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint para obter perfil do usuário
   app.get('/api/monde/user-profile', authenticateToken, async (req: any, res) => {
     try {
-      // Buscar dados do usuário atual do Monde
-      const response = await fetch('https://web.monde.com.br/api/v2/people/me', {
+      console.log('🔍 Buscando perfil completo do usuário no Monde...');
+      
+      // Buscar dados completos do usuário atual do Monde com relacionamentos
+      const response = await fetch('https://web.monde.com.br/api/v2/people/me?include=city,creator,company', {
         headers: {
           'Authorization': `Bearer ${req.mondeToken}`,
-          'Accept': 'application/vnd.api+json'
+          'Accept': 'application/vnd.api+json',
+          'User-Agent': 'Keeptur/1.0'
         }
       });
 
       if (response.ok) {
         const userData = await response.json();
+        console.log('✅ Perfil completo carregado do Monde:', {
+          id: userData.data?.id,
+          name: userData.data?.attributes?.name,
+          email: userData.data?.attributes?.email,
+          phone: userData.data?.attributes?.phone,
+          mobile: userData.data?.attributes?.['mobile-phone'],
+          business: userData.data?.attributes?.['business-phone'],
+          cpf: userData.data?.attributes?.cpf,
+          rg: userData.data?.attributes?.rg,
+          birthDate: userData.data?.attributes?.['birth-date'],
+          gender: userData.data?.attributes?.gender,
+          kind: userData.data?.attributes?.kind,
+          companyName: userData.data?.attributes?.['company-name'],
+          cnpj: userData.data?.attributes?.cnpj,
+          address: userData.data?.attributes?.address,
+          number: userData.data?.attributes?.number,
+          complement: userData.data?.attributes?.complement,
+          district: userData.data?.attributes?.district,
+          zip: userData.data?.attributes?.zip,
+          observations: userData.data?.attributes?.observations,
+          website: userData.data?.attributes?.website,
+          hasAvatar: !!userData.data?.attributes?.avatar,
+          avatarUrl: userData.data?.attributes?.avatar || null
+        });
+        
         res.json(userData);
       } else {
+        console.log('❌ Erro ao buscar perfil do Monde, usando dados da sessão');
         // Se não conseguir buscar do Monde, usar dados da sessão
-        const sessao = await storage.getSessao(req.sessaoId);
+        const sessao = await storage.getSessao(req.sessao.id);
         res.json({
           data: {
             attributes: sessao?.user_data || {}
@@ -3320,6 +3349,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/monde/user-profile', authenticateToken, async (req: any, res) => {
     try {
       const profileData = req.body;
+      console.log('🔄 Atualizando perfil no Monde:', profileData);
+      
+      // Mapear campos do frontend para API do Monde (nomes com hífen)
+      const mondeAttributes = {
+        name: profileData.name,
+        email: profileData.email,
+        phone: profileData.phone,
+        'mobile-phone': profileData.mobilePhone || profileData['mobile-phone'],
+        'business-phone': profileData.businessPhone || profileData['business-phone'],
+        cpf: profileData.cpf,
+        rg: profileData.rg,
+        'birth-date': profileData.birthDate || profileData['birth-date'],
+        gender: profileData.gender,
+        'company-name': profileData.companyName || profileData['company-name'],
+        cnpj: profileData.cnpj,
+        address: profileData.address,
+        number: profileData.number,
+        complement: profileData.complement,
+        district: profileData.district,
+        zip: profileData.zip,
+        observations: profileData.observations,
+        website: profileData.website
+      };
+
+      // Remover campos undefined/null
+      Object.keys(mondeAttributes).forEach(key => {
+        if (mondeAttributes[key] === undefined || mondeAttributes[key] === null) {
+          delete mondeAttributes[key];
+        }
+      });
       
       // Tentar atualizar no Monde
       const response = await fetch('https://web.monde.com.br/api/v2/people/me', {
@@ -3327,23 +3386,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         headers: {
           'Authorization': `Bearer ${req.mondeToken}`,
           'Accept': 'application/vnd.api+json',
-          'Content-Type': 'application/vnd.api+json'
+          'Content-Type': 'application/vnd.api+json',
+          'User-Agent': 'Keeptur/1.0'
         },
         body: JSON.stringify({
           data: {
             type: 'people',
-            attributes: profileData
+            attributes: mondeAttributes
           }
         })
       });
 
       if (response.ok) {
         const updatedData = await response.json();
+        console.log('✅ Perfil atualizado com sucesso no Monde');
         
         // Atualizar também na sessão local
-        const sessao = await storage.getSessao(req.sessaoId);
+        const sessao = await storage.getSessao(req.sessao.id);
         if (sessao) {
-          await storage.updateSessao(req.sessaoId, {
+          await storage.updateSessao(req.sessao.id, {
             ...sessao,
             user_data: {
               ...sessao.user_data,
@@ -3354,7 +3415,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         res.json(updatedData);
       } else {
-        throw new Error('Falha ao atualizar no Monde');
+        const errorText = await response.text();
+        console.log('❌ Erro ao atualizar no Monde:', response.status, errorText);
+        res.status(response.status).json({ 
+          error: 'Falha ao atualizar no Monde',
+          details: errorText
+        });
       }
     } catch (error) {
       console.error('Erro ao atualizar perfil:', error);

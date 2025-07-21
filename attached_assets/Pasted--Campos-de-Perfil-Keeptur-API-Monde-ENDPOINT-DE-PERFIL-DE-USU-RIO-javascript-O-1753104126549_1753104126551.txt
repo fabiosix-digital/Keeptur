@@ -1,0 +1,333 @@
+# Campos de Perfil Keeptur - API Monde
+
+## 🔍 ENDPOINT DE PERFIL DE USUÁRIO
+
+```javascript
+// OBTER DADOS DO USUÁRIO ATUAL
+GET https://web.monde.com.br/api/v2/me
+// OU
+GET https://web.monde.com.br/api/v2/user/current
+```
+
+## 👤 SEÇÃO 1: DADOS PESSOAIS
+
+### **Campo: Nome Completo**
+```javascript
+"name": "string"
+```
+**Input HTML:** `<input type="text" name="name" required maxlength="100">`
+**Instrução RPA:** Campo obrigatório para nome completo do usuário
+
+### **Campo: E-mail Principal**
+```javascript
+"email": "string"
+```
+**Input HTML:** `<input type="email" name="email" required>`
+**Instrução RPA:** E-mail principal usado para login (não editável após criação)
+
+### **Campo: Login/Username**
+```javascript
+"login": "string"
+```
+**Input HTML:** `<input type="text" name="login" readonly>`
+**Instrução RPA:** Username para login (somente leitura, definido no cadastro)
+
+## 🖼️ SEÇÃO 2: AVATAR/FOTO DE PERFIL
+
+### **Campo: Avatar** (API Monde NÃO suporta)
+```javascript
+// ALTERNATIVA: Usar API externa para avatar
+"avatar_url": "string" // URL gerada externamente
+```
+
+**Implementação Sugerida:**
+```html
+<!-- Avatar com iniciais (fallback) -->
+<div class="avatar-container">
+  <img id="user-avatar" 
+       src="https://ui-avatars.com/api/?name={nome_usuario}&background=0D8ABC&color=fff&size=128" 
+       alt="Avatar do usuário"
+       onerror="this.src='https://ui-avatars.com/api/?name=User&background=cccccc&color=fff&size=128'">
+  <input type="file" id="avatar-upload" accept="image/*" style="display:none">
+  <button type="button" onclick="document.getElementById('avatar-upload').click()">
+    Alterar Foto
+  </button>
+</div>
+```
+
+**Instrução RPA:** 
+1. Usar API externa (UI Avatars) para gerar avatar com iniciais
+2. Implementar upload local/externo (AWS S3, Cloudinary)
+3. Salvar URL do avatar no campo `observations` da API Monde
+
+## 📞 SEÇÃO 3: INFORMAÇÕES DE CONTATO
+
+### **Campo: Telefone**
+```javascript
+"phone": "string"
+```
+**Input HTML:** `<input type="tel" name="phone" pattern="[0-9]{10,11}" placeholder="(11) 99999-9999">`
+**Instrução RPA:** Telefone principal do usuário (formatação automática)
+
+### **Campo: Celular/WhatsApp**
+```javascript
+"mobile_phone": "string"
+```
+**Input HTML:** `<input type="tel" name="mobile_phone" pattern="[0-9]{10,11}">`
+**Instrução RPA:** Celular com botão WhatsApp integrado
+
+### **Campo: E-mail Secundário**
+```javascript
+"secondary_email": "string"
+```
+**Input HTML:** `<input type="email" name="secondary_email">`
+**Instrução RPA:** E-mail alternativo para contato
+
+## 🏢 SEÇÃO 4: DADOS PROFISSIONAIS
+
+### **Campo: Cargo/Função**
+```javascript
+"job_title": "string"
+```
+**Input HTML:** `<input type="text" name="job_title" maxlength="50">`
+**Instrução RPA:** Cargo atual na empresa
+
+### **Campo: Departamento**
+```javascript
+"department": "string"
+```
+**Input HTML:** `<input type="text" name="department" maxlength="50">`
+**Instrução RPA:** Departamento onde trabalha
+
+### **Campo: Empresa**
+```javascript
+"company": "string"
+```
+**Input HTML:** `<input type="text" name="company" readonly>`
+**Instrução RPA:** Nome da empresa (obtido automaticamente via API)
+
+### **Campo: Permissões/Nível**
+```javascript
+"role": "string"
+```
+**Input HTML:** `<select name="role" disabled><option>Admin</option><option>User</option></select>`
+**Instrução RPA:** Nível de acesso no sistema (somente leitura)
+
+## 🛡️ SEÇÃO 5: CONFIGURAÇÕES DE CONTA
+
+### **Campo: Senha Atual**
+```javascript
+// Não retornado pela API (segurança)
+```
+**Input HTML:** `<input type="password" name="current_password" placeholder="Senha atual">`
+**Instrução RPA:** Para validação ao alterar senha
+
+### **Campo: Nova Senha**
+```javascript
+// Enviado via PATCH para alterar
+```
+**Input HTML:** `<input type="password" name="new_password" minlength="8">`
+**Instrução RPA:** Nova senha (mínimo 8 caracteres)
+
+### **Campo: Confirmar Senha**
+```javascript
+// Validação local apenas
+```
+**Input HTML:** `<input type="password" name="confirm_password">`
+**Instrução RPA:** Confirmação da nova senha (validar localmente)
+
+## 📊 SEÇÃO 6: PREFERÊNCIAS DO SISTEMA
+
+### **Campo: Tema**
+```javascript
+"theme": "string" // "light" | "dark" | "auto"
+```
+**Input HTML:** `<select name="theme"><option value="light">Claro</option><option value="dark">Escuro</option></select>`
+**Instrução RPA:** Tema da interface (salvar localmente + API)
+
+### **Campo: Idioma**
+```javascript
+"language": "string" // "pt-BR" | "en-US" | "es-ES"
+```
+**Input HTML:** `<select name="language"><option value="pt-BR">Português</option><option value="en-US">English</option></select>`
+**Instrução RPA:** Idioma da interface
+
+### **Campo: Timezone**
+```javascript
+"timezone": "string" // "America/Sao_Paulo"
+```
+**Input HTML:** `<select name="timezone"><option value="America/Sao_Paulo">São Paulo (UTC-3)</option></select>`
+**Instrução RPA:** Fuso horário do usuário
+
+## 📝 SEÇÃO 7: INFORMAÇÕES ADICIONAIS
+
+### **Campo: Bio/Descrição**
+```javascript
+"bio": "string"
+```
+**Input HTML:** `<textarea name="bio" maxlength="500" rows="4" placeholder="Conte um pouco sobre você..."></textarea>`
+**Instrução RPA:** Descrição pessoal/profissional
+
+### **Campo: Observações**
+```javascript
+"observations": "string"
+```
+**Input HTML:** `<textarea name="observations" maxlength="1000" rows="6"></textarea>`
+**Instrução RPA:** Campo para dados extras (avatar URL, preferências customizadas)
+
+### **Campo: Data de Cadastro**
+```javascript
+"created_at": "datetime"
+```
+**Input HTML:** `<input type="text" name="created_at" readonly>`
+**Instrução RPA:** Data de criação da conta (somente leitura)
+
+### **Campo: Último Acesso**
+```javascript
+"last_login": "datetime"
+```
+**Input HTML:** `<input type="text" name="last_login" readonly>`
+**Instrução RPA:** Último login no sistema (somente leitura)
+
+## 🔧 IMPLEMENTAÇÃO TÉCNICA
+
+### **1. Obter Dados do Perfil:**
+```javascript
+async function obterPerfilUsuario(token) {
+  try {
+    const response = await fetch('https://web.monde.com.br/api/v2/me', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.api+json',
+        'Content-Type': 'application/vnd.api+json'
+      }
+    });
+    
+    const userData = await response.json();
+    
+    // Preencher formulário
+    document.getElementById('name').value = userData.data.attributes.name || '';
+    document.getElementById('email').value = userData.data.attributes.email || '';
+    document.getElementById('phone').value = userData.data.attributes.phone || '';
+    // ... outros campos
+    
+    return userData;
+  } catch (error) {
+    console.error('Erro ao carregar perfil:', error);
+  }
+}
+```
+
+### **2. Atualizar Perfil:**
+```javascript
+async function atualizarPerfil(token, dadosAtualizados) {
+  const updateData = {
+    data: {
+      type: 'users',
+      attributes: dadosAtualizados
+    }
+  };
+  
+  try {
+    const response = await fetch('https://web.monde.com.br/api/v2/me', {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.api+json',
+        'Content-Type': 'application/vnd.api+json'
+      },
+      body: JSON.stringify(updateData)
+    });
+    
+    if (response.ok) {
+      alert('Perfil atualizado com sucesso!');
+      return await response.json();
+    }
+    
+    throw new Error(`Erro HTTP: ${response.status}`);
+  } catch (error) {
+    console.error('Erro ao atualizar perfil:', error);
+    alert('Erro ao atualizar perfil. Tente novamente.');
+  }
+}
+```
+
+### **3. Upload de Avatar (Alternativa):**
+```javascript
+async function uploadAvatar(file) {
+  // Opção 1: Upload para serviço externo (AWS S3, Cloudinary)
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  const uploadResponse = await fetch('https://api.cloudinary.com/v1_1/seu-cloud/upload', {
+    method: 'POST',
+    body: formData
+  });
+  
+  const uploadData = await uploadResponse.json();
+  
+  // Salvar URL no campo observations da API Monde
+  await atualizarPerfil(token, {
+    observations: `avatar_url:${uploadData.secure_url}`
+  });
+  
+  return uploadData.secure_url;
+}
+```
+
+## 📱 ESTRUTURA DA TELA DE PERFIL
+
+```html
+<div class="profile-container">
+  <!-- Header com Avatar -->
+  <div class="profile-header">
+    <div class="avatar-section">
+      <!-- Avatar implementado acima -->
+    </div>
+    <h2 id="user-name">Nome do Usuário</h2>
+    <p id="user-role">Cargo</p>
+  </div>
+  
+  <!-- Abas de Configurações -->
+  <div class="profile-tabs">
+    <button class="tab-btn active" data-tab="personal">Dados Pessoais</button>
+    <button class="tab-btn" data-tab="contact">Contato</button>
+    <button class="tab-btn" data-tab="security">Segurança</button>
+    <button class="tab-btn" data-tab="preferences">Preferências</button>
+  </div>
+  
+  <!-- Conteúdo das Abas -->
+  <form id="profile-form">
+    <div class="tab-content active" data-tab="personal">
+      <!-- Campos de dados pessoais -->
+    </div>
+    
+    <div class="tab-content" data-tab="contact">
+      <!-- Campos de contato -->
+    </div>
+    
+    <div class="tab-content" data-tab="security">
+      <!-- Campos de segurança -->
+    </div>
+    
+    <div class="tab-content" data-tab="preferences">
+      <!-- Campos de preferências -->
+    </div>
+    
+    <div class="form-actions">
+      <button type="button" onclick="cancelarAlteracoes()">Cancelar</button>
+      <button type="submit">Salvar Alterações</button>
+    </div>
+  </form>
+</div>
+```
+
+## ⚠️ OBSERVAÇÕES IMPORTANTES:
+
+1. **Avatar**: API Monde NÃO suporta upload de imagens. Use serviço externo + salvar URL em `observations`
+2. **Endpoint**: Testar `/api/v2/me` primeiro, se não existir, usar `/api/v2/user/current`
+3. **Campos obrigatórios**: `name` e `email` são essenciais
+4. **Validação**: Implementar validação local antes de enviar para API
+5. **Backup**: Sempre manter uma cópia dos dados originais para cancelar alterações
+6. **Responsividade**: Adaptar layout para mobile/desktop
+7. **Segurança**: Nunca armazenar senhas em localStorage

@@ -66,10 +66,63 @@ export default function Settings() {
       
       if (response.ok) {
         const data = await response.json();
-        setProfileData(data);
+        
+        // Mapear dados da API do Monde para estado local
+        const attributes = data.data?.attributes || {};
+        setProfileData({
+          // Dados básicos
+          name: attributes.name || '',
+          email: attributes.email || '',
+          phone: attributes.phone || '',
+          mobilePhone: attributes['mobile-phone'] || '',
+          businessPhone: attributes['business-phone'] || '',
+          
+          // Dados pessoais
+          cpf: attributes.cpf || '',
+          rg: attributes.rg || '',
+          birthDate: attributes['birth-date'] || '',
+          gender: attributes.gender || '',
+          passportNumber: attributes['passport-number'] || '',
+          passportExpiration: attributes['passport-expiration'] || '',
+          
+          // Dados empresariais
+          companyName: attributes['company-name'] || '',
+          cnpj: attributes.cnpj || '',
+          cityInscription: attributes['city-inscription'] || '',
+          stateInscription: attributes['state-inscription'] || '',
+          kind: attributes.kind || 'individual',
+          
+          // Endereço
+          address: attributes.address || '',
+          number: attributes.number || '',
+          complement: attributes.complement || '',
+          district: attributes.district || '',
+          zip: attributes.zip || '',
+          
+          // Extras
+          observations: attributes.observations || '',
+          website: attributes.website || '',
+          
+          // Avatar
+          avatarUrl: attributes.avatar || '',
+          
+          // Dados internos
+          code: attributes.code || '',
+          registeredAt: attributes['registered-at'] || ''
+        });
+        
+        console.log('✅ Perfil completo carregado:', attributes);
+      } else if (response.status === 401) {
+        // Token expirado, redirecionar para login
+        showToast('❌ Sessão expirada. Faça login novamente.', 'error');
+        setTimeout(() => {
+          logout();
+          setLocation('/login');
+        }, 2000);
       }
     } catch (error) {
       console.error('Erro ao carregar perfil:', error);
+      showToast('❌ Erro ao carregar perfil do usuário', 'error');
     }
   };
 
@@ -205,7 +258,7 @@ export default function Settings() {
                   Informações do Perfil
                 </h3>
                 <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                  Suas informações pessoais e de conta
+                  Suas informações pessoais sincronizadas com o Monde
                 </p>
               </div>
               <button
@@ -216,95 +269,379 @@ export default function Settings() {
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                  Nome
-                </label>
-                <input
-                  type="text"
-                  value={profileData?.name || user?.name || ''}
-                  onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  style={{ 
-                    backgroundColor: "var(--bg-secondary)",
-                    borderColor: "var(--border-color)",
-                    color: "var(--text-primary)"
-                  }}
-                  readOnly={!isEditingProfile}
-                />
+            {/* Avatar Section */}
+            {profileData.avatarUrl && (
+              <div className="flex justify-center mb-6">
+                <div className="relative">
+                  <img
+                    src={profileData.avatarUrl}
+                    alt="Avatar"
+                    className="w-24 h-24 rounded-full border-4 border-blue-500 object-cover"
+                  />
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white"></div>
+                </div>
               </div>
-              
+            )}
+
+            {/* Formulário de perfil completo */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Dados Básicos */}
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={profileData?.email || user?.email || ''}
-                  onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  style={{ 
-                    backgroundColor: "var(--bg-secondary)",
-                    borderColor: "var(--border-color)",
-                    color: "var(--text-primary)"
-                  }}
-                  readOnly={!isEditingProfile}
-                />
+                <h4 className="text-md font-medium mb-3 text-blue-600">📋 Dados Básicos</h4>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Nome *</label>
+                    <input
+                      type="text"
+                      value={profileData.name || ''}
+                      onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      style={{ 
+                        backgroundColor: "var(--bg-secondary)",
+                        borderColor: "var(--border-color)",
+                        color: "var(--text-primary)"
+                      }}
+                      readOnly={!isEditingProfile}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Email</label>
+                    <input
+                      type="email"
+                      value={profileData.email || ''}
+                      onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      style={{ 
+                        backgroundColor: "var(--bg-secondary)",
+                        borderColor: "var(--border-color)",
+                        color: "var(--text-primary)"
+                      }}
+                      readOnly={!isEditingProfile}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Telefone</label>
+                    <input
+                      type="text"
+                      value={profileData.phone || ''}
+                      onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      style={{ 
+                        backgroundColor: "var(--bg-secondary)",
+                        borderColor: "var(--border-color)",
+                        color: "var(--text-primary)"
+                      }}
+                      readOnly={!isEditingProfile}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Celular</label>
+                    <input
+                      type="text"
+                      value={profileData.mobilePhone || ''}
+                      onChange={(e) => setProfileData({ ...profileData, mobilePhone: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      style={{ 
+                        backgroundColor: "var(--bg-secondary)",
+                        borderColor: "var(--border-color)",
+                        color: "var(--text-primary)"
+                      }}
+                      readOnly={!isEditingProfile}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Telefone Comercial</label>
+                    <input
+                      type="text"
+                      value={profileData.businessPhone || ''}
+                      onChange={(e) => setProfileData({ ...profileData, businessPhone: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      style={{ 
+                        backgroundColor: "var(--bg-secondary)",
+                        borderColor: "var(--border-color)",
+                        color: "var(--text-primary)"
+                      }}
+                      readOnly={!isEditingProfile}
+                    />
+                  </div>
+                </div>
               </div>
 
+              {/* Dados Pessoais */}
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                  Função
-                </label>
-                <input
-                  type="text"
-                  value={profileData?.role || user?.role || ''}
-                  onChange={(e) => setProfileData({ ...profileData, role: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  style={{ 
-                    backgroundColor: "var(--bg-secondary)",
-                    borderColor: "var(--border-color)",
-                    color: "var(--text-primary)"
-                  }}
-                  readOnly={!isEditingProfile}
-                />
+                <h4 className="text-md font-medium mb-3 text-blue-600">👤 Dados Pessoais</h4>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">CPF</label>
+                    <input
+                      type="text"
+                      value={profileData.cpf || ''}
+                      onChange={(e) => setProfileData({ ...profileData, cpf: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      style={{ 
+                        backgroundColor: "var(--bg-secondary)",
+                        borderColor: "var(--border-color)",
+                        color: "var(--text-primary)"
+                      }}
+                      readOnly={!isEditingProfile}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">RG</label>
+                    <input
+                      type="text"
+                      value={profileData.rg || ''}
+                      onChange={(e) => setProfileData({ ...profileData, rg: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      style={{ 
+                        backgroundColor: "var(--bg-secondary)",
+                        borderColor: "var(--border-color)",
+                        color: "var(--text-primary)"
+                      }}
+                      readOnly={!isEditingProfile}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Data de Nascimento</label>
+                    <input
+                      type="date"
+                      value={profileData.birthDate ? profileData.birthDate.split('T')[0] : ''}
+                      onChange={(e) => setProfileData({ ...profileData, birthDate: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      style={{ 
+                        backgroundColor: "var(--bg-secondary)",
+                        borderColor: "var(--border-color)",
+                        color: "var(--text-primary)"
+                      }}
+                      readOnly={!isEditingProfile}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Gênero</label>
+                    <select
+                      value={profileData.gender || ''}
+                      onChange={(e) => setProfileData({ ...profileData, gender: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      style={{ 
+                        backgroundColor: "var(--bg-secondary)",
+                        borderColor: "var(--border-color)",
+                        color: "var(--text-primary)"
+                      }}
+                      disabled={!isEditingProfile}
+                    >
+                      <option value="">Selecionar</option>
+                      <option value="male">Masculino</option>
+                      <option value="female">Feminino</option>
+                      <option value="other">Outro</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Website</label>
+                    <input
+                      type="url"
+                      value={profileData.website || ''}
+                      onChange={(e) => setProfileData({ ...profileData, website: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      style={{ 
+                        backgroundColor: "var(--bg-secondary)",
+                        borderColor: "var(--border-color)",
+                        color: "var(--text-primary)"
+                      }}
+                      readOnly={!isEditingProfile}
+                    />
+                  </div>
+                </div>
               </div>
 
+              {/* Dados Empresariais */}
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                  Empresa
-                </label>
-                <input
-                  type="text"
-                  value={profileData?.empresa || user?.empresa || ''}
-                  onChange={(e) => setProfileData({ ...profileData, empresa: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  style={{ 
-                    backgroundColor: "var(--bg-secondary)",
-                    borderColor: "var(--border-color)",
-                    color: "var(--text-primary)"
-                  }}
-                  readOnly={!isEditingProfile}
-                />
+                <h4 className="text-md font-medium mb-3 text-blue-600">🏢 Dados Empresariais</h4>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Nome da Empresa</label>
+                    <input
+                      type="text"
+                      value={profileData.companyName || ''}
+                      onChange={(e) => setProfileData({ ...profileData, companyName: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      style={{ 
+                        backgroundColor: "var(--bg-secondary)",
+                        borderColor: "var(--border-color)",
+                        color: "var(--text-primary)"
+                      }}
+                      readOnly={!isEditingProfile}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">CNPJ</label>
+                    <input
+                      type="text"
+                      value={profileData.cnpj || ''}
+                      onChange={(e) => setProfileData({ ...profileData, cnpj: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      style={{ 
+                        backgroundColor: "var(--bg-secondary)",
+                        borderColor: "var(--border-color)",
+                        color: "var(--text-primary)"
+                      }}
+                      readOnly={!isEditingProfile}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Tipo</label>
+                    <select
+                      value={profileData.kind || 'individual'}
+                      onChange={(e) => setProfileData({ ...profileData, kind: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      style={{ 
+                        backgroundColor: "var(--bg-secondary)",
+                        borderColor: "var(--border-color)",
+                        color: "var(--text-primary)"
+                      }}
+                      disabled={!isEditingProfile}
+                    >
+                      <option value="individual">Pessoa Física</option>
+                      <option value="company">Pessoa Jurídica</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Endereço */}
+              <div>
+                <h4 className="text-md font-medium mb-3 text-blue-600">📍 Endereço</h4>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Endereço</label>
+                    <input
+                      type="text"
+                      value={profileData.address || ''}
+                      onChange={(e) => setProfileData({ ...profileData, address: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      style={{ 
+                        backgroundColor: "var(--bg-secondary)",
+                        borderColor: "var(--border-color)",
+                        color: "var(--text-primary)"
+                      }}
+                      readOnly={!isEditingProfile}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Número</label>
+                      <input
+                        type="text"
+                        value={profileData.number || ''}
+                        onChange={(e) => setProfileData({ ...profileData, number: e.target.value })}
+                        className="w-full px-3 py-2 border rounded-lg"
+                        style={{ 
+                          backgroundColor: "var(--bg-secondary)",
+                          borderColor: "var(--border-color)",
+                          color: "var(--text-primary)"
+                        }}
+                        readOnly={!isEditingProfile}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Complemento</label>
+                      <input
+                        type="text"
+                        value={profileData.complement || ''}
+                        onChange={(e) => setProfileData({ ...profileData, complement: e.target.value })}
+                        className="w-full px-3 py-2 border rounded-lg"
+                        style={{ 
+                          backgroundColor: "var(--bg-secondary)",
+                          borderColor: "var(--border-color)",
+                          color: "var(--text-primary)"
+                        }}
+                        readOnly={!isEditingProfile}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Bairro</label>
+                    <input
+                      type="text"
+                      value={profileData.district || ''}
+                      onChange={(e) => setProfileData({ ...profileData, district: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      style={{ 
+                        backgroundColor: "var(--bg-secondary)",
+                        borderColor: "var(--border-color)",
+                        color: "var(--text-primary)"
+                      }}
+                      readOnly={!isEditingProfile}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">CEP</label>
+                    <input
+                      type="text"
+                      value={profileData.zip || ''}
+                      onChange={(e) => setProfileData({ ...profileData, zip: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      style={{ 
+                        backgroundColor: "var(--bg-secondary)",
+                        borderColor: "var(--border-color)",
+                        color: "var(--text-primary)"
+                      }}
+                      readOnly={!isEditingProfile}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
+            {/* Observações */}
+            <div>
+              <label className="block text-sm font-medium mb-2">📝 Observações</label>
+              <textarea
+                value={profileData.observations || ''}
+                onChange={(e) => setProfileData({ ...profileData, observations: e.target.value })}
+                rows={3}
+                className="w-full px-3 py-2 border rounded-lg"
+                style={{ 
+                  backgroundColor: "var(--bg-secondary)",
+                  borderColor: "var(--border-color)",
+                  color: "var(--text-primary)"
+                }}
+                readOnly={!isEditingProfile}
+              />
+            </div>
+
             {isEditingProfile && (
-              <div className="flex space-x-4">
-                <button
-                  onClick={saveUserProfile}
-                  disabled={savingProfile}
-                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-                >
-                  {savingProfile ? 'Salvando...' : 'Salvar Alterações'}
-                </button>
+              <div className="flex justify-end space-x-3">
                 <button
                   onClick={() => setIsEditingProfile(false)}
-                  className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
                   Cancelar
                 </button>
+                <button
+                  onClick={saveUserProfile}
+                  disabled={savingProfile}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {savingProfile ? 'Salvando...' : 'Salvar Alterações'}
+                </button>
+              </div>
+            )}
+
+            {/* Informações adicionais */}
+            {profileData.code && (
+              <div className="border-t pt-4">
+                <h4 className="text-md font-medium mb-2 text-gray-600">📊 Informações do Sistema</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                  <div>
+                    <span className="font-medium">Código:</span> {profileData.code}
+                  </div>
+                  {profileData.registeredAt && (
+                    <div>
+                      <span className="font-medium">Cadastrado em:</span>{' '}
+                      {new Date(profileData.registeredAt).toLocaleDateString('pt-BR')}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>

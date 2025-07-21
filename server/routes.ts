@@ -79,7 +79,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const mondeApiUrl = "https://web.monde.com.br/api/v2/tokens";
       
       console.log("Tentando autenticar com Monde API:", mondeApiUrl);
-      console.log("Login sendo usado:", `${email}@${serverUrl.replace('http://', '').replace('https://', '')}`);
+      // Determinar o login correto - usar email diretamente se já contém @, senão concatenar
+      const loginForMonde = email.includes('@') ? email : `${email}@${serverUrl.replace('http://', '').replace('https://', '')}`;
+      console.log("Login sendo usado:", loginForMonde);
       
       const mondeResponse = await fetch(mondeApiUrl, {
         method: "POST",
@@ -92,7 +94,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           data: {
             type: "tokens",
             attributes: {
-              login: `${email}@${serverUrl.replace('http://', '').replace('https://', '')}`,
+              login: loginForMonde,
               password: password
             }
           }

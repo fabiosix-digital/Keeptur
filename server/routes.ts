@@ -13,8 +13,33 @@ const JWT_SECRET = process.env.JWT_SECRET || "keeptur-secret-key";
 // Google OAuth2 Configuration
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "431481205449-fmpo2uihv5lbg15tbn182mctbektlpig.apps.googleusercontent.com";
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "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";
-// Configurar redirect URI para usar keeptur.replit.app
-const GOOGLE_REDIRECT_URI = "https://keeptur.replit.app/auth/google/callback";
+
+// Detectar URL base dinamicamente
+const getBaseUrl = () => {
+  // URL customizada do Replit (mais prioritária)
+  if (process.env.REPLIT_DOMAINS) {
+    const domains = process.env.REPLIT_DOMAINS.split(',');
+    return `https://${domains[0]}`;
+  }
+  
+  // Em produção no Replit (formato antigo)
+  if (process.env.REPL_OWNER && process.env.REPL_SLUG) {
+    return `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`;
+  }
+  
+  // Fallback para desenvolvimento local
+  return "http://localhost:5000";
+};
+
+const GOOGLE_REDIRECT_URI = `${getBaseUrl()}/auth/google/callback`;
+
+console.log('🔐 Iniciando fluxo OAuth2 Google...');
+console.log('🔑 GOOGLE_CLIENT_ID:', GOOGLE_CLIENT_ID ? '✓ Configurado' : '❌ Não encontrado');
+console.log('🔑 GOOGLE_CLIENT_SECRET:', GOOGLE_CLIENT_SECRET ? '✓ Configurado' : '❌ Não encontrado');
+console.log('🔗 GOOGLE_REDIRECT_URI:', GOOGLE_REDIRECT_URI);
+console.log('🌐 REPL_OWNER:', process.env.REPL_OWNER);
+console.log('🌐 REPL_SLUG:', process.env.REPL_SLUG);
+console.log('🌐 REPLIT_DOMAINS:', process.env.REPLIT_DOMAINS);
 
 // Configure Google OAuth2 client
 const oauth2Client = new google.auth.OAuth2(
@@ -3332,6 +3357,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para obter informações de configuração do Google OAuth
+  app.get('/api/google/config', async (req, res) => {
+    res.json({
+      clientId: GOOGLE_CLIENT_ID,
+      redirectUri: GOOGLE_REDIRECT_URI,
+      baseUrl: getBaseUrl(),
+      message: `Configure esta URL no Google Cloud Console: ${GOOGLE_REDIRECT_URI}`
+    });
+  });
+
   // Endpoint para obter URL de autenticação do Google
   app.get('/api/google/auth', authenticateToken, async (req: any, res) => {
     try {
@@ -3343,9 +3378,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const authUrl = oauth2Client.generateAuthUrl({
         access_type: 'offline',
         scope: scopes,
-        state: req.sessaoId.toString()
+        state: req.sessaoId.toString(),
+        prompt: 'consent'
       });
 
+      console.log('✅ URL de autorização gerada:', authUrl);
       res.json({ authUrl });
     } catch (error) {
       console.error('Erro ao gerar URL de autenticação:', error);

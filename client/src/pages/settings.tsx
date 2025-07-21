@@ -301,17 +301,18 @@ export default function Settings() {
               >
                 <p className="font-medium text-amber-800 mb-1">⚠️ Processo de verificação do Google</p>
                 <p className="text-amber-700 mb-2">
-                  O Google pode mostrar uma tela de "acesso bloqueado" porque o app KEEPTUR está em desenvolvimento.
-                  Para continuar a conexão:
+                  <strong>Erro "redirect_uri_mismatch":</strong> Você precisa configurar o redirect URI no Google Cloud Console:
                 </p>
                 <ol className="text-amber-700 text-xs space-y-1 ml-3">
-                  <li>1. Clique em "Avançado" ou "Advanced"</li>
-                  <li>2. Clique em "Ir para KEEPTUR (não seguro)" ou "Go to KEEPTUR (unsafe)"</li>
-                  <li>3. Autorize o acesso ao Google Calendar</li>
+                  <li>1. Vá para <a href="https://console.cloud.google.com/apis/credentials" target="_blank" className="underline">Google Cloud Console</a></li>
+                  <li>2. Selecione seu projeto OAuth2</li>
+                  <li>3. Clique no Client ID criado</li>
+                  <li>4. Adicione este URI autorizado:</li>
+                  <li className="font-mono bg-amber-50 p-1 rounded">
+                    https://fabiodigital.replit.app/auth/google/callback
+                  </li>
+                  <li>5. Salve as alterações e tente novamente</li>
                 </ol>
-                <p className="text-amber-700 mt-2 text-xs">
-                  Esta é uma limitação conhecida para apps em desenvolvimento.
-                </p>
               </div>
             </div>
           ) : (

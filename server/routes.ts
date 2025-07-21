@@ -11,7 +11,7 @@ import { google } from "googleapis";
 const JWT_SECRET = process.env.JWT_SECRET || "keeptur-secret-key";
 
 // Google OAuth2 Configuration
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "461957019207-4pv2ra29ct67e4fr75a8cfgupd9thoad.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "431481205449-fmpo2uihv5lbg15tbn182mctbektlpig.apps.googleusercontent.com";
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "";
 // Configurar redirect URI automaticamente baseado no ambiente
 const getRedirectUri = () => {

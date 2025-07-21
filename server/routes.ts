@@ -12,16 +12,9 @@ const JWT_SECRET = process.env.JWT_SECRET || "keeptur-secret-key";
 
 // Google OAuth2 Configuration
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "431481205449-fmpo2uihv5lbg15tbn182mctbektlpig.apps.googleusercontent.com";
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "";
-// Configurar redirect URI automaticamente baseado no ambiente
-const getRedirectUri = () => {
-  // Para Replit, usar a URL correta do workspace
-  if (process.env.REPL_OWNER) {
-    return `https://${process.env.REPL_OWNER}.replit.app/auth/google/callback`;
-  }
-  return "http://localhost:5000/auth/google/callback";
-};
-const GOOGLE_REDIRECT_URI = getRedirectUri();
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "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";
+// Configurar redirect URI para usar keeptur.replit.app
+const GOOGLE_REDIRECT_URI = "https://keeptur.replit.app/auth/google/callback";
 
 // Configure Google OAuth2 client
 const oauth2Client = new google.auth.OAuth2(

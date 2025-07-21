@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monde - Configurações</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Pacifico&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
+<script src="https://cdn.tailwindcss.com/3.4.16"></script>
+<script>
+tailwind.config = {
+theme: {
+extend: {
+colors: {
+primary: '#6366f1',
+secondary: '#f59e0b'
+},
+borderRadius: {
+'none': '0px',
+'sm': '4px',
+DEFAULT: '8px',
+'md': '12px',
+'lg': '16px',
+'xl': '20px',
+'2xl': '24px',
+'3xl': '32px',
+'full': '9999px',
+'button': '8px'
+},
+fontFamily: {
+sans: ['Inter', 'sans-serif'],
+}
+}
+}
+}
+</script>
+<style>
+:where([class^="ri-"])::before { content: "\f3c2"; }
+:root {
+--bg-primary: #ffffff;
+--bg-secondary: #f8fafc;
+--bg-tertiary: #f1f5f9;
+--text-primary: #0f172a;
+--text-secondary: #475569;
+--text-tertiary: #64748b;
+--border-color: #e2e8f0;
+--shadow-color: rgba(15, 23, 42, 0.1);
+}
+[data-theme="dark"] {
+--bg-primary: #0f172a;
+--bg-secondary: #1e293b;
+--bg-tertiary: #334155;
+--text-primary: #f8fafc;
+--text-secondary: #cbd5e1;
+--text-tertiary: #94a3b8;
+--border-color: #334155;
+--shadow-color: rgba(0, 0, 0, 0.3);
+}
+body {
+font-family: 'Inter', sans-serif;
+background-color: var(--bg-secondary);
+color: var(--text-primary);
+transition: all 0.3s ease;
+}
+.theme-transition {
+transition: all 0.3s ease;
+}
+.sidebar {
+background-color: var(--bg-primary);
+border-right: 1px solid var(--border-color);
+transition: all 0.3s ease;
+}
+.sidebar-collapsed {
+width: 4rem;
+}
+.sidebar-expanded {
+width: 16rem;
+}
+.menu-item {
+color: var(--text-secondary);
+transition: all 0.2s ease;
+border-radius: 0.5rem;
+margin: 0.125rem 0;
+}
+.menu-item:hover {
+background-color: var(--bg-tertiary);
+color: var(--text-primary);
+}
+.menu-item.active {
+background-color: #6366f1;
+color: white;
+}
+.menu-item.active:hover {
+background-color: #5855eb;
+}
+.card {
+background-color: var(--bg-primary);
+border: 1px solid var(--border-color);
+box-shadow: 0 1px 3px var(--shadow-color);
+}
+.header {
+background-color: var(--bg-primary);
+border-bottom: 1px solid var(--border-color);
+}
+.theme-toggle {
+background-color: var(--bg-tertiary);
+border: 1px solid var(--border-color);
+color: var(--text-secondary);
+}
+.theme-toggle:hover {
+background-color: var(--bg-secondary);
+color: var(--text-primary);
+}
+.tooltip {
+position: absolute;
+left: 100%;
+top: 50%;
+transform: translateY(-50%);
+background-color: var(--text-primary);
+color: var(--bg-primary);
+padding: 0.375rem 0.75rem;
+border-radius: 0.375rem;
+font-size: 0.75rem;
+white-space: nowrap;
+opacity: 0;
+pointer-events: none;
+transition: opacity 0.2s ease;
+margin-left: 0.5rem;
+z-index: 100;
+}
+.menu-item:hover .tooltip {
+opacity: 1;
+}
+.content-area {
+background-color: var(--bg-secondary);
+min-height: calc(100vh - 4rem);
+}
+.form-input {
+background-color: var(--bg-tertiary);
+border: 1px solid var(--border-color);
+color: var(--text-primary);
+}
+.form-input:focus {
+outline: none;
+border-color: #6366f1;
+box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+.primary-button {
+background-color: #6366f1;
+color: white;
+border: 1px solid #6366f1;
+}
+.primary-button:hover {
+background-color: #5855eb;
+border-color: #5855eb;
+}
+.action-button {
+background-color: var(--bg-tertiary);
+color: var(--text-secondary);
+border: 1px solid var(--border-color);
+transition: all 0.2s ease;
+}
+.action-button:hover {
+background-color: #6366f1;
+color: white;
+border-color: #6366f1;
+}
+.sidebar-transition {
+transition: width 0.3s ease;
+}
+.content-transition {
+transition: margin-left 0.3s ease;
+}
+.fade-in {
+animation: fadeIn 0.3s ease-in-out;
+}
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(10px); }
+to { opacity: 1; transform: translateY(0); }
+}
+.switch {
+position: relative;
+display: inline-block;
+width: 44px;
+height: 24px;
+}
+.switch input {
+opacity: 0;
+width: 0;
+height: 0;
+}
+.slider {
+position: absolute;
+cursor: pointer;
+top: 0;
+left: 0;
+right: 0;
+bottom: 0;
+background-color: #cbd5e1;
+transition: .4s;
+border-radius: 24px;
+}
+.slider:before {
+position: absolute;
+content: "";
+height: 18px;
+width: 18px;
+left: 3px;
+bottom: 3px;
+background-color: white;
+transition: .4s;
+border-radius: 50%;
+}
+input:checked + .slider {
+background-color: #6366f1;
+}
+input:checked + .slider:before {
+transform: translateX(20px);
+}
+.custom-checkbox {
+position: relative;
+display: inline-block;
+width: 20px;
+height: 20px;
+}
+.custom-checkbox input {
+opacity: 0;
+width: 0;
+height: 0;
+}
+.checkmark {
+position: absolute;
+top: 0;
+left: 0;
+height: 20px;
+width: 20px;
+background-color: var(--bg-tertiary);
+border: 1px solid var(--border-color);
+border-radius: 4px;
+transition: all 0.2s ease;
+}
+.custom-checkbox:hover input ~ .checkmark {
+background-color: var(--bg-secondary);
+}
+.custom-checkbox input:checked ~ .checkmark {
+background-color: #6366f1;
+border-color: #6366f1;
+}
+.checkmark:after {
+content: "";
+position: absolute;
+display: none;
+}
+.custom-checkbox input:checked ~ .checkmark:after {
+display: block;
+}
+.custom-checkbox .checkmark:after {
+left: 6px;
+top: 2px;
+width: 6px;
+height: 10px;
+border: solid white;
+border-width: 0 2px 2px 0;
+transform: rotate(45deg);
+}
+.google-button {
+background: #4285f4;
+color: white;
+border: 1px solid #4285f4;
+display: flex;
+align-items: center;
+gap: 0.5rem;
+}
+.google-button:hover {
+background: #3367d6;
+border-color: #3367d6;
+}
+.connection-status {
+display: inline-flex;
+align-items: center;
+gap: 0.5rem;
+padding: 0.25rem 0.75rem;
+border-radius: 9999px;
+font-size: 0.75rem;
+font-weight: 500;
+}
+.connection-status.connected {
+background-color: #dcfce7;
+color: #166534;
+}
+.connection-status.disconnected {
+background-color: #fef3c7;
+color: #92400e;
+}
+.connection-status-dot {
+width: 8px;
+height: 8px;
+border-radius: 50%;
+}
+.connection-status.connected .connection-status-dot {
+background-color: #16a34a;
+}
+.connection-status.disconnected .connection-status-dot {
+background-color: #f59e0b;
+}
+.info-box {
+background-color: #eff6ff;
+border: 1px solid #bfdbfe;
+border-radius: 8px;
+padding: 1rem;
+margin-top: 1rem;
+}
+[data-theme="dark"] .info-box {
+background-color: #1e3a8a;
+border-color: #3b82f6;
+}
+.info-box ul {
+list-style: none;
+padding: 0;
+margin: 0;
+}
+.info-box li {
+display: flex;
+align-items: center;
+gap: 0.5rem;
+margin-bottom: 0.5rem;
+font-size: 0.875rem;
+color: var(--text-secondary);
+}
+.info-box li:last-child {
+margin-bottom: 0;
+}
+.info-box li:before {
+content: "•";
+color: #3b82f6;
+font-weight: bold;
+}
+</style>
+</head>
+<body class="theme-transition">
+<div class="flex h-screen overflow-hidden">
+<aside id="sidebar" class="sidebar sidebar-expanded sidebar-transition fixed inset-y-0 left-0 z-50 flex flex-col">
+<div class="flex items-center h-16 px-4 border-b" style="border-color: var(--border-color);">
+<div class="flex items-center">
+<div class="font-['Pacifico'] text-primary text-xl">logo</div>
+<div id="brand-text" class="ml-2 font-bold text-lg" style="color: var(--text-primary);">Monde</div>
+</div>
+</div>
+<nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+<a href="https://readdy.ai/home/22057c22-aef2-43df-bd04-6f42c4ca724d/3a2d8705-609c-432b-b4bf-925ba72ecaac" data-readdy="true" class="menu-item flex items-center px-3 py-2.5 text-sm font-medium">
+<div class="w-5 h-5 flex items-center justify-center">
+<i class="ri-task-line"></i>
+</div>
+<span class="menu-text ml-3">Tarefas</span>
+<span class="tooltip">Tarefas</span>
+</a>
+<a href="#" class="menu-item flex items-center px-3 py-2.5 text-sm font-medium">
+<div class="w-5 h-5 flex items-center justify-center">
+<i class="ri-user-3-line"></i>
+</div>
+<span class="menu-text ml-3">Clientes</span>
+<span class="tooltip">Clientes</span>
+</a>
+</nav>
+<div class="mt-auto px-3 py-4 border-t" style="border-color: var(--border-color);">
+<a href="#" class="menu-item active flex items-center px-3 py-2.5 text-sm font-medium">
+<div class="w-5 h-5 flex items-center justify-center">
+<i class="ri-settings-3-line"></i>
+</div>
+<span class="menu-text ml-3">Configurações</span>
+<span class="tooltip">Configurações</span>
+</a>
+<a href="#" class="menu-item flex items-center px-3 py-2.5 text-sm font-medium bg-red-500 hover:bg-red-600 text-white">
+<div class="w-5 h-5 flex items-center justify-center">
+<i class="ri-logout-box-line"></i>
+</div>
+<span class="menu-text ml-3">Sair</span>
+<span class="tooltip">Sair</span>
+</a>
+<button id="sidebar-toggle-bottom" class="menu-item flex items-center px-3 py-2.5 text-sm font-medium w-full">
+<div class="w-5 h-5 flex items-center justify-center">
+<i id="sidebar-icon-bottom" class="ri-menu-fold-line"></i>
+</div>
+<span class="menu-text ml-3">Recolher Menu</span>
+<span class="tooltip">Recolher Menu</span>
+</button>
+</div>
+</aside>
+<div class="flex-1 flex flex-col overflow-hidden">
+<header id="header" class="header flex items-center justify-between h-16 px-6 content-transition" style="margin-left: 16rem;">
+<div class="flex items-center">
+<h1 class="text-xl font-semibold" style="color: var(--text-primary);">Configurações</h1>
+</div>
+<div class="flex items-center space-x-4">
+<button id="theme-toggle" class="theme-toggle p-2 rounded-lg !rounded-button whitespace-nowrap">
+<div class="w-5 h-5 flex items-center justify-center">
+<i id="theme-icon" class="ri-moon-line"></i>
+</div>
+</button>
+<div class="relative">
+<button class="theme-toggle p-2 rounded-lg relative !rounded-button whitespace-nowrap">
+<div class="w-5 h-5 flex items-center justify-center">
+<i class="ri-notification-3-line"></i>
+</div>
+<span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">5</span>
+</button>
+</div>
+<div class="relative">
+<button id="user-menu" class="flex items-center space-x-3 p-1 rounded-lg theme-toggle !rounded-button whitespace-nowrap">
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-medium text-sm">
+AM
+</div>
+<div class="hidden md:block text-left">
+<p class="text-sm font-medium" style="color: var(--text-primary);">Ana Marques</p>
+<p class="text-xs" style="color: var(--text-tertiary);">Administrador</p>
+</div>
+<div class="w-4 h-4 flex items-center justify-center">
+<i class="ri-arrow-down-s-line"></i>
+</div>
+</button>
+<div id="user-dropdown" class="hidden absolute right-0 mt-2 w-48 card rounded-lg shadow-lg py-1 z-50">
+<a href="#" class="block px-4 py-2 text-sm hover:bg-gray-100" style="color: var(--text-secondary);">Meu Perfil</a>
+<a href="#" class="block px-4 py-2 text-sm hover:bg-gray-100" style="color: var(--text-secondary);">Configurações</a>
+<div class="border-t my-1" style="border-color: var(--border-color);"></div>
+<a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Sair</a>
+</div>
+</div>
+</div>
+</header>
+<main id="main-content" class="flex-1 overflow-auto content-area content-transition p-6" style="margin-left: 16rem;">
+<div class="max-w-4xl mx-auto">
+<div class="mb-8">
+<h2 class="text-2xl font-semibold mb-2" style="color: var(--text-primary);">Configurações do Sistema</h2>
+<p class="text-sm" style="color: var(--text-secondary);">Personalize suas preferências e configurações da aplicação</p>
+</div>
+<div class="mb-6 border-b" style="border-color: var(--border-color);">
+<nav class="flex space-x-2" role="tablist">
+<button class="tab-button active px-4 py-2 text-sm font-medium rounded-t-lg focus:outline-none" data-tab="profile">
+<i class="ri-user-3-line mr-2"></i>Perfil
+</button>
+<button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg focus:outline-none" data-tab="connections">
+<i class="ri-links-line mr-2"></i>Conexões
+</button>
+<button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg focus:outline-none" data-tab="notifications">
+<i class="ri-notification-3-line mr-2"></i>Notificações
+</button>
+<button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg focus:outline-none" data-tab="appearance">
+<i class="ri-palette-line mr-2"></i>Aparência
+</button>
+<button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg focus:outline-none" data-tab="security">
+<i class="ri-shield-check-line mr-2"></i>Segurança
+</button>
+<button class="tab-button px-4 py-2 text-sm font-medium rounded-t-lg focus:outline-none" data-tab="privacy">
+<i class="ri-database-2-line mr-2"></i>Dados e Privacidade
+</button>
+</nav>
+</div>
+<div class="tab-content">
+<div class="card rounded-xl p-6">
+<div class="flex items-center mb-6">
+<div class="w-10 h-10 flex items-center justify-center">
+<i class="ri-user-3-line text-xl text-primary"></i>
+</div>
+<div class="ml-3">
+<h3 class="text-lg font-semibold" style="color: var(--text-primary);">Perfil</h3>
+<p class="text-sm" style="color: var(--text-secondary);">Gerencie suas informações pessoais</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Nome Completo</label>
+<input type="text" value="Ana Marques" class="form-input w-full px-3 py-2 rounded-lg text-sm">
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">E-mail</label>
+<input type="email" value="ana.marques@empresa.com" class="form-input w-full px-3 py-2 rounded-lg text-sm">
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Telefone</label>
+<input type="tel" value="(11) 99999-9999" class="form-input w-full px-3 py-2 rounded-lg text-sm">
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Cargo</label>
+<input type="text" value="Administrador" class="form-input w-full px-3 py-2 rounded-lg text-sm">
+</div>
+<div class="md:col-span-2">
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Foto do Perfil</label>
+<div class="flex items-center space-x-4">
+<div class="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-white font-medium text-lg">
+AM
+</div>
+<button class="action-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+<i class="ri-upload-line mr-2"></i>Alterar Foto
+</button>
+</div>
+</div>
+</div>
+<div class="flex justify-end mt-6">
+<button class="primary-button px-6 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+Salvar Alterações
+</button>
+</div>
+</div>
+<div class="card rounded-xl p-6">
+<div class="flex items-center mb-6">
+<div class="w-10 h-10 flex items-center justify-center">
+<i class="ri-links-line text-xl text-primary"></i>
+</div>
+<div class="ml-3">
+<h3 class="text-lg font-semibold" style="color: var(--text-primary);">Conexões e Integrações</h3>
+<p class="text-sm" style="color: var(--text-secondary);">Conecte o sistema com serviços externos</p>
+</div>
+</div>
+<div class="space-y-6">
+<div class="border rounded-lg p-4" style="border-color: var(--border-color);">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center space-x-3">
+<div class="w-10 h-10 flex items-center justify-center bg-blue-500 rounded-lg">
+<i class="ri-calendar-line text-white"></i>
+</div>
+<div>
+<h4 class="font-medium" style="color: var(--text-primary);">Google Calendar</h4>
+<p class="text-sm" style="color: var(--text-secondary);">Sincronize tarefas e eventos</p>
+</div>
+</div>
+<div class="connection-status disconnected">
+<div class="connection-status-dot"></div>
+Desconectado
+</div>
+</div>
+<div class="info-box">
+<h5 class="font-medium mb-3" style="color: var(--text-primary);">Recursos disponíveis:</h5>
+<ul>
+<li>Criação automática de eventos no Google Calendar</li>
+<li>Sincronização bidirecional (Keeptur ↔ Google)</li>
+<li>Atualização automática de horários e datas</li>
+<li>Notificações do Google Calendar</li>
+</ul>
+</div>
+<button id="connect-google-calendar" class="google-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+<i class="ri-google-fill"></i>
+Conectar Google Calendar
+</button>
+</div>
+</div>
+</div>
+<div class="card rounded-xl p-6">
+<div class="flex items-center mb-6">
+<div class="w-10 h-10 flex items-center justify-center">
+<i class="ri-notification-3-line text-xl text-primary"></i>
+</div>
+<div class="ml-3">
+<h3 class="text-lg font-semibold" style="color: var(--text-primary);">Notificações</h3>
+<p class="text-sm" style="color: var(--text-secondary);">Configure suas preferências de notificação</p>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex items-center justify-between py-3">
+<div>
+<h4 class="font-medium" style="color: var(--text-primary);">Notificações por E-mail</h4>
+<p class="text-sm" style="color: var(--text-secondary);">Receba notificações importantes por e-mail</p>
+</div>
+<label class="switch">
+<input type="checkbox" checked>
+<span class="slider"></span>
+</label>
+</div>
+<div class="flex items-center justify-between py-3">
+<div>
+<h4 class="font-medium" style="color: var(--text-primary);">Notificações Push</h4>
+<p class="text-sm" style="color: var(--text-secondary);">Receba notificações no navegador</p>
+</div>
+<label class="switch">
+<input type="checkbox">
+<span class="slider"></span>
+</label>
+</div>
+<div class="flex items-center justify-between py-3">
+<div>
+<h4 class="font-medium" style="color: var(--text-primary);">Notificações de Tarefas</h4>
+<p class="text-sm" style="color: var(--text-secondary);">Alertas sobre prazos e vencimentos</p>
+</div>
+<label class="switch">
+<input type="checkbox" checked>
+<span class="slider"></span>
+</label>
+</div>
+<div class="flex items-center justify-between py-3">
+<div>
+<h4 class="font-medium" style="color: var(--text-primary);">Resumo Diário</h4>
+<p class="text-sm" style="color: var(--text-secondary);">Receba um resumo das atividades do dia</p>
+</div>
+<label class="switch">
+<input type="checkbox" checked>
+<span class="slider"></span>
+</label>
+</div>
+</div>
+<div class="mt-6">
+<h4 class="font-medium mb-3" style="color: var(--text-primary);">Tipos de Notificação</h4>
+<div class="space-y-3">
+<label class="flex items-center">
+<div class="custom-checkbox">
+<input type="checkbox" checked>
+<span class="checkmark"></span>
+</div>
+<span class="ml-3 text-sm" style="color: var(--text-secondary);">Novas tarefas atribuídas</span>
+</label>
+<label class="flex items-center">
+<div class="custom-checkbox">
+<input type="checkbox" checked>
+<span class="checkmark"></span>
+</div>
+<span class="ml-3 text-sm" style="color: var(--text-secondary);">Tarefas próximas do vencimento</span>
+</label>
+<label class="flex items-center">
+<div class="custom-checkbox">
+<input type="checkbox">
+<span class="checkmark"></span>
+</div>
+<span class="ml-3 text-sm" style="color: var(--text-secondary);">Comentários em tarefas</span>
+</label>
+<label class="flex items-center">
+<div class="custom-checkbox">
+<input type="checkbox" checked>
+<span class="checkmark"></span>
+</div>
+<span class="ml-3 text-sm" style="color: var(--text-secondary);">Alterações de status</span>
+</label>
+</div>
+</div>
+</div>
+<div class="card rounded-xl p-6">
+<div class="flex items-center mb-6">
+<div class="w-10 h-10 flex items-center justify-center">
+<i class="ri-palette-line text-xl text-primary"></i>
+</div>
+<div class="ml-3">
+<h3 class="text-lg font-semibold" style="color: var(--text-primary);">Aparência</h3>
+<p class="text-sm" style="color: var(--text-secondary);">Personalize a aparência da aplicação</p>
+</div>
+</div>
+<div class="space-y-6">
+<div>
+<h4 class="font-medium mb-3" style="color: var(--text-primary);">Tema</h4>
+<div class="grid grid-cols-3 gap-4">
+<label class="flex flex-col items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors" style="border-color: var(--border-color);">
+<input type="radio" name="theme" value="light" checked class="sr-only">
+<div class="w-12 h-8 bg-white border-2 border-gray-300 rounded mb-2"></div>
+<span class="text-sm font-medium" style="color: var(--text-primary);">Claro</span>
+</label>
+<label class="flex flex-col items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors" style="border-color: var(--border-color);">
+<input type="radio" name="theme" value="dark" class="sr-only">
+<div class="w-12 h-8 bg-gray-800 border-2 border-gray-300 rounded mb-2"></div>
+<span class="text-sm font-medium" style="color: var(--text-primary);">Escuro</span>
+</label>
+<label class="flex flex-col items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors" style="border-color: var(--border-color);">
+<input type="radio" name="theme" value="auto" class="sr-only">
+<div class="w-12 h-8 bg-gradient-to-r from-white to-gray-800 border-2 border-gray-300 rounded mb-2"></div>
+<span class="text-sm font-medium" style="color: var(--text-primary);">Automático</span>
+</label>
+</div>
+</div>
+<div>
+<h4 class="font-medium mb-3" style="color: var(--text-primary);">Idioma</h4>
+<select class="form-input w-full md:w-64 px-3 py-2 rounded-lg text-sm">
+<option value="pt-BR">Português (Brasil)</option>
+<option value="en-US">English (US)</option>
+<option value="es-ES">Español</option>
+</select>
+</div>
+<div>
+<h4 class="font-medium mb-3" style="color: var(--text-primary);">Densidade da Interface</h4>
+<div class="space-y-2">
+<label class="flex items-center">
+<input type="radio" name="density" value="compact" class="text-primary">
+<span class="ml-3 text-sm" style="color: var(--text-secondary);">Compacta</span>
+</label>
+<label class="flex items-center">
+<input type="radio" name="density" value="comfortable" checked class="text-primary">
+<span class="ml-3 text-sm" style="color: var(--text-secondary);">Confortável</span>
+</label>
+<label class="flex items-center">
+<input type="radio" name="density" value="spacious" class="text-primary">
+<span class="ml-3 text-sm" style="color: var(--text-secondary);">Espaçosa</span>
+</label>
+</div>
+</div>
+</div>
+</div>
+<div class="card rounded-xl p-6">
+<div class="flex items-center mb-6">
+<div class="w-10 h-10 flex items-center justify-center">
+<i class="ri-shield-check-line text-xl text-primary"></i>
+</div>
+<div class="ml-3">
+<h3 class="text-lg font-semibold" style="color: var(--text-primary);">Segurança</h3>
+<p class="text-sm" style="color: var(--text-secondary);">Gerencie suas configurações de segurança</p>
+</div>
+</div>
+<div class="space-y-6">
+<div>
+<h4 class="font-medium mb-3" style="color: var(--text-primary);">Alterar Senha</h4>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Senha Atual</label>
+<input type="password" class="form-input w-full px-3 py-2 rounded-lg text-sm">
+</div>
+<div></div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Nova Senha</label>
+<input type="password" class="form-input w-full px-3 py-2 rounded-lg text-sm">
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Confirmar Nova Senha</label>
+<input type="password" class="form-input w-full px-3 py-2 rounded-lg text-sm">
+</div>
+</div>
+<button class="primary-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap mt-4">
+Alterar Senha
+</button>
+</div>
+<div>
+<h4 class="font-medium mb-3" style="color: var(--text-primary);">Autenticação de Dois Fatores</h4>
+<div class="flex items-center justify-between py-3">
+<div>
+<p class="text-sm" style="color: var(--text-secondary);">Adicione uma camada extra de segurança à sua conta</p>
+</div>
+<label class="switch">
+<input type="checkbox">
+<span class="slider"></span>
+</label>
+</div>
+</div>
+<div>
+<h4 class="font-medium mb-3" style="color: var(--text-primary);">Sessões Ativas</h4>
+<div class="space-y-3">
+<div class="flex items-center justify-between p-3 border rounded-lg" style="border-color: var(--border-color);">
+<div class="flex items-center space-x-3">
+<div class="w-8 h-8 flex items-center justify-center">
+<i class="ri-computer-line text-lg" style="color: var(--text-secondary);"></i>
+</div>
+<div>
+<p class="text-sm font-medium" style="color: var(--text-primary);">Chrome - Windows</p>
+<p class="text-xs" style="color: var(--text-tertiary);">São Paulo, Brasil • Ativo agora</p>
+</div>
+</div>
+<span class="text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full">Atual</span>
+</div>
+<div class="flex items-center justify-between p-3 border rounded-lg" style="border-color: var(--border-color);">
+<div class="flex items-center space-x-3">
+<div class="w-8 h-8 flex items-center justify-center">
+<i class="ri-smartphone-line text-lg" style="color: var(--text-secondary);"></i>
+</div>
+<div>
+<p class="text-sm font-medium" style="color: var(--text-primary);">Safari - iPhone</p>
+<p class="text-xs" style="color: var(--text-tertiary);">São Paulo, Brasil • 2 horas atrás</p>
+</div>
+</div>
+<button class="action-button px-3 py-1 rounded text-xs !rounded-button whitespace-nowrap">
+Encerrar
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="card rounded-xl p-6">
+<div class="flex items-center mb-6">
+<div class="w-10 h-10 flex items-center justify-center">
+<i class="ri-database-2-line text-xl text-primary"></i>
+</div>
+<div class="ml-3">
+<h3 class="text-lg font-semibold" style="color: var(--text-primary);">Dados e Privacidade</h3>
+<p class="text-sm" style="color: var(--text-secondary);">Controle seus dados e configurações de privacidade</p>
+</div>
+</div>
+<div class="space-y-6">
+<div>
+<h4 class="font-medium mb-3" style="color: var(--text-primary);">Exportar Dados</h4>
+<p class="text-sm mb-4" style="color: var(--text-secondary);">Baixe uma cópia de todos os seus dados</p>
+<button class="action-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+<i class="ri-download-line mr-2"></i>Exportar Dados
+</button>
+</div>
+<div>
+<h4 class="font-medium mb-3" style="color: var(--text-primary);">Limpeza de Dados</h4>
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<div>
+<p class="text-sm font-medium" style="color: var(--text-primary);">Tarefas Concluídas</p>
+<p class="text-xs" style="color: var(--text-tertiary);">Remover tarefas concluídas há mais de 6 meses</p>
+</div>
+<button class="action-button px-3 py-1 rounded text-xs !rounded-button whitespace-nowrap">
+Limpar
+</button>
+</div>
+<div class="flex items-center justify-between">
+<div>
+<p class="text-sm font-medium" style="color: var(--text-primary);">Logs de Atividade</p>
+<p class="text-xs" style="color: var(--text-tertiary);">Remover logs antigos de atividade</p>
+</div>
+<button class="action-button px-3 py-1 rounded text-xs !rounded-button whitespace-nowrap">
+Limpar
+</button>
+</div>
+</div>
+</div>
+<div>
+<h4 class="font-medium mb-3" style="color: var(--text-primary);">Configurações de Privacidade</h4>
+<div class="space-y-3">
+<label class="flex items-center">
+<div class="custom-checkbox">
+<input type="checkbox" checked>
+<span class="checkmark"></span>
+</div>
+<span class="ml-3 text-sm" style="color: var(--text-secondary);">Permitir coleta de dados de uso para melhorias</span>
+</label>
+<label class="flex items-center">
+<div class="custom-checkbox">
+<input type="checkbox">
+<span class="checkmark"></span>
+</div>
+<span class="ml-3 text-sm" style="color: var(--text-secondary);">Receber comunicações de marketing</span>
+</label>
+</div>
+</div>
+<div class="border-t pt-6" style="border-color: var(--border-color);">
+<h4 class="font-medium mb-3 text-red-600">Zona de Perigo</h4>
+<div class="space-y-3">
+<button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+Excluir Conta
+</button>
+<p class="text-xs" style="color: var(--text-tertiary);">Esta ação não pode ser desfeita. Todos os seus dados serão permanentemente removidos.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<style id="tab-styles">
+.tab-button {
+color: var(--text-secondary);
+border-bottom: 2px solid transparent;
+transition: all 0.2s ease;
+}
+.tab-button:hover {
+color: var(--text-primary);
+background-color: var(--bg-tertiary);
+}
+.tab-button.active {
+color: var(--text-primary);
+border-bottom-color: #6366f1;
+background-color: var(--bg-tertiary);
+}
+.tab-panel {
+display: none;
+}
+.tab-panel.active {
+display: block;
+animation: fadeIn 0.3s ease-in-out;
+}
+</style>
+<script id="tab-interactions">
+document.addEventListener('DOMContentLoaded', function() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const allCards = document.querySelectorAll('.card');
+    
+    // Initially hide all cards except profile
+    allCards.forEach(card => {
+        const cardContent = card.innerHTML;
+        card.setAttribute('data-tab-content', cardContent);
+        if (!cardContent.includes('Perfil</h3>')) {
+            card.style.display = 'none';
+        }
+    });
+    function showTab(tabName) {
+        // Hide all cards
+        allCards.forEach(card => {
+            card.style.display = 'none';
+        });
+        // Show cards for selected tab
+        allCards.forEach(card => {
+            const content = card.getAttribute('data-tab-content');
+            if (tabName === 'profile' && content.includes('Perfil</h3>')) {
+                card.style.display = 'block';
+            } else if (tabName === 'connections' && content.includes('Conexões e Integrações</h3>')) {
+                card.style.display = 'block';
+            } else if (tabName === 'notifications' && content.includes('Notificações</h3>')) {
+                card.style.display = 'block';
+            } else if (tabName === 'appearance' && content.includes('Aparência</h3>')) {
+                card.style.display = 'block';
+            } else if (tabName === 'security' && content.includes('Segurança</h3>')) {
+                card.style.display = 'block';
+            } else if (tabName === 'privacy' && content.includes('Dados e Privacidade</h3>')) {
+                card.style.display = 'block';
+            }
+        });
+        // Update active tab button
+        tabButtons.forEach(button => {
+            if (button.getAttribute('data-tab') === tabName) {
+                button.classList.add('active');
+            } else {
+                button.classList.remove('active');
+            }
+        });
+    }
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tabName = button.getAttribute('data-tab');
+            showTab(tabName);
+        });
+    });
+});
+</script>
+</div>
+<script id="theme-toggle-script">
+document.addEventListener('DOMContentLoaded', function() {
+const themeToggle = document.getElementById('theme-toggle');
+const themeIcon = document.getElementById('theme-icon');
+const body = document.body;
+let isDark = localStorage.getItem('theme') === 'dark';
+function updateTheme() {
+if (isDark) {
+body.setAttribute('data-theme', 'dark');
+themeIcon.className = 'ri-sun-line';
+} else {
+body.removeAttribute('data-theme');
+themeIcon.className = 'ri-moon-line';
+}
+localStorage.setItem('theme', isDark ? 'dark' : 'light');
+}
+themeToggle.addEventListener('click', function() {
+isDark = !isDark;
+updateTheme();
+});
+updateTheme();
+});
+</script>
+<script id="sidebar-toggle-script">
+document.addEventListener('DOMContentLoaded', function() {
+const sidebar = document.getElementById('sidebar');
+const sidebarToggleBottom = document.getElementById('sidebar-toggle-bottom');
+const sidebarIconBottom = document.getElementById('sidebar-icon-bottom');
+const brandText = document.getElementById('brand-text');
+const menuTexts = document.querySelectorAll('.menu-text');
+const tooltips = document.querySelectorAll('.tooltip');
+const header = document.getElementById('header');
+const mainContent = document.getElementById('main-content');
+let isCollapsed = false;
+function toggleSidebar() {
+isCollapsed = !isCollapsed;
+if (isCollapsed) {
+sidebar.classList.remove('sidebar-expanded');
+sidebar.classList.add('sidebar-collapsed');
+header.style.marginLeft = '4rem';
+mainContent.style.marginLeft = '4rem';
+brandText.style.display = 'none';
+menuTexts.forEach(text => text.style.display = 'none');
+tooltips.forEach(tooltip => tooltip.style.display = 'block');
+sidebarIconBottom.className = 'ri-menu-unfold-line';
+} else {
+sidebar.classList.remove('sidebar-collapsed');
+sidebar.classList.add('sidebar-expanded');
+header.style.marginLeft = '16rem';
+mainContent.style.marginLeft = '16rem';
+brandText.style.display = 'block';
+menuTexts.forEach(text => text.style.display = 'block');
+tooltips.forEach(tooltip => tooltip.style.display = 'none');
+sidebarIconBottom.className = 'ri-menu-fold-line';
+}
+}
+sidebarToggleBottom.addEventListener('click', toggleSidebar);
+function handleResize() {
+if (window.innerWidth < 1024) {
+if (!isCollapsed) {
+toggleSidebar();
+}
+}
+}
+window.addEventListener('resize', handleResize);
+handleResize();
+});
+</script>
+<script id="user-dropdown-script">
+document.addEventListener('DOMContentLoaded', function() {
+const userMenu = document.getElementById('user-menu');
+const userDropdown = document.getElementById('user-dropdown');
+userMenu.addEventListener('click', function(e) {
+e.stopPropagation();
+userDropdown.classList.toggle('hidden');
+});
+document.addEventListener('click', function() {
+userDropdown.classList.add('hidden');
+});
+});
+</script>
+<script id="google-calendar-connection-script">
+document.addEventListener('DOMContentLoaded', function() {
+const connectButton = document.getElementById('connect-google-calendar');
+const connectionStatus = document.querySelector('.connection-status');
+const connectionDot = document.querySelector('.connection-status-dot');
+connectButton.addEventListener('click', function() {
+this.disabled = true;
+this.innerHTML = '<i class="ri-loader-4-line animate-spin"></i> Conectando...';
+setTimeout(() => {
+connectionStatus.classList.remove('disconnected');
+connectionStatus.classList.add('connected');
+connectionStatus.innerHTML = '<div class="connection-status-dot"></div>Conectado';
+this.innerHTML = '<i class="ri-check-line"></i> Conectado';
+this.classList.remove('google-button');
+this.classList.add('bg-green-500', 'text-white', 'border-green-500');
+this.disabled = false;
+const notification = document.createElement('div');
+notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 fade-in';
+notification.textContent = 'Google Calendar conectado com sucesso!';
+document.body.appendChild(notification);
+setTimeout(() => {
+notification.remove();
+}, 3000);
+}, 2000);
+});
+});
+</script>
+<script id="form-interactions-script">
+document.addEventListener('DOMContentLoaded', function() {
+const switches = document.querySelectorAll('.switch input');
+const checkboxes = document.querySelectorAll('.custom-checkbox input');
+const themeRadios = document.querySelectorAll('input[name="theme"]');
+const densityRadios = document.querySelectorAll('input[name="density"]');
+switches.forEach(switchInput => {
+switchInput.addEventListener('change', function() {
+console.log('Switch toggled:', this.checked);
+});
+});
+checkboxes.forEach(checkbox => {
+checkbox.addEventListener('change', function() {
+console.log('Checkbox toggled:', this.checked);
+});
+});
+themeRadios.forEach(radio => {
+radio.addEventListener('change', function() {
+if (this.checked) {
+console.log('Theme changed to:', this.value);
+if (this.value === 'dark') {
+document.body.setAttribute('data-theme', 'dark');
+} else if (this.value === 'light') {
+document.body.removeAttribute('data-theme');
+} else {
+const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+if (prefersDark) {
+document.body.setAttribute('data-theme', 'dark');
+} else {
+document.body.removeAttribute('data-theme');
+}
+}
+}
+});
+});
+densityRadios.forEach(radio => {
+radio.addEventListener('change', function() {
+if (this.checked) {
+console.log('Density changed to:', this.value);
+document.body.className = document.body.className.replace(/density-\w+/g, '');
+document.body.classList.add(`density-${this.value}`);
+}
+});
+});
+const saveButtons = document.querySelectorAll('.primary-button');
+saveButtons.forEach(button => {
+if (button.textContent.includes('Salvar') || button.textContent.includes('Alterar')) {
+button.addEventListener('click', function(e) {
+e.preventDefault();
+const notification = document.createElement('div');
+notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 fade-in';
+notification.textContent = 'Configurações salvas com sucesso!';
+document.body.appendChild(notification);
+setTimeout(() => {
+notification.remove();
+}, 3000);
+});
+}
+});
+const dangerButtons = document.querySelectorAll('.bg-red-500');
+dangerButtons.forEach(button => {
+button.addEventListener('click', function(e) {
+e.preventDefault();
+if (confirm('Tem certeza que deseja realizar esta ação? Esta operação não pode ser desfeita.')) {
+const notification = document.createElement('div');
+notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 fade-in';
+notification.textContent = 'Ação realizada com sucesso!';
+document.body.appendChild(notification);
+setTimeout(() => {
+notification.remove();
+}, 3000);
+}
+});
+});
+});
+</script>
+</body>
+</html>

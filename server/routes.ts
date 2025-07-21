@@ -1057,11 +1057,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint específico para reabrir tarefas excluídas/arquivadas
-  app.post("/api/monde/tarefas/:id/reopen", authenticateToken, async (req: any, res) => {
+  // Endpoint específico para restaurar tarefas excluídas/arquivadas (usando terminologia do Monde)
+  app.post("/api/monde/tarefas/:id/restore", authenticateToken, async (req: any, res) => {
     try {
       const taskId = req.params.id;
-      console.log(`🔄 Tentando reabrir tarefa excluída: ${taskId}`);
+      console.log(`🔄 Tentando restaurar tarefa excluída: ${taskId}`);
       
       // Para tarefas excluídas, primeiro tentar reativá-las
       const mondeUrl = `https://web.monde.com.br/api/v2/tasks/${taskId}`;
@@ -1103,9 +1103,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (mondeResponse.ok) {
         const data = await mondeResponse.json();
         
-        // Adicionar histórico da reabertura com marcador específico
+        // Adicionar histórico da restauração com marcador específico
         try {
-          const reopenText = `🔄 KEEPTUR_REOPENED - ${req.body.historic || 'Tarefa reaberta pelo Keeptur'}`;
+          const reopenText = `🔄 KEEPTUR_RESTORED - ${req.body.historic || 'Tarefa restaurada pelo Keeptur'}`;
           const historyResponse = await fetch(`https://web.monde.com.br/api/v2/task-historics`, {
             method: "POST",
             headers: {

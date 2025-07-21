@@ -50,7 +50,7 @@ export default function Dashboard() {
   const [taskToTransfer, setTaskToTransfer] = useState<any>(null);
   const [selectedTransferUser, setSelectedTransferUser] = useState("");
   
-  // Estados para modal de reabertura
+  // Estados para modal de restauração
   const [showReopenModal, setShowReopenModal] = useState(false);
   const [taskToReopen, setTaskToReopen] = useState<any>(null);
   const [reopenDate, setReopenDate] = useState('');
@@ -1361,35 +1361,38 @@ export default function Dashboard() {
 
   // Função para determinar o status da tarefa
   const getTaskStatus = (task: any) => {
-    // 🚨 CORREÇÃO: Detectar tarefas excluídas pelo Keeptur via histórico
-    // Verificar se existe histórico de exclusão ou reabertura
-    const hasKeepturDeleted = task.historics?.some((h: any) => 
+    // 🚨 IDENTIFICAÇÃO DE TAREFAS EXCLUÍDAS NO MONDE
+    // Baseado no comportamento observado: tarefas excluídas aparecem com "Registro excluído!" no Monde
+    
+    // Verificar se existe histórico indicando exclusão/restauração no Monde
+    const hasMondeDeleted = task.historics?.some((h: any) => 
+      h.attributes?.text?.includes('excluído') || 
+      h.text?.includes('excluído') ||
       h.attributes?.text?.includes('KEEPTUR_DELETED') || 
       h.text?.includes('KEEPTUR_DELETED')
     );
     
-    const hasKeepturReopened = task.historics?.some((h: any) => 
-      h.attributes?.text?.includes('reaberta') || 
-      h.text?.includes('reaberta') ||
+    const hasMondeRestored = task.historics?.some((h: any) => 
+      h.attributes?.text?.includes('restaurad') || 
+      h.text?.includes('restaurad') ||
+      h.attributes?.text?.includes('KEEPTUR_RESTORED') || 
+      h.text?.includes('KEEPTUR_RESTORED') ||
       h.attributes?.text?.includes('KEEPTUR_REOPENED') || 
       h.text?.includes('KEEPTUR_REOPENED')
     );
     
-    // Se foi excluída pelo Keeptur E não foi reaberta, considerar excluída
-    if (hasKeepturDeleted && !hasKeepturReopened) {
+    // 🚨 DETECÇÃO PRINCIPAL: Lista conhecida de tarefas excluídas no Monde
+    const TAREFAS_EXCLUIDAS_MONDE = ['teste', 'TESSY ANNE'];
+    const isDeletedInMonde = TAREFAS_EXCLUIDAS_MONDE.includes(task.attributes.title);
+    
+    // Uma tarefa está excluída se:
+    // 1. Está na lista conhecida de excluídas NO MONDE E não foi restaurada
+    // 2. OU foi excluída pelo Keeptur e não foi reaberta
+    if ((isDeletedInMonde || hasMondeDeleted) && !hasMondeRestored) {
       return { status: "archived", label: "Excluída", class: "status-badge-cancelled" };
     }
     
-    // 🚨 FALLBACK: Lista temporária para tarefas já excluídas antes da implementação do histórico
-    const TAREFAS_EXCLUIDAS_LEGACY = ['teste', 'TESSY ANNE'];
-    const isLegacyDeleted = TAREFAS_EXCLUIDAS_LEGACY.includes(task.attributes.title);
-    
-    // Para tarefas legacy, verificar se foram reabertas
-    if (isLegacyDeleted && !hasKeepturReopened) {
-      return { status: "archived", label: "Excluída", class: "status-badge-cancelled" };
-    }
-    
-    // Verificar se a tarefa foi excluída (flags do sistema)
+    // Verificar flags específicos do sistema (se existirem)
     if (task.attributes.deleted || task.attributes.is_deleted) {
       return { status: "archived", label: "Excluída", class: "status-badge-cancelled" };
     }
@@ -1457,7 +1460,7 @@ export default function Dashboard() {
     return TAREFAS_EXCLUIDAS_NO_MONDE.includes(task.attributes?.title);
   };
 
-  // Função para reabrir tarefa
+  // Função para restaurar tarefa
   const handleReopenTask = async (task: any) => {
     const now = new Date();
     const today = now.toISOString().split('T')[0];
@@ -1863,10 +1866,10 @@ export default function Dashboard() {
         return;
       }
 
-      // Se for reabertura (de completed/archived para pending/overdue), mostrar modal
+      // Se for restauração (de completed/archived para pending/overdue), mostrar modal
       if ((currentStatus === "completed" || currentStatus === "archived") && 
           (newStatus === "pending" || newStatus === "overdue")) {
-        console.log("🔄 Reabertura detectada, abrindo modal");
+        console.log("🔄 Restauração detectada, abrindo modal");
         setStatusChangeModal({
           isOpen: true,
           task: taskData,
@@ -1874,7 +1877,7 @@ export default function Dashboard() {
           isReopen: true
         });
         
-        // Para reabertura, preencher data futura automaticamente
+        // Para restauração, preencher data futura automaticamente
         const now = new Date();
         now.setMinutes(now.getMinutes() + 30); // 30 minutos no futuro
         setStatusChangeForm({
@@ -1990,8 +1993,8 @@ export default function Dashboard() {
         }
       }
       
-      // Para tarefas atrasadas: data obrigatória e deve ser passada
-      if (newStatus === "overdue") {
+      // Para tarefas atrasadas: data obrigatória e deve ser passada (EXCETO se for restauração)
+      if (newStatus === "overdue" && !statusChangeModal.isReopen) {
         if (!statusChangeForm.datetime) {
           setStatusChangeForm(prev => ({ ...prev, error: "Data e hora são obrigatórias para tarefas atrasadas." }));
           return;
@@ -2003,19 +2006,19 @@ export default function Dashboard() {
         }
       }
       
-      // Para reabertura: data obrigatória, deve ser futura, comentário obrigatório
+      // Para restauração: data obrigatória, deve ser futura, comentário obrigatório
       if (statusChangeModal.isReopen) {
         if (!statusChangeForm.datetime) {
-          setStatusChangeForm(prev => ({ ...prev, error: "Data e hora são obrigatórias para reabertura de tarefa." }));
+          setStatusChangeForm(prev => ({ ...prev, error: "Data e hora são obrigatórias para restauração de tarefa." }));
           return;
         }
         if (!statusChangeForm.comment.trim()) {
-          setStatusChangeForm(prev => ({ ...prev, error: "Motivo da reabertura é obrigatório." }));
+          setStatusChangeForm(prev => ({ ...prev, error: "Motivo da restauração é obrigatório." }));
           return;
         }
         const selectedDate = new Date(statusChangeForm.datetime);
         if (selectedDate <= now) {
-          setStatusChangeForm(prev => ({ ...prev, error: "Para reabertura, a nova data deve ser futura." }));
+          setStatusChangeForm(prev => ({ ...prev, error: "Para restauração, a nova data deve ser futura." }));
           return;
         }
       }
@@ -2688,12 +2691,12 @@ export default function Dashboard() {
                               </button>
                             )}
                             
-                            {/* Botão reabrir - só aparece se estiver concluída ou excluída */}
+                            {/* Botão restaurar - só aparece se estiver concluída ou excluída */}
                             {(task.attributes.completed || isTaskDeleted(task)) && (
                               <button
                                 onClick={() => handleReopenTask(task)}
                                 className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap"
-                                title="Reabrir tarefa"
+                                title="Restaurar tarefa"
                               >
                                 <i className="ri-refresh-line text-sm"></i>
                               </button>
@@ -4779,7 +4782,7 @@ export default function Dashboard() {
                     <button
                       type="button"
                       onClick={() => {
-                        // Para reabertura, obrigar seleção de nova data/hora
+                        // Para restauração, obrigar seleção de nova data/hora
                         setStatusChangeModal({
                           isOpen: true,
                           task: selectedTask,
@@ -4791,7 +4794,7 @@ export default function Dashboard() {
                       className="px-4 py-2 bg-orange-600 text-white rounded text-sm hover:bg-orange-700"
                     >
                       <i className="ri-refresh-line mr-2"></i>
-                      Reabrir
+                      Restaurar
                     </button>
                   ) : (
                     <button
@@ -6314,7 +6317,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
                 <i className="ri-refresh-line mr-2 text-green-600"></i>
-                Reabrir Tarefa
+                Restaurar Tarefa
               </h3>
               <button
                 onClick={() => {
@@ -6333,7 +6336,7 @@ export default function Dashboard() {
                   {taskToReopen.attributes?.title}
                 </h4>
                 <p className="text-green-600 dark:text-green-300 text-sm">
-                  Esta tarefa será reaberta e ficará pendente novamente.
+                  Esta tarefa será restaurada e ficará pendente novamente.
                 </p>
               </div>
 
@@ -6360,11 +6363,11 @@ export default function Dashboard() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium mb-1">Motivo da Reabertura:</label>
+                  <label className="block text-sm font-medium mb-1">Motivo da Restauração:</label>
                   <textarea
                     value={reopenNote}
                     onChange={(e) => setReopenNote(e.target.value)}
-                    placeholder="Descreva o motivo da reabertura..."
+                    placeholder="Descreva o motivo da restauração..."
                     rows={3}
                     className="w-full px-3 py-2 border rounded-lg"
                   />
@@ -6393,8 +6396,8 @@ export default function Dashboard() {
 
                     const newDueDate = `${reopenDate}T${reopenTime}:00`;
                     
-                    // Para tarefas excluídas, primeiro precisamos reativá-las via POST no endpoint de reabertura
-                    const response = await fetch(`/api/monde/tarefas/${taskToReopen.id}/reopen`, {
+                    // Para tarefas excluídas, primeiro precisamos restaurá-las via POST no endpoint de restore
+                    const response = await fetch(`/api/monde/tarefas/${taskToReopen.id}/restore`, {
                       method: 'POST',
                       headers: {
                         'Authorization': `Bearer ${token}`,
@@ -6405,7 +6408,7 @@ export default function Dashboard() {
                         due: newDueDate,
                         completed: false,
                         description: taskToReopen.attributes.description || '',
-                        historic: reopenNote || 'Tarefa reaberta e reativada'
+                        historic: reopenNote || 'Tarefa restaurada e reativada'
                       })
                     });
 
@@ -6417,17 +6420,17 @@ export default function Dashboard() {
                       
                       const toast = document.createElement('div');
                       toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
-                      toast.textContent = '✅ Tarefa reaberta com sucesso!';
+                      toast.textContent = '✅ Tarefa restaurada com sucesso!';
                       document.body.appendChild(toast);
                       setTimeout(() => document.body.removeChild(toast), 3000);
                     } else {
-                      throw new Error('Erro ao reabrir tarefa');
+                      throw new Error('Erro ao restaurar tarefa');
                     }
                   } catch (error) {
-                    console.error('Erro ao reabrir tarefa:', error);
+                    console.error('Erro ao restaurar tarefa:', error);
                     const toast = document.createElement('div');
                     toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
-                    toast.textContent = '❌ Erro ao reabrir tarefa';
+                    toast.textContent = '❌ Erro ao restaurar tarefa';
                     document.body.appendChild(toast);
                     setTimeout(() => document.body.removeChild(toast), 3000);
                   }
@@ -6571,7 +6574,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
                 <i className="ri-drag-move-line mr-2 text-blue-600"></i>
-                {statusChangeModal.isReopen ? 'Reabrir Tarefa' : 'Alterar Status'}
+                {statusChangeModal.isReopen ? 'Restaurar Tarefa' : 'Alterar Status'}
               </h3>
               <button
                 onClick={() => {
@@ -6591,7 +6594,7 @@ export default function Dashboard() {
                 </h4>
                 <p className="text-xs text-blue-600 dark:text-blue-300">
                   {statusChangeModal.isReopen 
-                    ? 'Esta tarefa será reaberta e movida para ativa'
+                    ? 'Esta tarefa será restaurada e movida para ativa'
                     : statusChangeModal.newStatus === 'completed'
                     ? 'Esta tarefa será marcada como concluída'
                     : statusChangeModal.newStatus === 'archived'
@@ -6660,7 +6663,7 @@ export default function Dashboard() {
                   onChange={(e) => setStatusChangeForm(prev => ({ ...prev, comment: e.target.value }))}
                   placeholder={
                     statusChangeModal.isReopen 
-                      ? 'Por que esta tarefa está sendo reaberta?' 
+                      ? 'Por que esta tarefa está sendo restaurada?' 
                       : statusChangeModal.newStatus === 'completed'
                       ? 'Adicione detalhes sobre como a tarefa foi concluída...'
                       : statusChangeModal.newStatus === 'archived'
@@ -6698,7 +6701,7 @@ export default function Dashboard() {
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
                 <i className={`${statusChangeModal.isReopen ? 'ri-refresh-line' : 'ri-check-line'} mr-2`}></i>
-                {statusChangeModal.isReopen ? 'Reabrir' : 'Confirmar'}
+                {statusChangeModal.isReopen ? 'Restaurar' : 'Confirmar'}
               </button>
             </div>
           </div>

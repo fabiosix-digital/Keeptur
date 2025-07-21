@@ -971,21 +971,32 @@ export default function Dashboard() {
     }
   };
 
-  // Função para calcular estatísticas das tarefas
+  // Função para calcular estatísticas das tarefas (CORRIGIDA - exclui tarefas deletadas)
   const calculateTaskStats = (tasks: any[]) => {
     const now = new Date();
 
+    // 🚨 CORREÇÃO CRÍTICA: Filtrar apenas tarefas ativas (não deletadas)
+    const activeTasks = tasks.filter((t: any) => 
+      !t.attributes.deleted && !t.attributes.is_deleted && !t.attributes.archived
+    );
+    
+    console.log('📊 ESTATÍSTICAS CORRIGIDAS:', {
+      totalOriginal: tasks.length,
+      totalAtivas: activeTasks.length,
+      excluidas: tasks.length - activeTasks.length
+    });
+
     const stats = {
-      total: tasks.length,
+      total: activeTasks.length, // Usar apenas tarefas ativas
       // Pendentes = não concluídas E não atrasadas (dentro do prazo ou sem prazo)
-      pendentes: tasks.filter((t: any) => {
+      pendentes: activeTasks.filter((t: any) => {
         if (t.attributes.completed) return false;
         const dueDate = t.attributes.due ? new Date(t.attributes.due) : null;
         return !dueDate || dueDate >= now;
       }).length,
-      concluidas: tasks.filter((t: any) => t.attributes.completed).length,
+      concluidas: activeTasks.filter((t: any) => t.attributes.completed).length,
       // Atrasadas = não concluídas E com prazo vencido
-      atrasadas: tasks.filter((t: any) => {
+      atrasadas: activeTasks.filter((t: any) => {
         if (t.attributes.completed) return false;
         const dueDate = t.attributes.due ? new Date(t.attributes.due) : null;
         return dueDate && dueDate < now;
@@ -996,14 +1007,14 @@ export default function Dashboard() {
     const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const lastMonthTasks = tasks.filter((t: any) => {
+    const lastMonthTasks = activeTasks.filter((t: any) => {
       const taskDate = new Date(
         t.attributes["registered-at"] || t.attributes.created_at,
       );
       return taskDate >= lastMonth && taskDate < thisMonth;
     });
 
-    const thisMonthTasks = tasks.filter((t: any) => {
+    const thisMonthTasks = activeTasks.filter((t: any) => {
       const taskDate = new Date(
         t.attributes["registered-at"] || t.attributes.created_at,
       );

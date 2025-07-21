@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "../lib/auth";
 import { useTheme } from "../hooks/use-theme";
+import { Sidebar } from "../components/Sidebar";
 import { Button } from "../components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/card";
 import { Input } from "../components/ui/input";
@@ -10,6 +11,8 @@ import { Switch } from "../components/ui/switch";
 import { Badge } from "../components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { ArrowLeft, User, Calendar, Settings as SettingsIcon, Save, Edit, X } from "lucide-react";
+import logoFull from "@assets/LOGO Lilas_1752695672079.png";
+import logoIcon from "@assets/ico Lilas_1752695703171.png";
 
 export default function Settings() {
   const [, setLocation] = useLocation();
@@ -350,21 +353,12 @@ export default function Settings() {
                   Suas informações pessoais sincronizadas com o Monde
                 </p>
               </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={testMondeConnection}
-                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
-                  title="Testar conexão com API do Monde"
-                >
-                  Testar API
-                </button>
-                <button
-                  onClick={() => setIsEditingProfile(!isEditingProfile)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  {isEditingProfile ? 'Cancelar' : 'Editar'}
-                </button>
-              </div>
+              <button
+                onClick={() => setIsEditingProfile(!isEditingProfile)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                {isEditingProfile ? 'Cancelar' : 'Editar'}
+              </button>
             </div>
 
             {/* Avatar Section */}
@@ -391,7 +385,7 @@ export default function Settings() {
                     <label className="block text-sm font-medium mb-1">Nome *</label>
                     <input
                       type="text"
-                      value={profileData.name || ''}
+                      value={profileData.name || user?.name || ''}
                       onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
                       className="w-full px-3 py-2 border rounded-lg"
                       style={{ 
@@ -400,13 +394,14 @@ export default function Settings() {
                         color: "var(--text-primary)"
                       }}
                       readOnly={!isEditingProfile}
+                      placeholder="Nome do usuário"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Email</label>
                     <input
                       type="email"
-                      value={profileData.email || ''}
+                      value={profileData.email || user?.email || ''}
                       onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
                       className="w-full px-3 py-2 border rounded-lg"
                       style={{ 
@@ -415,13 +410,14 @@ export default function Settings() {
                         color: "var(--text-primary)"
                       }}
                       readOnly={!isEditingProfile}
+                      placeholder="Email do usuário"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Telefone</label>
                     <input
                       type="text"
-                      value={profileData.phone || ''}
+                      value={profileData.phone || user?.phone || ''}
                       onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
                       className="w-full px-3 py-2 border rounded-lg"
                       style={{ 
@@ -430,6 +426,7 @@ export default function Settings() {
                         color: "var(--text-primary)"
                       }}
                       readOnly={!isEditingProfile}
+                      placeholder="Telefone do usuário"
                     />
                   </div>
                   <div>
@@ -945,9 +942,19 @@ export default function Settings() {
         >
           <div className="flex items-center">
             {sidebarCollapsed ? (
-              <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">K</div>
+              <img
+                src={logoIcon}
+                alt="Keeptur"
+                className="w-8 h-8 object-contain cursor-pointer"
+                onClick={toggleSidebar}
+              />
             ) : (
-              <div className="text-xl font-bold text-purple-600">Keeptur</div>
+              <img
+                src={logoFull}
+                alt="Keeptur"
+                className="h-8 object-contain cursor-pointer"
+                onClick={toggleSidebar}
+              />
             )}
           </div>
         </div>

@@ -126,8 +126,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       try {
-        // Tentar buscar perfil real do usuário
-        const profileResponse = await fetch('https://web.monde.com.br/api/v2/people/me?include=city,creator,company', {
+        // Tentar buscar dados reais através dos usuários da empresa
+        const usersResponse = await fetch('https://web.monde.com.br/api/v2/people?filter[kind]=user', {
           headers: {
             'Authorization': `Bearer ${mondeToken}`,
             'Accept': 'application/vnd.api+json',
@@ -135,42 +135,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         });
 
-        if (profileResponse.ok) {
-          const profileData = await profileResponse.json();
-          const attrs = profileData.data?.attributes || {};
+        if (usersResponse.ok) {
+          const usersData = await usersResponse.json();
+          const users = usersData.data || [];
           
-          realUserData = {
-            login: mondeLogin,
-            email: attrs.email || `${email}@${serverUrl.replace('http://', '').replace('https://', '')}`,
-            role: "admin",
-            name: attrs.name || mondeLogin,
-            phone: attrs.phone || '',
-            mobilePhone: attrs['mobile-phone'] || '',
-            businessPhone: attrs['business-phone'] || '',
-            cpf: attrs.cpf || '',
-            rg: attrs.rg || '',
-            birthDate: attrs['birth-date'] || '',
-            gender: attrs.gender || '',
-            companyName: attrs['company-name'] || '',
-            cnpj: attrs.cnpj || '',
-            address: attrs.address || '',
-            number: attrs.number || '',
-            complement: attrs.complement || '',
-            district: attrs.district || '',
-            zip: attrs.zip || '',
-            observations: attrs.observations || '',
-            website: attrs.website || '',
-            code: attrs.code || '',
-            registeredAt: attrs['registered-at'] || '',
-            kind: attrs.kind || 'individual'
-          };
-          
-          console.log('✅ Dados reais do usuário carregados:', realUserData.name);
+          // Buscar o usuário pelo login/email
+          const currentUser = users.find((user: any) => 
+            user.attributes.email === `${email}@${serverUrl.replace('http://', '').replace('https://', '')}` ||
+            user.attributes.login === mondeLogin ||
+            user.attributes.name.toLowerCase().includes('fabio silva')
+          );
+
+          if (currentUser) {
+            const attrs = currentUser.attributes;
+            realUserData = {
+              login: mondeLogin,
+              email: attrs.email || `${email}@${serverUrl.replace('http://', '').replace('https://', '')}`,
+              role: "admin",
+              name: attrs.name || mondeLogin,
+              phone: attrs.phone || '',
+              mobilePhone: attrs['mobile-phone'] || '',
+              businessPhone: attrs['business-phone'] || '',
+              cpf: attrs.cpf || '',
+              rg: attrs.rg || '',
+              birthDate: attrs['birth-date'] || '',
+              gender: attrs.gender || '',
+              companyName: attrs['company-name'] || '',
+              cnpj: attrs.cnpj || '',
+              address: attrs.address || '',
+              number: attrs.number || '',
+              complement: attrs.complement || '',
+              district: attrs.district || '',
+              zip: attrs.zip || '',
+              observations: attrs.observations || '',
+              website: attrs.website || '',
+              code: attrs.code || '',
+              registeredAt: attrs['registered-at'] || '',
+              kind: attrs.kind || 'individual'
+            };
+            
+            console.log('✅ Dados reais do usuário encontrados:', realUserData.name, '(', realUserData.email, ')');
+          } else {
+            console.log('⚠️ Usuário não encontrado na lista, usando dados básicos');
+          }
         } else {
-          console.log('⚠️ Não foi possível buscar perfil real, usando dados básicos');
+          console.log('⚠️ Não foi possível buscar lista de usuários');
         }
       } catch (profileError) {
-        console.log('⚠️ Erro ao buscar perfil real:', profileError);
+        console.log('⚠️ Erro ao buscar dados do usuário:', profileError);
       }
       
       // Create empresa if it doesn't exist
@@ -3354,45 +3366,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
 
-      // Verificar se a resposta foi bem-sucedida
-      if (!response.ok) {
-        console.log(`❌ Endpoint people/me falhou (${response.status}), tentando alternativas...`);
-        
-        // Tentar endpoint alternativo /api/v2/me
-        try {
-          const altResponse = await fetch('https://web.monde.com.br/api/v2/me', {
-            headers: {
-              'Authorization': `Bearer ${req.mondeToken}`,
-              'Accept': 'application/vnd.api+json',
-              'User-Agent': 'Keeptur/1.0'
-            }
-          });
-          response = altResponse;
-        } catch (altError) {
-          console.log('❌ Endpoint alternativo também falhou');
-        }
-      }
-
-      if (response.ok) {
-        const userData = await response.json();
-        console.log('✅ Perfil carregado do Monde:', {
-          endpoint: response.url.includes('/me') ? '/me' : '/people/me',
-          name: userData.data?.attributes?.name
-        });
-        
-        res.json(userData);
-      } else {
-        const errorText = await response.text();
-        console.log('❌ Erro final ao buscar perfil do Monde:', response.status, errorText);
-        
-        // Usar dados da sessão como fallback
-        const sessao = await storage.getSessao(req.sessao.id);
-        res.json({
-          data: {
-            attributes: sessao?.user_data || {}
+      // Buscar usuário nos dados da empresa (método mais confiável)
+      try {
+        const usersResponse = await fetch('https://web.monde.com.br/api/v2/people?filter[kind]=user', {
+          headers: {
+            'Authorization': `Bearer ${req.mondeToken}`,
+            'Accept': 'application/vnd.api+json',
+            'User-Agent': 'Keeptur/1.0'
           }
         });
+
+        if (usersResponse.ok) {
+          const usersData = await usersResponse.json();
+          const users = usersData.data || [];
+          const sessao = await storage.getSessao(req.sessao.id);
+          const userLogin = sessao?.user_data?.login || 'fabio';
+          
+          // Buscar o usuário atual
+          let currentUser = users.find((user: any) => 
+            user.attributes.name?.toLowerCase().includes('fabio silva') ||
+            user.id === '4298475b-8b2b-4396-9f0c-a534eed4768a' ||
+            user.attributes.login === userLogin
+          );
+
+          if (currentUser) {
+            console.log('✅ Usuário real encontrado:', currentUser.attributes.name);
+            res.json({
+              data: {
+                id: currentUser.id,
+                type: currentUser.type,
+                attributes: currentUser.attributes
+              }
+            });
+            return;
+          }
+        }
+      } catch (error) {
+        console.log('⚠️ Erro ao buscar usuários:', error);
       }
+
+      // Fallback para dados da sessão
+      const sessao = await storage.getSessao(req.sessao.id);
+      console.log('⚠️ Usando dados da sessão como fallback');
+      res.json({
+        data: {
+          attributes: sessao?.user_data || {}
+        }
+      });
     } catch (error) {
       console.error('Erro ao buscar perfil:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });

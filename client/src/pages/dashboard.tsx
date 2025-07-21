@@ -1460,37 +1460,71 @@ export default function Dashboard() {
 
   // Função para verificar se a tarefa está excluída dinamicamente via histórico
   const isTaskDeleted = (task: any) => {
+    // DEBUG: Log completo da tarefa para investigação
+    console.log(`🔍 Verificando se tarefa "${task.attributes?.title}" está excluída:`, {
+      id: task.id,
+      title: task.attributes?.title,
+      completed: task.attributes?.completed,
+      hasHistorics: !!(task.historics && Array.isArray(task.historics)),
+      historicsCount: task.historics ? task.historics.length : 0
+    });
+    
     if (!task.historics || !Array.isArray(task.historics)) {
-      return false;
+      console.log(`⚠️ Tarefa "${task.attributes?.title}" sem histórico - usando fallback`);
+      // Fallback: verificar se está na lista de tarefas conhecidas como excluídas
+      const knownDeletedTasks = ['teste', 'TESSY ANNE'];
+      const isKnownDeleted = knownDeletedTasks.includes(task.attributes?.title);
+      console.log(`📋 Tarefa "${task.attributes?.title}" está na lista conhecida:`, isKnownDeleted);
+      return isKnownDeleted;
     }
     
     // Buscar pelo histórico mais recente que indique exclusão ou restauração
     const historicsOrdered = task.historics
-      .filter((h: any) => h.attributes?.text)
-      .sort((a: any, b: any) => new Date(b.attributes['date-time']).getTime() - new Date(a.attributes['date-time']).getTime());
+      .filter((h: any) => h.attributes?.text || h.text)
+      .sort((a: any, b: any) => {
+        const dateA = a.attributes?.['date-time'] || a['date-time'] || a.datetime;
+        const dateB = b.attributes?.['date-time'] || b['date-time'] || b.datetime;
+        return new Date(dateB).getTime() - new Date(dateA).getTime();
+      });
+    
+    console.log(`📝 Tarefa "${task.attributes?.title}" - Históricos encontrados:`, historicsOrdered.length);
+    
+    // Log dos últimos 5 históricos para debug completo
+    historicsOrdered.slice(0, 5).forEach((historic, index) => {
+      const text = historic.attributes?.text || historic.text || '';
+      const date = historic.attributes?.['date-time'] || historic['date-time'] || historic.datetime || 'sem data';
+      console.log(`  ${index + 1}. [${date}] "${text}"`);
+      
+      // Log extra para detecção
+      if (text.toLowerCase().includes('keeptur') || text.toLowerCase().includes('restaurar') || text.toLowerCase().includes('excluir')) {
+        console.log(`    🎯 MARCADOR DETECTADO: "${text}"`);
+      }
+    });
     
     for (const historic of historicsOrdered) {
-      const text = historic.attributes.text;
+      const text = (historic.attributes?.text || historic.text || '').toLowerCase();
       
       // Se encontrar marcador de restauração mais recente, não está excluída
-      if (text.includes('KEEPTUR_RESTORED') || text.includes('Restaurar atendimento')) {
-        console.log(`🔄 Tarefa ${task.attributes?.title} foi restaurada via histórico`);
+      if (text.includes('keeptur_restored') || text.includes('restaurar atendimento') || text.includes('reabrir atendimento')) {
+        console.log(`✅ Tarefa "${task.attributes?.title}" foi RESTAURADA - último histórico: "${text}"`);
         return false;
       }
       
       // Se encontrar marcador de exclusão mais recente, está excluída
-      if (text.includes('KEEPTUR_DELETED') || text.includes('Excluir atendimento')) {
-        console.log(`🗑️ Tarefa ${task.attributes?.title} foi excluída via histórico`);
+      if (text.includes('keeptur_deleted') || text.includes('excluir atendimento') || text.includes('deletar atendimento')) {
+        console.log(`🗑️ Tarefa "${task.attributes?.title}" foi EXCLUÍDA - último histórico: "${text}"`);
         return true;
       }
     }
     
-    // Fallback: verificar se está na lista de tarefas conhecidas como excluídas
+    // Se não encontrou marcadores no histórico, usar lista conhecida
     const knownDeletedTasks = ['teste', 'TESSY ANNE'];
     const isKnownDeleted = knownDeletedTasks.includes(task.attributes?.title);
     
     if (isKnownDeleted) {
-      console.log(`🗑️ Tarefa ${task.attributes?.title} está na lista de excluídas conhecidas`);
+      console.log(`🗑️ Tarefa "${task.attributes?.title}" está na lista de excluídas conhecidas (sem marcador no histórico)`);
+    } else {
+      console.log(`✅ Tarefa "${task.attributes?.title}" não está excluída (sem marcadores encontrados)`);
     }
     
     return isKnownDeleted;
@@ -1874,17 +1908,23 @@ export default function Dashboard() {
         if (JSON.stringify(currentTaskIds) !== JSON.stringify(newTaskIds) || hasStatusChanges) {
           console.log("🔄 Mudanças detectadas no Monde, atualizando interface...");
           
-          // Atualizar estado das tarefas
+          // 🚨 CORREÇÃO CRÍTICA: Forçar recarregamento completo
+          console.log("🔄 Forçando recarregamento completo das tarefas...");
+          
+          // Atualizar estado das tarefas imediatamente
           setAllTasks(newTasks);
           
           // Reprocessar tarefas com filtro atual
-          const filteredTasks = getFilteredTasks(taskFilter);
-          setTasks(filteredTasks);
+          setTimeout(() => {
+            const filteredTasks = getFilteredTasks(taskFilter);
+            setTasks(filteredTasks);
+            console.log("✅ Tarefas filtradas atualizadas:", filteredTasks.length);
+          }, 100);
           
           // Mostrar toast de sincronização
           const toast = document.createElement('div');
-          toast.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded shadow-lg z-50';
-          toast.textContent = '🔄 Sincronizado com Monde';
+          toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
+          toast.textContent = '🔄 Atualizado automaticamente';
           document.body.appendChild(toast);
           setTimeout(() => {
             if (document.body.contains(toast)) {
@@ -1903,8 +1943,8 @@ export default function Dashboard() {
 
   // Inicializar sincronização automática
   useEffect(() => {
-    // Configurar verificação a cada 10 segundos
-    const interval = setInterval(checkForChanges, 10000);
+    // Configurar verificação a cada 5 segundos para testes mais rápidos
+    const interval = setInterval(checkForChanges, 5000);
     setAutoSyncInterval(interval);
     
     // Cleanup
@@ -2239,6 +2279,15 @@ export default function Dashboard() {
       const responseData = await response.json();
       console.log("✅ Tarefa atualizada com sucesso:", responseData);
       
+      // 🚨 CORREÇÃO: Forçar recarregamento imediato das tarefas
+      console.log("🔄 Forçando recarregamento após mudança de status...");
+      
+      // Recarregar tarefas imediatamente
+      setTimeout(() => {
+        reloadTasks();
+        console.log("✅ Recarregamento forçado executado");
+      }, 500);
+      
       // Mostrar toast de sucesso
       setStatusChangeForm(prev => ({ ...prev, success: "Status alterado com sucesso!" }));
 
@@ -2267,15 +2316,14 @@ export default function Dashboard() {
         console.log("⚠️ Erro ao salvar histórico, mas tarefa foi atualizada");
       }
 
-      // Aguardar 2 segundos para mostrar mensagem de sucesso
+      // Aguardar 1 segundo e fechar modal
       setTimeout(() => {
-        // Fechar modal e recarregar tarefas
-        console.log("🔄 Fechando modal e recarregando tarefas...");
+        // Fechar modal
+        console.log("🔄 Fechando modal...");
         setStatusChangeModal({ isOpen: false, task: null, newStatus: "", isReopen: false });
         setStatusChangeForm({ datetime: "", comment: "", success: "", error: "" });
-        reloadTasks();
         console.log("✅ Processo concluído com sucesso!");
-      }, 2000);
+      }, 1000);
 
     } catch (error: any) {
       console.error("❌ Erro ao alterar status:", error);

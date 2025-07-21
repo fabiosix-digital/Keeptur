@@ -5004,7 +5004,7 @@ export default function Dashboard() {
           style={{ borderColor: "var(--border-color)" }}
         >
           <button 
-            onClick={() => setShowSettingsModal(true)}
+            onClick={() => window.location.href = '/settings'}
             className="menu-item flex items-center px-3 py-2.5 text-sm font-medium w-full">
             <div className="w-5 h-5 flex items-center justify-center">
               <i className="ri-settings-3-line"></i>

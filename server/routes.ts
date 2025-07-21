@@ -6,8 +6,21 @@ import jwt from "jsonwebtoken";
 import multer from "multer";
 import { insertEmpresaSchema, insertAssinaturaSchema, insertPagamentoSchema, insertSessaoSchema, insertAnexoSchema } from "@shared/schema";
 import { z } from "zod";
+import { google } from "googleapis";
 
 const JWT_SECRET = process.env.JWT_SECRET || "keeptur-secret-key";
+
+// Google OAuth2 Configuration
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "461957019207-4pv2ra29ct67e4fr75a8cfgupd9thoad.apps.googleusercontent.com";
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "";
+const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || "http://localhost:5000/auth/google/callback";
+
+// Configure Google OAuth2 client
+const oauth2Client = new google.auth.OAuth2(
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET,
+  GOOGLE_REDIRECT_URI
+);
 
 // API schemas
 const loginSchema = z.object({
@@ -3041,30 +3054,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Endpoints do Google Calendar
-  app.post("/api/google/auth", authenticateToken, async (req: any, res) => {
+  
+  // Verificar status da conexão Google
+  app.get("/api/google/status", authenticateToken, async (req: any, res) => {
     try {
-      // Simular processo de autenticação OAuth2 do Google
-      // Em uma implementação real, seria necessário configurar OAuth2 com Google
-      console.log('🔗 Conectando Google Calendar para usuário:', req.user.email);
-      
-      const googleUserEmail = req.user.email || 'usuario@gmail.com';
-      
-      // Simular resposta de sucesso da autenticação Google
-      const mockResponse = {
-        success: true,
-        email: googleUserEmail,
-        accessToken: 'mock-google-access-token', // Em produção seria o token real
-        refreshToken: 'mock-google-refresh-token',
-        expiresIn: 3600
-      };
-      
-      // Em uma implementação real, armazenaria os tokens no banco de dados
-      // await storage.saveGoogleTokens(req.user.id, mockResponse.accessToken, mockResponse.refreshToken);
-      
-      res.json(mockResponse);
+      // Em uma implementação real, verificaria tokens no banco de dados
+      res.json({
+        connected: false,
+        email: '',
+        syncEnabled: false
+      });
     } catch (error) {
-      console.error("Erro ao conectar Google Calendar:", error);
-      res.status(500).json({ message: "Erro ao conectar Google Calendar" });
+      console.error("Erro ao verificar status Google:", error);
+      res.status(500).json({ message: "Erro ao verificar status" });
+    }
+  });
+
+  // Iniciar fluxo OAuth2 do Google
+  app.get("/api/google/auth", authenticateToken, async (req: any, res) => {
+    try {
+      const scopes = [
+        'https://www.googleapis.com/auth/calendar',
+        'https://www.googleapis.com/auth/userinfo.email'
+      ];
+
+      const authUrl = oauth2Client.generateAuthUrl({
+        access_type: 'offline',
+        scope: scopes,
+        prompt: 'consent'
+      });
+
+      res.json({ authUrl });
+    } catch (error) {
+      console.error("Erro ao gerar URL de autorização:", error);
+      res.status(500).json({ message: "Erro na autenticação" });
+    }
+  });
+
+  // Callback OAuth2 do Google
+  app.get("/auth/google/callback", async (req, res) => {
+    try {
+      const { code } = req.query;
+      
+      if (!code) {
+        return res.redirect("/settings?tab=conexoes&error=oauth_cancelled");
+      }
+
+      // Trocar código por tokens
+      const { tokens } = await oauth2Client.getToken(code as string);
+      oauth2Client.setCredentials(tokens);
+
+      // Obter informações do usuário
+      const people = google.people({ version: 'v1', auth: oauth2Client });
+      const profile = await people.people.get({
+        resourceName: 'people/me',
+        personFields: 'emailAddresses'
+      });
+
+      const userEmail = profile.data.emailAddresses?.[0]?.value;
+
+      // Em uma implementação real, salvaria tokens no banco de dados
+      console.log("✅ Google Calendar conectado:", userEmail);
+      console.log("🔑 Tokens obtidos:", {
+        access_token: tokens.access_token ? "✓" : "✗",
+        refresh_token: tokens.refresh_token ? "✓" : "✗",
+        expiry_date: tokens.expiry_date
+      });
+
+      // Redirecionar de volta para configurações com sucesso
+      res.redirect("/settings?tab=conexoes&google=connected");
+    } catch (error) {
+      console.error("Erro no callback OAuth2:", error);
+      res.redirect("/settings?tab=conexoes&error=oauth_failed");
     }
   });
 

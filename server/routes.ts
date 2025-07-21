@@ -3500,10 +3500,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint de teste para debug da conexão com Monde
+  app.get('/api/test/monde-connection', authenticateToken, async (req: any, res) => {
+    try {
+      console.log('🧪 Testando conexão com Monde...');
+      
+      // Teste 1: Token info
+      const tokenResponse = await fetch('https://web.monde.com.br/api/v2/tokens', {
+        headers: {
+          'Authorization': `Bearer ${req.mondeToken}`,
+          'Accept': 'application/vnd.api+json'
+        }
+      });
+      
+      const tokenStatus = {
+        endpoint: '/tokens',
+        status: tokenResponse.status,
+        ok: tokenResponse.ok
+      };
+      
+      // Teste 2: People endpoint
+      const peopleResponse = await fetch('https://web.monde.com.br/api/v2/people?page[size]=1', {
+        headers: {
+          'Authorization': `Bearer ${req.mondeToken}`,
+          'Accept': 'application/vnd.api+json'
+        }
+      });
+      
+      const peopleStatus = {
+        endpoint: '/people',
+        status: peopleResponse.status,
+        ok: peopleResponse.ok
+      };
+      
+      res.json({
+        success: true,
+        tests: {
+          token: tokenStatus,
+          people: peopleStatus
+        },
+        sessionInfo: {
+          hasToken: !!req.mondeToken,
+          userData: req.sessao?.user_data
+        }
+      });
+      
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  });
+
   // Endpoint para obter perfil do usuário
   app.get('/api/monde/user-profile', authenticateToken, async (req: any, res) => {
     try {
       console.log('🔍 Buscando perfil completo do usuário no Monde...');
+      console.log('🔑 Token Monde:', req.mondeToken ? 'Presente' : 'Ausente');
+      console.log('👤 Dados da sessão:', req.sessao?.user_data ? 'Disponíveis' : 'Ausentes');
       
       // 🔧 DEBUGGING - Adicione logs temporários
       console.log('🔍 DEBUG - Token:', req.mondeToken ? 'Presente' : 'Ausente');

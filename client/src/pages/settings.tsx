@@ -28,6 +28,9 @@ export default function Settings() {
   const [savingProfile, setSavingProfile] = useState(false);
 
   useEffect(() => {
+    console.log('🔍 Settings component mounted');
+    console.log('🔍 Token presente:', !!localStorage.getItem('keeptur-token'));
+    
     checkGoogleConnection();
     loadUserProfile();
     
@@ -64,17 +67,38 @@ export default function Settings() {
 
   const loadUserProfile = async () => {
     try {
+      const token = localStorage.getItem('keeptur-token');
+      console.log('🔐 Token:', token ? 'Presente' : 'Ausente');
+      
+      if (!token) {
+        console.error('❌ Token não encontrado');
+        showToast('❌ Faça login novamente', 'error');
+        setLocation('/login');
+        return;
+      }
+      
       const response = await fetch('/api/monde/user-profile', {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('keeptur-token')}`,
+          Authorization: `Bearer ${token}`,
         },
       });
       
+      console.log('📡 Response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('✅ Dados recebidos:', data);
         
-        // Mapear dados da API do Monde para estado local
-        const attributes = data.data?.attributes || {};
+        // Verificar estrutura dos dados
+        if (!data || (!data.data && !data.attributes)) {
+          console.error('❌ Estrutura de dados inválida:', data);
+          showToast('❌ Dados do perfil em formato inválido', 'error');
+          return;
+        }
+        
+        // Mapear dados corretamente
+        const attributes = data.data?.attributes || data.attributes || {};
+        console.log('📋 Atributos extraídos:', attributes);
         setProfileData({
           // Dados básicos
           name: attributes.name || '',
@@ -120,15 +144,20 @@ export default function Settings() {
         console.log('✅ Perfil completo carregado:', attributes);
       } else if (response.status === 401) {
         // Token expirado, redirecionar para login
+        console.error('❌ Token expirado');
         showToast('❌ Sessão expirada. Faça login novamente.', 'error');
         setTimeout(() => {
           logout();
           setLocation('/login');
         }, 2000);
+      } else {
+        const errorText = await response.text();
+        console.error('❌ Erro na resposta:', response.status, errorText);
+        showToast(`❌ Erro ao carregar perfil: ${response.status}`, 'error');
       }
     } catch (error) {
-      console.error('Erro ao carregar perfil:', error);
-      showToast('❌ Erro ao carregar perfil do usuário', 'error');
+      console.error('❌ Erro ao carregar perfil:', error);
+      showToast('❌ Erro de conexão ao carregar perfil', 'error');
     }
   };
 
@@ -276,6 +305,28 @@ export default function Settings() {
     }
   };
 
+  const testMondeConnection = async () => {
+    try {
+      const response = await fetch('/api/test/monde-connection', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('keeptur-token')}`,
+        },
+      });
+      
+      const data = await response.json();
+      console.log('🧪 Teste de conexão:', data);
+      
+      if (data.success) {
+        showToast('✅ Conexão com Monde OK', 'success');
+      } else {
+        showToast('❌ Falha na conexão com Monde', 'error');
+      }
+    } catch (error) {
+      console.error('❌ Erro no teste:', error);
+      showToast('❌ Erro ao testar conexão', 'error');
+    }
+  };
+
   const handleLogout = () => {
     logout();
     setLocation('/login');
@@ -299,12 +350,21 @@ export default function Settings() {
                   Suas informações pessoais sincronizadas com o Monde
                 </p>
               </div>
-              <button
-                onClick={() => setIsEditingProfile(!isEditingProfile)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              >
-                {isEditingProfile ? 'Cancelar' : 'Editar'}
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={testMondeConnection}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                  title="Testar conexão com API do Monde"
+                >
+                  Testar API
+                </button>
+                <button
+                  onClick={() => setIsEditingProfile(!isEditingProfile)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  {isEditingProfile ? 'Cancelar' : 'Editar'}
+                </button>
+              </div>
             </div>
 
             {/* Avatar Section */}

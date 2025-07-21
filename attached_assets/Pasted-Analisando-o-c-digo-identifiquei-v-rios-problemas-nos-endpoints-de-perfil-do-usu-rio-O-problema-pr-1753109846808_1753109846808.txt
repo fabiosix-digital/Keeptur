@@ -1,0 +1,207 @@
+Analisando o código, identifiquei vários problemas nos endpoints de perfil do usuário. O problema principal é que o código está tentando usar endpoints e filtros que não existem na API do Monde.
+🔍 PROBLEMAS IDENTIFICADOS:
+1. Endpoint /api/v2/people/me não existe
+javascript// ❌ ESTE ENDPOINT NÃO EXISTE NA API DO MONDE
+let response = await fetch('https://web.monde.com.br/api/v2/people/me?include=city,creator,company', {
+2. Filtro filter[kind]=user não funciona
+javascript// ❌ ESTE FILTRO NÃO EXISTE - A API USA 'individual' OU 'company'
+const usersResponse = await fetch('https://web.monde.com.br/api/v2/people?filter[kind]=user', {
+3. Código hardcoded para usuário específico
+javascript// ❌ LÓGICA MUITO ESPECÍFICA E FRÁGIL
+let currentUser = users.find((user: any) => 
+  user.attributes.name?.toLowerCase().includes('fabio silva') ||
+  user.id === '4298475b-8b2b-4396-9f0c-a534eed4768a' ||
+  user.attributes.login === userLogin
+);
+🔧 SOLUÇÃO - Substitua os endpoints problemáticos:
+Endpoint /api/user/me (linha ~1456) - CORRIGIR:
+javascriptapp.get("/api/user/me", authenticateToken, async (req: any, res) => {
+  try {
+    console.log('📋 Carregando dados do usuário...');
+    
+    // 1. Buscar dados da sessão
+    const sessao = req.sessao;
+    const userData = sessao.user_data || {};
+    
+    // 2. ✅ CORRIGIR: Usar endpoint correto do Monde
+    try {
+      // Tentar primeiro obter dados do usuário atual via token info
+      const meResponse = await fetch("https://web.monde.com.br/api/v2/tokens", {
+        method: "GET", // OU POST conforme a API
+        headers: {
+          "Authorization": `Bearer ${sessao.access_token}`,
+          "Accept": "application/vnd.api+json",
+        },
+      });
+
+      if (meResponse.ok) {
+        const tokenData = await meResponse.json();
+        console.log('✅ Dados do token obtidos:', tokenData);
+        
+        // Usar dados do token para identificar o usuário
+        const userLogin = tokenData.data?.attributes?.login;
+        
+        if (userLogin) {
+          // Buscar o usuário específico pelo login
+          const peopleResponse = await fetch(`https://web.monde.com.br/api/v2/people?page[size]=50`, {
+            headers: {
+              'Authorization': `Bearer ${sessao.access_token}`,
+              'Accept': 'application/vnd.api+json'
+            }
+          });
+          
+          if (peopleResponse.ok) {
+            const peopleData = await peopleResponse.json();
+            
+            // Buscar usuário pelo login ou email
+            const currentUser = peopleData.data?.find((person: any) => 
+              person.attributes?.login === userLogin ||
+              person.attributes?.email?.includes(userLogin) ||
+              (userData.email && person.attributes?.email === userData.email)
+            );
+            
+            if (currentUser) {
+              const userProfile = {
+                id: currentUser.id,
+                name: currentUser.attributes.name || userData.name || userLogin,
+                email: currentUser.attributes.email || userData.email,
+                login: userLogin,
+                role: userData.role || 'admin',
+                phone: currentUser.attributes.phone || '',
+                mobilePhone: currentUser.attributes['mobile-phone'] || '',
+                businessPhone: currentUser.attributes['business-phone'] || '',
+                cpf: currentUser.attributes.cpf || '',
+                rg: currentUser.attributes.rg || '',
+                companyName: currentUser.attributes['company-name'] || ''
+              };
+              
+              console.log('✅ Perfil do usuário encontrado:', userProfile);
+              return res.json({
+                success: true,
+                user: userProfile,
+                session_data: {
+                  empresa_id: req.empresaId
+                }
+              });
+            }
+          }
+        }
+      }
+    } catch (profileError) {
+      console.log('⚠️ Erro ao buscar perfil no Monde:', profileError.message);
+    }
+    
+    // Fallback para dados da sessão
+    const userProfile = {
+      id: userData.id || sessao.id,
+      name: userData.name || userData.login || 'Usuário',
+      email: userData.email || `${userData.login}@empresa.com`,
+      login: userData.login || 'usuario',
+      role: userData.role || 'admin',
+      phone: userData.phone || '',
+      mobilePhone: userData.mobile_phone || '',
+      businessPhone: userData.business_phone || ''
+    };
+    
+    res.json({
+      success: true,
+      user: userProfile,
+      session_data: {
+        empresa_id: req.empresaId
+      }
+    });
+  } catch (error) {
+    console.error("Erro ao carregar dados do usuário:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Erro ao carregar dados do usuário",
+      error: error.message 
+    });
+  }
+});
+Endpoint /api/monde/user-profile (linha ~2744) - CORRIGIR:
+javascriptapp.get('/api/monde/user-profile', authenticateToken, async (req: any, res) => {
+  try {
+    console.log('🔍 Buscando perfil completo do usuário no Monde...');
+    
+    // ✅ ESTRATÉGIA CORRIGIDA: Usar dados da sessão para identificar usuário
+    const sessao = await storage.getSessao(req.sessao.id);
+    const userLogin = sessao?.user_data?.login;
+    const userEmail = sessao?.user_data?.email;
+    
+    if (!userLogin) {
+      console.log('❌ Login do usuário não encontrado na sessão');
+      return res.status(400).json({ error: 'Login do usuário não encontrado' });
+    }
+    
+    // Buscar todas as pessoas e filtrar pelo usuário atual
+    const peopleResponse = await fetch('https://web.monde.com.br/api/v2/people?page[size]=100', {
+      headers: {
+        'Authorization': `Bearer ${req.mondeToken}`,
+        'Accept': 'application/vnd.api+json',
+        'User-Agent': 'Keeptur/1.0'
+      }
+    });
+
+    if (peopleResponse.ok) {
+      const peopleData = await peopleResponse.json();
+      const people = peopleData.data || [];
+      
+      // Buscar o usuário atual com múltiplos critérios
+      const currentUser = people.find((person: any) => {
+        const attrs = person.attributes;
+        return (
+          attrs?.login === userLogin ||
+          attrs?.email === userEmail ||
+          (userEmail && attrs?.email?.toLowerCase() === userEmail.toLowerCase()) ||
+          attrs?.name?.toLowerCase().includes(userLogin?.toLowerCase())
+        );
+      });
+
+      if (currentUser) {
+        console.log('✅ Usuário encontrado:', currentUser.attributes.name);
+        return res.json({
+          data: {
+            id: currentUser.id,
+            type: currentUser.type,
+            attributes: currentUser.attributes
+          }
+        });
+      } else {
+        console.log('⚠️ Usuário não encontrado na lista de pessoas');
+        console.log('🔍 Critérios de busca:', { userLogin, userEmail });
+        console.log('🔍 Primeiras 3 pessoas encontradas:', 
+          people.slice(0, 3).map(p => ({ 
+            name: p.attributes?.name, 
+            email: p.attributes?.email,
+            login: p.attributes?.login 
+          }))
+        );
+      }
+    }
+
+    // Fallback para dados da sessão
+    console.log('⚠️ Usando dados da sessão como fallback');
+    res.json({
+      data: {
+        attributes: sessao?.user_data || {}
+      }
+    });
+  } catch (error) {
+    console.error('Erro ao buscar perfil:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+🎯 PONTOS CRÍTICOS PARA VERIFICAR:
+
+Token válido: Verifique se req.mondeToken está correto
+Login na sessão: Certifique-se que sessao.user_data.login existe
+Endpoint people: Confirme se /api/v2/people retorna dados
+Critérios de busca: Ajuste os critérios de busca do usuário
+
+🔧 DEBUGGING - Adicione logs temporários:
+javascript// Adicione antes da linha 2744
+console.log('🔍 DEBUG - Token:', req.mondeToken ? 'Presente' : 'Ausente');
+console.log('🔍 DEBUG - Sessão ID:', req.sessao.id);
+console.log('🔍 DEBUG - User data:', JSON.stringify(req.sessao.user_data, null, 2));
+O problema principal é que o código assume endpoints da API do Monde que não existem. A correção foca em usar apenas os endpoints documentados (/people, /tokens) e critérios de busca realistas.

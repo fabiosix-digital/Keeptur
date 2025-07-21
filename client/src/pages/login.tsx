@@ -70,7 +70,31 @@ export default function Login() {
         setShowPlanModal(true);
       }
     } catch (error: any) {
-      setErrorMessage(error.message || "Erro de conexão com o servidor");
+      console.error("Login error:", error);
+      
+      // Extrair mensagem de erro e fornecer interface amigável
+      let errorMsg = "Erro de conexão com o servidor";
+      
+      try {
+        if (error.message && error.message.includes('401:')) {
+          const jsonPart = error.message.split('401: ')[1];
+          const errorData = JSON.parse(jsonPart);
+          
+          if (errorData.error_type === 'invalid_credentials') {
+            errorMsg = "Nome de usuário ou senha incorretos.\n\nVerifique suas credenciais e tente novamente.";
+          } else {
+            errorMsg = "Erro de autenticação. Verifique suas credenciais e tente novamente.";
+          }
+        } else if (error.message && error.message.includes('timeout')) {
+          errorMsg = "Conexão demorou para responder.\n\nVerifique sua conexão de internet e tente novamente.";
+        } else {
+          errorMsg = "Erro de autenticação. Verifique suas credenciais e tente novamente.";
+        }
+      } catch (parseError) {
+        errorMsg = "Erro de autenticação. Verifique suas credenciais e tente novamente.";
+      }
+      
+      setErrorMessage(errorMsg);
       setShowErrorModal(true);
     } finally {
       setLoading(false);

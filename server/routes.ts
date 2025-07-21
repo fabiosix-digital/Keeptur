@@ -82,48 +82,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log("🔑 Tentando autenticar com Monde API:", mondeApiUrl);
       
-      // Usar apenas o username fornecido (sem tentar formatos de email)
-      console.log('📋 Tentando login com username:', email);
+      // Formatar login correto conforme documentação da API do Monde
+      // O login deve ser: usuario@dominio.monde.com.br
+      const serverDomain = serverUrl.replace('http://', '').replace('https://', '');
+      const emailParts = email.split('@');
+      const username = emailParts[0];
+      
+      const loginFormats = [
+        `${username}@${serverDomain}`, // Principal: fabiosix@allanacaires.monde.com.br
+        email, // Como fornecido pelo usuário
+      ];
+      
+      console.log('📋 Testando formatos automaticamente:', loginFormats);
       
       let mondeResponse: Response | null = null;
+      let loginUsed = '';
       
-      try {
-        console.log(`🔍 Autenticando username: ${email}`);
-        
-        mondeResponse = await fetch(mondeApiUrl, {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/vnd.api+json",
-            "Accept": "application/vnd.api+json",
-            "User-Agent": "Keeptur/1.0"
-          },
-          body: JSON.stringify({
-            data: {
-              type: "tokens",
-              attributes: {
-                login: email, // Usar o campo email como username
-                password: password
+      // Tentar cada formato de login sequencialmente
+      for (const loginFormat of loginFormats) {
+        try {
+          console.log(`🔍 Tentando: ${loginFormat}`);
+          
+          const testResponse = await fetch(mondeApiUrl, {
+            method: "POST",
+            headers: { 
+              "Content-Type": "application/vnd.api+json",
+              "Accept": "application/vnd.api+json",
+              "User-Agent": "Keeptur/1.0"
+            },
+            body: JSON.stringify({
+              data: {
+                type: "tokens",
+                attributes: {
+                  login: loginFormat,
+                  password: password
+                }
               }
-            }
-          }),
-        });
-        
-        if (!mondeResponse.ok) {
-          const errorText = await mondeResponse.text();
-          console.log(`❌ Login falhou: ${mondeResponse.status} ${errorText}`);
-          return res.status(401).json({ 
-            message: "Nome de usuário ou senha incorretos. Verifique suas credenciais no sistema Monde.",
-            details: "Falha na autenticação",
-            suggestion: "Use apenas seu nome de usuário (sem email) e senha do Monde"
+            }),
           });
+          
+          if (testResponse.ok) {
+            mondeResponse = testResponse;
+            loginUsed = loginFormat;
+            console.log(`✅ Sucesso com: ${loginFormat}`);
+            break;
+          } else {
+            const errorText = await testResponse.text();
+            console.log(`❌ ${loginFormat} falhou: ${testResponse.status}`);
+          }
+        } catch (error) {
+          console.log(`❌ Erro ${loginFormat}:`, error.message);
         }
+      }
+      
+      // Se nenhum formato funcionou
+      if (!mondeResponse) {
+        console.log("❌ Todas as tentativas falharam");
         
-        console.log(`✅ Login bem-sucedido com username: ${email}`);
-      } catch (error) {
-        console.log(`❌ Erro de conexão:`, error);
-        return res.status(500).json({ 
-          message: "Erro de conexão com o servidor Monde",
-          details: error.message
+        return res.status(401).json({ 
+          message: "Credenciais inválidas",
+          error_type: "invalid_credentials",
+          suggestion: "Verifique seu nome de usuário e senha"
         });
       }
 

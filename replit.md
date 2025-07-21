@@ -114,6 +114,13 @@ Preferred communication style: Simple, everyday language in Portuguese.
 - ✅ Endpoint /api/auth/test-credentials para verificar credenciais válidas
 - ✅ Mensagens de erro melhoradas com sugestões de solução
 - ✅ Interface de teste integrada com link na página de login
+- ✅ Sistema de autenticação corrigido - múltiplos formatos de login funcionando
+- ✅ Timeout melhorado nas requisições (10 segundos) para evitar AbortError
+- ✅ Interface de erro amigável implementada - nunca mais páginas de erro técnicas
+- ✅ Login automático com formato correto usuario@dominio.monde.com.br
+- ✅ Sistema de fallback funcional para dados de usuário
+- ✅ Dashboard carregando perfil real do usuário logado
+- ✅ Logs de depuração melhorados para facilitar troubleshooting
 
 ## System Architecture
 

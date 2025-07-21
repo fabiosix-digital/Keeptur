@@ -78,35 +78,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Call Monde API to authenticate using the correct v2 endpoint
       const mondeApiUrl = "https://web.monde.com.br/api/v2/tokens";
       
-      console.log("Tentando autenticar com Monde API:", mondeApiUrl);
-      // Determinar o login correto - usar email diretamente se já contém @, senão concatenar
-      const loginForMonde = email.includes('@') ? email : `${email}@${serverUrl.replace('http://', '').replace('https://', '')}`;
-      console.log("Login sendo usado:", loginForMonde);
+      console.log("🔑 Tentando autenticar com Monde API:", mondeApiUrl);
       
-      const mondeResponse = await fetch(mondeApiUrl, {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/vnd.api+json",
-          "Accept": "application/vnd.api+json",
-          "User-Agent": "Keeptur/1.0"
-        },
-        body: JSON.stringify({
-          data: {
-            type: "tokens",
-            attributes: {
-              login: loginForMonde,
-              password: password
-            }
+      // Testar diferentes formatos de login
+      const serverDomain = serverUrl.replace('http://', '').replace('https://', '');
+      const loginFormats = [
+        email, // Email completo
+        email.split('@')[0], // Apenas o username
+        `${email.split('@')[0]}@${serverDomain}`, // Username + domínio do servidor
+      ];
+      
+      let mondeResponse: Response | null = null;
+      let loginUsed = '';
+      
+      // Tentar cada formato de login
+      for (const loginFormat of loginFormats) {
+        try {
+          console.log(`🔍 Testando login formato: ${loginFormat}`);
+          
+          const testResponse = await fetch(mondeApiUrl, {
+            method: "POST",
+            headers: { 
+              "Content-Type": "application/vnd.api+json",
+              "Accept": "application/vnd.api+json",
+              "User-Agent": "Keeptur/1.0"
+            },
+            body: JSON.stringify({
+              data: {
+                type: "tokens",
+                attributes: {
+                  login: loginFormat,
+                  password: password
+                }
+              }
+            }),
+          });
+          
+          if (testResponse.ok) {
+            mondeResponse = testResponse;
+            loginUsed = loginFormat;
+            console.log(`✅ Login bem-sucedido com formato: ${loginFormat}`);
+            break;
+          } else {
+            const errorText = await testResponse.text();
+            console.log(`❌ Formato ${loginFormat} falhou: ${testResponse.status} ${errorText}`);
           }
-        }),
-      });
-
-      if (!mondeResponse.ok) {
-        const errorText = await mondeResponse.text().catch(() => "Erro desconhecido");
-        console.log("Monde API error:", mondeResponse.status, errorText);
+        } catch (error) {
+          console.log(`❌ Erro ao testar formato ${loginFormat}:`, error);
+        }
+      }
+      
+      // Se nenhum formato funcionou, retornar erro
+      if (!mondeResponse) {
+        console.log("❌ Nenhum formato de login funcionou");
         return res.status(401).json({ 
-          message: "Credenciais inválidas ou servidor inacessível",
-          details: `Status: ${mondeResponse.status}`
+          message: "Credenciais inválidas. Verifique email, senha e servidor.",
+          details: "Todos os formatos de login testados falharam"
         });
       }
 
@@ -114,17 +141,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Extract user info from Monde response
       const mondeToken = mondeData.data.attributes.token;
-      const mondeLogin = mondeData.data.attributes.login;
+      const mondeLogin = mondeData.data.attributes.login || loginUsed;
       const empresaNome = serverUrl.replace('http://', '').replace('https://', '').split('.')[0];
       
+      console.log(`✅ Autenticação bem-sucedida com login: ${loginUsed}`);
       console.log('🔍 Buscando dados reais do usuário após autenticação...');
       
       // Buscar dados reais do usuário da API do Monde
       let realUserData = {
         login: mondeLogin,
-        email: `${email}@${serverUrl.replace('http://', '').replace('https://', '')}`,
+        email: email.includes('@') ? email : `${email}@${serverUrl.replace('http://', '').replace('https://', '')}`,
         role: "admin", 
-        name: mondeLogin
+        name: email.split('@')[0] || mondeLogin
       };
 
       try {

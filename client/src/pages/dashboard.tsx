@@ -1856,19 +1856,27 @@ export default function Dashboard() {
         return;
       }
 
-      // Se está movendo para "completed", abrir modal específica de conclusão
+      // Se está movendo para "completed", usar modal de status change
       if (newStatus === 'completed') {
-        console.log('✅ Abrindo modal de conclusão de tarefa');
-        setTaskToComplete(taskData);
-        setShowCompletionModal(true);
+        console.log('✅ Abrindo modal de mudança de status para concluir');
+        setStatusChangeModal({
+          isOpen: true,
+          task: taskData,
+          newStatus,
+          isReopen: false
+        });
         return;
       }
 
-      // Se está movendo para "archived" (excluir), abrir modal específica de exclusão
+      // Se está movendo para "archived" (excluir), usar modal de status change
       if (newStatus === 'archived') {
-        console.log('✅ Abrindo modal de exclusão de tarefa');
-        setTaskToDelete(taskData);
-        setShowDeletionModal(true);
+        console.log('✅ Abrindo modal de mudança de status para excluir');
+        setStatusChangeModal({
+          isOpen: true,
+          task: taskData,
+          newStatus,
+          isReopen: false
+        });
         return;
       }
 

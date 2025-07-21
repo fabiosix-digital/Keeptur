@@ -1,0 +1,49 @@
+🔥 Drag start iniciado para tarefa: f83a1fb2-f4e4-4389-8e9e-8480fe26fd4d TESTE DE NOVA TAREFA (2)
+Console.js:61 🎯 Drop detectado na coluna: completed
+Console.js:61 📋 Dados da tarefa arrastada: {id: 'f83a1fb2-f4e4-4389-8e9e-8480fe26fd4d', type: 'tasks', links: {…}, attributes: {…}, relationships: {…}, …}
+Console.js:61 📊 Status atual: overdue → Status novo: completed
+Console.js:61 ✅ Abrindo modal de conclusão de tarefa
+Console.js:61 🔍 getTasksByStatus para pending - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "pending" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas PENDENTES (ativas + dentro do prazo + não excluídas): 1
+Console.js:61 🔍 KANBAN COLUNA PENDENTES: 1 tarefas
+Console.js:61   - Teste nome novo
+Console.js:61 🔍 getTasksByStatus para pending - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "pending" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas PENDENTES (ativas + dentro do prazo + não excluídas): 1
+Console.js:61 🔍 getTasksByStatus para pending - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "pending" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas PENDENTES (ativas + dentro do prazo + não excluídas): 1
+Console.js:61 🔍 RENDERIZANDO TAREFAS PENDENTES: 1
+Console.js:61 🔍 getTasksByStatus para overdue - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "overdue" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas ATRASADAS (ativas + prazo vencido + não excluídas): 1
+Console.js:61 🔍 KANBAN COLUNA ATRASADAS: 1 tarefas
+Console.js:61   - TESTE DE NOVA TAREFA (2)
+Console.js:61 🔍 getTasksByStatus para overdue - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "overdue" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas ATRASADAS (ativas + prazo vencido + não excluídas): 1
+Console.js:61 🔍 getTasksByStatus para overdue - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "overdue" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas ATRASADAS (ativas + prazo vencido + não excluídas): 1
+Console.js:61 🔍 RENDERIZANDO TAREFAS ATRASADAS: 1
+Console.js:61 🔍 getTasksByStatus para completed - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "completed" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas REALMENTE CONCLUÍDAS (excluindo as que estão excluídas no Monde): 0
+Console.js:61 🔍 KANBAN COLUNA CONCLUÍDAS: 0 tarefas
+Console.js:61 🔍 getTasksByStatus para completed - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "completed" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas REALMENTE CONCLUÍDAS (excluindo as que estão excluídas no Monde): 0
+Console.js:61 🔍 getTasksByStatus para completed - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "completed" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas REALMENTE CONCLUÍDAS (excluindo as que estão excluídas no Monde): 0
+Console.js:61 🔍 RENDERIZANDO TAREFAS CONCLUÍDAS: 0

@@ -1881,7 +1881,7 @@ export default function Dashboard() {
         isReopen: false
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("❌ Erro no drop:", error);
       console.error("❌ Stack trace:", error.stack);
     }
@@ -1921,7 +1921,7 @@ export default function Dashboard() {
 
       console.log("🔍 Iniciando alteração de status...");
       console.log("📋 Tarefa:", task.id, task.attributes?.title);
-      console.log("🎯 Status atual → novo:", getTaskStatus(task, tasks, []).status, "→", newStatus);
+      console.log("🎯 Status atual → novo:", task.attributes?.completed ? "completed" : "pending", "→", newStatus);
       console.log("🕐 Data/hora:", statusChangeForm.datetime);
       
       // Preparar body da requisição baseado na estrutura esperada pelo servidor
@@ -2006,7 +2006,7 @@ export default function Dashboard() {
         console.log("✅ Processo concluído com sucesso!");
       }, 2000);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("❌ Erro ao alterar status:", error);
       setStatusChangeForm(prev => ({ ...prev, error: `Erro ao alterar status: ${error.message}` }));
     }
@@ -2023,16 +2023,18 @@ export default function Dashboard() {
     }
   };
 
-  // Função auxiliar para obter nome de exibição do status
+  // Função auxiliar para exibir nome amigável do status
   const getStatusDisplayName = (status: string) => {
     switch (status) {
       case "pending": return "Pendente";
       case "overdue": return "Atrasada";
       case "completed": return "Concluída";
       case "archived": return "Excluída";
-      default: return "Pendente";
+      default: return status;
     }
   };
+
+
 
   const renderTasksView = () => (
     <div className="max-w-7xl mx-auto space-y-6">

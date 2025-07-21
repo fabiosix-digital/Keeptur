@@ -31,15 +31,15 @@ export default function Login() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     
-    if (!formData.email) newErrors.email = "Este campo é obrigatório";
-    if (!formData.password) newErrors.password = "Este campo é obrigatório";
+    if (!formData.email) newErrors.email = "Nome de usuário é obrigatório";
+    if (!formData.password) newErrors.password = "Senha é obrigatória";
     if (!formData.serverUrl) {
-      newErrors.serverUrl = "Digite uma URL válida";
+      newErrors.serverUrl = "URL do servidor é obrigatória";
     } else {
       try {
         new URL(formData.serverUrl);
       } catch {
-        newErrors.serverUrl = "Digite uma URL válida";
+        newErrors.serverUrl = "Digite uma URL válida (ex: https://suaempresa.monde.com.br)";
       }
     }
     
@@ -106,7 +106,7 @@ export default function Login() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <Label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              E-mail ou nome de usuário
+              Nome de usuário
             </Label>
             <div className="input-group relative">
               <User className="input-icon w-5 h-5" />
@@ -116,7 +116,7 @@ export default function Login() {
                 value={formData.email}
                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                 className={`form-input input-with-icon pl-10 pr-3 py-3 ${errors.email ? 'error' : ''}`}
-                placeholder="Digite seu e-mail ou usuário"
+                placeholder="Digite seu nome de usuário"
                 required
               />
             </div>
@@ -276,7 +276,7 @@ export default function Login() {
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
             <h3 className="text-lg font-semibold text-amber-800 mb-2">⚠️ Dados para Login:</h3>
             <ul className="list-disc list-inside space-y-1 text-amber-700">
-              <li><strong>Email ou Username:</strong> Use seu nome de usuário do Monde</li>
+              <li><strong>Nome de Usuário:</strong> Use apenas seu username do Monde (não use email)</li>
               <li><strong>Senha:</strong> A mesma senha que você usa no Monde</li>
               <li><strong>Servidor:</strong> URL do seu sistema Monde</li>
             </ul>

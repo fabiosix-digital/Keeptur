@@ -82,71 +82,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log("🔑 Tentando autenticar com Monde API:", mondeApiUrl);
       
-      // Testar diferentes formatos de login baseado na documentação do Monde
-      const serverDomain = serverUrl.replace('http://', '').replace('https://', '');
-      const emailParts = email.split('@');
-      const username = emailParts[0];
-      
-      const loginFormats = [
-        email, // Email completo como fornecido
-        `${username}@${serverDomain}`, // Username + domínio do servidor Monde
-        email.includes('@') ? email : `${email}@${serverDomain}`, // Garantir formato email
-      ];
-      
-      // Log de debug para verificar formatos
-      console.log('📋 Formatos de login que serão testados:', loginFormats);
+      // Usar apenas o username fornecido (sem tentar formatos de email)
+      console.log('📋 Tentando login com username:', email);
       
       let mondeResponse: Response | null = null;
-      let loginUsed = '';
       
-      // Tentar cada formato de login
-      for (const loginFormat of loginFormats) {
-        try {
-          console.log(`🔍 Testando login formato: ${loginFormat}`);
-          
-          const testResponse = await fetch(mondeApiUrl, {
-            method: "POST",
-            headers: { 
-              "Content-Type": "application/vnd.api+json",
-              "Accept": "application/vnd.api+json",
-              "User-Agent": "Keeptur/1.0"
-            },
-            body: JSON.stringify({
-              data: {
-                type: "tokens",
-                attributes: {
-                  login: loginFormat,
-                  password: password
-                }
-              }
-            }),
-          });
-          
-          if (testResponse.ok) {
-            mondeResponse = testResponse;
-            loginUsed = loginFormat;
-            console.log(`✅ Login bem-sucedido com formato: ${loginFormat}`);
-            break;
-          } else {
-            const errorText = await testResponse.text();
-            console.log(`❌ Formato ${loginFormat} falhou: ${testResponse.status} ${errorText}`);
-          }
-        } catch (error) {
-          console.log(`❌ Erro ao testar formato ${loginFormat}:`, error);
-        }
-      }
-      
-      // Se nenhum formato funcionou, retornar erro detalhado
-      if (!mondeResponse) {
-        console.log("❌ Nenhum formato de login funcionou");
-        console.log("💡 Sugestão: Verifique se as credenciais estão corretas e se o usuário tem acesso ao sistema Monde");
-        console.log("📋 Formatos testados:", loginFormats);
+      try {
+        console.log(`🔍 Autenticando username: ${email}`);
         
-        return res.status(401).json({ 
-          message: "Credenciais inválidas. Verifique email, senha e servidor.",
-          details: "Todos os formatos de login testados falharam",
-          tested_formats: loginFormats,
-          suggestion: "Verifique se o usuário tem permissão de acesso total no sistema Monde"
+        mondeResponse = await fetch(mondeApiUrl, {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/vnd.api+json",
+            "Accept": "application/vnd.api+json",
+            "User-Agent": "Keeptur/1.0"
+          },
+          body: JSON.stringify({
+            data: {
+              type: "tokens",
+              attributes: {
+                login: email, // Usar o campo email como username
+                password: password
+              }
+            }
+          }),
+        });
+        
+        if (!mondeResponse.ok) {
+          const errorText = await mondeResponse.text();
+          console.log(`❌ Login falhou: ${mondeResponse.status} ${errorText}`);
+          return res.status(401).json({ 
+            message: "Nome de usuário ou senha incorretos. Verifique suas credenciais no sistema Monde.",
+            details: "Falha na autenticação",
+            suggestion: "Use apenas seu nome de usuário (sem email) e senha do Monde"
+          });
+        }
+        
+        console.log(`✅ Login bem-sucedido com username: ${email}`);
+      } catch (error) {
+        console.log(`❌ Erro de conexão:`, error);
+        return res.status(500).json({ 
+          message: "Erro de conexão com o servidor Monde",
+          details: error.message
         });
       }
 
@@ -1320,7 +1297,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Tentar buscar dados completos do perfil no Monde
       try {
-        const userProfileResponse = await fetch("https://web.monde.com.br/api/v2/user", {
+        const userProfileResponse = await fetch("https://web.monde.com.br/api/v2/people", {
           method: "GET",
           headers: {
             "Content-Type": "application/vnd.api+json",
@@ -1331,36 +1308,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         if (userProfileResponse.ok) {
           const profileData = await userProfileResponse.json();
-          const mondeProfile = profileData.data?.attributes || {};
           
-          console.log('✅ Perfil do Monde carregado:', mondeProfile);
+          // Buscar o usuário atual na lista de pessoas retornadas
+          const currentUser = profileData.data?.find((person: any) => 
+            person.attributes?.email === userData.email || 
+            person.id === userData.id ||
+            person.attributes?.name?.toLowerCase().includes(userData.login?.toLowerCase())
+          );
           
-          // Usar dados do Monde como prioridade
-          const userProfile = {
-            id: userData.id || sessao.id,
-            name: mondeProfile.name || userData.name || userData.login || 'Usuário',
-            email: mondeProfile.email || userData.email || `${userData.login}@${req.sessao.server_domain || 'monde.com.br'}`,
-            login: userData.login || 'usuario',
-            role: userData.role || 'admin',
-            phone: mondeProfile.phone || userData.phone || '',
-            mobilePhone: mondeProfile['mobile-phone'] || userData.mobile_phone || '',
-            businessPhone: mondeProfile['business-phone'] || userData.business_phone || '',
-            cpf: mondeProfile.cpf || '',
-            rg: mondeProfile.rg || '',
-            companyName: mondeProfile['company-name'] || ''
-          };
-          
-          console.log('✅ Perfil completo mesclado:', userProfile);
-          
-          res.json({
-            success: true,
-            user: userProfile,
-            session_data: {
-              server_domain: req.sessao.server_domain,
-              empresa_id: req.empresaId
-            }
-          });
-          return;
+          if (currentUser) {
+            const mondeProfile = currentUser.attributes || {};
+            console.log('✅ Perfil do usuário atual encontrado no Monde:', mondeProfile);
+            
+            // Usar dados do Monde como prioridade
+            const userProfile = {
+              id: userData.id || sessao.id,
+              name: mondeProfile.name || userData.name || userData.login || 'Usuário',
+              email: mondeProfile.email || userData.email || `${userData.login}@${req.sessao.server_domain || 'monde.com.br'}`,
+              login: userData.login || 'usuario',
+              role: userData.role || 'admin',
+              phone: mondeProfile.phone || userData.phone || '',
+              mobilePhone: mondeProfile['mobile-phone'] || userData.mobile_phone || '',
+              businessPhone: mondeProfile['business-phone'] || userData.business_phone || '',
+              cpf: mondeProfile.cpf || '',
+              rg: mondeProfile.rg || '',
+              companyName: mondeProfile['company-name'] || ''
+            };
+            
+            console.log('✅ Perfil completo mesclado:', userProfile);
+            
+            res.json({
+              success: true,
+              user: userProfile,
+              session_data: {
+                server_domain: req.sessao.server_domain,
+                empresa_id: req.empresaId
+              }
+            });
+            return;
+          } else {
+            console.log('⚠️ Usuário atual não encontrado na lista de pessoas, usando dados da sessão');
+          }
         }
       } catch (profileError) {
         console.log('⚠️ Erro ao buscar perfil no Monde, usando dados da sessão:', profileError.message);

@@ -943,9 +943,10 @@ export default function Dashboard() {
       // Salvar dados incluídos no localStorage para uso nas funções getPerson
       localStorage.setItem('lastTasksResponse', JSON.stringify(data));
       
-      // 🚨 SIMPLIFICAÇÃO: API do Monde não tem tarefas excluídas (hard delete)
-      // Retornar apenas as tarefas ativas/concluídas da resposta
-      console.log('✅ Sistema simplificado: usando apenas tarefas da API (ativas + concluídas)');
+      // SALVAR TODAS AS TAREFAS EM ALLTASKS
+      setAllTasks(data.data || []);
+      console.log('✅ Tarefas salvas em allTasks:', data.data?.length || 0);
+      
       return data;
     } catch (error) {
       console.error("Erro ao carregar tarefas:", error);
@@ -1433,19 +1434,10 @@ export default function Dashboard() {
 
   // 🚨 FUNÇÃO CORRIGIDA: Evitar duplicação e usar dados corretos
   const getFilteredTasksWithStatus = () => {
-    // 🚨 SIMPLIFICAÇÃO TOTAL: Usar apenas as tarefas já filtradas do servidor
-    let filtered = tasks || [];
+    // 🚨 USAR TODAS AS TAREFAS CARREGADAS (allTasks tem os dados)
+    let filtered = allTasks || [];
     
-    // Remover duplicatas por ID (se houver)
-    const uniqueTasksMap = new Map();
-    filtered.forEach((task: any) => {
-      if (task && task.id && !uniqueTasksMap.has(task.id)) {
-        uniqueTasksMap.set(task.id, task);
-      }
-    });
-    filtered = Array.from(uniqueTasksMap.values());
-    
-    console.log('🔄 Usando tarefas do servidor (já filtradas):', filtered.length);
+    console.log('🔄 Usando TODAS as tarefas carregadas:', filtered.length);
 
     // Aplicar filtros secundários
     if (selectedCategory && selectedCategory !== 'all') {
@@ -1503,7 +1495,7 @@ export default function Dashboard() {
 
   // Função para organizar tarefas por categoria (colunas do Kanban)
   const getTasksByCategory = (categoryId: string) => {
-    const filteredTasks = getFilteredTasksWithStatus();
+    const filteredTasks = allTasks || [];
 
     if (categoryId === "sem-categoria") {
       return filteredTasks.filter(
@@ -1518,8 +1510,8 @@ export default function Dashboard() {
 
   // 🚨 FUNÇÃO CORRIGIDA: Detectar tarefas realmente excluídas vs concluídas
   const getTasksByStatus = (status: string) => {
-    // Usar tarefas filtradas (que já remove duplicatas)
-    const filteredTasks = getFilteredTasksWithStatus();
+    // Usar todas as tarefas disponíveis (que já remove duplicatas)
+    const filteredTasks = allTasks || [];
     
     console.log('🔍 getTasksByStatus para', status, '- total de tarefas:', filteredTasks.length);
     
@@ -1607,7 +1599,7 @@ export default function Dashboard() {
 
   // Função para organizar tarefas por data (para calendário)
   const getTasksByDate = (date: Date) => {
-    const filteredTasks = getFilteredTasksWithStatus();
+    const filteredTasks = allTasks || [];
     return filteredTasks.filter((task: any) => {
       if (!task.attributes.due) return false;
       const taskDate = new Date(task.attributes.due);
@@ -2509,10 +2501,7 @@ export default function Dashboard() {
                     </span>
                   </div>
                   <div
-                    className={`space-y-3 ${getFilteredTasksWithStatus().filter(task => {
-                      const { status } = getTaskStatus(task);
-                      return status === "pending";
-                    }).length === 0 ? 'min-h-[80px]' : 'min-h-[120px]'}`}
+                    className={`space-y-3 ${getTasksByStatus("pending").length === 0 ? 'min-h-[80px]' : 'min-h-[120px]'}`}
                     onDrop={(e) => handleDrop(e, "pending")}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}

@@ -15,11 +15,9 @@ const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "461957019207-4pv2ra29c
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "";
 // Configurar redirect URI automaticamente baseado no ambiente
 const getRedirectUri = () => {
-  if (process.env.REPLIT_DEPLOYMENT) {
-    return `${process.env.REPLIT_DEPLOYMENT}/auth/google/callback`;
-  }
-  if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
-    return `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.replit.dev/auth/google/callback`;
+  // Para Replit, usar a URL correta do workspace
+  if (process.env.REPL_OWNER) {
+    return `https://${process.env.REPL_OWNER}.replit.app/auth/google/callback`;
   }
   return "http://localhost:5000/auth/google/callback";
 };
@@ -3087,6 +3085,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("🔑 GOOGLE_CLIENT_ID:", GOOGLE_CLIENT_ID ? "✓ Configurado" : "❌ Não configurado");
       console.log("🔑 GOOGLE_CLIENT_SECRET:", GOOGLE_CLIENT_SECRET ? "✓ Configurado" : "❌ Não configurado");
       console.log("🔗 GOOGLE_REDIRECT_URI:", GOOGLE_REDIRECT_URI);
+      console.log("🌐 REPL_OWNER:", process.env.REPL_OWNER);
+      console.log("🌐 REPL_SLUG:", process.env.REPL_SLUG);
       
       if (!GOOGLE_CLIENT_SECRET) {
         console.log("❌ GOOGLE_CLIENT_SECRET não configurado");

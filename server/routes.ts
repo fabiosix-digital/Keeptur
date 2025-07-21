@@ -115,6 +115,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const mondeLogin = mondeData.data.attributes.login;
       const empresaNome = serverUrl.replace('http://', '').replace('https://', '').split('.')[0];
       
+      console.log('🔍 Buscando dados reais do usuário após autenticação...');
+      
+      // Buscar dados reais do usuário da API do Monde
+      let realUserData = {
+        login: mondeLogin,
+        email: `${email}@${serverUrl.replace('http://', '').replace('https://', '')}`,
+        role: "admin", 
+        name: mondeLogin
+      };
+
+      try {
+        // Tentar buscar perfil real do usuário
+        const profileResponse = await fetch('https://web.monde.com.br/api/v2/people/me?include=city,creator,company', {
+          headers: {
+            'Authorization': `Bearer ${mondeToken}`,
+            'Accept': 'application/vnd.api+json',
+            'User-Agent': 'Keeptur/1.0'
+          }
+        });
+
+        if (profileResponse.ok) {
+          const profileData = await profileResponse.json();
+          const attrs = profileData.data?.attributes || {};
+          
+          realUserData = {
+            login: mondeLogin,
+            email: attrs.email || `${email}@${serverUrl.replace('http://', '').replace('https://', '')}`,
+            role: "admin",
+            name: attrs.name || mondeLogin,
+            phone: attrs.phone || '',
+            mobilePhone: attrs['mobile-phone'] || '',
+            businessPhone: attrs['business-phone'] || '',
+            cpf: attrs.cpf || '',
+            rg: attrs.rg || '',
+            birthDate: attrs['birth-date'] || '',
+            gender: attrs.gender || '',
+            companyName: attrs['company-name'] || '',
+            cnpj: attrs.cnpj || '',
+            address: attrs.address || '',
+            number: attrs.number || '',
+            complement: attrs.complement || '',
+            district: attrs.district || '',
+            zip: attrs.zip || '',
+            observations: attrs.observations || '',
+            website: attrs.website || '',
+            code: attrs.code || '',
+            registeredAt: attrs['registered-at'] || '',
+            kind: attrs.kind || 'individual'
+          };
+          
+          console.log('✅ Dados reais do usuário carregados:', realUserData.name);
+        } else {
+          console.log('⚠️ Não foi possível buscar perfil real, usando dados básicos');
+        }
+      } catch (profileError) {
+        console.log('⚠️ Erro ao buscar perfil real:', profileError);
+      }
+      
       // Create empresa if it doesn't exist
       if (!empresa) {
         empresa = await storage.createEmpresa({
@@ -127,19 +185,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if plan is active
       const planActive = await storage.isEmpresaPlanActive(empresa.id);
       
-      // Create or update session
+      // Create or update session with real user data
       const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour (Monde token expires in 1 hour)
       const sessao = await storage.createSessao({
         empresa_id: empresa.id,
         access_token: mondeToken,
         refresh_token: "", // Monde doesn't provide refresh tokens
         expires_at: expiresAt,
-        user_data: {
-          login: mondeLogin,
-          email: `${email}@${serverUrl.replace('http://', '').replace('https://', '')}`,
-          role: "admin",
-          name: mondeLogin
-        },
+        user_data: realUserData,
       });
 
       // Generate local JWT token
@@ -3307,13 +3360,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Tentar endpoint alternativo /api/v2/me
         try {
-          response = await fetch('https://web.monde.com.br/api/v2/me', {
+          const altResponse = await fetch('https://web.monde.com.br/api/v2/me', {
             headers: {
               'Authorization': `Bearer ${req.mondeToken}`,
               'Accept': 'application/vnd.api+json',
               'User-Agent': 'Keeptur/1.0'
             }
           });
+          response = altResponse;
         } catch (altError) {
           console.log('❌ Endpoint alternativo também falhou');
         }

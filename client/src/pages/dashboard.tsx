@@ -229,7 +229,39 @@ export default function Dashboard() {
   const [cities, setCities] = useState<any[]>([]);
   const [loadingCities, setLoadingCities] = useState(false);
   const [savingPerson, setSavingPerson] = useState(false);
+  const [realUserData, setRealUserData] = useState<any>(null);
 
+  // Função para carregar dados reais do usuário
+  const loadRealUserProfile = async () => {
+    try {
+      const response = await fetch('/api/monde/user-profile', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const userData = {
+          name: data.data.attributes.name || user?.name || 'Usuário',
+          email: data.data.attributes.email || user?.email || '',
+          phone: data.data.attributes.phone || '',
+          mobilePhone: data.data.attributes.mobilePhone || '',
+          businessPhone: data.data.attributes.businessPhone || '',
+          cpf: data.data.attributes.cpf || '',
+          role: user?.role || 'admin'
+        };
+        setRealUserData(userData);
+        console.log('✅ Perfil real carregado:', userData);
+      } else {
+        console.log('⚠️ Não foi possível carregar perfil real, usando dados da sessão');
+        setRealUserData(user);
+      }
+    } catch (error) {
+      console.log('⚠️ Erro ao carregar perfil real:', error);
+      setRealUserData(user);
+    }
+  };
 
   // Debounce timeout ref
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -868,6 +900,9 @@ export default function Dashboard() {
         
         // Marcar como inicializado
         setIsInitialized(true);
+        
+        // Carregar dados reais do usuário
+        loadRealUserProfile();
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
       } finally {
@@ -1951,7 +1986,7 @@ export default function Dashboard() {
           className="text-2xl font-semibold"
           style={{ color: "var(--text-primary)" }}
         >
-          Bem-vindo, {user?.name}! 👋
+          Bem-vindo, {realUserData?.name || user?.name}! 👋
         </h2>
         <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
           Aqui está um resumo das suas tarefas para hoje,{" "}
@@ -5085,14 +5120,14 @@ export default function Dashboard() {
             <div className="relative">
               <button className="flex items-center space-x-3 p-1 rounded-lg theme-toggle rounded-button">
                 <div className="w-8 h-8 rounded-full stats-card flex items-center justify-center text-white font-medium text-sm">
-                  {user?.name?.charAt(0).toUpperCase() || "U"}
+                  {(realUserData?.name || user?.name)?.charAt(0).toUpperCase() || "U"}
                 </div>
                 <div className="hidden md:block text-left">
                   <p
                     className="text-sm font-medium"
                     style={{ color: "var(--text-primary)" }}
                   >
-                    {user?.name}
+                    {realUserData?.name || user?.name}
                   </p>
                   <p
                     className="text-xs"

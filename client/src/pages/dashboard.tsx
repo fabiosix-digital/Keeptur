@@ -5333,10 +5333,10 @@ export default function Dashboard() {
 
       {/* Modal de cadastro - Pessoa Física */}
       {showPersonFisicaModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full mx-4 max-h-[85vh] overflow-hidden">
-            <div className="p-4 border-b flex justify-between items-center">
-              <h2 className="text-xl font-semibold">👤 Cadastrar Pessoa Física</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
+            <div className="p-3 border-b flex justify-between items-center">
+              <h2 className="text-lg font-semibold">👤 Cadastrar Pessoa Física</h2>
               <button
                 onClick={() => setShowPersonFisicaModal(false)}
                 className="text-gray-500 hover:text-gray-700"
@@ -5345,53 +5345,56 @@ export default function Dashboard() {
               </button>
             </div>
             
-            <form onSubmit={submitPersonFisica} className="overflow-y-auto max-h-[calc(85vh-120px)]">
-              <div className="p-4 space-y-4">
-                {/* Dados Pessoais - Layout compacto */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                  <div className="lg:col-span-3">
+            <form onSubmit={submitPersonFisica} className="overflow-y-auto max-h-[calc(90vh-100px)]">
+              <div className="p-3 space-y-3">
+                {/* Dados Pessoais - Layout ultra compacto */}
+                <div className="grid grid-cols-8 gap-2">
+                  <div className="col-span-4">
                     <label className="block text-xs font-medium mb-1">Nome: *</label>
-                    <input name="name" type="text" required className="w-full px-2 py-1.5 text-sm border rounded" />
+                    <input name="name" type="text" required className="w-full px-2 py-1 text-xs border rounded" />
                   </div>
                   
                   <div>
                     <label className="block text-xs font-medium mb-1">Sexo:</label>
-                    <select name="sex" className="w-full px-2 py-1.5 text-sm border rounded">
+                    <select name="sex" className="w-full px-2 py-1 text-xs border rounded">
                       <option value="">Selecione</option>
                       <option value="M">Masculino</option>
                       <option value="F">Feminino</option>
                     </select>
                   </div>
                   
-                  <div className="flex items-center mt-5">
-                    <input name="foreign" type="checkbox" id="estrangeiro-pf" className="mr-2" />
-                    <label htmlFor="estrangeiro-pf" className="text-xs">Estrangeiro</label>
+                  <div>
+                    <label className="block text-xs font-medium mb-1">CPF: *</label>
+                    <input name="cpf" type="text" required className="w-full px-2 py-1 text-xs border rounded" />
                   </div>
                   
                   <div>
-                    <label className="block text-xs font-medium mb-1">Código:</label>
-                    <input name="code" type="number" disabled className="w-full px-2 py-1.5 text-sm border rounded bg-gray-100" placeholder="Automático" />
+                    <label className="block text-xs font-medium mb-1">RG:</label>
+                    <input name="rg" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                  </div>
+                  
+                  <div className="flex items-center mt-5">
+                    <input name="foreign" type="checkbox" id="estrangeiro-pf" className="mr-1" />
+                    <label htmlFor="estrangeiro-pf" className="text-xs">Estrangeiro</label>
                   </div>
                 </div>
 
-                {/* Documentos */}
-                <div className="border-t pt-3">
-                  <h4 className="text-sm font-medium mb-2">Documentos</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium mb-1">CPF:</label>
-                      <input name="cpf" type="text" placeholder="000.000.000-00" className="w-full px-2 py-1.5 text-sm border rounded" />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-medium mb-1">RG:</label>
-                      <input name="rg" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-medium mb-1">Passport:</label>
-                      <input name="passport" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
-                    </div>
+                {/* Documentos e Datas */}
+                <div className="grid grid-cols-6 gap-2">
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Data Nascimento:</label>
+                    <input name="birthDate" type="date" className="w-full px-2 py-1 text-xs border rounded" />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Passaporte:</label>
+                    <input name="passportNumber" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Validade Pass.:</label>
+                    <input name="passportExpiration" type="date" className="w-full px-2 py-1 text-xs border rounded" />
+                  </div>
                     
                     <div>
                       <label className="block text-xs font-medium mb-1">Data Nascimento:</label>
@@ -5531,6 +5534,145 @@ export default function Dashboard() {
                   Cancelar
                 </button>
                 <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" disabled={savingPerson}>
+                  {savingPerson ? 'Salvando...' : 'Salvar'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de cadastro - Pessoa Jurídica */}
+      {showPersonJuridicaModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
+            <div className="p-3 border-b flex justify-between items-center">
+              <h2 className="text-lg font-semibold">🏢 Cadastrar Pessoa Jurídica</h2>
+              <button
+                onClick={() => setShowPersonJuridicaModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <i className="ri-close-line text-xl"></i>
+              </button>
+            </div>
+            
+            <form onSubmit={submitPersonJuridica} className="overflow-y-auto max-h-[calc(90vh-100px)]">
+              <div className="p-3 space-y-3">
+                {/* Dados da Empresa - Layout ultra compacto */}
+                <div className="grid grid-cols-6 gap-2">
+                  <div className="col-span-3">
+                    <label className="block text-xs font-medium mb-1">Razão Social: *</label>
+                    <input name="companyName" type="text" required className="w-full px-2 py-1 text-xs border rounded" />
+                  </div>
+                  
+                  <div className="col-span-2">
+                    <label className="block text-xs font-medium mb-1">Nome Fantasia:</label>
+                    <input name="name" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium mb-1">CNPJ: *</label>
+                    <input name="cnpj" type="text" required className="w-full px-2 py-1 text-xs border rounded" />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Insc. Estadual:</label>
+                    <input name="stateInscription" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Insc. Municipal:</label>
+                    <input name="cityInscription" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Data Fundação:</label>
+                    <input name="foundedDate" type="date" className="w-full px-2 py-1 text-xs border rounded" />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Código:</label>
+                    <input name="code" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                  </div>
+                  
+                  <div className="col-span-2">
+                    <label className="block text-xs font-medium mb-1">Website:</label>
+                    <input name="website" type="url" className="w-full px-2 py-1 text-xs border rounded" />
+                  </div>
+                </div>
+
+                {/* Endereço */}
+                <div className="grid grid-cols-8 gap-2">
+                  <div className="col-span-4">
+                    <label className="block text-xs font-medium mb-1">Endereço:</label>
+                    <input name="address" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Número:</label>
+                    <input name="number" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                  </div>
+                  
+                  <div className="col-span-2">
+                    <label className="block text-xs font-medium mb-1">Complemento:</label>
+                    <input name="complement" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium mb-1">CEP:</label>
+                    <input name="zip" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                  </div>
+                  
+                  <div className="col-span-2">
+                    <label className="block text-xs font-medium mb-1">Bairro:</label>
+                    <input name="district" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                  </div>
+                  
+                  <div className="col-span-2">
+                    <label className="block text-xs font-medium mb-1">Cidade:</label>
+                    <select name="cityId" className="w-full px-2 py-1 text-xs border rounded">
+                      <option value="">Selecione</option>
+                      {cities.map((city: any) => (
+                        <option key={city.id} value={city.id}>{city.attributes.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Contato */}
+                <div className="grid grid-cols-4 gap-2">
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Tel. Comercial:</label>
+                    <input name="businessPhone" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Celular:</label>
+                    <input name="mobilePhone" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                  </div>
+                  
+                  <div className="col-span-2">
+                    <label className="block text-xs font-medium mb-1">E-mail:</label>
+                    <input name="email" type="email" className="w-full px-2 py-1 text-xs border rounded" />
+                  </div>
+                </div>
+
+                {/* Observações */}
+                <div>
+                  <label className="block text-xs font-medium mb-1">Observações:</label>
+                  <textarea name="observations" rows={2} className="w-full px-2 py-1 text-xs border rounded"></textarea>
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-2 mt-3 p-3 border-t">
+                <button
+                  type="button"
+                  onClick={() => setShowPersonJuridicaModal(false)}
+                  className="px-3 py-1.5 text-xs border border-gray-300 rounded hover:bg-gray-50"
+                >
+                  Cancelar
+                </button>
+                <button type="submit" className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700" disabled={savingPerson}>
                   {savingPerson ? 'Salvando...' : 'Salvar'}
                 </button>
               </div>

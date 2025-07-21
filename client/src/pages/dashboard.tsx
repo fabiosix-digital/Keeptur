@@ -56,6 +56,22 @@ export default function Dashboard() {
   const [reopenDate, setReopenDate] = useState('');
   const [reopenTime, setReopenTime] = useState('');
   const [reopenNote, setReopenNote] = useState('');
+  
+  // Estado para modal de mudança de status (drag and drop)
+  const [statusChangeModal, setStatusChangeModal] = useState({
+    isOpen: false,
+    task: null as any,
+    newStatus: "",
+    isReopen: false
+  });
+  
+  // Estado para formulário de mudança de status
+  const [statusChangeForm, setStatusChangeForm] = useState({
+    datetime: "",
+    comment: "",
+    success: "",
+    error: ""
+  });
   const [clientsCurrentPage, setClientsCurrentPage] = useState(1);
   const [clientsHasMore, setClientsHasMore] = useState(false);
   const [showCompletedTasks, setShowCompletedTasks] = useState(false);
@@ -1769,20 +1785,7 @@ export default function Dashboard() {
     logout();
   };
 
-  // Estado para modal de mudança de status
-  const [statusChangeModal, setStatusChangeModal] = useState({
-    isOpen: false,
-    task: null as any,
-    newStatus: "" as string,
-    isReopen: false
-  });
 
-  const [statusChangeForm, setStatusChangeForm] = useState({
-    datetime: "",
-    comment: "",
-    success: "",
-    error: ""
-  });
 
   // Função para drag start
   const handleDragStart = (e: React.DragEvent, task: any) => {
@@ -6449,6 +6452,98 @@ export default function Dashboard() {
               >
                 <i className="ri-user-shared-line mr-2"></i>
                 Transferir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Mudança de Status (Drag and Drop) */}
+      {statusChangeModal.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
+                <i className="ri-drag-move-line mr-2 text-blue-600"></i>
+                {statusChangeModal.isReopen ? 'Reabrir Tarefa' : 'Alterar Status'}
+              </h3>
+              <button
+                onClick={() => {
+                  setStatusChangeModal({ isOpen: false, task: null, newStatus: "", isReopen: false });
+                  setStatusChangeForm({ datetime: "", comment: "", success: "", error: "" });
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <i className="ri-close-line text-xl"></i>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <h4 className="font-medium text-sm mb-1" style={{ color: "var(--text-primary)" }}>
+                  {statusChangeModal.task?.attributes?.title}
+                </h4>
+                <p className="text-xs text-blue-600 dark:text-blue-300">
+                  {statusChangeModal.isReopen 
+                    ? 'Esta tarefa será reaberta e movida para ativa'
+                    : `Mudando status para: ${statusChangeModal.newStatus}`
+                  }
+                </p>
+              </div>
+
+              {statusChangeForm.error && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-red-700 text-sm">{statusChangeForm.error}</p>
+                </div>
+              )}
+
+              {statusChangeForm.success && (
+                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-green-700 text-sm">{statusChangeForm.success}</p>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  {statusChangeModal.isReopen ? 'Nova Data e Hora:' : 'Data e Hora:'}
+                </label>
+                <input
+                  type="datetime-local"
+                  value={statusChangeForm.datetime}
+                  onChange={(e) => setStatusChangeForm(prev => ({ ...prev, datetime: e.target.value }))}
+                  className="w-full px-3 py-2 border rounded-lg"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  {statusChangeModal.isReopen ? 'Motivo da Reabertura:' : 'Comentário:'}
+                </label>
+                <textarea
+                  value={statusChangeForm.comment}
+                  onChange={(e) => setStatusChangeForm(prev => ({ ...prev, comment: e.target.value }))}
+                  placeholder={statusChangeModal.isReopen ? 'Por que esta tarefa está sendo reaberta?' : 'Adicione um comentário sobre esta mudança'}
+                  className="w-full px-3 py-2 border rounded-lg h-20 resize-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => {
+                  setStatusChangeModal({ isOpen: false, task: null, newStatus: "", isReopen: false });
+                  setStatusChangeForm({ datetime: "", comment: "", success: "", error: "" });
+                }}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleStatusChange}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                <i className={`${statusChangeModal.isReopen ? 'ri-refresh-line' : 'ri-check-line'} mr-2`}></i>
+                {statusChangeModal.isReopen ? 'Reabrir' : 'Confirmar'}
               </button>
             </div>
           </div>

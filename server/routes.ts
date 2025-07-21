@@ -1057,6 +1057,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Para tarefas excluídas, primeiro tentar reativá-las
       const mondeUrl = `https://web.monde.com.br/api/v2/tasks/${taskId}`;
       
+      // Validar dados recebidos
+      if (!req.body.title || !req.body.due) {
+        return res.status(400).json({ 
+          message: "Título e data são obrigatórios para reabertura" 
+        });
+      }
+
       const requestBody = {
         data: {
           type: "tasks",
@@ -1065,8 +1072,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             title: req.body.title,
             description: req.body.description || '',
             due: req.body.due,
-            completed: false, // Sempre false para reabertura
-            archived: false   // Tentar desarquivar
+            completed: false // Sempre false para reabertura
           }
         }
       };

@@ -1,10 +1,15 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
+import { useAuth } from "../lib/auth";
+import { useTheme } from "../hooks/use-theme";
+import logoFull from "@assets/LOGO Lilas_1752695672079.png";
+import logoIcon from "@assets/ico Lilas_1752695703171.png";
 
 export default function Settings() {
   const [, setLocation] = useLocation();
+  const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [activeTab, setActiveTab] = useState("perfil");
-  const [user, setUser] = useState<any>(null);
   const [googleConnected, setGoogleConnected] = useState(false);
   const [googleEmail, setGoogleEmail] = useState("");
   const [syncEnabled, setSyncEnabled] = useState(false);
@@ -12,12 +17,6 @@ export default function Settings() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
-    // Carregar dados do usuário
-    const userData = localStorage.getItem('keeptur-user');
-    if (userData) {
-      setUser(JSON.parse(userData));
-    }
-
     // Verificar status de conexão do Google
     checkGoogleConnection();
   }, []);
@@ -331,29 +330,18 @@ export default function Settings() {
             style={{ color: "var(--logo-color)" }}
           >
             {sidebarCollapsed ? (
-              <div className="w-8 h-8 flex items-center justify-center">
-                <svg
-                  width="32"
-                  height="32"
-                  viewBox="0 0 200 100"
-                  fill="currentColor"
-                  className="keeptur-logo-icon"
-                >
-                  <rect x="20" y="30" width="160" height="40" rx="20" />
-                </svg>
-              </div>
+              <img
+                src={logoIcon}
+                alt="Keeptur"
+                className="w-8 h-8 object-contain"
+              />
             ) : (
               <div className="flex items-center space-x-3">
-                <svg
-                  width="40"
-                  height="20"
-                  viewBox="0 0 200 100"
-                  fill="currentColor"
-                  className="keeptur-logo-full"
-                >
-                  <rect x="20" y="30" width="160" height="40" rx="20" />
-                </svg>
-                <span>Keeptur</span>
+                <img
+                  src={logoFull}
+                  alt="Keeptur"
+                  className="h-8 object-contain"
+                />
               </div>
             )}
           </button>
@@ -413,6 +401,16 @@ export default function Settings() {
               </div>
             )}
           </div>
+
+          <button
+            onClick={logout}
+            className="menu-item flex items-center px-3 py-2.5 text-sm font-medium w-full mt-2"
+          >
+            <div className="w-5 h-5 flex items-center justify-center">
+              <i className="ri-logout-box-line"></i>
+            </div>
+            {!sidebarCollapsed && <span className="ml-3">Sair</span>}
+          </button>
         </div>
       </div>
 

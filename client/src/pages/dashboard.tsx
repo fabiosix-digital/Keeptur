@@ -1417,7 +1417,9 @@ export default function Dashboard() {
 
   // Função para verificar se a tarefa está excluída
   const TAREFAS_EXCLUIDAS_NO_MONDE = ['teste', 'TESSY ANNE'];
-  const isTaskDeleted = (task: any) => TAREFAS_EXCLUIDAS_NO_MONDE.includes(task.attributes.title);
+  const isTaskDeleted = (task: any) => {
+    return TAREFAS_EXCLUIDAS_NO_MONDE.includes(task.attributes?.title);
+  };
 
   // Função para reabrir tarefa
   const handleReopenTask = async (task: any) => {
@@ -2687,19 +2689,9 @@ export default function Dashboard() {
                                   handleViewTask(task);
                                 }}
                                 className="action-button p-1 rounded !rounded-button whitespace-nowrap"
-                                title="Visualizar tarefa"
+                                title="Ver detalhes"
                               >
                                 <i className="ri-eye-line text-xs"></i>
-                              </button>
-                              <button 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEditTask(task);
-                                }}
-                                className="action-button p-1 rounded !rounded-button whitespace-nowrap"
-                                title="Editar tarefa"
-                              >
-                                <i className="ri-edit-line text-xs"></i>
                               </button>
                               <button 
                                 onClick={(e) => {
@@ -2708,9 +2700,20 @@ export default function Dashboard() {
                                   setShowCompletionModal(true);
                                 }}
                                 className="action-button p-1 rounded !rounded-button whitespace-nowrap text-green-600 hover:bg-green-50"
-                                title="Concluir tarefa"
+                                title="Concluir"
                               >
-                                <i className="ri-check-line text-xs"></i>
+                                <i className="ri-checkbox-circle-line text-xs"></i>
+                              </button>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setTaskToTransfer(task);
+                                  setShowTransferModal(true);
+                                }}
+                                className="action-button p-1 rounded !rounded-button whitespace-nowrap"
+                                title="Transferir"
+                              >
+                                <i className="ri-user-shared-line text-xs"></i>
                               </button>
                               <button 
                                 onClick={(e) => {
@@ -2719,7 +2722,7 @@ export default function Dashboard() {
                                   setShowDeletionModal(true);
                                 }}
                                 className="action-button p-1 rounded !rounded-button whitespace-nowrap text-red-600 hover:bg-red-50"
-                                title="Excluir tarefa"
+                                title="Excluir"
                               >
                                 <i className="ri-delete-bin-line text-xs"></i>
                               </button>
@@ -2812,19 +2815,9 @@ export default function Dashboard() {
                                   handleViewTask(task);
                                 }}
                                 className="action-button p-1 rounded !rounded-button whitespace-nowrap"
-                                title="Visualizar tarefa"
+                                title="Ver detalhes"
                               >
                                 <i className="ri-eye-line text-xs"></i>
-                              </button>
-                              <button 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEditTask(task);
-                                }}
-                                className="action-button p-1 rounded !rounded-button whitespace-nowrap"
-                                title="Editar tarefa"
-                              >
-                                <i className="ri-edit-line text-xs"></i>
                               </button>
                               <button 
                                 onClick={(e) => {
@@ -2833,9 +2826,9 @@ export default function Dashboard() {
                                   setShowCompletionModal(true);
                                 }}
                                 className="action-button p-1 rounded !rounded-button whitespace-nowrap text-green-600 hover:bg-green-50"
-                                title="Concluir tarefa"
+                                title="Concluir"
                               >
-                                <i className="ri-check-line text-xs"></i>
+                                <i className="ri-checkbox-circle-line text-xs"></i>
                               </button>
                               <button 
                                 onClick={(e) => {
@@ -2843,8 +2836,8 @@ export default function Dashboard() {
                                   setTaskToTransfer(task);
                                   setShowTransferModal(true);
                                 }}
-                                className="action-button p-1 rounded !rounded-button whitespace-nowrap text-blue-600 hover:bg-blue-50"
-                                title="Transferir responsável"
+                                className="action-button p-1 rounded !rounded-button whitespace-nowrap"
+                                title="Transferir"
                               >
                                 <i className="ri-user-shared-line text-xs"></i>
                               </button>
@@ -2855,7 +2848,7 @@ export default function Dashboard() {
                                   setShowDeletionModal(true);
                                 }}
                                 className="action-button p-1 rounded !rounded-button whitespace-nowrap text-red-600 hover:bg-red-50"
-                                title="Excluir tarefa"
+                                title="Excluir"
                               >
                                 <i className="ri-delete-bin-line text-xs"></i>
                               </button>
@@ -2948,19 +2941,31 @@ export default function Dashboard() {
                                   handleViewTask(task);
                                 }}
                                 className="action-button p-1 rounded !rounded-button whitespace-nowrap"
-                                title="Visualizar tarefa"
+                                title="Ver detalhes"
                               >
                                 <i className="ri-eye-line text-xs"></i>
                               </button>
                               <button 
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleEditTask(task);
+                                  setTaskToReopen(task);
+                                  setShowReopenModal(true);
+                                }}
+                                className="action-button p-1 rounded !rounded-button whitespace-nowrap text-blue-600 hover:bg-blue-50"
+                                title="Reabrir tarefa"
+                              >
+                                <i className="ri-checkbox-circle-line text-xs"></i>
+                              </button>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setTaskToTransfer(task);
+                                  setShowTransferModal(true);
                                 }}
                                 className="action-button p-1 rounded !rounded-button whitespace-nowrap"
-                                title="Editar tarefa"
+                                title="Transferir"
                               >
-                                <i className="ri-edit-line text-xs"></i>
+                                <i className="ri-user-shared-line text-xs"></i>
                               </button>
                               <button 
                                 onClick={(e) => {
@@ -2969,7 +2974,7 @@ export default function Dashboard() {
                                   setShowDeletionModal(true);
                                 }}
                                 className="action-button p-1 rounded !rounded-button whitespace-nowrap text-red-600 hover:bg-red-50"
-                                title="Excluir tarefa"
+                                title="Excluir"
                               >
                                 <i className="ri-delete-bin-line text-xs"></i>
                               </button>
@@ -3058,55 +3063,37 @@ export default function Dashboard() {
                             </span>
                             <div className="flex space-x-1">
                               <button 
-                                onClick={() => handleViewTask(task)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleViewTask(task);
+                                }}
                                 className="action-button p-1 rounded !rounded-button whitespace-nowrap"
+                                title="Ver detalhes"
                               >
                                 <i className="ri-eye-line text-xs"></i>
                               </button>
-                              
-                              {/* Botão concluir - só aparece se não estiver concluída nem excluída */}
-                              {!task.attributes.completed && !isTaskDeleted(task) && (
-                                <button 
-                                  onClick={() => handleCompleteTask(task.id)}
-                                  className="action-button p-1 rounded !rounded-button whitespace-nowrap"
-                                  title="Concluir tarefa"
-                                >
-                                  <i className="ri-checkbox-circle-line text-xs"></i>
-                                </button>
-                              )}
-                              
-                              {/* Botão reabrir - só aparece se estiver concluída ou excluída */}
-                              {(task.attributes.completed || isTaskDeleted(task)) && (
-                                <button 
-                                  onClick={() => handleReopenTask(task)}
-                                  className="action-button p-1 rounded !rounded-button whitespace-nowrap"
-                                  title="Reabrir tarefa"
-                                >
-                                  <i className="ri-refresh-line text-xs"></i>
-                                </button>
-                              )}
-                              
-                              {/* Botão transferir - só aparece se não estiver excluída */}
-                              {!isTaskDeleted(task) && (
-                                <button 
-                                  onClick={() => handleTransferTask(task)}
-                                  className="action-button p-1 rounded !rounded-button whitespace-nowrap"
-                                  title="Transferir tarefa"
-                                >
-                                  <i className="ri-user-shared-line text-xs"></i>
-                                </button>
-                              )}
-                              
-                              {/* Botão excluir - só aparece se não estiver excluída */}
-                              {!isTaskDeleted(task) && (
-                                <button 
-                                  onClick={() => handleDeleteTask(task.id)}
-                                  className="action-button p-1 rounded !rounded-button whitespace-nowrap"
-                                  title="Excluir tarefa"
-                                >
-                                  <i className="ri-delete-bin-line text-xs"></i>
-                                </button>
-                              )}
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setTaskToReopen(task);
+                                  setShowReopenModal(true);
+                                }}
+                                className="action-button p-1 rounded !rounded-button whitespace-nowrap text-blue-600 hover:bg-blue-50"
+                                title="Reabrir tarefa"
+                              >
+                                <i className="ri-checkbox-circle-line text-xs"></i>
+                              </button>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setTaskToTransfer(task);
+                                  setShowTransferModal(true);
+                                }}
+                                className="action-button p-1 rounded !rounded-button whitespace-nowrap"
+                                title="Transferir"
+                              >
+                                <i className="ri-user-shared-line text-xs"></i>
+                              </button>
                             </div>
                           </div>
                           <div className="flex items-start justify-end">
@@ -3240,12 +3227,83 @@ export default function Dashboard() {
                           {dayTasks.map((task, index) => (
                             <div 
                               key={`${task.id}-${index}`} 
-                              className={`calendar-event truncate ${
+                              className={`calendar-event group relative cursor-pointer hover:bg-blue-50 rounded px-1 py-0.5 truncate ${
                                 task.status.status === 'completed' ? 'line-through opacity-60' : ''
                               }`}
                               title={`${task.timeStr} - ${task.title}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                // Encontrar tarefa completa da lista
+                                const fullTask = allTasks.find((t: any) => t.id === task.id);
+                                if (fullTask) {
+                                  handleViewTask(fullTask);
+                                }
+                              }}
                             >
-                              {task.timeStr} - {task.title}
+                              <div className="flex justify-between items-center">
+                                <span className="text-xs truncate">
+                                  {task.timeStr} - {task.title}
+                                </span>
+                                <div className="hidden group-hover:flex space-x-1 ml-1">
+                                  <button 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const fullTask = allTasks.find((t: any) => t.id === task.id);
+                                      if (fullTask) {
+                                        handleViewTask(fullTask);
+                                      }
+                                    }}
+                                    className="text-xs p-0.5 hover:bg-blue-100 rounded"
+                                    title="Ver detalhes"
+                                  >
+                                    <i className="ri-eye-line"></i>
+                                  </button>
+                                  {!task.status.completed && (
+                                    <button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        const fullTask = allTasks.find((t: any) => t.id === task.id);
+                                        if (fullTask) {
+                                          setTaskToComplete(fullTask);
+                                          setShowCompletionModal(true);
+                                        }
+                                      }}
+                                      className="text-xs p-0.5 hover:bg-green-100 rounded text-green-600"
+                                      title="Concluir"
+                                    >
+                                      <i className="ri-checkbox-circle-line"></i>
+                                    </button>
+                                  )}
+                                  <button 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const fullTask = allTasks.find((t: any) => t.id === task.id);
+                                      if (fullTask) {
+                                        setTaskToTransfer(fullTask);
+                                        setShowTransferModal(true);
+                                      }
+                                    }}
+                                    className="text-xs p-0.5 hover:bg-blue-100 rounded"
+                                    title="Transferir"
+                                  >
+                                    <i className="ri-user-shared-line"></i>
+                                  </button>
+                                  <button 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const fullTask = allTasks.find((t: any) => t.id === task.id);
+                                      if (fullTask) {
+                                        setTaskToDelete(fullTask);
+                                        setShowDeletionModal(true);
+                                      }
+                                    }}
+                                    className="text-xs p-0.5 hover:bg-red-100 rounded text-red-600"
+                                    title="Excluir"
+                                  >
+                                    <i className="ri-delete-bin-line"></i>
+                                  </button>
+                                </div>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -3296,8 +3354,33 @@ export default function Dashboard() {
                             const hourTasks = dayTasks.filter(task => task.hour === hour);
                             
                             return hourTasks.map((task, index) => (
-                              <div key={`${task.id}-${index}`} className="calendar-event text-xs truncate">
-                                {task.title}
+                              <div 
+                                key={`${task.id}-${index}`} 
+                                className="calendar-event group relative cursor-pointer hover:bg-blue-50 rounded px-1 py-0.5 text-xs truncate"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const fullTask = allTasks.find((t: any) => t.id === task.id);
+                                  if (fullTask) {
+                                    handleViewTask(fullTask);
+                                  }
+                                }}
+                              >
+                                <div className="flex justify-between items-center">
+                                  <span className="truncate">{task.title}</span>
+                                  <div className="hidden group-hover:flex space-x-1 ml-1">
+                                    <button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        const fullTask = allTasks.find((t: any) => t.id === task.id);
+                                        if (fullTask) handleViewTask(fullTask);
+                                      }}
+                                      className="text-xs p-0.5 hover:bg-blue-100 rounded"
+                                      title="Ver detalhes"
+                                    >
+                                      <i className="ri-eye-line"></i>
+                                    </button>
+                                  </div>
+                                </div>
                               </div>
                             ));
                           })()}
@@ -3341,8 +3424,33 @@ export default function Dashboard() {
                           const hourTasks = dayTasks.filter(task => task.hour === hour);
                           
                           return hourTasks.map((task, index) => (
-                            <div key={`${task.id}-${index}`} className="text-xs truncate">
-                              {task.title}
+                            <div 
+                              key={`${task.id}-${index}`} 
+                              className="group relative cursor-pointer hover:bg-blue-50 rounded px-1 py-0.5 text-xs truncate"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const fullTask = allTasks.find((t: any) => t.id === task.id);
+                                if (fullTask) {
+                                  handleViewTask(fullTask);
+                                }
+                              }}
+                            >
+                              <div className="flex justify-between items-center">
+                                <span className="truncate">{task.title}</span>
+                                <div className="hidden group-hover:flex space-x-1 ml-1">
+                                  <button 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const fullTask = allTasks.find((t: any) => t.id === task.id);
+                                      if (fullTask) handleViewTask(fullTask);
+                                    }}
+                                    className="text-xs p-0.5 hover:bg-blue-100 rounded"
+                                    title="Ver detalhes"
+                                  >
+                                    <i className="ri-eye-line"></i>
+                                  </button>
+                                </div>
+                              </div>
                             </div>
                           ));
                         })()}

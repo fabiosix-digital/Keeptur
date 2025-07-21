@@ -27,16 +27,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("Login request body:", req.body);
       const { email, password, serverUrl } = loginSchema.parse(req.body);
-
+      
       // Check if empresa exists for this server URL
       let empresa = await storage.getEmpresaByMondeUrl(serverUrl);
-
+      
       // Call Monde API to authenticate using the correct v2 endpoint
       const mondeApiUrl = "https://web.monde.com.br/api/v2/tokens";
-
+      
       console.log("Tentando autenticar com Monde API:", mondeApiUrl);
       console.log("Login sendo usado:", `${email}@${serverUrl.replace('http://', '').replace('https://', '')}`);
-
+      
       const mondeResponse = await fetch(mondeApiUrl, {
         method: "POST",
         headers: { 
@@ -65,12 +65,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const mondeData = await mondeResponse.json();
-
+      
       // Extract user info from Monde response
       const mondeToken = mondeData.data.attributes.token;
       const mondeLogin = mondeData.data.attributes.login;
       const empresaNome = serverUrl.replace('http://', '').replace('https://', '').split('.')[0];
-
+      
       // Create empresa if it doesn't exist
       if (!empresa) {
         empresa = await storage.createEmpresa({
@@ -82,7 +82,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check if plan is active
       const planActive = await storage.isEmpresaPlanActive(empresa.id);
-
+      
       // Create or update session
       const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour (Monde token expires in 1 hour)
       const sessao = await storage.createSessao({
@@ -138,7 +138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/plans/subscribe", async (req, res) => {
     try {
       const { planId, empresaId } = planSubscriptionSchema.parse(req.body);
-
+      
       const plano = await storage.getPlano(planId);
       if (!plano) {
         return res.status(404).json({ message: "Plano não encontrado" });
@@ -186,7 +186,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const empresaId = parseInt(req.params.empresaId);
       const assinatura = await storage.getAssinaturaByEmpresa(empresaId);
-
+      
       res.json({
         has_active_plan: !!assinatura,
         plan: assinatura ? await storage.getPlano(assinatura.plano_id) : null,
@@ -209,13 +209,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const decoded = jwt.verify(token, JWT_SECRET) as any;
-
+      
       if (!decoded.sessaoId) {
         return res.status(401).json({ message: "Token inválido - sem sessaoId" });
       }
 
       const sessao = await storage.getSessao(decoded.sessaoId);
-
+      
       if (!sessao) {
         return res.status(401).json({ message: "Sessão não encontrada" });
       }
@@ -258,27 +258,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/monde/tarefas", authenticateToken, async (req: any, res) => {
     try {
       console.log('Filtros recebidos:', req.query);
-
+      
       // Incluir relacionamentos essenciais - vamos usar dados do servidor para filtrar
       let mondeUrl = `https://web.monde.com.br/api/v2/tasks?include=assignee,person,category,author`;
-
+      
       // Adicionar filtros da query string
       const queryParams = new URLSearchParams();
-
+      
       // ✅ Implementar filtros exatos da API do Monde
-
+      
       // Filtro para tarefas atribuídas ao usuário (Minhas Tarefas)
       if (req.query.assignee === 'me') {
         queryParams.append('filter[assigned]', 'user_tasks');
         console.log('✅ Filtro "Minhas Tarefas" aplicado: filter[assigned]=user_tasks');
       }
-
+      
       // Filtro para tarefas criadas pelo usuário (Criadas por Mim)
       else if (req.query['filter[created_by]'] === 'me' || (req.query.filter && req.query.filter.created_by === 'me')) {
         queryParams.append('filter[assigned]', 'author');
         console.log('✅ Filtro "Criadas por Mim" aplicado: filter[assigned]=author');
       }
-
+      
       // Se for 'all_company=true', não adicionar filtros (mostrar todas as tarefas da empresa)
       else if (req.query.all_company === 'true') {
         // Não adicionar filtros, deixar API retornar todas as tarefas
@@ -296,13 +296,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('✅ Buscando TODAS as tarefas para detectar excluídas');
         // Não adicionar filtros - deixar API retornar todas as tarefas (ativas + excluídas)
       } 
-
+      
       // Filtro padrão se nenhum especificado e não for 'all_company'
       else {
         queryParams.append('filter[assigned]', 'user_tasks');
         console.log('✅ Aplicando filtro padrão: filter[assigned]=user_tasks');
       }
-
+      
       // 🎯 Filtro de situação - para distinguir ativas, concluídas e excluídas
       if (req.query.situation === 'open') {
         queryParams.append('filter[situation]', 'open');
@@ -311,27 +311,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         queryParams.append('filter[situation]', 'done');
         console.log('✅ Filtro situação aplicado: CONCLUÍDAS (done)');
       }
-
+      
       // 📂 Filtro de categoria
       if (req.query.category_id) {
         queryParams.append('filter[category_id]', req.query.category_id);
         console.log('✅ Filtro categoria aplicado:', req.query.category_id);
       }
-
+      
       // 👨‍💼 Filtro de responsável (remover filtro pois não é suportado pela API)
       // A API do Monde não suporta filtro por responsável específico
       // Vamos filtrar no frontend após receber os dados
       if (req.query.responsible_id) {
         console.log('⚠️ Filtro responsável será aplicado no frontend:', req.query.responsible_id);
       }
-
+      
       // 🧾 Filtro de cliente (remover filtro pois não é suportado pela API)
       // A API do Monde não suporta filtro por cliente específico
       // Vamos filtrar no frontend após receber os dados
       if (req.query.client_id) {
         console.log('⚠️ Filtro cliente será aplicado no frontend:', req.query.client_id);
       }
-
+      
       // 📅 Filtros de data (usando parâmetros de query start_date e end_date)
       if (req.query.start_date) {
         queryParams.append('start_date', req.query.start_date);
@@ -341,20 +341,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         queryParams.append('end_date', req.query.end_date);
         console.log('✅ Filtro data fim aplicado:', req.query.end_date);
       }
-
+      
       // 🔍 Filtro de busca
       if (req.query.search) {
         queryParams.append('filter[search]', req.query.search);
         console.log('✅ Filtro busca aplicado:', req.query.search);
       }
-
+      
       // Adicionar parâmetros à URL se existirem
       if (queryParams.toString()) {
         mondeUrl += `&${queryParams.toString()}`;
       }
-
+      
       console.log('URL final da API do Monde:', mondeUrl);
-
+      
       const mondeResponse = await fetch(mondeUrl, {
         method: "GET",
         headers: {
@@ -365,13 +365,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const rawData = await mondeResponse.json();
-
+      
       // Processar dados para mesclar relacionamentos
       const processedData = {
         ...rawData,
         data: await Promise.all(rawData.data?.map(async (task: any) => {
           const processedTask = { ...task };
-
+          
           // Processar relacionamentos se existirem
           if (rawData.included) {
             // Encontrar dados do cliente (person)
@@ -384,13 +384,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 processedTask.client_email = personData.attributes.email;
                 processedTask.client_phone = personData.attributes.phone || personData.attributes['business-phone'] || '';
                 processedTask.client_mobile = personData.attributes['mobile-phone'] || '';
-
+                
                 // Tentar múltiplos campos para empresa
                 let companyName = personData.attributes['company-name'] || 
                                 personData.attributes.company || 
                                 personData.attributes['company_name'] || 
                                 personData.attributes.companyName || '';
-
+                
                 // Se não encontrou empresa no cliente, buscar empresas do tipo 'company'
                 if (!companyName) {
                   // Para tarefas específicas, usar as empresas corretas
@@ -407,7 +407,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                           'Content-Type': 'application/vnd.api+json'
                         }
                       });
-
+                      
                       if (companiesResponse.ok) {
                         const companiesData = await companiesResponse.json();
                         // Buscar por empresas do tipo 'company' nos dados retornados
@@ -419,7 +419,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     } catch (error) {
                       console.log('Erro ao buscar empresas:', error);
                     }
-
+                    
                     // Se ainda não encontrou, usar fallback baseado no tipo
                     if (!companyName) {
                       if (personData.attributes.kind === 'individual') {
@@ -430,13 +430,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     }
                   }
                 }
-
+                
                 processedTask.client_company = companyName || 'Não informado';
-
+                
                 // Debug removido - empresa processada com fallback adequado
               }
             }
-
+            
             // Encontrar dados do responsável (assignee)
             if (task.relationships?.assignee?.data) {
               const assigneeData = rawData.included.find((item: any) => 
@@ -447,7 +447,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 processedTask.assignee_email = assigneeData.attributes.email;
               }
             }
-
+            
             // Encontrar dados da categoria
             if (task.relationships?.category?.data) {
               const categoryData = rawData.included.find((item: any) => 
@@ -458,7 +458,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 processedTask.category_color = categoryData.attributes.color;
               }
             }
-
+            
             // Encontrar dados do autor
             if (task.relationships?.author?.data) {
               const authorData = rawData.included.find((item: any) => 
@@ -470,14 +470,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
             }
           }
-
+          
           return processedTask;
         }) || [])
       };
-
+      
       // Filtrar tarefas no backend após processar
       let filteredTasks = processedData.data;
-
+      
       // Filtro de responsável (backend)
       if (req.query.responsible_id) {
         const originalCount = filteredTasks.length;
@@ -491,7 +491,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         console.log('✅ Filtro responsável aplicado no backend:', filteredTasks.length, 'de', originalCount, 'tarefas');
       }
-
+      
       // Filtro de cliente (backend)
       if (req.query.client_id) {
         filteredTasks = filteredTasks.filter((task: any) => {
@@ -500,12 +500,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         console.log('✅ Filtro cliente aplicado no backend:', filteredTasks.length, 'tarefas');
       }
-
+      
       const finalData = {
         ...processedData,
         data: filteredTasks
       };
-
+      
       res.status(mondeResponse.status).json(finalData);
     } catch (error) {
       console.error("Erro ao buscar tarefas:", error);
@@ -595,12 +595,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/monde/pessoas", authenticateToken, async (req: any, res) => {
     try {
       let mondeUrl = `https://web.monde.com.br/api/v2/people`;
-
+      
       // Adicionar filtro de busca se fornecido
       if (req.query['filter[search]']) {
         mondeUrl += `?filter[search]=${encodeURIComponent(req.query['filter[search]'])}`;
       }
-
+      
       const mondeResponse = await fetch(mondeUrl, {
         method: "GET",
         headers: {
@@ -623,7 +623,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Extrair categorias das próprias tarefas (pois endpoint task_categories retorna 404)
       const mondeUrl = `https://web.monde.com.br/api/v2/tasks?include=category&page[size]=50`;
-
+      
       const mondeResponse = await fetch(mondeUrl, {
         method: "GET",
         headers: {
@@ -635,11 +635,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const data = await mondeResponse.json();
       console.log('📋 Dados recebidos para extrair categorias:', data);
-
+      
       // Extrair categorias únicas das tarefas
       const categorias = new Set();
       const categoriasList = [];
-
+      
       if (data.data) {
         data.data.forEach((task: any) => {
           if (task.relationships?.category?.data) {
@@ -660,13 +660,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         });
       }
-
+      
       console.log('📋 Categorias extraídas:', categoriasList.length);
-
+      
       const formattedData = {
         data: categoriasList
       };
-
+      
       res.status(200).json(formattedData);
     } catch (error) {
       console.error("Erro ao buscar categorias:", error);
@@ -679,12 +679,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const taskId = req.params.id;
       console.log('Tentando buscar histórico para task ID:', taskId);
-
+      
       // Usar o endpoint específico da tarefa para buscar histórico relacionado
       const mondeUrl = `https://web.monde.com.br/api/v2/tasks/${taskId}/task-historics?include=person&page[size]=50&sort=-date-time`;
       console.log('URL do histórico:', mondeUrl);
       console.log('Token sendo usado:', req.sessao.access_token ? 'Token presente' : 'Token ausente');
-
+      
       const mondeResponse = await fetch(mondeUrl, {
         method: "GET",
         headers: {
@@ -697,18 +697,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const rawData = await mondeResponse.json();
       console.log('📋 Status da resposta do histórico:', mondeResponse.status);
       console.log('📋 Quantidade de históricos encontrados:', rawData.data?.length || 0);
-
+      
       if (rawData.data && rawData.data.length > 0) {
         console.log('📋 Primeiro histórico:', rawData.data[0]);
       }
-
+      
       // Processar dados se existirem
       if (rawData.data && Array.isArray(rawData.data)) {
         const processedData = {
           ...rawData,
           data: rawData.data.map((history: any) => {
             const processedHistory = { ...history };
-
+            
             // Processar relacionamentos se existirem
             if (rawData.included) {
               // Encontrar dados do usuário (person)
@@ -728,11 +728,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 }
               }
             }
-
+            
             return processedHistory;
           })
         };
-
+        
         console.log('📋 Histórico específico da tarefa:', rawData.data.length, 'entradas para tarefa', taskId);
         res.status(mondeResponse.status).json(processedData);
       } else {
@@ -750,15 +750,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const taskId = req.params.id;
       const { description } = req.body;
-
+      
       if (!description) {
         return res.status(400).json({ message: "Descrição é obrigatória" });
       }
-
+      
       console.log('Criando histórico para task ID:', taskId, 'com descrição:', description);
-
+      
       const mondeUrl = `https://web.monde.com.br/api/v2/task-historics`;
-
+      
       const requestBody = {
         data: {
           type: "task-historics",
@@ -776,9 +776,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
       };
-
+      
       console.log('Request body:', JSON.stringify(requestBody, null, 2));
-
+      
       const mondeResponse = await fetch(mondeUrl, {
         method: "POST",
         headers: {
@@ -792,7 +792,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const responseText = await mondeResponse.text();
       console.log('Response status:', mondeResponse.status);
       console.log('Response body:', responseText);
-
+      
       if (mondeResponse.ok) {
         const data = JSON.parse(responseText);
         res.status(mondeResponse.status).json(data);
@@ -812,12 +812,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/monde/clientes", authenticateToken, async (req: any, res) => {
     try {
       let mondeUrl = `https://web.monde.com.br/api/v2/people`;
-
+      
       // Adicionar filtro de busca se fornecido
       if (req.query['filter[search]']) {
         mondeUrl += `?filter[search]=${encodeURIComponent(req.query['filter[search]'])}`;
       }
-
+      
       const mondeResponse = await fetch(mondeUrl, {
         method: "GET",
         headers: {
@@ -840,7 +840,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const taskId = req.params.id;
       const mondeUrl = `https://web.monde.com.br/api/v2/tasks/${taskId}`;
-
+      
       const requestBody = {
         data: {
           type: "tasks",
@@ -879,7 +879,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
       };
-
+      
       const mondeResponse = await fetch(mondeUrl, {
         method: "PUT",
         headers: {
@@ -903,16 +903,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const taskId = req.params.id;
       const mondeUrl = `https://web.monde.com.br/api/v2/tasks/${taskId}`;
-
+      
       console.log(`🗑️ EXCLUSÃO TEMPORÁRIA: Marcando tarefa ${taskId} como concluída + adicionando marcador no histórico`);
       console.log(`URL: ${mondeUrl}`);
-
+      
       // ⚠️ PROBLEMA IDENTIFICADO: API do Monde não suporta soft delete
       // DELETE = exclusão permanente (não é o que queremos)
       // Para "excluir" temporariamente, vamos usar uma estratégia diferente:
       // 1. Marcar tarefa como concluída (completed: true) 
       // 2. Usar um histórico para identificar como "arquivada pelo Keeptur"
-
+      
       // Primeiro, marcar como concluída
       const updateBody = {
         data: {
@@ -923,7 +923,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
       };
-
+      
       const mondeResponse = await fetch(mondeUrl, {
         method: "PUT",
         headers: {
@@ -938,7 +938,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (mondeResponse.ok) {
         console.log(`✅ Tarefa ${taskId} arquivada com sucesso (marcada como concluída)`);
-
+        
         // 📝 Registrar no histórico que foi "excluída pelo Keeptur"
         const historyText = '🗑️ KEEPTUR_DELETED - Tarefa arquivada pelo sistema Keeptur';
         try {
@@ -959,7 +959,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
             }
           };
-
+          
           const historyResponse = await fetch(historyUrl, {
             method: "POST",
             headers: {
@@ -969,7 +969,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             },
             body: JSON.stringify(historyBody),
           });
-
+          
           if (historyResponse.ok) {
             console.log(`✅ Marcador KEEPTUR_DELETED adicionado ao histórico da tarefa ${taskId}`);
           } else {
@@ -979,7 +979,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } catch (historyError) {
           console.log(`⚠️ Erro ao registrar histórico KEEPTUR_DELETED:`, historyError);
         }
-
+        
         res.status(200).json({ message: "Tarefa arquivada com sucesso" });
       } else {
         const responseText = await mondeResponse.text();
@@ -999,7 +999,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/monde/tarefas", authenticateToken, async (req: any, res) => {
     try {
       const mondeUrl = `https://web.monde.com.br/api/v2/tasks`;
-
+      
       const requestBody = {
         data: {
           type: "tasks",
@@ -1037,9 +1037,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
       };
-
+      
       console.log('✨ Criando nova tarefa com dados:', JSON.stringify(requestBody, null, 2));
-
+      
       const mondeResponse = await fetch(mondeUrl, {
         method: "POST",
         headers: {
@@ -1052,7 +1052,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const data = await mondeResponse.json();
       console.log('📋 Resposta da criação:', JSON.stringify(data, null, 2));
-
+      
       res.status(mondeResponse.status).json(data);
     } catch (error) {
       console.error("Erro ao criar tarefa:", error);
@@ -1065,7 +1065,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Buscar tarefas reais da API do Monde
       const mondeUrl = `https://web.monde.com.br/api/v2/tasks`;
-
+      
       const mondeResponse = await fetch(mondeUrl, {
         method: "GET",
         headers: {
@@ -1082,7 +1082,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const data = await mondeResponse.json();
       const tasks = data.data || [];
-
+      
       // Calcular estatísticas reais
       const stats = {
         total: tasks.length,
@@ -1097,7 +1097,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         concluidasVariation: "+23%",
         atrasadasVariation: "+12%"
       };
-
+      
       res.json(stats);
     } catch (error) {
       console.error("Erro ao buscar estatísticas:", error);
@@ -1174,18 +1174,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       const data = await mondeResponse.json();
-
+      
       if (data.errors) {
         console.log("⚠️ Erro na API de people:", data.errors[0]?.title);
         res.json({ user: { companies: [] } });
         return;
       }
-
+      
       // Filtrar apenas usuários (não clientes)
       const users = data.data?.filter((person: any) => 
         person.attributes?.person_type === 'user'
       ) || [];
-
+      
       // Extrair empresas únicas dos usuários
       const companiesSet = new Set();
       users.forEach((user: any) => {
@@ -1196,12 +1196,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }));
         }
       });
-
+      
       const companies = Array.from(companiesSet).map(c => JSON.parse(c as string));
-
+      
       console.log("✅ Usuários encontrados:", users.length);
       console.log("✅ Empresas extraídas:", companies.length);
-
+      
       res.json({ 
         user: { 
           companies: companies 
@@ -1231,18 +1231,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       const data = await tasksResponse.json();
-
+      
       if (data.errors) {
         console.log("⚠️ Erro na API de tasks:", data.errors[0]?.title);
         res.json({ data: [] });
         return;
       }
-
+      
       // Extrair usuários únicos das tarefas usando includes
       const usersSet = new Set();
       const tasks = data.data || [];
       const included = data.included || [];
-
+      
       // Buscar usuários dos includes (pessoas sem CNPJ E sem company-name são usuários)
       included.forEach((item: any) => {
         if (item.type === 'people' && 
@@ -1260,7 +1260,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }));
         }
       });
-
+      
       // Se não houver includes, extrair dos relationships das tarefas
       if (usersSet.size === 0) {
         tasks.forEach((task: any) => {
@@ -1286,11 +1286,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         });
       }
-
+      
       const users = Array.from(usersSet).map(u => JSON.parse(u as string));
-
+      
       console.log("✅ Usuários/agentes extraídos das tarefas:", users.length);
-
+      
       // Log para debug dos dados das tarefas
       if (tasks.length > 0) {
         console.log("📋 Exemplo de tarefa para debug:", JSON.stringify({
@@ -1301,10 +1301,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (included.length > 0) {
         console.log("📋 Exemplo de include para debug:", JSON.stringify(included[0], null, 2));
       }
-
+      
       // Log detalhado dos usuários encontrados
       console.log("👥 Usuários encontrados:", users.map(u => u.name).join(", "));
-
+      
       res.json({ data: users });
     } catch (error) {
       console.error("Erro ao buscar usuários:", error);
@@ -1332,7 +1332,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (companiesResponse.ok) {
         const companiesData = await companiesResponse.json();
-
+        
         // Transformar para o formato esperado pelo frontend
         const companies = companiesData.map((company: any) => ({
           id: company.id,
@@ -1345,16 +1345,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             updated_at: company.updated_at
           }
         }));
-
+        
         console.log("🏢 Empresas associadas ao usuário encontradas:", companies.length);
         console.log("📋 Empresas:", companies.map(e => e.name).join(", "));
-
+        
         res.json({ data: companies });
       } else {
         console.log("⚠️ Endpoint companies-user retornou erro:", companiesResponse.status);
         const errorText = await companiesResponse.text();
         console.log("⚠️ Erro detalhado:", errorText);
-
+        
         // Buscar empresas através do endpoint de pessoas corporativas
         const peopleResponse = await fetch(
           "https://web.monde.com.br/api/v2/people?filter[kind]=corporate&page[limit]=100&sort=name",
@@ -1370,7 +1370,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         if (peopleResponse.ok) {
           const peopleData = await peopleResponse.json();
-
+          
           const companies = (peopleData.data || []).map((item: any) => ({
             id: item.id,
             name: item.attributes.name || item.attributes['company-name'] || 'Empresa sem nome',
@@ -1381,7 +1381,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               kind: 'corporate-person'
             }
           }));
-
+          
           console.log("🏢 Empresas corporativas encontradas:", companies.length);
           res.json({ data: companies });
         } else {
@@ -1408,7 +1408,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const taskId = req.params.taskId;
       const files = req.files as Express.Multer.File[];
-
+      
       if (!files || files.length === 0) {
         return res.status(400).json({ message: "Nenhum arquivo enviado" });
       }
@@ -1417,7 +1417,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Tentar primeiro enviar anexos diretamente para o Monde
       let mondeSyncSuccess = false;
-
+      
       // Tentar múltiplos endpoints para upload no Monde
       const possibleUploadEndpoints = [
         `https://web.monde.com.br/api/v2/tasks/${taskId}/anexos`,
@@ -1429,10 +1429,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       for (const endpoint of possibleUploadEndpoints) {
         try {
           console.log(`📎 Tentando upload direto para Monde via: ${endpoint}`);
-
+          
           // Tentar diferentes formatos de form data
           const formData = new FormData();
-
+          
           // Formato 1: arquivos individuais
           files.forEach((file, index) => {
             formData.append(`files[${index}]`, new Blob([file.buffer], { type: file.mimetype }), file.originalname);
@@ -1455,7 +1455,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           } else {
             const errorText = await uploadResponse.text().catch(() => '');
             console.log(`⚠️ Endpoint ${endpoint} retornou ${uploadResponse.status}: ${errorText}`);
-
+            
             // Tentar formato alternativo se for o primeiro endpoint
             if (endpoint === possibleUploadEndpoints[0]) {
               console.log(`📎 Tentando formato alternativo para ${endpoint}`);
@@ -1464,7 +1464,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 altFormData.append('files[]', new Blob([file.buffer], { type: file.mimetype }), file.originalname);
               });
               altFormData.append('task_id', taskId);
-
+              
               const altResponse = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
@@ -1473,7 +1473,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 },
                 body: altFormData
               });
-
+              
               if (altResponse.ok) {
                 console.log(`✅ Upload alternativo bem-sucedido para Monde via ${endpoint}`);
                 mondeSyncSuccess = true;
@@ -1490,7 +1490,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!mondeSyncSuccess) {
         try {
           const fileNames = files.map(file => file.originalname).join(', ');
-
+          
           console.log('📎 Registrando anexos no histórico do Monde...');
           const historicoResponse = await fetch(`https://web.monde.com.br/api/v2/task-historics`, {
             method: 'POST',
@@ -1530,7 +1530,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Fallback: salvar anexos no banco de dados PostgreSQL
       const attachments = [];
-
+      
       for (const file of files) {
         const fileBase64 = file.buffer.toString('base64');
         const attachmentData = {
@@ -1576,9 +1576,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/monde/anexos/:taskId/:attachmentId/download', authenticateToken, async (req: any, res) => {
     try {
       const { taskId, attachmentId } = req.params;
-
+      
       console.log(`📥 Iniciando download do anexo ${attachmentId} da tarefa ${taskId}`);
-
+      
       // Buscar informações do anexo no histórico
       const historyResponse = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}/task-historics?include=person&page[size]=50&sort=-date-time`, {
         headers: {
@@ -1589,16 +1589,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (historyResponse.ok) {
         const historyData = await historyResponse.json();
-
+        
         // Buscar entrada do histórico correspondente
         const historyEntry = historyData.data?.find(entry => entry.id === attachmentId);
-
+        
         if (historyEntry && historyEntry.attributes?.historic) {
           const filename = historyEntry.attributes.historic.match(/'([^']+)'/)?.[1];
-
+          
           if (filename) {
             console.log(`📥 Tentando baixar arquivo: ${filename}`);
-
+            
             // Tentar múltiplos endpoints para download
             const possibleDownloadEndpoints = [
               `https://web.monde.com.br/api/v2/tasks/${taskId}/anexos/${attachmentId}/download`,
@@ -1625,7 +1625,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   console.log(`✅ Sucesso no download via ${endpoint}`);
                   const contentType = downloadResponse.headers.get('content-type') || 'application/octet-stream';
                   const buffer = await downloadResponse.arrayBuffer();
-
+                  
                   res.setHeader('Content-Type', contentType);
                   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
                   res.send(Buffer.from(buffer));
@@ -1654,7 +1654,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const taskId = req.params.taskId;
       console.log('🔧 Buscando campos personalizados para tarefa', taskId);
-
+      
       // Buscar a tarefa completa incluindo todos os atributos possíveis
       const taskResponse = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}?include=assignee,person,category,author,task-historics`, {
         headers: {
@@ -1670,11 +1670,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const taskData = await taskResponse.json();
       console.log('🔧 Dados COMPLETOS da tarefa recebidos:', JSON.stringify(taskData, null, 2));
-
+      
       // Buscar também dados dos includes relacionados
       const included = taskData.included || [];
       console.log('🔧 Dados incluídos:', included.length, 'itens');
-
+      
       // Analisar cada item incluído para encontrar campos personalizados
       for (const item of included) {
         console.log(`🔧 Analisando item incluído: ${item.type} - ${item.id}`);
@@ -1682,7 +1682,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log(`🔧 Atributos COMPLETOS do item ${item.type}:`, JSON.stringify(item.attributes, null, 2));
         }
       }
-
+      
       // Buscar também no meta ou links se existirem
       if (taskData.meta) {
         console.log('🔧 Meta data da tarefa:', JSON.stringify(taskData.meta, null, 2));
@@ -1690,20 +1690,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (taskData.links) {
         console.log('🔧 Links da tarefa:', JSON.stringify(taskData.links, null, 2));
       }
-
+      
       // Buscar campos personalizados na estrutura completa da tarefa
       const task = taskData.data;
       const attributes = task.attributes || {};
       const relationships = task.relationships || {};
-
+      
       console.log('🔧 Todos os atributos da tarefa:', JSON.stringify(attributes, null, 2));
-      console.log('🔧 Todos os relacionamentos da tarefa:', JSON.stringify(relationships<previous_generation>
-|| {}, null, 2));
-
+      console.log('🔧 Todos os relacionamentos da tarefa:', JSON.stringify(relationships, null, 2));
+      
       // Buscar também nos dados relacionados (pessoa, categoria, etc.)
       let personData = null;
       let categoryData = null;
-
+      
       // Encontrar dados da pessoa relacionada
       if (relationships.person?.data?.id) {
         personData = included.find(item => item.type === 'people' && item.id === relationships.person.data.id);
@@ -1711,7 +1710,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log('🔧 Atributos da pessoa relacionada:', JSON.stringify(personData.attributes, null, 2));
         }
       }
-
+      
       // Encontrar dados da categoria relacionada
       if (relationships.category?.data?.id) {
         categoryData = included.find(item => item.type === 'task-categories' && item.id === relationships.category.data.id);
@@ -1719,10 +1718,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log('🔧 Atributos da categoria relacionada:', JSON.stringify(categoryData.attributes, null, 2));
         }
       }
-
+      
       // Buscar por campos personalizados em diferentes locais
       const customFields = [];
-
+      
       // Verificar se há campos personalizados nos atributos da tarefa
       Object.keys(attributes).forEach(key => {
         if (key.includes('custom') || key.includes('campo') || key.includes('field')) {
@@ -1734,11 +1733,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       });
-
+      
       // Se não encontrou campos personalizados, vamos buscar via endpoint específico
       if (customFields.length === 0) {
         console.log('🔧 Tentando buscar campos personalizados via endpoint específico...');
-
+        
         // Primeiro, vamos buscar a tarefa com TODOS os includes possíveis
         const taskWithAllIncludes = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}?include=assignee,person,category,author,custom_fields,field_values,task_fields,form_fields,company,task_category,task_template`, {
           headers: {
@@ -1746,11 +1745,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             'Accept': 'application/vnd.api+json'
           }
         });
-
+        
         if (taskWithAllIncludes.ok) {
           const taskWithAllData = await taskWithAllIncludes.json();
           console.log('🔧 Tarefa com TODOS os includes:', JSON.stringify(taskWithAllData, null, 2));
-
+          
           // Verificar se há campos personalizados nos included
           const allIncluded = taskWithAllData.included || [];
           for (const item of allIncluded) {
@@ -1760,7 +1759,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
         }
-
+        
         // Tentar buscar configurações de campos da empresa com múltiplos endpoints
         const fieldEndpoints = [
           '/api/v2/task-field-configs',
@@ -1776,7 +1775,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           '/api/v2/companies/custom-fields',
           '/api/v2/task-categories/' + (relationships.category?.data?.id || '') + '/custom-fields'
         ];
-
+        
         for (const endpoint of fieldEndpoints) {
           try {
             console.log(`🔧 Testando endpoint de configurações: ${endpoint}`);
@@ -1786,21 +1785,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 'Accept': 'application/vnd.api+json'
               }
             });
-
+            
             if (fieldsConfigResponse.ok) {
               const fieldsConfig = await fieldsConfigResponse.json();
               console.log(`✅ Configurações encontradas em ${endpoint}:`, JSON.stringify(fieldsConfig, null, 2));
-
+              
               // Processar configurações de campos
               if (fieldsConfig.data && Array.isArray(fieldsConfig.data)) {
                 fieldsConfig.data.forEach(fieldConfig => {
                   const fieldName = fieldConfig.attributes?.name || fieldConfig.attributes?.label || fieldConfig.attributes?.title;
                   const fieldType = fieldConfig.attributes?.field_type || fieldConfig.attributes?.type || 'text';
                   const fieldId = fieldConfig.attributes?.slug || fieldConfig.attributes?.key || fieldConfig.id;
-
+                  
                   // Buscar valor nos atributos da tarefa
                   const fieldValue = attributes[fieldId] || attributes[fieldName?.toLowerCase().replace(/\s+/g, '-')] || '';
-
+                  
                   if (fieldName) {
                     customFields.push({
                       id: fieldId,
@@ -1811,7 +1810,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     });
                   }
                 });
-
+                
                 // Se encontrou campos, parar de buscar
                 if (customFields.length > 0) {
                   console.log(`✅ Encontrados ${customFields.length} campos personalizados no endpoint ${endpoint}`);
@@ -1826,23 +1825,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
       }
-
+      
       // Se ainda não encontrou, vamos fazer uma busca mais abrangente
       if (customFields.length === 0) {
         console.log('🔧 Fazendo busca abrangente por campos personalizados...');
-
+        
         // Buscar TODOS os campos que não são padrão como possíveis campos personalizados
         const standardTaskFields = [
           'id', 'title', 'description', 'due', 'completed', 'completed-at', 
           'registered-at', 'visualized', 'number', 'type', 'links', 'created-at', 'updated-at'
         ];
-
+        
         Object.keys(attributes).forEach(key => {
           if (!standardTaskFields.includes(key)) {
             const value = attributes[key];
             let fieldType = 'text';
             let fieldName = key;
-
+            
             // Determinar o tipo do campo baseado no nome e valor
             if (key.includes('valor') || key.includes('preco') || key.includes('custo') || key.includes('comissao')) {
               fieldType = 'currency';
@@ -1857,13 +1856,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             } else if (typeof value === 'boolean') {
               fieldType = 'select';
             }
-
+            
             // Melhorar o nome do campo
             fieldName = key
               .replace(/-/g, ' ')
               .replace(/_/g, ' ')
               .replace(/\b\w/g, l => l.toUpperCase());
-
+            
             // Definir opções para campos de seleção
             let options = [];
             if (fieldType === 'select') {
@@ -1877,7 +1876,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 options = ['Sim', 'Não'];
               }
             }
-
+            
             customFields.push({
               id: key,
               name: fieldName,
@@ -1885,15 +1884,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
               value: value !== null && value !== undefined ? String(value) : '',
               options: options
             });
-
+            
             console.log(`🔧 Campo personalizado detectado: ${fieldName} (${key}) = ${value}`);
           }
         });
-
+        
         // Se ainda não encontrou nenhum campo, usar campos padrão do Monde
         if (customFields.length === 0) {
           console.log('🔧 Usando campos padrão do Monde...');
-
+          
           customFields.push(
             {
               id: 'motivo-da-perda',
@@ -1924,15 +1923,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           );
         }
       }
-
+      
       console.log('🔧 Campos personalizados baseados no Monde:', customFields);
-
+      
       // IMPORTANTE: Esta é uma implementação temporária baseada nas imagens fornecidas
       // Idealmente, estes campos devem vir da API do Monde, mas como não há endpoint específico,
       // estamos usando os campos reais vistos na interface do Monde
-
+      
       res.json({ data: customFields });
-
+      
     } catch (error) {
       console.error('❌ Erro ao buscar campos personalizados:', error);
       res.status(500).json({ error: 'Erro ao buscar campos personalizados' });
@@ -1944,9 +1943,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const taskId = req.params.id;
       console.log('🔍 INVESTIGAÇÃO PROFUNDA DA API DO MONDE - Tarefa:', taskId);
-
+      
       const results = {};
-
+      
       // Buscar tarefa com diferentes conjuntos de includes
       const includeTests = [
         'assignee,person,category,author',
@@ -1962,7 +1961,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'assignee,person,category,author,meta_fields',
         'assignee,person,category,author,dynamic_fields'
       ];
-
+      
       for (const includeSet of includeTests) {
         try {
           const response = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}?include=${includeSet}`, {
@@ -1971,7 +1970,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               'Accept': 'application/vnd.api+json'
             }
           });
-
+          
           if (response.ok) {
             const data = await response.json();
             results[includeSet] = {
@@ -1981,7 +1980,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               attributesKeys: Object.keys(data.data?.attributes || {}),
               relationships: Object.keys(data.data?.relationships || {})
             };
-
+            
             console.log(`✅ Include ${includeSet}: ${data.included?.length || 0} items`);
             if (data.included?.length > 0) {
               console.log(`   Tipos: ${data.included.map(item => item.type).join(', ')}`);
@@ -1995,7 +1994,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log(`❌ Include ${includeSet}: ${error.message}`);
         }
       }
-
+      
       // Buscar endpoints específicos para campos personalizados
       const fieldEndpoints = [
         '/api/v2/task-field-configs',
@@ -2009,7 +2008,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         '/api/v2/task-categories/fields',
         '/api/v2/task-templates/fields'
       ];
-
+      
       results.endpoints = {};
       for (const endpoint of fieldEndpoints) {
         try {
@@ -2019,7 +2018,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               'Accept': 'application/vnd.api+json'
             }
           });
-
+          
           if (response.ok) {
             const data = await response.json();
             results.endpoints[endpoint] = {
@@ -2044,7 +2043,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log(`❌ Endpoint ${endpoint}: ${error.message}`);
         }
       }
-
+      
       console.log('🔍 INVESTIGAÇÃO COMPLETA:', JSON.stringify(results, null, 2));
       res.json(results);
     } catch (error) {
@@ -2057,31 +2056,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/monde/clientes', authenticateToken, async (req: any, res) => {
     try {
       const { search, page = 1, limit = 50 } = req.query;
-
+      
       // Construir URL com filtros
       let url = `https://web.monde.com.br/api/v2/people?page[number]=${page}&page[size]=${limit}`;
-
+      
       if (search) {
         url += `&filter[search]=${encodeURIComponent(search)}`;
       }
-
+      
       console.log('🔍 Buscando clientes no Monde:', url);
-
+      
       const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${req.mondeToken}`,
           'Accept': 'application/vnd.api+json'
         }
       });
-
+      
       if (!response.ok) {
         console.error('Erro ao buscar clientes:', response.status, response.statusText);
         return res.status(response.status).json({ error: 'Erro ao buscar clientes' });
       }
-
+      
       const data = await response.json();
       console.log(`✅ Clientes encontrados: ${data.data?.length || 0}`);
-
+      
       res.json(data);
     } catch (error) {
       console.error('Erro ao buscar clientes:', error);
@@ -2093,19 +2092,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/monde/clientes/:id', authenticateToken, async (req: any, res) => {
     try {
       const { id } = req.params;
-
+      
       const response = await fetch(`https://web.monde.com.br/api/v2/people/${id}`, {
         headers: {
           'Authorization': `Bearer ${req.mondeToken}`,
           'Accept': 'application/vnd.api+json'
         }
       });
-
+      
       if (!response.ok) {
         console.error('Erro ao buscar cliente:', response.status, response.statusText);
         return res.status(response.status).json({ error: 'Erro ao buscar cliente' });
       }
-
+      
       const data = await response.json();
       res.json(data);
     } catch (error) {
@@ -2126,13 +2125,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         body: JSON.stringify(req.body)
       });
-
+      
       if (!response.ok) {
         const errorData = await response.json();
         console.error('Erro ao criar cliente:', response.status, errorData);
         return res.status(response.status).json(errorData);
       }
-
+      
       const data = await response.json();
       console.log('✅ Cliente criado com sucesso:', data.data?.id);
       res.status(201).json(data);
@@ -2146,7 +2145,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch('/api/monde/clientes/:id', authenticateToken, async (req: any, res) => {
     try {
       const { id } = req.params;
-
+      
       const response = await fetch(`https://web.monde.com.br/api/v2/people/${id}`, {
         method: 'PATCH',
         headers: {
@@ -2156,13 +2155,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         body: JSON.stringify(req.body)
       });
-
+      
       if (!response.ok) {
         const errorData = await response.json();
         console.error('Erro ao atualizar cliente:', response.status, errorData);
         return res.status(response.status).json(errorData);
       }
-
+      
       const data = await response.json();
       console.log('✅ Cliente atualizado com sucesso:', id);
       res.json(data);
@@ -2176,7 +2175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/monde/clientes/:id', authenticateToken, async (req: any, res) => {
     try {
       const { id } = req.params;
-
+      
       const response = await fetch(`https://web.monde.com.br/api/v2/people/${id}`, {
         method: 'DELETE',
         headers: {
@@ -2184,13 +2183,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'Accept': 'application/vnd.api+json'
         }
       });
-
+      
       if (!response.ok) {
         const errorData = await response.json();
         console.error('Erro ao excluir cliente:', response.status, errorData);
         return res.status(response.status).json(errorData);
       }
-
+      
       console.log('✅ Cliente excluído com sucesso:', id);
       res.status(204).send();
     } catch (error) {
@@ -2203,24 +2202,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/monde/cidades', authenticateToken, async (req: any, res) => {
     try {
       const { search } = req.query;
-
+      
       let url = 'https://web.monde.com.br/api/v2/cities';
       if (search) {
         url += `?filter[search]=${encodeURIComponent(search)}`;
       }
-
+      
       const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${req.mondeToken}`,
           'Accept': 'application/vnd.api+json'
         }
       });
-
+      
       if (!response.ok) {
         console.error('Erro ao buscar cidades:', response.status, response.statusText);
         return res.status(response.status).json({ error: 'Erro ao buscar cidades' });
       }
-
+      
       const data = await response.json();
       res.json(data);
     } catch (error) {
@@ -2239,14 +2238,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'Accept': 'application/vnd.api+json'
         }
       });
-
+      
       if (!totalResponse.ok) {
         console.error('Erro ao buscar total de clientes:', totalResponse.status);
         return res.status(totalResponse.status).json({ error: 'Erro ao buscar estatísticas' });
       }
-
+      
       const totalData = await totalResponse.json();
-
+      
       // Buscar clientes com tarefas (que têm relacionamento com tarefas)
       const clientsWithTasksResponse = await fetch('https://web.monde.com.br/api/v2/tasks?page[size]=1&include=person', {
         headers: {
@@ -2254,7 +2253,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'Accept': 'application/vnd.api+json'
         }
       });
-
+      
       let clientsWithTasks = 0;
       if (clientsWithTasksResponse.ok) {
         const tasksData = await clientsWithTasksResponse.json();
@@ -2267,11 +2266,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         clientsWithTasks = uniqueClients.size;
       }
-
+      
       // Buscar novos clientes (últimos 30 dias)
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
+      
       // Para novos clientes, vamos usar uma estimativa baseada em paginação
       const recentClientsResponse = await fetch('https://web.monde.com.br/api/v2/people?sort=-registered-at&page[size]=50', {
         headers: {
@@ -2279,7 +2278,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'Accept': 'application/vnd.api+json'
         }
       });
-
+      
       let newClients = 0;
       if (recentClientsResponse.ok) {
         const recentData = await recentClientsResponse.json();
@@ -2288,7 +2287,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return registeredAt >= thirtyDaysAgo;
         }).length || 0;
       }
-
+      
       res.json({
         totalClients: totalData.data?.length || 0,
         clientsWithTasks,
@@ -2308,9 +2307,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const taskId = req.params.taskId;
       const { fields } = req.body;
-
+      
       console.log('🔧 Atualizando campos personalizados da tarefa', taskId, 'com dados:', fields);
-
+      
       // Buscar a tarefa atual
       const taskResponse = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}`, {
         headers: {
@@ -2326,7 +2325,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const taskData = await taskResponse.json();
       const currentTask = taskData.data;
-
+      
       // Criar payload para atualizar a tarefa incluindo campos personalizados
       const updatePayload = {
         data: {
@@ -2335,7 +2334,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           attributes: {}
         }
       };
-
+      
       // Adicionar campos personalizados como atributos da tarefa
       fields.forEach(field => {
         // Tentar diferentes formatos de nome de campo
@@ -2347,13 +2346,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           field.id.replace(/-/g, ''),
           field.id.replace(/_/g, '-')
         ];
-
+        
         // Usar o primeiro nome de campo como padrão
         updatePayload.data.attributes[fieldNames[0]] = field.value || '';
       });
-
+      
       console.log('🔧 Payload para atualizar tarefa:', JSON.stringify(updatePayload, null, 2));
-
+      
       // Tentar atualizar a tarefa com os campos personalizados
       const updateResponse = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}`, {
         method: 'PATCH',
@@ -2364,11 +2363,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         body: JSON.stringify(updatePayload)
       });
-
+      
       if (updateResponse.ok) {
         const updatedTask = await updateResponse.json();
         console.log('✅ Tarefa atualizada com sucesso:', updatedTask.data.id);
-
+        
         // Registrar no histórico
         const historyText = `Campos personalizados atualizados: ${fields.map(f => `${f.name}: ${f.value}`).join(', ')}`;
         await fetch(`https://web.monde.com.br/api/v2/task-historics`, {
@@ -2392,7 +2391,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           })
         });
-
+        
         res.json({ success: true, data: updatedTask.data });
       } else {
         console.log(`❌ Erro ao atualizar tarefa: ${updateResponse.status}`);
@@ -2400,7 +2399,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('❌ Detalhes do erro:', errorText);
         res.status(500).json({ error: 'Erro ao atualizar campos personalizados' });
       }
-
+      
     } catch (error) {
       console.error('❌ Erro ao atualizar campos personalizados:', error);
       res.status(500).json({ error: 'Erro ao atualizar campos personalizados' });
@@ -2411,7 +2410,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/monde/tarefas/:taskId/anexos", authenticateToken, async (req: any, res) => {
     try {
       const taskId = req.params.taskId;
-
+      
       console.log(`📎 Buscando anexos para tarefa ${taskId} via histórico do Monde`);
 
       // Buscar histórico completo da tarefa (máximo 50 por página)
@@ -2429,7 +2428,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const historyData = await historyResponse.json();
       console.log(`📎 Histórico carregado: ${historyData.data?.length || 0} entradas`);
-
+      
       // Mapear todos os anexos mencionados no histórico
       const attachmentMap = new Map();
       const deletedAttachments = new Set();
@@ -2438,7 +2437,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const text = entry.attributes?.text || '';
         const historic = entry.attributes?.historic || '';
         const dateTime = entry.attributes?.['date-time'];
-
+        
         // Identificar anexos excluídos
         if (text.includes('Anexo excluído:')) {
           const filename = text.match(/Anexo excluído: (.+)/)?.[1];
@@ -2447,11 +2446,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log(`🗑️ Anexo excluído identificado: ${filename}`);
           }
         }
-
+        
         // Identificar anexos inseridos
         let filename = null;
         let isAttachment = false;
-
+        
         // Padrões para identificar anexos
         if (text.includes('Anexo inserido:') || historic.includes('Anexo inserido:')) {
           filename = text.match(/Anexo inserido: (.+)/)?.[1] || historic.match(/Anexo inserido: (.+)/)?.[1];
@@ -2467,13 +2466,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             isAttachment = true;
           }
         }
-
+        
         if (isAttachment && filename) {
           // Não adicionar se já está na lista de excluídos
           if (!deletedAttachments.has(filename)) {
             const extension = filename.split('.').pop()?.toLowerCase();
             let mimeType = 'application/octet-stream';
-
+            
             if (extension) {
               const mimeTypes = {
                 'png': 'image/png', 'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'gif': 'image/gif',
@@ -2483,12 +2482,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
               };
               mimeType = mimeTypes[extension] || 'application/octet-stream';
             }
-
+            
             // Usar o nome do arquivo como chave para evitar duplicatas
             if (!attachmentMap.has(filename)) {
               attachmentMap.set(filename, {
                 id: entry.id,
-                name: filename,                filename: filename,
+                name: filename,
+                filename: filename,
                 nome_original: filename,
                 size: 0, // Tamanho não disponível no histórico
                 type: mimeType,
@@ -2502,7 +2502,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
       });
-
+      
       // Filtrar anexos excluídos (segunda passagem)
       attachmentMap.forEach((attachment, filename) => {
         if (deletedAttachments.has(filename)) {
@@ -2510,11 +2510,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log(`🗑️ Removendo anexo excluído: ${filename}`);
         }
       });
-
+      
       const attachmentsFromHistory = Array.from(attachmentMap.values());
       console.log(`📎 Total de anexos ativos encontrados: ${attachmentsFromHistory.length}`);
       console.log(`📎 Nomes dos anexos:`, attachmentsFromHistory.map(a => a.name));
-
+      
       return res.json({
         data: attachmentsFromHistory
       });
@@ -2530,9 +2530,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { taskId, attachmentId } = req.params;
       let anexoNome = "anexo";
       let sucessoMonde = false;
-
+      
       console.log(`🗑️ Iniciando exclusão: taskId=${taskId}, attachmentId=${attachmentId}`);
-
+      
       // 1. Buscar o nome do anexo no histórico da tarefa primeiro
       try {
         const historyResponse = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}/task-historics?include=person&page[size]=50&sort=-date-time`, {
@@ -2541,20 +2541,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
             'Accept': 'application/vnd.api+json'
           }
         });
-
+        
         if (historyResponse.ok) {
           const historyData = await historyResponse.json();
-
+          
           // Buscar por registros de upload de anexo
           const uploadEntries = historyData.data?.filter(entry => 
             entry.attributes?.historic && entry.attributes.historic.includes('Anexo inserido:')
           ) || [];
-
+          
           // Buscar por registros de upload de anexo relacionados ao attachmentId
           const relatedEntry = uploadEntries.find(entry => 
             entry.id === attachmentId || entry.attributes?.historic?.includes(attachmentId)
           );
-
+          
           if (relatedEntry) {
             const filename = relatedEntry.attributes.historic.match(/'([^']+)'/)?.[1];
             if (filename) {
@@ -2576,7 +2576,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // 2. Estratégia principal: Tentar excluir do Monde primeiro
       console.log('🗑️ Tentando excluir anexo do Monde...');
-
+      
       const possibleDeleteEndpoints = [
         `https://web.monde.com.br/api/v2/tasks/${taskId}/anexos/${attachmentId}`,
         `https://web.monde.com.br/api/v2/tasks/${taskId}/attachments/${attachmentId}`,
@@ -2651,7 +2651,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 4. Retornar resultado baseado no sucesso das operações
       if (sucessoMonde) {
         console.log(`🎉 Anexo ${attachmentId} excluído com sucesso do sistema Monde`);
-
+        
         res.json({ 
           message: "Anexo excluído com sucesso",
           deleted_from: ["sistema Monde"],
@@ -2675,9 +2675,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/monde/anexos/:taskId/:attachmentId/download', authenticateToken, async (req: any, res) => {
     try {
       const { taskId, attachmentId } = req.params;
-
+      
       console.log(`📎 Tentando baixar anexo ${attachmentId} da tarefa ${taskId}`);
-
+      
       // Buscar histórico para encontrar o anexo
       const historyResponse = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}/task-historics?include=person&page[size]=50&sort=-date-time`, {
         headers: {
@@ -2685,30 +2685,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'Accept': 'application/vnd.api+json'
         }
       });
-
+      
       if (!historyResponse.ok) {
         return res.status(404).json({ error: 'Histórico não encontrado' });
       }
-
+      
       const historyData = await historyResponse.json();
-
+      
       // Procurar o anexo no histórico
       const attachmentEntry = historyData.data.find(entry => 
         entry.attributes.text && entry.attributes.text.includes(`Anexo inserido: `) && entry.id === attachmentId
       );
-
+      
       if (!attachmentEntry) {
         return res.status(404).json({ error: 'Anexo não encontrado no histórico' });
       }
-
+      
       // Extrair nome do arquivo do histórico
       const attachmentText = attachmentEntry.attributes.text;
       const fileName = attachmentText.replace('Anexo inserido: ', '').trim();
-
+      
       console.log(`📎 Nome do arquivo extraído: ${fileName}`);
       console.log(`📎 ID do anexo: ${attachmentId}`);
       console.log(`📎 ID da tarefa: ${taskId}`);
-
+      
       // Tentar diferentes URLs possíveis do Monde
       const possibleUrls = [
         `https://web.monde.com.br/api/v2/tasks/${taskId}/anexos/${attachmentId}/download`,
@@ -2722,28 +2722,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `https://web.monde.com.br/files/${attachmentId}`,
         `https://web.monde.com.br/storage/${attachmentId}`
       ];
-
+      
       for (const url of possibleUrls) {
         try {
           console.log(`🔄 Tentando URL: ${url}`);
-
+          
           const attachmentResponse = await fetch(url, {
             headers: {
               'Authorization': `Bearer ${req.mondeToken}`,
               'Accept': '*/*'
             }
           });
-
+          
           if (attachmentResponse.ok) {
             console.log(`✅ Anexo encontrado em: ${url}`);
-
+            
             // Proxy do arquivo para o frontend
             const contentType = attachmentResponse.headers.get('content-type') || 'application/octet-stream';
             const contentDisposition = attachmentResponse.headers.get('content-disposition') || `attachment; filename="${attachmentId}"`;
-
+            
             res.setHeader('Content-Type', contentType);
             res.setHeader('Content-Disposition', contentDisposition);
-
+            
             const buffer = await attachmentResponse.buffer();
             return res.send(buffer);
           }
@@ -2752,9 +2752,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           continue;
         }
       }
-
+      
       return res.status(404).json({ error: 'Anexo não encontrado em nenhuma URL testada' });
-
+      
     } catch (error) {
       console.error('Erro ao baixar anexo:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });
@@ -2766,9 +2766,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { taskId } = req.params;
       console.log(`🔍 DEBUG - Investigando tarefa ${taskId} completamente...`);
-
+      
       const results = {};
-
+      
       // 1. Buscar a tarefa completa
       try {
         const taskResponse = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}?include=assignee,person,category,author`, {
@@ -2777,7 +2777,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             'Accept': 'application/vnd.api+json'
           }
         });
-
+        
         if (taskResponse.ok) {
           const taskData = await taskResponse.json();
           results.task = taskData;
@@ -2788,7 +2788,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         results.task = `Erro: ${error.message}`;
       }
-
+      
       // 2. Buscar histórico completo
       try {
         const historyResponse = await fetch(`https://web.monde.com.br/api/v2/tasks/${taskId}/task-historics?include=person&page[size]=50&sort=-date-time`, {
@@ -2797,7 +2797,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             'Accept': 'application/vnd.api+json'
           }
         });
-
+        
         if (historyResponse.ok) {
           const historyData = await historyResponse.json();
           results.history = historyData;
@@ -2810,7 +2810,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         results.history = `Erro: ${error.message}`;
       }
-
+      
       // 3. Testar todos os endpoints possíveis de anexos
       const attachmentEndpoints = [
         `https://web.monde.com.br/api/v2/tasks/${taskId}/anexos`,
@@ -2820,9 +2820,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `https://web.monde.com.br/api/v2/tasks/${taskId}/relationships/attachments`,
         `https://web.monde.com.br/api/v2/tasks/${taskId}/relationships/files`
       ];
-
+      
       results.attachmentEndpoints = {};
-
+      
       for (const endpoint of attachmentEndpoints) {
         try {
           const response = await fetch(endpoint, {
@@ -2831,7 +2831,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               'Accept': 'application/vnd.api+json'
             }
           });
-
+          
           if (response.ok) {
             const data = await response.json();
             results.attachmentEndpoints[endpoint] = data;
@@ -2843,7 +2843,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           results.attachmentEndpoints[endpoint] = `Erro: ${error.message}`;
         }
       }
-
+      
       res.json(results);
     } catch (error) {
       console.error("Erro no debug da tarefa:", error);
@@ -2855,23 +2855,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/monde/anexos/:taskId/:filename", authenticateToken, async (req: any, res) => {
     try {
       const { taskId, filename } = req.params;
-
+      
       // Buscar anexo no banco
       const attachments = await storage.getAnexosByTarefa(taskId, req.user.empresa_info.id);
       const attachment = attachments.find(att => att.nome_arquivo === filename);
-
+      
       if (!attachment) {
         return res.status(404).json({ message: "Anexo não encontrado" });
       }
-
+      
       // Converter base64 para buffer
       const fileBuffer = Buffer.from(attachment.dados_arquivo, 'base64');
-
+      
       // Configurar headers para download
       res.setHeader('Content-Type', attachment.tipo_mime);
       res.setHeader('Content-Disposition', `attachment; filename="${attachment.nome_original}"`);
       res.setHeader('Content-Length', fileBuffer.length);
-
+      
       // Enviar arquivo
       res.send(fileBuffer);
     } catch (error) {
@@ -2880,58 +2880,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para cadastrar pessoa física
-  app.post('/api/monde/pessoas/fisica', authenticateToken, async (req: any, res) => {
+  // Endpoint para cadastrar pessoa física no Monde
+  app.post("/api/monde/pessoas/fisica", authenticateToken, async (req: any, res) => {
     try {
       const personData = req.body;
-      console.log('📋 Dados recebidos para pessoa física:', personData);
-
-      // Montar payload para API do Monde
+      console.log('📋 Cadastrando pessoa física:', personData);
+      
+      // Mapear campos do formulário para a API do Monde
       const mondePayload = {
         data: {
           type: "people",
           attributes: {
-            name: personData.name || null,
+            name: personData.name,
             "birth-date": personData.birthDate || null,
-            cpf: personData.cpf || null,
+            cpf: personData.cpf?.replace(/\D/g, '') || null, // Remover formatação
             rg: personData.rg || null,
             "passport-number": personData.passportNumber || null,
             "passport-expiration": personData.passportExpiration || null,
-            "passport-issue-date": personData.passportIssueDate || null,
             gender: personData.gender || null,
             address: personData.address || null,
             number: personData.number || null,
             complement: personData.complement || null,
             district: personData.district || null,
-            zip: personData.zip || null,
+            zip: personData.zip?.replace(/\D/g, '') || null, // Remover formatação
             email: personData.email || null,
             phone: personData.phone || null,
             "mobile-phone": personData.mobilePhone || null,
             "business-phone": personData.businessPhone || null,
             website: personData.website || null,
             observations: personData.observations || null,
+            code: personData.code ? parseInt(personData.code) : null,
             kind: "individual"
           }
         }
       };
 
-      // Adicionar relacionamentos se fornecidos
-      const relationships: any = {};
-
+      // Se cidade foi selecionada, adicionar relacionamento
       if (personData.cityId) {
-        relationships.city = {
-          data: { type: "cities", id: personData.cityId }
+        mondePayload.data.relationships = {
+          city: {
+            data: { type: "cities", id: personData.cityId }
+          }
         };
-      }
-
-      if (personData.birthPlace) {
-        relationships['birth-place'] = {
-          data: { type: "cities", id: personData.birthPlace }
-        };
-      }
-
-      if (Object.keys(relationships).length > 0) {
-        mondePayload.data.relationships = relationships;
       }
 
       console.log('📋 Payload para o Monde:', JSON.stringify(mondePayload, null, 2));
@@ -2946,39 +2936,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         body: JSON.stringify(mondePayload),
       });
 
-      const responseText = await mondeResponse.text();
-      console.log('📋 Resposta do Monde:', responseText);
-
+      const result = await mondeResponse.json();
+      
       if (mondeResponse.ok) {
-        const data = JSON.parse(responseText);
-        res.status(201).json(data);
+        console.log('✅ Pessoa física cadastrada com sucesso:', result.data.id);
+        res.status(201).json(result);
       } else {
-        console.error('❌ Erro do Monde:', responseText);
-        res.status(mondeResponse.status).json({ 
-          message: "Erro ao cadastrar pessoa física no Monde", 
-          details: responseText 
-        });
+        console.error('❌ Erro ao cadastrar pessoa física:', result);
+        res.status(mondeResponse.status).json(result);
       }
     } catch (error) {
-      console.error("❌ Erro ao cadastrar pessoa física:", error);
+      console.error("Erro ao cadastrar pessoa física:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
 
-  // Endpoint para cadastrar pessoa jurídica
-  app.post('/api/monde/pessoas/juridica', authenticateToken, async (req: any, res) => {
+  // Endpoint para cadastrar pessoa jurídica no Monde
+  app.post("/api/monde/pessoas/juridica", authenticateToken, async (req: any, res) => {
     try {
       const companyData = req.body;
-      console.log('🏢 Dados recebidos para pessoa jurídica:', companyData);
-
-      // Montar payload para API do Monde
+      console.log('📋 Cadastrando pessoa jurídica:', companyData);
+      
+      // Mapear campos do formulário para a API do Monde
       const mondePayload = {
         data: {
           type: "people",
           attributes: {
-            name: companyData.name || null, // Nome fantasia
+            name: companyData.name, // Nome fantasia
             "company-name": companyData.companyName || null, // Razão social
-            cnpj: companyData.cnpj || null,
+            cnpj: companyData.cnpj?.replace(/\D/g, '') || null, // Remover formatação
             "city-inscription": companyData.cityInscription || null,
             "state-inscription": companyData.stateInscription || null,
             "founded-date": companyData.foundedDate || null,
@@ -2986,19 +2972,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
             number: companyData.number || null,
             complement: companyData.complement || null,
             district: companyData.district || null,
-            zip: companyData.zip || null,
-            email: companyData.email || null,
-            phone: companyData.phone || null,
-            "mobile-phone": companyData.mobilePhone || null,
+            zip: companyData.zip?.replace(/\D/g, '') || null, // Remover formatação
             "business-phone": companyData.businessPhone || null,
+            "mobile-phone": companyData.mobilePhone || null,
+            email: companyData.email || null,
             website: companyData.website || null,
             observations: companyData.observations || null,
+            code: companyData.code ? parseInt(companyData.code) : null,
             kind: "company"
           }
         }
       };
 
-      // Adicionar relacionamento de cidade se fornecido
+      // Se cidade foi selecionada, adicionar relacionamento
       if (companyData.cityId) {
         mondePayload.data.relationships = {
           city: {
@@ -3007,7 +2993,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       }
 
-      console.log('🏢 Payload para o Monde:', JSON.stringify(mondePayload, null, 2));
+      console.log('📋 Payload para o Monde:', JSON.stringify(mondePayload, null, 2));
 
       const mondeResponse = await fetch("https://web.monde.com.br/api/v2/people", {
         method: "POST",
@@ -3019,21 +3005,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         body: JSON.stringify(mondePayload),
       });
 
-      const responseText = await mondeResponse.text();
-      console.log('🏢 Resposta do Monde:', responseText);
-
+      const result = await mondeResponse.json();
+      
       if (mondeResponse.ok) {
-        const data = JSON.parse(responseText);
-        res.status(201).json(data);
+        console.log('✅ Pessoa jurídica cadastrada com sucesso:', result.data.id);
+        res.status(201).json(result);
       } else {
-        console.error('❌ Erro do Monde:', responseText);
-        res.status(mondeResponse.status).json({ 
-          message: "Erro ao cadastrar pessoa jurídica no Monde", 
-          details: responseText 
-        });
+        console.error('❌ Erro ao cadastrar pessoa jurídica:', result);
+        res.status(mondeResponse.status).json(result);
       }
     } catch (error) {
-      console.error("❌ Erro ao cadastrar pessoa jurídica:", error);
+      console.error("Erro ao cadastrar pessoa jurídica:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });

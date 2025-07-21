@@ -408,7 +408,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Filtros recebidos:', req.query);
       
       // Incluir relacionamentos essenciais - vamos usar dados do servidor para filtrar
-      let mondeUrl = `https://web.monde.com.br/api/v2/tasks?include=assignee,person,category,author`;
+      let mondeUrl = `https://web.monde.com.br/api/v2/tasks?include=assignee,person,category,author,task-historics`;
       
       // Adicionar filtros da query string
       const queryParams = new URLSearchParams();
@@ -616,6 +616,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 processedTask.author_name = authorData.attributes.name;
                 processedTask.author_email = authorData.attributes.email;
               }
+            }
+            
+            // Incluir histórico da tarefa para verificar exclusões/reaberturas
+            if (task.relationships?.['task-historics']) {
+              const taskHistorics = rawData.included.filter((item: any) => 
+                item.type === 'task-historics' && 
+                item.relationships?.task?.data?.id === task.id
+              );
+              processedTask.historics = taskHistorics;
             }
           }
           
@@ -1094,39 +1103,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (mondeResponse.ok) {
         const data = await mondeResponse.json();
         
-        // Adicionar histórico da reabertura
-        if (req.body.historic) {
-          try {
-            const historyResponse = await fetch(`https://web.monde.com.br/api/v2/task-historics`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/vnd.api+json",
-                "Accept": "application/vnd.api+json",
-                "Authorization": `Bearer ${req.sessao.access_token}`,
-              },
-              body: JSON.stringify({
-                data: {
-                  type: "task-historics",
-                  attributes: {
-                    text: req.body.historic,
-                    "date-time": new Date().toISOString()
-                  },
-                  relationships: {
-                    task: {
-                      data: {
-                        type: "tasks",
-                        id: taskId
-                      }
+        // Adicionar histórico da reabertura com marcador específico
+        try {
+          const reopenText = `🔄 KEEPTUR_REOPENED - ${req.body.historic || 'Tarefa reaberta pelo Keeptur'}`;
+          const historyResponse = await fetch(`https://web.monde.com.br/api/v2/task-historics`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/vnd.api+json",
+              "Accept": "application/vnd.api+json",
+              "Authorization": `Bearer ${req.sessao.access_token}`,
+            },
+            body: JSON.stringify({
+              data: {
+                type: "task-historics",
+                attributes: {
+                  text: reopenText,
+                  "date-time": new Date().toISOString()
+                },
+                relationships: {
+                  task: {
+                    data: {
+                      type: "tasks",
+                      id: taskId
                     }
                   }
                 }
-              }),
-            });
-            
-            console.log('📝 Histórico de reabertura:', historyResponse.ok ? '✅ Salvo' : '❌ Erro');
-          } catch (historyError) {
-            console.log('⚠️ Erro ao salvar histórico de reabertura:', historyError);
-          }
+              }
+            }),
+          });
+          
+          console.log('📝 Histórico de reabertura:', historyResponse.ok ? '✅ Salvo' : '❌ Erro');
+        } catch (historyError) {
+          console.log('⚠️ Erro ao salvar histórico de reabertura:', historyError);
         }
         
         res.status(200).json(data);

@@ -1,0 +1,341 @@
+🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas REALMENTE CONCLUÍDAS (excluindo as que estão excluídas no Monde): 1
+Console.js:61   - TESTE DE NOVA TAREFA (2)
+Console.js:61 🔍 getTasksByStatus para completed - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "completed" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas REALMENTE CONCLUÍDAS (excluindo as que estão excluídas no Monde): 1
+Console.js:61   - TESTE DE NOVA TAREFA (2)
+Console.js:61 🔍 RENDERIZANDO TAREFAS CONCLUÍDAS: 1
+Console.js:61 🔍 getTasksByStatus para deleted - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "deleted" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas EXCLUÍDAS (coluna Excluídas): 2
+Console.js:61   - teste (aparece como completed=true na API)
+Console.js:61   - TESSY ANNE (aparece como completed=true na API)
+Console.js:61 🔍 KANBAN COLUNA EXCLUÍDAS: 2 tarefas
+Console.js:61   - teste
+Console.js:61   - TESSY ANNE
+Console.js:61 🔍 getTasksByStatus para deleted - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "deleted" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas EXCLUÍDAS (coluna Excluídas): 2
+Console.js:61   - teste (aparece como completed=true na API)
+Console.js:61   - TESSY ANNE (aparece como completed=true na API)
+Console.js:61 🔍 getTasksByStatus para deleted - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "deleted" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas EXCLUÍDAS (coluna Excluídas): 2
+Console.js:61   - teste (aparece como completed=true na API)
+Console.js:61   - TESSY ANNE (aparece como completed=true na API)
+Console.js:61 🔍 RENDERIZANDO TAREFAS EXCLUÍDAS: 2
+Console.js:61 🔍 getTasksByStatus para pending - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "pending" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas PENDENTES (ativas + dentro do prazo + não excluídas): 1
+Console.js:61 🔍 KANBAN COLUNA PENDENTES: 1 tarefas
+Console.js:61   - Teste nome novo
+Console.js:61 🔍 getTasksByStatus para pending - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "pending" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas PENDENTES (ativas + dentro do prazo + não excluídas): 1
+Console.js:61 🔍 getTasksByStatus para pending - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "pending" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas PENDENTES (ativas + dentro do prazo + não excluídas): 1
+Console.js:61 🔍 RENDERIZANDO TAREFAS PENDENTES: 1
+Console.js:61 🔍 getTasksByStatus para overdue - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "overdue" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas ATRASADAS (ativas + prazo vencido + não excluídas): 0
+Console.js:61 🔍 KANBAN COLUNA ATRASADAS: 0 tarefas
+Console.js:61 🔍 getTasksByStatus para overdue - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "overdue" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas ATRASADAS (ativas + prazo vencido + não excluídas): 0
+Console.js:61 🔍 getTasksByStatus para overdue - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "overdue" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas ATRASADAS (ativas + prazo vencido + não excluídas): 0
+Console.js:61 🔍 RENDERIZANDO TAREFAS ATRASADAS: 0
+Console.js:61 🔍 getTasksByStatus para completed - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "completed" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas REALMENTE CONCLUÍDAS (excluindo as que estão excluídas no Monde): 1
+Console.js:61   - TESTE DE NOVA TAREFA (2)
+Console.js:61 🔍 KANBAN COLUNA CONCLUÍDAS: 1 tarefas
+Console.js:61   - TESTE DE NOVA TAREFA (2)
+Console.js:61 🔍 getTasksByStatus para completed - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "completed" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas REALMENTE CONCLUÍDAS (excluindo as que estão excluídas no Monde): 1
+Console.js:61   - TESTE DE NOVA TAREFA (2)
+Console.js:61 🔍 getTasksByStatus para completed - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "completed" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas REALMENTE CONCLUÍDAS (excluindo as que estão excluídas no Monde): 1
+Console.js:61   - TESTE DE NOVA TAREFA (2)
+Console.js:61 🔍 RENDERIZANDO TAREFAS CONCLUÍDAS: 1
+Console.js:61 🔍 getTasksByStatus para deleted - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "deleted" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas EXCLUÍDAS (coluna Excluídas): 2
+Console.js:61   - teste (aparece como completed=true na API)
+Console.js:61   - TESSY ANNE (aparece como completed=true na API)
+Console.js:61 🔍 KANBAN COLUNA EXCLUÍDAS: 2 tarefas
+Console.js:61   - teste
+Console.js:61   - TESSY ANNE
+Console.js:61 🔍 getTasksByStatus para deleted - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "deleted" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas EXCLUÍDAS (coluna Excluídas): 2
+Console.js:61   - teste (aparece como completed=true na API)
+Console.js:61   - TESSY ANNE (aparece como completed=true na API)
+Console.js:61 🔍 getTasksByStatus para deleted - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "deleted" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas EXCLUÍDAS (coluna Excluídas): 2
+Console.js:61   - teste (aparece como completed=true na API)
+Console.js:61   - TESSY ANNE (aparece como completed=true na API)
+Console.js:61 🔍 RENDERIZANDO TAREFAS EXCLUÍDAS: 2
+Console.js:61 🔍 getTasksByStatus para pending - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "pending" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas PENDENTES (ativas + dentro do prazo + não excluídas): 1
+Console.js:61 🔍 KANBAN COLUNA PENDENTES: 1 tarefas
+Console.js:61   - Teste nome novo
+Console.js:61 🔍 getTasksByStatus para pending - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "pending" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas PENDENTES (ativas + dentro do prazo + não excluídas): 1
+Console.js:61 🔍 getTasksByStatus para pending - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "pending" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas PENDENTES (ativas + dentro do prazo + não excluídas): 1
+Console.js:61 🔍 RENDERIZANDO TAREFAS PENDENTES: 1
+Console.js:61 🔍 getTasksByStatus para overdue - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "overdue" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas ATRASADAS (ativas + prazo vencido + não excluídas): 0
+Console.js:61 🔍 KANBAN COLUNA ATRASADAS: 0 tarefas
+Console.js:61 🔍 getTasksByStatus para overdue - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "overdue" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas ATRASADAS (ativas + prazo vencido + não excluídas): 0
+Console.js:61 🔍 getTasksByStatus para overdue - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "overdue" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas ATRASADAS (ativas + prazo vencido + não excluídas): 0
+Console.js:61 🔍 RENDERIZANDO TAREFAS ATRASADAS: 0
+Console.js:61 🔍 getTasksByStatus para completed - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "completed" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas REALMENTE CONCLUÍDAS (excluindo as que estão excluídas no Monde): 1
+Console.js:61   - TESTE DE NOVA TAREFA (2)
+Console.js:61 🔍 KANBAN COLUNA CONCLUÍDAS: 1 tarefas
+Console.js:61   - TESTE DE NOVA TAREFA (2)
+Console.js:61 🔍 getTasksByStatus para completed - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "completed" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas REALMENTE CONCLUÍDAS (excluindo as que estão excluídas no Monde): 1
+Console.js:61   - TESTE DE NOVA TAREFA (2)
+Console.js:61 🔍 getTasksByStatus para completed - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "completed" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas REALMENTE CONCLUÍDAS (excluindo as que estão excluídas no Monde): 1
+Console.js:61   - TESTE DE NOVA TAREFA (2)
+Console.js:61 🔍 RENDERIZANDO TAREFAS CONCLUÍDAS: 1
+Console.js:61 🔍 getTasksByStatus para deleted - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "deleted" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas EXCLUÍDAS (coluna Excluídas): 2
+Console.js:61   - teste (aparece como completed=true na API)
+Console.js:61   - TESSY ANNE (aparece como completed=true na API)
+Console.js:61 🔍 KANBAN COLUNA EXCLUÍDAS: 2 tarefas
+Console.js:61   - teste
+Console.js:61   - TESSY ANNE
+Console.js:61 🔍 getTasksByStatus para deleted - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "deleted" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas EXCLUÍDAS (coluna Excluídas): 2
+Console.js:61   - teste (aparece como completed=true na API)
+Console.js:61   - TESSY ANNE (aparece como completed=true na API)
+Console.js:61 🔍 getTasksByStatus para deleted - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "deleted" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas EXCLUÍDAS (coluna Excluídas): 2
+Console.js:61   - teste (aparece como completed=true na API)
+Console.js:61   - TESSY ANNE (aparece como completed=true na API)
+Console.js:61 🔍 RENDERIZANDO TAREFAS EXCLUÍDAS: 2
+Console.js:61 🔍 getTasksByStatus para pending - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "pending" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas PENDENTES (ativas + dentro do prazo + não excluídas): 1
+Console.js:61 🔍 KANBAN COLUNA PENDENTES: 1 tarefas
+Console.js:61   - Teste nome novo
+Console.js:61 🔍 getTasksByStatus para pending - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "pending" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas PENDENTES (ativas + dentro do prazo + não excluídas): 1
+Console.js:61 🔍 getTasksByStatus para pending - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "pending" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas PENDENTES (ativas + dentro do prazo + não excluídas): 1
+Console.js:61 🔍 RENDERIZANDO TAREFAS PENDENTES: 1
+Console.js:61 🔍 getTasksByStatus para overdue - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "overdue" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas ATRASADAS (ativas + prazo vencido + não excluídas): 0
+Console.js:61 🔍 KANBAN COLUNA ATRASADAS: 0 tarefas
+Console.js:61 🔍 getTasksByStatus para overdue - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "overdue" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas ATRASADAS (ativas + prazo vencido + não excluídas): 0
+Console.js:61 🔍 getTasksByStatus para overdue - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "overdue" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas ATRASADAS (ativas + prazo vencido + não excluídas): 0
+Console.js:61 🔍 RENDERIZANDO TAREFAS ATRASADAS: 0
+Console.js:61 🔍 getTasksByStatus para completed - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "completed" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas REALMENTE CONCLUÍDAS (excluindo as que estão excluídas no Monde): 1
+Console.js:61   - TESTE DE NOVA TAREFA (2)
+Console.js:61 🔍 KANBAN COLUNA CONCLUÍDAS: 1 tarefas
+Console.js:61   - TESTE DE NOVA TAREFA (2)
+Console.js:61 🔍 getTasksByStatus para completed - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "completed" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas REALMENTE CONCLUÍDAS (excluindo as que estão excluídas no Monde): 1
+Console.js:61   - TESTE DE NOVA TAREFA (2)
+Console.js:61 🔍 getTasksByStatus para completed - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "completed" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas REALMENTE CONCLUÍDAS (excluindo as que estão excluídas no Monde): 1
+Console.js:61   - TESTE DE NOVA TAREFA (2)
+Console.js:61 🔍 RENDERIZANDO TAREFAS CONCLUÍDAS: 1
+Console.js:61 🔍 getTasksByStatus para deleted - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "deleted" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas EXCLUÍDAS (coluna Excluídas): 2
+Console.js:61   - teste (aparece como completed=true na API)
+Console.js:61   - TESSY ANNE (aparece como completed=true na API)
+Console.js:61 🔍 KANBAN COLUNA EXCLUÍDAS: 2 tarefas
+Console.js:61   - teste
+Console.js:61   - TESSY ANNE
+Console.js:61 🔍 getTasksByStatus para deleted - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "deleted" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas EXCLUÍDAS (coluna Excluídas): 2
+Console.js:61   - teste (aparece como completed=true na API)
+Console.js:61   - TESSY ANNE (aparece como completed=true na API)
+Console.js:61 🔍 getTasksByStatus para deleted - total de tarefas: 4
+Console.js:61 🚨 getTasksByStatus chamado para: "deleted" com 4 tarefas
+Console.js:61 🔍 Lista de tarefas excluídas no Monde: (2) ['teste', 'TESSY ANNE']
+Console.js:61 📋 Tarefas EXCLUÍDAS (coluna Excluídas): 2
+Console.js:61   - teste (aparece como completed=true na API)
+Console.js:61   - TESSY ANNE (aparece como completed=true na API)
+Console.js:61 🔍 RENDERIZANDO TAREFAS EXCLUÍDAS: 2
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.
+e @ frame_ant.js:2
+s @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+s @ frame_ant.js:2
+window.fetch @ frame_ant.js:2
+(anônimo) @ _app-f10df38f71c1285f.js:38
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+e.consumeQueue @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:25
+n @ _app-f10df38f71c1285f.js:38
+setTimeout
+(anônimo) @ _app-f10df38f71c1285f.js:38
+e.scheduleQueueConsumption @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+e.try @ _app-f10df38f71c1285f.js:25
+e.start @ _app-f10df38f71c1285f.js:25
+t.request @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:14
+e.execute @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+s @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+e.mutate @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:40
+(anônimo) @ main-b79515c1024d334e.js:1
+n @ main-b79515c1024d334e.js:1
+u @ main-b79515c1024d334e.js:1
+(anônimo) @ main-b79515c1024d334e.js:1
+(anônimo) @ main-b79515c1024d334e.js:1
+n @ _app-f10df38f71c1285f.js:38Entenda o erro
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.
+e @ frame_ant.js:2
+s @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+s @ frame_ant.js:2
+window.fetch @ frame_ant.js:2
+(anônimo) @ _app-f10df38f71c1285f.js:38
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+e.consumeQueue @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:25
+n @ _app-f10df38f71c1285f.js:38
+setTimeout
+(anônimo) @ _app-f10df38f71c1285f.js:38
+e.scheduleQueueConsumption @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:25
+e @ _app-f10df38f71c1285f.js:14
+t.subscribe @ _app-f10df38f71c1285f.js:14
+e.try @ _app-f10df38f71c1285f.js:25
+e.start @ _app-f10df38f71c1285f.js:25
+t.request @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:25
+(anônimo) @ _app-f10df38f71c1285f.js:14
+e.execute @ _app-f10df38f71c1285f.js:14
+(anônimo) @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+s @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:11
+e.mutate @ _app-f10df38f71c1285f.js:11
+(anônimo) @ _app-f10df38f71c1285f.js:14
+e.wait @ 3430-3d770cc90d759bc9.js:1
+u @ 8830-667e99a8edcebcee.js:1
+(anônimo) @ 8830-667e99a8edcebcee.js:1
+n @ _app-f10df38f71c1285f.js:38Entenda o erro

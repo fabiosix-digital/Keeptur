@@ -1361,11 +1361,31 @@ export default function Dashboard() {
 
   // Função para determinar o status da tarefa
   const getTaskStatus = (task: any) => {
-    // 🚨 CORREÇÃO: Detectar tarefas excluídas baseado na lógica do Monde
-    const TAREFAS_EXCLUIDAS_NO_MONDE = ['teste', 'TESSY ANNE'];
-    const isTaskDeleted = (task: any) => TAREFAS_EXCLUIDAS_NO_MONDE.includes(task.attributes.title);
+    // 🚨 CORREÇÃO: Detectar tarefas excluídas pelo Keeptur via histórico
+    // Verificar se existe histórico de exclusão ou reabertura
+    const hasKeepturDeleted = task.historics?.some((h: any) => 
+      h.attributes?.text?.includes('KEEPTUR_DELETED') || 
+      h.text?.includes('KEEPTUR_DELETED')
+    );
     
-    if (isTaskDeleted(task)) {
+    const hasKeepturReopened = task.historics?.some((h: any) => 
+      h.attributes?.text?.includes('reaberta') || 
+      h.text?.includes('reaberta') ||
+      h.attributes?.text?.includes('KEEPTUR_REOPENED') || 
+      h.text?.includes('KEEPTUR_REOPENED')
+    );
+    
+    // Se foi excluída pelo Keeptur E não foi reaberta, considerar excluída
+    if (hasKeepturDeleted && !hasKeepturReopened) {
+      return { status: "archived", label: "Excluída", class: "status-badge-cancelled" };
+    }
+    
+    // 🚨 FALLBACK: Lista temporária para tarefas já excluídas antes da implementação do histórico
+    const TAREFAS_EXCLUIDAS_LEGACY = ['teste', 'TESSY ANNE'];
+    const isLegacyDeleted = TAREFAS_EXCLUIDAS_LEGACY.includes(task.attributes.title);
+    
+    // Para tarefas legacy, verificar se foram reabertas
+    if (isLegacyDeleted && !hasKeepturReopened) {
       return { status: "archived", label: "Excluída", class: "status-badge-cancelled" };
     }
     

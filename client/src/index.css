@@ -273,6 +273,32 @@ button.action-button i {
   color: #ffffff;
 }
 
+/* 🚨 CORREÇÃO CRÍTICA: Calendário - fundo hover branco invisibilizando textos e ícones */
+.calendar-event:hover,
+.calendar-event:hover *,
+.calendar-event:hover i,
+.calendar-event:hover span,
+.calendar-event:hover .task-actions,
+.calendar-event:hover .task-actions i {
+  background-color: rgba(99, 102, 241, 0.1) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Garantir que ações do calendário sejam visíveis no hover */
+.calendar-event .task-actions {
+  background-color: transparent !important;
+}
+
+.calendar-event .task-actions i {
+  color: var(--text-secondary) !important;
+  background: transparent !important;
+}
+
+.calendar-event:hover .task-actions i {
+  color: #6366f1 !important;
+  background: transparent !important;
+}
+
 .primary-button {
   background-color: #6366f1;
   color: white;

@@ -3567,6 +3567,7 @@ export default function Dashboard() {
       // Se há texto de atualização, salva o histórico primeiro
       if (updateText.trim()) {
         try {
+          console.log('📝 Salvando texto de atualização:', updateText);
           const response = await fetch(`/api/monde/tarefas/${selectedTask?.id}/historico`, {
             method: 'POST',
             headers: {
@@ -3574,23 +3575,44 @@ export default function Dashboard() {
               'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
             },
             body: JSON.stringify({
-              description: updateText
+              historic: updateText,  // Mudança: usar 'historic' em vez de 'description'
+              text: updateText       // Adicionar também 'text' para compatibilidade
             })
           });
           
           if (response.ok) {
             console.log('✅ Histórico salvo com sucesso');
-            alert('Atualização salva com sucesso!');
-            // Recarregar a página para atualizar os dados
-            window.location.reload();
+            
+            // Toast de sucesso
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
+            toast.textContent = 'Atualização salva com sucesso!';
+            document.body.appendChild(toast);
+            setTimeout(() => document.body.removeChild(toast), 3000);
+            
+            // Recarregar apenas os dados da tarefa, não a página toda
+            await loadTaskHistory(selectedTask.id);
+            await reloadTasks(); // Recarregar lista de tarefas
           } else {
             const errorData = await response.json();
             console.error('❌ Erro ao salvar histórico:', errorData);
-            alert('Erro: Esta tarefa não permite adicionar histórico ou foi excluída');
+            
+            // Toast de erro
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
+            toast.textContent = 'Erro ao salvar atualização. Tarefa pode ter sido excluída.';
+            document.body.appendChild(toast);
+            setTimeout(() => document.body.removeChild(toast), 3000);
           }
         } catch (error) {
           console.error('❌ Erro na requisição:', error);
-          alert('Erro ao salvar atualização');
+          
+          // Toast de erro
+          const toast = document.createElement('div');
+          toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
+          toast.textContent = 'Erro de conexão ao salvar atualização';
+          document.body.appendChild(toast);
+          setTimeout(() => document.body.removeChild(toast), 3000);
         }
       }
       
@@ -6262,8 +6284,9 @@ export default function Dashboard() {
 
                     const newDueDate = `${reopenDate}T${reopenTime}:00`;
                     
-                    const response = await fetch(`/api/monde/tarefas/${taskToReopen.id}`, {
-                      method: 'PUT',
+                    // Para tarefas excluídas, primeiro precisamos reativá-las via POST no endpoint de reabertura
+                    const response = await fetch(`/api/monde/tarefas/${taskToReopen.id}/reopen`, {
+                      method: 'POST',
                       headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
@@ -6272,7 +6295,8 @@ export default function Dashboard() {
                         title: taskToReopen.attributes.title,
                         due: newDueDate,
                         completed: false,
-                        history_comment: reopenNote || 'Tarefa reaberta'
+                        description: taskToReopen.attributes.description || '',
+                        historic: reopenNote || 'Tarefa reaberta e reativada'
                       })
                     });
 

@@ -897,13 +897,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/monde/tarefas/:id/historico", authenticateToken, async (req: any, res) => {
     try {
       const taskId = req.params.id;
-      const { description } = req.body;
+      // Corrigir para aceitar 'historic' e 'text' conforme enviado pelo frontend
+      const { description, historic, text } = req.body;
       
-      if (!description) {
-        return res.status(400).json({ message: "Descrição é obrigatória" });
+      if (!description && !historic && !text) {
+        return res.status(400).json({ message: "Texto do histórico é obrigatório" });
       }
       
-      console.log('Criando histórico para task ID:', taskId, 'com descrição:', description);
+      const historyText = historic || text || description;
+      console.log('Criando histórico para task ID:', taskId, 'com texto:', historyText);
       
       const mondeUrl = `https://web.monde.com.br/api/v2/task-historics`;
       
@@ -911,7 +913,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         data: {
           type: "task-historics",
           attributes: {
-            text: description,
+            text: historyText,
             "date-time": new Date().toISOString()
           },
           relationships: {
@@ -1043,6 +1045,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Erro ao atualizar tarefa:", error);
       res.status(500).json({ message: "Erro ao atualizar tarefa" });
+    }
+  });
+
+  // Endpoint específico para reabrir tarefas excluídas/arquivadas
+  app.post("/api/monde/tarefas/:id/reopen", authenticateToken, async (req: any, res) => {
+    try {
+      const taskId = req.params.id;
+      console.log(`🔄 Tentando reabrir tarefa excluída: ${taskId}`);
+      
+      // Para tarefas excluídas, primeiro tentar reativá-las
+      const mondeUrl = `https://web.monde.com.br/api/v2/tasks/${taskId}`;
+      
+      const requestBody = {
+        data: {
+          type: "tasks",
+          id: taskId,
+          attributes: {
+            title: req.body.title,
+            description: req.body.description || '',
+            due: req.body.due,
+            completed: false, // Sempre false para reabertura
+            archived: false   // Tentar desarquivar
+          }
+        }
+      };
+      
+      console.log('📤 Enviando reabertura para Monde:', JSON.stringify(requestBody, null, 2));
+      
+      const mondeResponse = await fetch(mondeUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/vnd.api+json",
+          "Accept": "application/vnd.api+json",
+          "Authorization": `Bearer ${req.sessao.access_token}`,
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      console.log('📡 Resposta da reabertura:', mondeResponse.status, mondeResponse.statusText);
+
+      if (mondeResponse.ok) {
+        const data = await mondeResponse.json();
+        
+        // Adicionar histórico da reabertura
+        if (req.body.historic) {
+          try {
+            const historyResponse = await fetch(`https://web.monde.com.br/api/v2/task-historics`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/vnd.api+json",
+                "Accept": "application/vnd.api+json",
+                "Authorization": `Bearer ${req.sessao.access_token}`,
+              },
+              body: JSON.stringify({
+                data: {
+                  type: "task-historics",
+                  attributes: {
+                    text: req.body.historic,
+                    "date-time": new Date().toISOString()
+                  },
+                  relationships: {
+                    task: {
+                      data: {
+                        type: "tasks",
+                        id: taskId
+                      }
+                    }
+                  }
+                }
+              }),
+            });
+            
+            console.log('📝 Histórico de reabertura:', historyResponse.ok ? '✅ Salvo' : '❌ Erro');
+          } catch (historyError) {
+            console.log('⚠️ Erro ao salvar histórico de reabertura:', historyError);
+          }
+        }
+        
+        res.status(200).json(data);
+      } else {
+        const errorText = await mondeResponse.text();
+        console.error('❌ Erro ao reabrir tarefa:', errorText);
+        res.status(mondeResponse.status).json({ 
+          message: `Erro ao reabrir tarefa: ${mondeResponse.statusText}`,
+          details: errorText
+        });
+      }
+      
+    } catch (error) {
+      console.error("Erro ao reabrir tarefa:", error);
+      res.status(500).json({ message: "Erro interno ao reabrir tarefa" });
     }
   });
 

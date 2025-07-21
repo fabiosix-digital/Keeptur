@@ -51,20 +51,27 @@ export default function Settings() {
       
       if (response.ok) {
         const data = await response.json();
+        console.log('🔗 Redirecionando para:', data.authUrl);
         window.location.href = data.authUrl;
       } else {
-        throw new Error('Erro ao obter URL de autorização');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao obter URL de autorização');
       }
       
     } catch (error) {
       console.error('Erro ao conectar Google Calendar:', error);
       setLoading(false);
       
+      let errorMessage = 'Erro ao conectar Google Calendar';
+      if (error.message && error.message.includes('não configurado')) {
+        errorMessage = 'Google OAuth não configurado. Entre em contato com o administrador.';
+      }
+      
       const toast = document.createElement('div');
-      toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
-      toast.textContent = '❌ Erro ao conectar Google Calendar';
+      toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50 max-w-md';
+      toast.textContent = `❌ ${errorMessage}`;
       document.body.appendChild(toast);
-      setTimeout(() => document.body.removeChild(toast), 3000);
+      setTimeout(() => document.body.removeChild(toast), 5000);
     }
   };
 
@@ -250,6 +257,21 @@ export default function Settings() {
                 )}
                 <span>{loading ? 'Conectando...' : 'Conectar Google Calendar'}</span>
               </button>
+              
+              <div 
+                className="text-xs border rounded-lg p-3 mt-4"
+                style={{ 
+                  backgroundColor: "rgba(245, 158, 11, 0.1)",
+                  borderColor: "rgba(245, 158, 11, 0.3)",
+                  color: "var(--text-secondary)"
+                }}
+              >
+                <p className="font-medium text-amber-800 mb-1">⚠️ Configuração necessária</p>
+                <p className="text-amber-700">
+                  Para usar a integração com Google Calendar, é necessário configurar as credenciais OAuth2 do Google no servidor.
+                  Entre em contato com o administrador do sistema se a conexão falhar.
+                </p>
+              </div>
             </div>
           ) : (
             <div className="space-y-4">

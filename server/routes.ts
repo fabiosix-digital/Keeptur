@@ -13,7 +13,17 @@ const JWT_SECRET = process.env.JWT_SECRET || "keeptur-secret-key";
 // Google OAuth2 Configuration
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "461957019207-4pv2ra29ct67e4fr75a8cfgupd9thoad.apps.googleusercontent.com";
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "";
-const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || "http://localhost:5000/auth/google/callback";
+// Configurar redirect URI automaticamente baseado no ambiente
+const getRedirectUri = () => {
+  if (process.env.REPLIT_DEPLOYMENT) {
+    return `${process.env.REPLIT_DEPLOYMENT}/auth/google/callback`;
+  }
+  if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
+    return `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.replit.dev/auth/google/callback`;
+  }
+  return "http://localhost:5000/auth/google/callback";
+};
+const GOOGLE_REDIRECT_URI = getRedirectUri();
 
 // Configure Google OAuth2 client
 const oauth2Client = new google.auth.OAuth2(
@@ -3073,6 +3083,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Iniciar fluxo OAuth2 do Google
   app.get("/api/google/auth", authenticateToken, async (req: any, res) => {
     try {
+      console.log("🔐 Iniciando fluxo OAuth2 Google...");
+      console.log("🔑 GOOGLE_CLIENT_ID:", GOOGLE_CLIENT_ID ? "✓ Configurado" : "❌ Não configurado");
+      console.log("🔑 GOOGLE_CLIENT_SECRET:", GOOGLE_CLIENT_SECRET ? "✓ Configurado" : "❌ Não configurado");
+      console.log("🔗 GOOGLE_REDIRECT_URI:", GOOGLE_REDIRECT_URI);
+      
+      if (!GOOGLE_CLIENT_SECRET) {
+        console.log("❌ GOOGLE_CLIENT_SECRET não configurado");
+        return res.status(500).json({ 
+          message: "Google OAuth não configurado corretamente. Verifique as credenciais." 
+        });
+      }
+      
       const scopes = [
         'https://www.googleapis.com/auth/calendar',
         'https://www.googleapis.com/auth/userinfo.email'
@@ -3084,9 +3106,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         prompt: 'consent'
       });
 
+      console.log("✅ URL de autorização gerada:", authUrl);
       res.json({ authUrl });
     } catch (error) {
-      console.error("Erro ao gerar URL de autorização:", error);
+      console.error("❌ Erro ao gerar URL de autorização:", error);
       res.status(500).json({ message: "Erro na autenticação" });
     }
   });

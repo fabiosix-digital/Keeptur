@@ -49,6 +49,13 @@ export default function Dashboard() {
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [taskToTransfer, setTaskToTransfer] = useState<any>(null);
   const [selectedTransferUser, setSelectedTransferUser] = useState("");
+  
+  // Estados para modal de reabertura
+  const [showReopenModal, setShowReopenModal] = useState(false);
+  const [taskToReopen, setTaskToReopen] = useState<any>(null);
+  const [reopenDate, setReopenDate] = useState('');
+  const [reopenTime, setReopenTime] = useState('');
+  const [reopenNote, setReopenNote] = useState('');
   const [clientsCurrentPage, setClientsCurrentPage] = useState(1);
   const [clientsHasMore, setClientsHasMore] = useState(false);
   const [showCompletedTasks, setShowCompletedTasks] = useState(false);
@@ -1408,10 +1415,29 @@ export default function Dashboard() {
     }
   };
 
-  const handleTransferTask = (taskId: string) => {
-    console.log("🔄 Transferir tarefa:", taskId);
-    // Abrir modal de transferência (a ser implementado)
-    alert("Funcionalidade de transferência será implementada em breve");
+  // Função para verificar se a tarefa está excluída
+  const TAREFAS_EXCLUIDAS_NO_MONDE = ['teste', 'TESSY ANNE'];
+  const isTaskDeleted = (task: any) => TAREFAS_EXCLUIDAS_NO_MONDE.includes(task.attributes.title);
+
+  // Função para reabrir tarefa
+  const handleReopenTask = async (task: any) => {
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    const currentTime = now.toTimeString().slice(0,5);
+    
+    setTaskToReopen(task);
+    setReopenDate(today);
+    setReopenTime(currentTime);
+    setReopenNote('');
+    setShowReopenModal(true);
+  };
+
+  // Função para transferir tarefa
+  const handleTransferTask = (task: any) => {
+    console.log("🔄 Transferir tarefa:", task.id);
+    setTaskToTransfer(task);
+    setSelectedTransferUser('');
+    setShowTransferModal(true);
   };
 
   const handleDeleteTask = async (taskId: string) => {
@@ -2539,27 +2565,50 @@ export default function Dashboard() {
                             >
                               <i className="ri-eye-line text-sm"></i>
                             </button>
-                            <button
-                              onClick={() => handleCompleteTask(task.id)}
-                              className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap"
-                              title="Concluir tarefa"
-                            >
-                              <i className="ri-checkbox-circle-line text-sm"></i>
-                            </button>
-                            <button
-                              onClick={() => handleTransferTask(task.id)}
-                              className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap"
-                              title="Transferir atendimento"
-                            >
-                              <i className="ri-user-shared-line text-sm"></i>
-                            </button>
-                            <button
-                              onClick={() => handleDeleteTask(task.id)}
-                              className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap"
-                              title="Deletar tarefa"
-                            >
-                              <i className="ri-delete-bin-line text-sm"></i>
-                            </button>
+                            
+                            {/* Botão concluir - só aparece se não estiver concluída nem excluída */}
+                            {!task.attributes.completed && !isTaskDeleted(task) && (
+                              <button
+                                onClick={() => handleCompleteTask(task.id)}
+                                className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap"
+                                title="Concluir tarefa"
+                              >
+                                <i className="ri-checkbox-circle-line text-sm"></i>
+                              </button>
+                            )}
+                            
+                            {/* Botão reabrir - só aparece se estiver concluída ou excluída */}
+                            {(task.attributes.completed || isTaskDeleted(task)) && (
+                              <button
+                                onClick={() => handleReopenTask(task)}
+                                className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap"
+                                title="Reabrir tarefa"
+                              >
+                                <i className="ri-refresh-line text-sm"></i>
+                              </button>
+                            )}
+                            
+                            {/* Botão transferir - só aparece se não estiver excluída */}
+                            {!isTaskDeleted(task) && (
+                              <button
+                                onClick={() => handleTransferTask(task)}
+                                className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap"
+                                title="Transferir atendimento"
+                              >
+                                <i className="ri-user-shared-line text-sm"></i>
+                              </button>
+                            )}
+                            
+                            {/* Botão excluir - só aparece se não estiver excluída */}
+                            {!isTaskDeleted(task) && (
+                              <button
+                                onClick={() => handleDeleteTask(task.id)}
+                                className="action-button p-2 rounded-lg !rounded-button whitespace-nowrap"
+                                title="Excluir tarefa"
+                              >
+                                <i className="ri-delete-bin-line text-sm"></i>
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -3014,6 +3063,50 @@ export default function Dashboard() {
                               >
                                 <i className="ri-eye-line text-xs"></i>
                               </button>
+                              
+                              {/* Botão concluir - só aparece se não estiver concluída nem excluída */}
+                              {!task.attributes.completed && !isTaskDeleted(task) && (
+                                <button 
+                                  onClick={() => handleCompleteTask(task.id)}
+                                  className="action-button p-1 rounded !rounded-button whitespace-nowrap"
+                                  title="Concluir tarefa"
+                                >
+                                  <i className="ri-checkbox-circle-line text-xs"></i>
+                                </button>
+                              )}
+                              
+                              {/* Botão reabrir - só aparece se estiver concluída ou excluída */}
+                              {(task.attributes.completed || isTaskDeleted(task)) && (
+                                <button 
+                                  onClick={() => handleReopenTask(task)}
+                                  className="action-button p-1 rounded !rounded-button whitespace-nowrap"
+                                  title="Reabrir tarefa"
+                                >
+                                  <i className="ri-refresh-line text-xs"></i>
+                                </button>
+                              )}
+                              
+                              {/* Botão transferir - só aparece se não estiver excluída */}
+                              {!isTaskDeleted(task) && (
+                                <button 
+                                  onClick={() => handleTransferTask(task)}
+                                  className="action-button p-1 rounded !rounded-button whitespace-nowrap"
+                                  title="Transferir tarefa"
+                                >
+                                  <i className="ri-user-shared-line text-xs"></i>
+                                </button>
+                              )}
+                              
+                              {/* Botão excluir - só aparece se não estiver excluída */}
+                              {!isTaskDeleted(task) && (
+                                <button 
+                                  onClick={() => handleDeleteTask(task.id)}
+                                  className="action-button p-1 rounded !rounded-button whitespace-nowrap"
+                                  title="Excluir tarefa"
+                                >
+                                  <i className="ri-delete-bin-line text-xs"></i>
+                                </button>
+                              )}
                             </div>
                           </div>
                           <div className="flex items-start justify-end">
@@ -5970,6 +6063,261 @@ export default function Dashboard() {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Reabertura de Tarefa */}
+      {showReopenModal && taskToReopen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
+                <i className="ri-refresh-line mr-2 text-green-600"></i>
+                Reabrir Tarefa
+              </h3>
+              <button
+                onClick={() => {
+                  setShowReopenModal(false);
+                  setTaskToReopen(null);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <i className="ri-close-line text-xl"></i>
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-4">
+                <h4 className="font-medium text-green-800 dark:text-green-200 mb-2">
+                  {taskToReopen.attributes?.title}
+                </h4>
+                <p className="text-green-600 dark:text-green-300 text-sm">
+                  Esta tarefa será reaberta e ficará pendente novamente.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Nova Data:</label>
+                    <input
+                      type="date"
+                      value={reopenDate}
+                      onChange={(e) => setReopenDate(e.target.value)}
+                      className="w-full px-3 py-2 border rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Horário:</label>
+                    <input
+                      type="time"
+                      value={reopenTime}
+                      onChange={(e) => setReopenTime(e.target.value)}
+                      className="w-full px-3 py-2 border rounded-lg"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">Motivo da Reabertura:</label>
+                  <textarea
+                    value={reopenNote}
+                    onChange={(e) => setReopenNote(e.target.value)}
+                    placeholder="Descreva o motivo da reabertura..."
+                    rows={3}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowReopenModal(false);
+                  setTaskToReopen(null);
+                }}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    const token = localStorage.getItem('keeptur-token');
+                    if (!token) {
+                      setShowTokenExpiredModal(true);
+                      return;
+                    }
+
+                    const newDueDate = `${reopenDate}T${reopenTime}:00`;
+                    
+                    const response = await fetch(`/api/monde/tarefas/${taskToReopen.id}`, {
+                      method: 'PUT',
+                      headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                      },
+                      body: JSON.stringify({
+                        title: taskToReopen.attributes.title,
+                        due: newDueDate,
+                        completed: false,
+                        history_comment: reopenNote || 'Tarefa reaberta'
+                      })
+                    });
+
+                    if (response.ok) {
+                      setShowReopenModal(false);
+                      setTaskToReopen(null);
+                      setReopenNote('');
+                      reloadTasks();
+                      
+                      const toast = document.createElement('div');
+                      toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                      toast.textContent = '✅ Tarefa reaberta com sucesso!';
+                      document.body.appendChild(toast);
+                      setTimeout(() => document.body.removeChild(toast), 3000);
+                    } else {
+                      throw new Error('Erro ao reabrir tarefa');
+                    }
+                  } catch (error) {
+                    console.error('Erro ao reabrir tarefa:', error);
+                    const toast = document.createElement('div');
+                    toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                    toast.textContent = '❌ Erro ao reabrir tarefa';
+                    document.body.appendChild(toast);
+                    setTimeout(() => document.body.removeChild(toast), 3000);
+                  }
+                }}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              >
+                <i className="ri-refresh-line mr-2"></i>
+                Reabrir Tarefa
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Transferência de Tarefa */}
+      {showTransferModal && taskToTransfer && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
+                <i className="ri-user-shared-line mr-2 text-blue-600"></i>
+                Transferir Tarefa
+              </h3>
+              <button
+                onClick={() => {
+                  setShowTransferModal(false);
+                  setTaskToTransfer(null);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <i className="ri-close-line text-xl"></i>
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+                <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-2">
+                  {taskToTransfer.attributes?.title}
+                </h4>
+                <p className="text-blue-600 dark:text-blue-300 text-sm">
+                  Selecione o novo responsável para esta tarefa.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Novo Responsável:</label>
+                <select
+                  value={selectedTransferUser}
+                  onChange={(e) => setSelectedTransferUser(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg"
+                >
+                  <option value="">Selecione um usuário</option>
+                  {users.map((user: any) => (
+                    <option key={user.id} value={user.id}>
+                      {user.attributes.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowTransferModal(false);
+                  setTaskToTransfer(null);
+                }}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={async () => {
+                  if (!selectedTransferUser) {
+                    const toast = document.createElement('div');
+                    toast.className = 'fixed top-4 right-4 bg-yellow-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                    toast.textContent = '⚠️ Selecione um responsável';
+                    document.body.appendChild(toast);
+                    setTimeout(() => document.body.removeChild(toast), 3000);
+                    return;
+                  }
+
+                  try {
+                    const token = localStorage.getItem('keeptur-token');
+                    if (!token) {
+                      setShowTokenExpiredModal(true);
+                      return;
+                    }
+                    
+                    const response = await fetch(`/api/monde/tarefas/${taskToTransfer.id}`, {
+                      method: 'PUT',
+                      headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                      },
+                      body: JSON.stringify({
+                        title: taskToTransfer.attributes.title,
+                        assignee_id: selectedTransferUser,
+                        history_comment: `Tarefa transferida para ${users.find((u: any) => u.id === selectedTransferUser)?.attributes.name}`
+                      })
+                    });
+
+                    if (response.ok) {
+                      setShowTransferModal(false);
+                      setTaskToTransfer(null);
+                      setSelectedTransferUser('');
+                      reloadTasks();
+                      
+                      const toast = document.createElement('div');
+                      toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                      toast.textContent = '✅ Tarefa transferida com sucesso!';
+                      document.body.appendChild(toast);
+                      setTimeout(() => document.body.removeChild(toast), 3000);
+                    } else {
+                      throw new Error('Erro ao transferir tarefa');
+                    }
+                  } catch (error) {
+                    console.error('Erro ao transferir tarefa:', error);
+                    const toast = document.createElement('div');
+                    toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                    toast.textContent = '❌ Erro ao transferir tarefa';
+                    document.body.appendChild(toast);
+                    setTimeout(() => document.body.removeChild(toast), 3000);
+                  }
+                }}
+                disabled={!selectedTransferUser}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <i className="ri-user-shared-line mr-2"></i>
+                Transferir
+              </button>
             </div>
           </div>
         </div>

@@ -361,11 +361,22 @@ export default function Settings() {
                     <div className="border rounded-lg p-4 bg-yellow-50" style={{ borderColor: "rgba(245, 158, 11, 0.5)" }}>
                       <h5 className="font-medium text-yellow-800 mb-2">⚠️ Configuração necessária no Google Cloud Console:</h5>
                       <p className="text-sm text-yellow-700 mb-2">
-                        Adicione esta URL exata nos "URIs de redirecionamento autorizados":
+                        Adicione estas 2 URLs nos "URIs de redirecionamento autorizados":
                       </p>
-                      <code className="block text-xs bg-gray-100 p-2 rounded border text-gray-800 break-all">
-                        https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/auth/google/callback
-                      </code>
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-xs text-yellow-700 font-medium">Desenvolvimento:</p>
+                          <code className="block text-xs bg-gray-100 p-2 rounded border text-gray-800 break-all">
+                            https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/auth/google/callback
+                          </code>
+                        </div>
+                        <div>
+                          <p className="text-xs text-yellow-700 font-medium">Produção (Deploy):</p>
+                          <code className="block text-xs bg-gray-100 p-2 rounded border text-gray-800 break-all">
+                            https://keeptur.replit.app/auth/google/callback
+                          </code>
+                        </div>
+                      </div>
                       <p className="text-xs text-yellow-600 mt-2">
                         Acesse: console.cloud.google.com/apis/credentials → Sua aplicação OAuth 2.0 → URIs de redirecionamento
                       </p>

@@ -103,6 +103,10 @@ Preferred communication style: Simple, everyday language in Portuguese.
 - ✅ Campo de responsável corrigido para usar defaultValue e pré-selecionar usuário logado
 - ✅ Data e hora atuais configuradas como padrão em novas tarefas
 - ✅ Sistema de eventos DOM implementado para garantir sincronização dos campos preenchidos
+- ✅ Detecção automática de URL de callback OAuth2 implementada (desenvolvimento vs produção)
+- ✅ Sistema configurado para usar URL correta baseada no ambiente (Replit dev vs keeptur.replit.app)
+- ✅ Página de configurações atualizada com instruções claras para Google Cloud Console
+- ✅ Suporte para ambas URLs de callback (desenvolvimento e produção) na documentação
 
 ## System Architecture
 

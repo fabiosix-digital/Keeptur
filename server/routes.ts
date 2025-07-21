@@ -16,7 +16,12 @@ const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "GOCSPX-cr5eq-6
 
 // Detectar URL base dinamicamente
 const getBaseUrl = () => {
-  // URL customizada do Replit (mais prioritária)
+  // Priorizar URL customizada de produção (keeptur.replit.app)
+  if (process.env.NODE_ENV === 'production' || process.env.REPLIT_DEPLOYMENT === 'production') {
+    return "https://keeptur.replit.app";
+  }
+  
+  // URL de desenvolvimento do Replit
   if (process.env.REPLIT_DOMAINS) {
     const domains = process.env.REPLIT_DOMAINS.split(',');
     return `https://${domains[0]}`;

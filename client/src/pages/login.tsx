@@ -211,14 +211,20 @@ export default function Login() {
             )}
           </Button>
 
-          <div className="text-center">
+          <div className="text-center space-y-2">
             <button
               type="button"
-              className="text-sm text-primary hover:text-primary/80 transition-colors"
+              className="text-sm text-primary hover:text-primary/80 transition-colors block w-full"
               onClick={() => alert("Entre em contato com o administrador do seu sistema Monde para recuperar sua senha.")}
             >
               Esqueci minha senha
             </button>
+            <a
+              href="/test-credentials"
+              className="text-sm text-gray-500 hover:text-gray-700 transition-colors block"
+            >
+              Testar credenciais do Monde
+            </a>
           </div>
         </form>
       </Card>

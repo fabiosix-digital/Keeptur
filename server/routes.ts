@@ -66,6 +66,52 @@ const planSubscriptionSchema = z.object({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Endpoint de teste para verificar credenciais do Monde
+  app.post("/api/auth/test-credentials", async (req, res) => {
+    try {
+      const { login, password } = req.body;
+      
+      console.log("🧪 Testando credenciais:", login);
+      
+      const testResponse = await fetch("https://web.monde.com.br/api/v2/tokens", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/vnd.api+json",
+          "Accept": "application/vnd.api+json",
+          "User-Agent": "Keeptur/1.0"
+        },
+        body: JSON.stringify({
+          data: {
+            type: "tokens",
+            attributes: {
+              login: login,
+              password: password
+            }
+          }
+        }),
+      });
+      
+      if (testResponse.ok) {
+        const data = await testResponse.json();
+        res.json({
+          success: true,
+          login: data.data.attributes.login,
+          message: "Credenciais válidas"
+        });
+      } else {
+        const errorText = await testResponse.text();
+        res.status(testResponse.status).json({
+          success: false,
+          status: testResponse.status,
+          error: errorText,
+          message: "Credenciais inválidas"
+        });
+      }
+    } catch (error) {
+      res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  });
+
   // Login route
   app.post("/api/auth/login", async (req, res) => {
     try {
@@ -80,13 +126,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log("🔑 Tentando autenticar com Monde API:", mondeApiUrl);
       
-      // Testar diferentes formatos de login
+      // Testar diferentes formatos de login baseado na documentação do Monde
       const serverDomain = serverUrl.replace('http://', '').replace('https://', '');
+      const emailParts = email.split('@');
+      const username = emailParts[0];
+      
       const loginFormats = [
-        email, // Email completo
-        email.split('@')[0], // Apenas o username
-        `${email.split('@')[0]}@${serverDomain}`, // Username + domínio do servidor
+        email, // Email completo como fornecido
+        `${username}@${serverDomain}`, // Username + domínio do servidor Monde
+        email.includes('@') ? email : `${email}@${serverDomain}`, // Garantir formato email
       ];
+      
+      // Log de debug para verificar formatos
+      console.log('📋 Formatos de login que serão testados:', loginFormats);
       
       let mondeResponse: Response | null = null;
       let loginUsed = '';
@@ -128,12 +180,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Se nenhum formato funcionou, retornar erro
+      // Se nenhum formato funcionou, retornar erro detalhado
       if (!mondeResponse) {
         console.log("❌ Nenhum formato de login funcionou");
+        console.log("💡 Sugestão: Verifique se as credenciais estão corretas e se o usuário tem acesso ao sistema Monde");
+        console.log("📋 Formatos testados:", loginFormats);
+        
         return res.status(401).json({ 
           message: "Credenciais inválidas. Verifique email, senha e servidor.",
-          details: "Todos os formatos de login testados falharam"
+          details: "Todos os formatos de login testados falharam",
+          tested_formats: loginFormats,
+          suggestion: "Verifique se o usuário tem permissão de acesso total no sistema Monde"
         });
       }
 

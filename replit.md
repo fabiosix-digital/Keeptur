@@ -107,6 +107,13 @@ Preferred communication style: Simple, everyday language in Portuguese.
 - ✅ Sistema configurado para usar URL correta baseada no ambiente (Replit dev vs keeptur.replit.app)
 - ✅ Página de configurações atualizada com instruções claras para Google Cloud Console
 - ✅ Suporte para ambas URLs de callback (desenvolvimento e produção) na documentação
+- ✅ Sistema de login SaaS implementado para aceitar qualquer usuário do Monde
+- ✅ Múltiplos formatos de autenticação testados automaticamente (email, username+domínio)
+- ✅ Página de teste de credenciais criada (/test-credentials) para validação
+- ✅ Logs detalhados implementados para debugging de problemas de autenticação
+- ✅ Endpoint /api/auth/test-credentials para verificar credenciais válidas
+- ✅ Mensagens de erro melhoradas com sugestões de solução
+- ✅ Interface de teste integrada com link na página de login
 
 ## System Architecture
 

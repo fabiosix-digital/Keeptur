@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/hooks/use-theme";
 import Login from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
 import Settings from "@/pages/settings";
+import TestCredentials from "@/pages/test-credentials";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -16,6 +17,7 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/settings" component={Settings} />
+      <Route path="/test-credentials" component={TestCredentials} />
       <Route path="/" component={Login} />
       <Route component={NotFound} />
     </Switch>

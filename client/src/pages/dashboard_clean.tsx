@@ -3,9 +3,6 @@ import { useAuth } from "../lib/auth";
 import { MondeAPI } from "../lib/monde-api";
 import { useTheme } from "../hooks/use-theme";
 import { TokenExpiredModal } from "../components/TokenExpiredModal";
-import ClientSearchField from "../components/ClientSearchField";
-import PersonFisicaModal from "../components/PersonFisicaModal";
-import PersonJuridicaModal from "../components/PersonJuridicaModal";
 import { setTokenExpiredHandler } from "../lib/queryClient";
 import logoFull from "@assets/LOGO Lilas_1752695672079.png";
 import logoIcon from "@assets/ico Lilas_1752695703171.png";
@@ -103,10 +100,6 @@ export default function Dashboard() {
   const [cities, setCities] = useState<any[]>([]);
   const [loadingCities, setLoadingCities] = useState(false);
   const [savingPerson, setSavingPerson] = useState(false);
-  const [savingPersonFisica, setSavingPersonFisica] = useState(false);
-  const [savingPersonJuridica, setSavingPersonJuridica] = useState(false);
-  const [uploadingAttachment, setUploadingAttachment] = useState(false);
-  const [loadingAttachments, setLoadingAttachments] = useState(false);
 
 
   // Debounce timeout ref
@@ -148,7 +141,7 @@ export default function Dashboard() {
         setClientSearchResults([]);
       }
       setIsSearchingClients(false);
-    }, 300); // 300ms debounce otimizado
+    }, 2000); // 2 segundos debounce
   }, []);
 
   // Função para carregar empresas do usuário
@@ -196,171 +189,35 @@ export default function Dashboard() {
   };
 
   // Função para submeter formulário de pessoa física
-  const submitPersonFisica = async (personData: any) => {
-    setSavingPersonFisica(true);
+  const submitPersonFisica = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSavingPerson(true);
+
+    const formData = new FormData(event.currentTarget);
+    const personData = {
+      name: formData.get('name') as string,
+      birthDate: formData.get('birthDate') as string,
+      cpf: formData.get('cpf') as string,
+      rg: formData.get('rg') as string,
+      passportNumber: formData.get('passportNumber') as string,
+      passportExpiration: formData.get('passportExpiration') as string,
+      gender: formData.get('gender') as string,
+      address: formData.get('address') as string,
+      number: formData.get('number') as string,
+      complement: formData.get('complement') as string,
+      district: formData.get('district') as string,
+      zip: formData.get('zip') as string,
+      cityId: formData.get('cityId') as string,
+      email: formData.get('email') as string,
+      phone: formData.get('phone') as string,
+      mobilePhone: formData.get('mobilePhone') as string,
+      businessPhone: formData.get('businessPhone') as string,
+      website: formData.get('website') as string,
+      observations: formData.get('observations') as string,
+      code: formData.get('code') as string,
+    };
 
     try {
-      const response = await fetch('/api/monde/people', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
-        },
-        body: JSON.stringify(personData)
-      });
-
-      if (response.ok) {
-        console.log('✅ Pessoa física cadastrada com sucesso');
-        setShowPersonFisicaModal(false);
-        // Recarregar lista de clientes se necessário
-      } else {
-        console.error('❌ Erro ao cadastrar pessoa física:', response.status);
-      }
-    } catch (error) {
-      console.error('❌ Erro ao cadastrar pessoa física:', error);
-    }
-    
-    setSavingPersonFisica(false);
-  };
-
-  // Função para submeter formulário de pessoa jurídica
-  const submitPersonJuridica = async (companyData: any) => {
-    setSavingPersonJuridica(true);
-    
-    try {
-      const response = await fetch('/api/monde/people', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
-        },
-        body: JSON.stringify(companyData)
-      });
-
-      if (response.ok) {
-        console.log('✅ Pessoa jurídica cadastrada com sucesso');
-        setShowPersonJuridicaModal(false);
-        // Recarregar lista de clientes se necessário
-      } else {
-        console.error('❌ Erro ao cadastrar pessoa jurídica:', response.status);
-      }
-    } catch (error) {
-      console.error('❌ Erro ao cadastrar pessoa jurídica:', error);
-    }
-    
-    setSavingPersonJuridica(false);
-  };
-
-  // Função para carregar anexos da tarefa
-  const loadTaskAttachments = async (taskId: string) => {
-    if (!taskId) return;
-    
-    setLoadingAttachments(true);
-    try {
-      const response = await fetch(`/api/monde/tarefas/${taskId}/anexos`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setTaskAttachments(data.data || []);
-      } else {
-        console.error('Erro ao carregar anexos:', response.status);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar anexos:', error);
-    }
-    setLoadingAttachments(false);
-  };
-
-  // Função para upload de anexos
-  const uploadAttachments = async () => {
-    if (!selectedTask?.id || attachments.length === 0) return;
-    
-    setUploadingAttachment(true);
-    
-    for (const file of attachments) {
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      try {
-        const response = await fetch(`/api/monde/tarefas/${selectedTask.id}/anexos`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
-          },
-          body: formData
-        });
-
-        if (response.ok) {
-          console.log(`✅ Anexo ${file.name} enviado com sucesso`);
-        } else {
-          console.error(`❌ Erro ao enviar anexo ${file.name}:`, response.status);
-        }
-      } catch (error) {
-        console.error(`❌ Erro ao enviar anexo ${file.name}:`, error);
-      }
-    }
-    
-    setAttachments([]);
-    setUploadingAttachment(false);
-    loadTaskAttachments(selectedTask.id);
-  };
-
-  // Função para excluir anexo
-  const deleteAttachment = async (attachmentId: string) => {
-    if (!selectedTask?.id) return;
-    
-    try {
-      const response = await fetch(`/api/monde/tarefas/${selectedTask.id}/anexos/${attachmentId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
-        }
-      });
-
-      if (response.ok) {
-        console.log('✅ Anexo excluído com sucesso');
-        loadTaskAttachments(selectedTask.id);
-      } else {
-        console.error('❌ Erro ao excluir anexo:', response.status);
-      }
-    } catch (error) {
-      console.error('❌ Erro ao excluir anexo:', error);
-    }
-  };
-
-  // Função para carregar histórico da tarefa
-  const loadTaskHistory = async (taskId: string) => {
-    if (!taskId) return;
-    
-    try {
-      const response = await fetch(`/api/monde/tarefas/${taskId}/historico`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setTaskHistory(data.data || []);
-      } else {
-        console.error('Erro ao carregar histórico:', response.status);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar histórico:', error);
-    }
-  };
-
-  // Hook para adicionar toast notifications
-  const addToast = (toast: any) => {
-    // Implementação de toast simples para feedback
-    console.log('Toast:', toast);
-  };
-
-  // Resto das funções existentes continuam inalteradas...
       const response = await fetch('/api/monde/pessoas/fisica', {
         method: 'POST',
         headers: {
@@ -3617,438 +3474,30 @@ export default function Dashboard() {
                           readOnly
                         />
                       ) : (
-                        <ClientSearchField
-                          value={clientSearchTerm}
-                          onChange={(value) => {
-                            setClientSearchTerm(value);
-                            searchClientsInMonde(value);
-                          }}
-                          onSelect={(client) => {
-                            setSelectedPersonForTask(client);
-                            setClientSearchTerm(client.attributes.name || client.attributes['company-name'] || 'Cliente');
-                            setClientSearchResults([]);
-                            
-                            // Preencher campos automaticamente
-                            setTimeout(() => {
-                              const emailField = document.querySelector('input[name="client_email"]') as HTMLInputElement;
-                              const phoneField = document.querySelector('input[name="client_phone"]') as HTMLInputElement;
-                              const mobileField = document.querySelector('input[name="client_mobile"]') as HTMLInputElement;
-                              
-                              if (emailField) {
-                                emailField.value = client.attributes.email || '';
-                                emailField.dispatchEvent(new Event('input', { bubbles: true }));
-                              }
-                              if (phoneField) {
-                                phoneField.value = client.attributes.phone || client.attributes['business-phone'] || '';
-                                phoneField.dispatchEvent(new Event('input', { bubbles: true }));
-                              }
-                              if (mobileField) {
-                                mobileField.value = client.attributes['mobile-phone'] || '';
-                                mobileField.dispatchEvent(new Event('input', { bubbles: true }));
-                              }
-                            }, 100);
-                          }}
-                          results={clientSearchResults}
-                          isSearching={isSearchingClients}
-                        />
-                      )}
-                    </div>
-                    <div className="col-span-6">
-                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                        Empresa:
-                      </label>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          className="form-input w-full px-3 py-2 text-sm"
-                          style={{ backgroundColor: "var(--bg-secondary)" }}
-                          value={selectedTask?.client_company || 'Empresa não encontrada'}
-                          readOnly
-                        />
-                      ) : (
-                        <select 
-                          name="company_id"
-                          className="form-input w-full px-3 py-2 text-sm"
-                          style={{ backgroundColor: "var(--bg-secondary)" }}
-                          defaultValue={userCompanies.length > 0 ? userCompanies[0].id : ''}
-                        >
-                          <option value="">Selecione uma empresa</option>
-                          {userCompanies.map((company: any) => (
-                            <option key={company.id} value={company.id}>
-                              {company.attributes?.name || company.attributes?.['company-name'] || 'Empresa'}
-                            </option>
-                          ))}
-                        </select>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Quarta linha - E-mail, Telefone e Celular */}
-                  <div className="grid grid-cols-12 gap-4">
-                    <div className="col-span-4">
-                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                        E-mail:
-                      </label>
-                      <input
-                        type="email"
-                        name="client_email"
-                        className="form-input w-full px-3 py-2 text-sm"
-                        style={{ backgroundColor: "var(--bg-secondary)" }}
-                        defaultValue={selectedTask?.client_email || selectedPersonForTask?.attributes?.email || ''}
-                      />
-                    </div>
-                    <div className="col-span-4">
-                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                        Telefone:
-                      </label>
-                      <input
-                        type="tel"
-                        name="client_phone"
-                        placeholder="(11) 3333-4444"
-                        className="form-input w-full px-3 py-2 text-sm"
-                        style={{ backgroundColor: "var(--bg-secondary)" }}
-                        defaultValue={selectedTask?.client_phone || selectedPersonForTask?.attributes?.phone || ''}
-                      />
-                    </div>
-                    <div className="col-span-4">
-                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                        Celular:
-                      </label>
-                      <input
-                        type="tel"
-                        name="client_mobile"
-                        placeholder="(11) 99999-8888"
-                        className="form-input w-full px-3 py-2 text-sm"
-                        style={{ backgroundColor: "var(--bg-secondary)" }}
-                        defaultValue={selectedTask?.client_mobile || selectedPersonForTask?.attributes?.['mobile-phone'] || ''}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Quinta linha - Descrição da tarefa */}
-                  <div className="col-span-12">
-                    <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                      Descrição:
-                    </label>
-                    <textarea
-                      name="description"
-                      rows={3}
-                      className="form-input w-full px-3 py-2 text-sm"
-                      style={{ backgroundColor: "var(--bg-secondary)" }}
-                      defaultValue={selectedTask?.attributes?.description || ''}
-                    ></textarea>
-                  </div>
-
-                  {/* Histórico/Comentários */}
-                  {activeModalTab === "detalhes" && (
-                    <div className="col-span-12 border-t pt-4">
-                      <h4 className="text-md font-medium mb-3" style={{ color: "var(--text-primary)" }}>
-                        Histórico da Tarefa
-                      </h4>
-                      
-                      {/* Novo comentário */}
-                      <div className="mb-4">
-                        <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                          Adicionar comentário:
-                        </label>
-                        <textarea
-                          value={newHistoryText}
-                          onChange={(e) => setNewHistoryText(e.target.value)}
-                          placeholder="Digite seu comentário ou observação..."
-                          rows={3}
-                          className="form-input w-full px-3 py-2 text-sm"
-                          style={{ backgroundColor: "var(--bg-secondary)" }}
-                        ></textarea>
-                      </div>
-                      
-                      {/* Lista do histórico */}
-                      <div className="max-h-40 overflow-y-auto space-y-2">
-                        {taskHistory.length > 0 ? (
-                          taskHistory.map((item: any, index: number) => (
-                            <div key={index} className="text-xs p-2 rounded" style={{ backgroundColor: "var(--bg-tertiary)" }}>
-                              <div className="font-medium" style={{ color: "var(--text-primary)" }}>
-                                {item.attributes?.description || item.description || 'Sem descrição'}
-                              </div>
-                              <div className="text-gray-500 mt-1">
-                                {item.attributes?.['created-at'] 
-                                  ? new Date(item.attributes['created-at']).toLocaleString('pt-BR')
-                                  : item.createdAt
-                                  ? new Date(item.createdAt).toLocaleString('pt-BR')
-                                  : 'Data não disponível'
-                                }
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <p className="text-sm text-gray-500">Nenhum histórico disponível</p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Botões de ação */}
-                  <div className="col-span-12 flex justify-end space-x-3 mt-6">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowTaskModal(false);
-                        setSelectedTask(null);
-                        setAttachments([]);
-                        setTaskAttachments([]);
-                        setIsModalMaximized(false);
-                        setIsEditing(false);
-                        setTaskHistory([]);
-                      }}
-                      className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      Cancelar
-                    </button>
-                    <button 
-                      type="submit" 
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      {isEditing ? 'Salvar Alterações' : 'Criar Tarefa'}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Aba de Anexos */}
-                {activeModalTab === "anexos" && (
-                  <div className="space-y-6">
-                    {/* Upload de anexos */}
-                    <div className="border border-dashed border-gray-300 rounded-lg p-6 text-center">
-                      <input
-                        type="file"
-                        multiple
-                        onChange={(e) => {
-                          if (e.target.files) {
-                            setAttachments(Array.from(e.target.files));
-                          }
-                        }}
-                        className="hidden"
-                        id="attachment-upload"
-                      />
-                      <label htmlFor="attachment-upload" className="cursor-pointer">
-                        <i className="ri-upload-cloud-2-line text-3xl text-gray-400 mb-2 block"></i>
-                        <p className="text-sm text-gray-600">Clique para selecionar arquivos ou arraste aqui</p>
-                        <p className="text-xs text-gray-400 mt-1">Máximo 10 arquivos, 5MB cada</p>
-                      </label>
-                    </div>
-
-                    {/* Lista de anexos para upload */}
-                    {attachments.length > 0 && (
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-medium">Arquivos selecionados:</h4>
-                        {attachments.map((file, index) => (
-                          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                            <span className="text-sm">{file.name}</span>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            placeholder="Digite para buscar cliente..."
+                            className="form-input w-full px-3 py-2 pr-10 text-sm"
+                            style={{ backgroundColor: "var(--bg-secondary)" }}
+                            value={clientSearchTerm}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              setClientSearchTerm(value);
+                              searchClientsInMonde(value);
+                            }}
+                          />
+                          <div className="relative">
                             <button
                               type="button"
-                              onClick={() => setAttachments(attachments.filter((_, i) => i !== index))}
-                              className="text-red-500 hover:text-red-700"
+                              onClick={() => setShowClientDropdown(!showClientDropdown)}
+                              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-blue-600 hover:text-blue-800"
+                              title="Buscar ou cadastrar cliente"
                             >
-                              <i className="ri-close-line"></i>
+                              <i className="ri-user-add-line text-lg"></i>
                             </button>
-                          </div>
-                        ))}
-                        <button
-                          type="button"
-                          onClick={uploadAttachments}
-                          className="w-full py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                          disabled={uploadingAttachment}
-                        >
-                          {uploadingAttachment ? 'Enviando...' : `Enviar ${attachments.length} arquivo(s)`}
-                        </button>
-                      </div>
-                    )}
-
-                    {/* Lista de anexos existentes */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-sm font-medium">Anexos da tarefa:</h4>
-                        <button
-                          type="button"
-                          onClick={() => loadTaskAttachments(selectedTask?.id)}
-                          className="text-blue-600 hover:text-blue-800 text-sm"
-                        >
-                          <i className="ri-refresh-line mr-1"></i>
-                          Atualizar
-                        </button>
-                      </div>
-                      
-                      {loadingAttachments ? (
-                        <div className="text-center py-4">
-                          <i className="ri-loader-4-line animate-spin mr-2"></i>
-                          Carregando anexos...
-                        </div>
-                      ) : taskAttachments.length > 0 ? (
-                        <div className="grid grid-cols-1 gap-2">
-                          <div className="grid grid-cols-4 gap-2 text-xs font-medium text-gray-600 border-b pb-2">
-                            <div>Nome do Arquivo</div>
-                            <div>Tipo</div>
-                            <div>Tamanho</div>
-                            <div>Ações</div>
-                          </div>
-                          {taskAttachments.map((attachment, index) => (
-                            <div key={attachment.id || index} className="grid grid-cols-4 gap-2 text-sm py-2 border-b">
-                              <div className="truncate" title={attachment.attributes?.['file-name'] || attachment.filename || 'Arquivo'}>
-                                {attachment.attributes?.['file-name'] || attachment.filename || 'Arquivo'}
-                              </div>
-                              <div className="text-gray-500">
-                                {attachment.attributes?.['file-type'] || 'N/A'}
-                              </div>
-                              <div className="text-gray-500">
-                                {attachment.attributes?.['file-size'] 
-                                  ? `${(attachment.attributes['file-size'] / 1024).toFixed(1)} KB`
-                                  : 'N/A'
-                                }
-                              </div>
-                              <div className="flex space-x-2">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    addToast({
-                                      title: "Limitação da API",
-                                      description: "A API do Monde não disponibiliza download direto de anexos. Use o botão 'Ver no Monde' para acessar o arquivo.",
-                                      variant: "default",
-                                    });
-                                  }}
-                                  className="text-blue-600 hover:text-blue-800 text-xs"
-                                  title="Visualizar arquivo"
-                                >
-                                  <i className="ri-eye-line"></i>
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(attachment.attributes?.['file-name'] || attachment.filename || 'Arquivo');
-                                    addToast({
-                                      title: "Nome copiado!",
-                                      description: "O nome do arquivo foi copiado para a área de transferência.",
-                                      variant: "default",
-                                    });
-                                  }}
-                                  className="text-green-600 hover:text-green-800 text-xs"
-                                  title="Copiar nome do arquivo"
-                                >
-                                  <i className="ri-file-copy-line"></i>
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    window.open(`https://${user?.monde_server}/tasks/${selectedTask?.id}`, '_blank');
-                                  }}
-                                  className="text-purple-600 hover:text-purple-800 text-xs"
-                                  title="Ver tarefa no Monde"
-                                >
-                                  <i className="ri-external-link-line"></i>
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => deleteAttachment(attachment.id)}
-                                  className="text-red-600 hover:text-red-800 text-xs"
-                                  title="Excluir anexo"
-                                >
-                                  <i className="ri-delete-bin-line"></i>
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-sm text-gray-500 py-4 text-center">Nenhum anexo encontrado</p>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Aba de Campos Personalizados */}
-                {activeModalTab === "campos" && (
-                  <div className="space-y-4">
-                    <p className="text-sm text-gray-500">
-                      Esta funcionalidade estará disponível em breve. Aqui você poderá gerenciar campos personalizados da tarefa.
-                    </p>
-                  </div>
-                )}
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modais de Cadastro */}
-      <PersonFisicaModal
-        show={showPersonFisicaModal}
-        onClose={() => setShowPersonFisicaModal(false)}
-        onSubmit={submitPersonFisica}
-        cities={cities}
-        loadCities={loadCities}
-        loadingCities={loadingCities}
-        savingPerson={savingPersonFisica}
-      />
-
-      <PersonJuridicaModal
-        show={showPersonJuridicaModal}
-        onClose={() => setShowPersonJuridicaModal(false)}
-        onSubmit={submitPersonJuridica}
-        cities={cities}
-        loadCities={loadCities}
-        loadingCities={loadingCities}
-        savingPerson={savingPersonJuridica}
-      />
-
-      {/* Modal de busca de clientes */}
-      {showSearchModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
-            <div className="p-4 border-b">
-              <h2 className="text-lg font-semibold">🔍 Buscar Cliente</h2>
-            </div>
-            <div className="p-4 space-y-4">
-              <input
-                type="text"
-                placeholder="Nome ou documento do cliente"
-                className="form-input w-full px-3 py-2 text-sm border rounded"
-              />
-              <input
-                type="text"
-                placeholder="Telefone"
-                className="form-input px-3 py-2 text-sm border rounded"
-              />
-              <input
-                type="email"
-                placeholder="E-mail"
-                className="form-input px-3 py-2 text-sm border rounded"
-              />
-            </div>
-            <div className="p-4 flex justify-end space-x-3">
-              <button
-                onClick={() => setShowSearchModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
-              >
-                Cancelar
-              </button>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                Buscar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Eventos customizados para comunicação entre componentes */}
-      {typeof window !== 'undefined' && (
-        <>
-          {window.addEventListener('openPersonFisicaModal', () => setShowPersonFisicaModal(true))}
-          {window.addEventListener('openPersonJuridicaModal', () => setShowPersonJuridicaModal(true))}
-          {window.addEventListener('openSearchModal', () => setShowSearchModal(true))}
-        </>
-      )}
-
-      {/* Resto do código permanece inalterado... */}
-    </div>
-  );
-}
+                            
+                            {showClientDropdown && (
                               <div className="absolute right-0 top-8 z-50 bg-white border border-gray-200 rounded-lg shadow-lg py-2 min-w-[200px]">
                                 <button
                                   onClick={() => {
@@ -5879,216 +5328,3 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Modal de cadastro - Pessoa Física */}
-      {showPersonFisicaModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full mx-4 max-h-[85vh] overflow-hidden">
-            <div className="p-4 border-b flex justify-between items-center">
-              <h2 className="text-xl font-semibold">👤 Cadastrar Pessoa Física</h2>
-              <button
-                onClick={() => setShowPersonFisicaModal(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <i className="ri-close-line text-xl"></i>
-              </button>
-            </div>
-            
-            <form onSubmit={submitPersonFisica} className="overflow-y-auto max-h-[calc(85vh-120px)]">
-              <div className="p-4 space-y-4">
-                {/* Dados Pessoais - Layout compacto */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                  <div className="lg:col-span-3">
-                    <label className="block text-xs font-medium mb-1">Nome: *</label>
-                    <input name="name" type="text" required className="w-full px-2 py-1.5 text-sm border rounded" />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-xs font-medium mb-1">Sexo:</label>
-                    <select name="sex" className="w-full px-2 py-1.5 text-sm border rounded">
-                      <option value="">Selecione</option>
-                      <option value="M">Masculino</option>
-                      <option value="F">Feminino</option>
-                    </select>
-                  </div>
-                  
-                  <div className="flex items-center mt-5">
-                    <input name="foreign" type="checkbox" id="estrangeiro-pf" className="mr-2" />
-                    <label htmlFor="estrangeiro-pf" className="text-xs">Estrangeiro</label>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-xs font-medium mb-1">Código:</label>
-                    <input name="code" type="number" disabled className="w-full px-2 py-1.5 text-sm border rounded bg-gray-100" placeholder="Automático" />
-                  </div>
-                </div>
-
-                {/* Documentos */}
-                <div className="border-t pt-3">
-                  <h4 className="text-sm font-medium mb-2">Documentos</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium mb-1">CPF:</label>
-                      <input name="cpf" type="text" placeholder="000.000.000-00" className="w-full px-2 py-1.5 text-sm border rounded" />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-medium mb-1">RG:</label>
-                      <input name="rg" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-medium mb-1">Passport:</label>
-                      <input name="passport" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-medium mb-1">Data Nascimento:</label>
-                      <input name="birthDate" type="date" className="w-full px-2 py-1.5 text-sm border rounded" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Endereço */}
-                <div className="border-t pt-3">
-                  <h4 className="text-sm font-medium mb-2">Endereço</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium mb-1">CEP:</label>
-                      <input name="zip" type="text" placeholder="00000-000" className="w-full px-2 py-1.5 text-sm border rounded" />
-                    </div>
-                    
-                    <div className="lg:col-span-2">
-                      <label className="block text-xs font-medium mb-1">Endereço:</label>
-                      <input name="address" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-medium mb-1">Número:</label>
-                      <input name="number" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-medium mb-1">Complemento:</label>
-                      <input name="complement" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-medium mb-1">Bairro:</label>
-                      <input name="district" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
-                    </div>
-                    
-                    <div className="lg:col-span-2">
-                      <label className="block text-xs font-medium mb-1">Cidade:</label>
-                      <select name="cityId" className="w-full px-2 py-1.5 text-sm border rounded" onClick={loadCities}>
-                        <option value="">Selecione uma cidade</option>
-                        {cities.map(city => (
-                          <option key={city.id} value={city.id}>{city.attributes.name}</option>
-                        ))}
-                      </select>
-                      {loadingCities && <p className="text-xs text-gray-500 mt-1">Carregando...</p>}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Contato */}
-                <div className="border-t pt-3">
-                  <h4 className="text-sm font-medium mb-2">Contato</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium mb-1">Telefone:</label>
-                      <input name="phone" type="text" placeholder="(11) 3333-4444" className="w-full px-2 py-1.5 text-sm border rounded" />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-medium mb-1">Celular:</label>
-                      <input name="mobilePhone" type="text" placeholder="(11) 99999-8888" className="w-full px-2 py-1.5 text-sm border rounded" />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-medium mb-1">Telefone Comercial:</label>
-                      <input name="businessPhone" type="text" placeholder="(11) 2222-3333" className="w-full px-2 py-1.5 text-sm border rounded" />
-                    </div>
-                    
-                    <div className="lg:col-span-2">
-                      <label className="block text-xs font-medium mb-1">E-mail:</label>
-                      <input name="email" type="email" className="w-full px-2 py-1.5 text-sm border rounded" />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-medium mb-1">Website:</label>
-                      <input name="website" type="url" className="w-full px-2 py-1.5 text-sm border rounded" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Informações Profissionais */}
-                <div className="border-t pt-3">
-                  <h4 className="text-sm font-medium mb-2">Informações Profissionais</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium mb-1">Estado Civil:</label>
-                      <select name="maritalStatus" className="w-full px-2 py-1.5 text-sm border rounded">
-                        <option value="">Selecione</option>
-                        <option value="single">Solteiro(a)</option>
-                        <option value="married">Casado(a)</option>
-                        <option value="divorced">Divorciado(a)</option>
-                        <option value="widowed">Viúvo(a)</option>
-                      </select>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-medium mb-1">Profissão:</label>
-                      <input name="profession" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-medium mb-1">Nacionalidade:</label>
-                      <input name="nationality" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Outros */}
-                <div className="border-t pt-3">
-                  <h4 className="text-sm font-medium mb-2">Outros</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium mb-1">Observações:</label>
-                      <textarea name="observations" rows={3} className="w-full px-2 py-1.5 text-sm border rounded"></textarea>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-medium mb-1">Vendedor:</label>
-                      <select name="vendorId" className="w-full px-2 py-1.5 text-sm border rounded">
-                        <option value="">Selecione um vendedor</option>
-                        {users.map((user: any) => (
-                          <option key={user.id} value={user.id}>{user.attributes.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex justify-end space-x-3 mt-6 pt-6 border-t">
-                <button
-                  type="button"
-                  onClick={() => setShowPersonFisicaModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
-                >
-                  Cancelar
-                </button>
-                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" disabled={savingPerson}>
-                  {savingPerson ? 'Salvando...' : 'Salvar'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};

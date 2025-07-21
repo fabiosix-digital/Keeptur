@@ -272,6 +272,15 @@ export default function Dashboard() {
       website: formData.get('website') as string,
       observations: formData.get('observations') as string,
       code: formData.get('code') as string,
+      // Campos adicionais
+      companyType: formData.get('companyType') as string,
+      companySize: formData.get('companySize') as string,
+      mainActivity: formData.get('mainActivity') as string,
+      socialCapital: formData.get('socialCapital') as string,
+      responsibleName: formData.get('responsibleName') as string,
+      responsibleCpf: formData.get('responsibleCpf') as string,
+      responsibleRole: formData.get('responsibleRole') as string,
+      vendorId: formData.get('vendorId') as string,
     };
 
     try {
@@ -289,6 +298,7 @@ export default function Dashboard() {
         console.log('✅ Pessoa jurídica cadastrada:', result.data.id);
         alert('Pessoa jurídica cadastrada com sucesso!');
         setShowPersonJuridicaModal(false);
+        setActiveTabPJ('dados'); // Reset para aba inicial
         // Limpar o formulário
         event.currentTarget.reset();
       } else {
@@ -5334,9 +5344,9 @@ export default function Dashboard() {
       {/* Modal de cadastro - Pessoa Física */}
       {showPersonFisicaModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full mx-4 max-h-[85vh] overflow-hidden">
-            <div className="p-4 border-b flex justify-between items-center">
-              <h2 className="text-xl font-semibold">👤 Cadastrar Pessoa Física</h2>
+          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full mx-4 h-[90vh] overflow-hidden">
+            <div className="p-3 border-b flex justify-between items-center">
+              <h2 className="text-lg font-semibold">👤 Pessoa Física</h2>
               <button
                 onClick={() => setShowPersonFisicaModal(false)}
                 className="text-gray-500 hover:text-gray-700"
@@ -5345,141 +5355,228 @@ export default function Dashboard() {
               </button>
             </div>
             
-            <form onSubmit={submitPersonFisica} className="overflow-y-auto max-h-[calc(85vh-120px)]">
-              <div className="p-4 space-y-4">
-                {/* Dados Pessoais - Layout compacto */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                  <div className="lg:col-span-3">
-                    <label className="block text-xs font-medium mb-1">Nome: *</label>
-                    <input name="name" type="text" required className="w-full px-2 py-1.5 text-sm border rounded" />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-xs font-medium mb-1">Sexo:</label>
-                    <select name="sex" className="w-full px-2 py-1.5 text-sm border rounded">
-                      <option value="">Selecione</option>
-                      <option value="M">Masculino</option>
-                      <option value="F">Feminino</option>
-                    </select>
-                  </div>
-                  
-                  <div className="flex items-center mt-5">
-                    <input name="foreign" type="checkbox" id="estrangeiro-pf" className="mr-2" />
-                    <label htmlFor="estrangeiro-pf" className="text-xs">Estrangeiro</label>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-xs font-medium mb-1">Código:</label>
-                    <input name="code" type="number" disabled className="w-full px-2 py-1.5 text-sm border rounded bg-gray-100" placeholder="Automático" />
-                  </div>
-                </div>
-
-                {/* Documentos */}
-                <div className="border-t pt-3">
-                  <h4 className="text-sm font-medium mb-2">Documentos</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium mb-1">CPF:</label>
-                      <input name="cpf" type="text" placeholder="000.000.000-00" className="w-full px-2 py-1.5 text-sm border rounded" />
+            {/* Abas */}
+            <div className="px-3 pt-2">
+              <div className="flex space-x-1 border-b">
+                <button
+                  className={`px-3 py-1 text-xs font-medium rounded-t ${activeTabPF === 'dados' ? 'bg-blue-100 text-blue-700 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-100'}`}
+                  onClick={() => setActiveTabPF('dados')}
+                >
+                  Detalhes
+                </button>
+                <button
+                  className={`px-3 py-1 text-xs font-medium rounded-t ${activeTabPF === 'dados_adicionais' ? 'bg-blue-100 text-blue-700 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-100'}`}
+                  onClick={() => setActiveTabPF('dados_adicionais')}
+                >
+                  Dados Adicionais
+                </button>
+                <button
+                  className={`px-3 py-1 text-xs font-medium rounded-t ${activeTabPF === 'marcadores' ? 'bg-blue-100 text-blue-700 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-100'}`}
+                  onClick={() => setActiveTabPF('marcadores')}
+                >
+                  Marcadores
+                </button>
+                <button
+                  className={`px-3 py-1 text-xs font-medium rounded-t ${activeTabPF === 'dados_financeiros' ? 'bg-blue-100 text-blue-700 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-100'}`}
+                  onClick={() => setActiveTabPF('dados_financeiros')}
+                >
+                  Dados Financeiros
+                </button>
+                <button
+                  className={`px-3 py-1 text-xs font-medium rounded-t ${activeTabPF === 'contatos' ? 'bg-blue-100 text-blue-700 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-100'}`}
+                  onClick={() => setActiveTabPF('contatos')}
+                >
+                  Contatos
+                </button>
+                <button
+                  className={`px-3 py-1 text-xs font-medium rounded-t ${activeTabPF === 'usuario' ? 'bg-blue-100 text-blue-700 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-100'}`}
+                  onClick={() => setActiveTabPF('usuario')}
+                >
+                  Usuário
+                </button>
+              </div>
+            </div>
+            
+            <form onSubmit={submitPersonFisica} className="h-[calc(90vh-140px)] overflow-hidden">
+              <div className="p-3 h-full overflow-y-auto">
+                
+                {/* Aba Detalhes */}
+                {activeTabPF === 'dados' && (
+                  <div className="grid grid-cols-12 gap-2">
+                    {/* Linha 1 */}
+                    <div className="col-span-1">
+                      <label className="block text-xs font-medium mb-1">Código:</label>
+                      <input name="code" type="text" disabled className="w-full px-2 py-1 text-xs border rounded bg-gray-100" placeholder="Auto" />
+                    </div>
+                    <div className="col-span-8">
+                      <label className="block text-xs font-medium mb-1">Nome: *</label>
+                      <input name="name" type="text" required className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-3 flex items-center justify-center border-2 border-dashed border-gray-300 rounded text-xs text-gray-500">
+                      Foto
                     </div>
                     
-                    <div>
-                      <label className="block text-xs font-medium mb-1">RG:</label>
-                      <input name="rg" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-medium mb-1">Passport:</label>
-                      <input name="passport" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-medium mb-1">Data Nascimento:</label>
-                      <input name="birthDate" type="date" className="w-full px-2 py-1.5 text-sm border rounded" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Endereço */}
-                <div className="border-t pt-3">
-                  <h4 className="text-sm font-medium mb-2">Endereço</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                    <div>
+                    {/* Linha 2 */}
+                    <div className="col-span-2">
                       <label className="block text-xs font-medium mb-1">CEP:</label>
-                      <input name="zip" type="text" placeholder="00000-000" className="w-full px-2 py-1.5 text-sm border rounded" />
+                      <div className="flex">
+                        <input name="zip" type="text" placeholder="00000-000" className="w-full px-2 py-1 text-xs border rounded-l" />
+                        <button type="button" className="px-2 border-t border-b border-r rounded-r bg-gray-100 text-xs">📍</button>
+                      </div>
                     </div>
-                    
-                    <div className="lg:col-span-2">
+                    <div className="col-span-5">
                       <label className="block text-xs font-medium mb-1">Endereço:</label>
-                      <input name="address" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
+                      <input name="address" type="text" className="w-full px-2 py-1 text-xs border rounded" />
                     </div>
-                    
-                    <div>
+                    <div className="col-span-2">
                       <label className="block text-xs font-medium mb-1">Número:</label>
-                      <input name="number" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
+                      <input name="number" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-3">
+                      <div className="flex items-center">
+                        <input name="foreign" type="checkbox" id="estrangeiro-pf" className="mr-1" />
+                        <label htmlFor="estrangeiro-pf" className="text-xs">Estrangeiro</label>
+                      </div>
                     </div>
                     
-                    <div>
+                    {/* Linha 3 */}
+                    <div className="col-span-3">
                       <label className="block text-xs font-medium mb-1">Complemento:</label>
-                      <input name="complement" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
+                      <input name="complement" type="text" className="w-full px-2 py-1 text-xs border rounded" />
                     </div>
-                    
-                    <div>
+                    <div className="col-span-3">
                       <label className="block text-xs font-medium mb-1">Bairro:</label>
-                      <input name="district" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
+                      <input name="district" type="text" className="w-full px-2 py-1 text-xs border rounded" />
                     </div>
+                    <div className="col-span-6"></div>
                     
-                    <div className="lg:col-span-2">
+                    {/* Linha 4 */}
+                    <div className="col-span-5">
                       <label className="block text-xs font-medium mb-1">Cidade:</label>
-                      <select name="cityId" className="w-full px-2 py-1.5 text-sm border rounded" onClick={loadCities}>
-                        <option value="">Selecione uma cidade</option>
-                        {cities.map(city => (
-                          <option key={city.id} value={city.id}>{city.attributes.name}</option>
-                        ))}
-                      </select>
+                      <div className="flex">
+                        <select name="cityId" className="w-full px-2 py-1 text-xs border rounded-l" onClick={loadCities}>
+                          <option value="">Selecione uma cidade</option>
+                          {cities.map(city => (
+                            <option key={city.id} value={city.id}>{city.attributes.name}</option>
+                          ))}
+                        </select>
+                        <button type="button" className="px-2 border-t border-b border-r rounded-r bg-gray-100 text-xs">...</button>
+                      </div>
                       {loadingCities && <p className="text-xs text-gray-500 mt-1">Carregando...</p>}
                     </div>
-                  </div>
-                </div>
-
-                {/* Contato */}
-                <div className="border-t pt-3">
-                  <h4 className="text-sm font-medium mb-2">Contato</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    <div>
+                    <div className="col-span-7"></div>
+                    
+                    {/* Linha 5 */}
+                    <div className="col-span-3">
+                      <label className="block text-xs font-medium mb-1">Nascimento:</label>
+                      <select name="birthDate" className="w-full px-2 py-1 text-xs border rounded">
+                        <option value="">Selecione</option>
+                      </select>
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-xs font-medium mb-1">Sexo:</label>
+                      <select name="gender" className="w-full px-2 py-1 text-xs border rounded">
+                        <option value="">Selecione</option>
+                        <option value="M">Masculino</option>
+                        <option value="F">Feminino</option>
+                      </select>
+                    </div>
+                    <div className="col-span-7"></div>
+                    
+                    {/* Linha 6 */}
+                    <div className="col-span-2">
+                      <label className="block text-xs font-medium mb-1">CPF:</label>
+                      <input name="cpf" type="text" placeholder="000.000.000-00" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-xs font-medium mb-1">RG:</label>
+                      <input name="rg" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-3">
+                      <label className="block text-xs font-medium mb-1">Inscrição Municipal:</label>
+                      <input name="cityInscription" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-5"></div>
+                    
+                    {/* Linha 7 */}
+                    <div className="col-span-2">
+                      <label className="block text-xs font-medium mb-1">Passaporte Nº:</label>
+                      <input name="passportNumber" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-3">
+                      <label className="block text-xs font-medium mb-1">Validade Passaporte:</label>
+                      <select name="passportExpiration" className="w-full px-2 py-1 text-xs border rounded">
+                        <option value="">Selecione</option>
+                      </select>
+                    </div>
+                    <div className="col-span-7"></div>
+                    
+                    {/* Linha 8 */}
+                    <div className="col-span-2">
                       <label className="block text-xs font-medium mb-1">Telefone:</label>
-                      <input name="phone" type="text" placeholder="(11) 3333-4444" className="w-full px-2 py-1.5 text-sm border rounded" />
+                      <input name="phone" type="text" placeholder="(11) 3333-4444" className="w-full px-2 py-1 text-xs border rounded" />
                     </div>
-                    
-                    <div>
+                    <div className="col-span-2">
                       <label className="block text-xs font-medium mb-1">Celular:</label>
-                      <input name="mobilePhone" type="text" placeholder="(11) 99999-8888" className="w-full px-2 py-1.5 text-sm border rounded" />
+                      <div className="flex">
+                        <input name="mobilePhone" type="text" placeholder="(11) 99999-8888" className="w-full px-2 py-1 text-xs border rounded-l" />
+                        <button type="button" className="px-1 border-t border-b border-r rounded-r bg-green-100 text-xs">📱</button>
+                      </div>
                     </div>
-                    
-                    <div>
+                    <div className="col-span-3">
                       <label className="block text-xs font-medium mb-1">Telefone Comercial:</label>
-                      <input name="businessPhone" type="text" placeholder="(11) 2222-3333" className="w-full px-2 py-1.5 text-sm border rounded" />
+                      <input name="businessPhone" type="text" placeholder="(11) 2222-3333" className="w-full px-2 py-1 text-xs border rounded" />
                     </div>
+                    <div className="col-span-5"></div>
                     
-                    <div className="lg:col-span-2">
+                    {/* Linha 9 */}
+                    <div className="col-span-8">
                       <label className="block text-xs font-medium mb-1">E-mail:</label>
-                      <input name="email" type="email" className="w-full px-2 py-1.5 text-sm border rounded" />
+                      <input name="email" type="email" className="w-full px-2 py-1 text-xs border rounded" />
                     </div>
+                    <div className="col-span-4"></div>
                     
-                    <div>
-                      <label className="block text-xs font-medium mb-1">Website:</label>
-                      <input name="website" type="url" className="w-full px-2 py-1.5 text-sm border rounded" />
+                    {/* Observações */}
+                    <div className="col-span-8">
+                      <label className="block text-xs font-medium mb-1">Observações:</label>
+                      <textarea name="observations" rows={4} className="w-full px-2 py-1 text-xs border rounded resize-none"></textarea>
+                    </div>
+                    <div className="col-span-4"></div>
+                    
+                    {/* Vendedor */}
+                    <div className="col-span-8">
+                      <label className="block text-xs font-medium mb-1">Vendedor:</label>
+                      <div className="flex">
+                        <select name="vendorId" className="w-full px-2 py-1 text-xs border rounded-l">
+                          <option value="">Selecione um vendedor</option>
+                          {users.map((user: any) => (
+                            <option key={user.id} value={user.id}>{user.attributes.name}</option>
+                          ))}
+                        </select>
+                        <button type="button" className="px-1 border-t border-b border-r rounded-r bg-gray-100 text-xs">📋</button>
+                      </div>
+                    </div>
+                    <div className="col-span-1">
+                      <div className="flex items-center mt-5">
+                        <input name="collectTax" type="checkbox" id="cobrar-taxa" className="mr-1" />
+                        <label htmlFor="cobrar-taxa" className="text-xs">Cobrar taxa de boleto</label>
+                      </div>
+                    </div>
+                    <div className="col-span-3"></div>
+                    
+                    {/* Cadastrado por */}
+                    <div className="col-span-12">
+                      <label className="block text-xs font-medium mb-1">Cadastrado por: Fabio Silva</label>
                     </div>
                   </div>
-                </div>
+                )}
 
-                {/* Informações Profissionais */}
-                <div className="border-t pt-3">
-                  <h4 className="text-sm font-medium mb-2">Informações Profissionais</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    <div>
+                {/* Aba Dados Adicionais */}
+                {activeTabPF === 'dados_adicionais' && (
+                  <div className="grid grid-cols-12 gap-2">
+                    <div className="col-span-3">
                       <label className="block text-xs font-medium mb-1">Estado Civil:</label>
-                      <select name="maritalStatus" className="w-full px-2 py-1.5 text-sm border rounded">
+                      <select name="maritalStatus" className="w-full px-2 py-1 text-xs border rounded">
                         <option value="">Selecione</option>
                         <option value="single">Solteiro(a)</option>
                         <option value="married">Casado(a)</option>
@@ -5487,51 +5584,513 @@ export default function Dashboard() {
                         <option value="widowed">Viúvo(a)</option>
                       </select>
                     </div>
-                    
-                    <div>
-                      <label className="block text-xs font-medium mb-1">Profissão:</label>
-                      <input name="profession" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
+                    <div className="col-span-4">
+                      <label className="block text-xs font-medium mb-1">Local de Nascimento:</label>
+                      <div className="flex">
+                        <select name="birthPlace" className="w-full px-2 py-1 text-xs border rounded-l">
+                          <option value="">Selecione</option>
+                        </select>
+                        <button type="button" className="px-2 border-t border-b border-r rounded-r bg-gray-100 text-xs">...</button>
+                      </div>
                     </div>
-                    
-                    <div>
-                      <label className="block text-xs font-medium mb-1">Nacionalidade:</label>
-                      <input name="nationality" type="text" className="w-full px-2 py-1.5 text-sm border rounded" />
-                    </div>
-                  </div>
-                </div>
+                    <div className="col-span-5"></div>
 
-                {/* Outros */}
-                <div className="border-t pt-3">
-                  <h4 className="text-sm font-medium mb-2">Outros</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium mb-1">Observações:</label>
-                      <textarea name="observations" rows={3} className="w-full px-2 py-1.5 text-sm border rounded"></textarea>
+                    <div className="col-span-3">
+                      <label className="block text-xs font-medium mb-1">Órgão Emissor RG:</label>
+                      <input name="rgIssuer" type="text" className="w-full px-2 py-1 text-xs border rounded" />
                     </div>
-                    
-                    <div>
-                      <label className="block text-xs font-medium mb-1">Vendedor:</label>
-                      <select name="vendorId" className="w-full px-2 py-1.5 text-sm border rounded">
-                        <option value="">Selecione um vendedor</option>
-                        {users.map((user: any) => (
-                          <option key={user.id} value={user.id}>{user.attributes.name}</option>
-                        ))}
+                    <div className="col-span-3">
+                      <label className="block text-xs font-medium mb-1">Data Emissão RG:</label>
+                      <select name="rgIssueDate" className="w-full px-2 py-1 text-xs border rounded">
+                        <option value="">Selecione</option>
                       </select>
                     </div>
+                    <div className="col-span-6"></div>
+
+                    <div className="col-span-3">
+                      <label className="block text-xs font-medium mb-1">Certidão de Nascimento:</label>
+                      <input name="birthCertificate" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-9"></div>
+
+                    <div className="col-span-3">
+                      <label className="block text-xs font-medium mb-1">Filiação (Mãe):</label>
+                      <input name="motherName" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-9"></div>
+
+                    {/* Últimos Contatos */}
+                    <div className="col-span-12 mt-4">
+                      <label className="block text-xs font-medium mb-2">Últimos Contatos</label>
+                    </div>
+
+                    <div className="col-span-3">
+                      <label className="block text-xs font-medium mb-1">Primeira Venda:</label>
+                      <input name="firstSale" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-3">
+                      <label className="block text-xs font-medium mb-1">Último Embarque:</label>
+                      <input name="lastBoarding" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-6"></div>
+
+                    <div className="col-span-3">
+                      <label className="block text-xs font-medium mb-1">Última Venda:</label>
+                      <input name="lastSale" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-3">
+                      <label className="block text-xs font-medium mb-1">Último Retorno:</label>
+                      <input name="lastReturn" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-6"></div>
+
+                    <div className="col-span-6">
+                      <label className="block text-xs font-medium mb-1">Última Atualização Tarefa:</label>
+                      <input name="lastTaskUpdate" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-6"></div>
                   </div>
-                </div>
+                )}
+
+                {/* Aba Marcadores */}
+                {activeTabPF === 'marcadores' && (
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                      <label className="block text-xs font-medium mb-2">Marcador:</label>
+                      <div className="flex">
+                        <select className="w-full px-2 py-1 text-xs border rounded-l">
+                          <option value="">Selecione um marcador</option>
+                          <option value="aniversario">Aniversário 15 anos</option>
+                          <option value="apreciador">Apreciador de vinhos</option>
+                          <option value="cias">Cias Aéreas</option>
+                          <option value="conta-corrente">Cliente Conta Corrente</option>
+                          <option value="vip">Cliente VIP</option>
+                          <option value="inativos">Clientes Inativos</option>
+                          <option value="consolidadores">Consolidadores</option>
+                          <option value="cruzeiro">Cruzeiro</option>
+                          <option value="falecido">Falecido</option>
+                          <option value="funcionarios">Funcionários</option>
+                          <option value="hoteis">Hotéis</option>
+                          <option value="locadora">Locadora de Veículos</option>
+                          <option value="monde">Monde</option>
+                          <option value="operadoras">Operadoras</option>
+                        </select>
+                        <button type="button" className="px-2 border-t border-b border-r rounded-r bg-gray-100 text-xs">×</button>
+                      </div>
+                    </div>
+                    
+                    <div className="border rounded p-2 h-64 overflow-y-auto">
+                      <div className="text-xs text-gray-500">Lista de marcadores selecionados aparecerá aqui</div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Aba Dados Financeiros */}
+                {activeTabPF === 'dados_financeiros' && (
+                  <div>
+                    <div className="mb-4">
+                      <h4 className="text-sm font-medium mb-2">Cartões de Crédito</h4>
+                      <div className="flex space-x-2 mb-2">
+                        <button type="button" className="px-2 py-1 bg-blue-500 text-white text-xs rounded">Adicionar</button>
+                        <button type="button" className="px-2 py-1 bg-gray-500 text-white text-xs rounded">Editar</button>
+                        <button type="button" className="px-2 py-1 bg-red-500 text-white text-xs rounded">Excluir</button>
+                      </div>
+                      
+                      <div className="border rounded">
+                        <div className="grid grid-cols-5 gap-2 p-2 bg-gray-100 text-xs font-medium">
+                          <div>Nome</div>
+                          <div>Número</div>
+                          <div>Validade</div>
+                          <div>Operadora</div>
+                          <div>Cartão Passagem</div>
+                        </div>
+                        <div className="p-4 text-center text-xs text-gray-500">
+                          Nenhum cartão cadastrado
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Aba Contatos */}
+                {activeTabPF === 'contatos' && (
+                  <div className="text-center text-xs text-gray-500 py-8">
+                    Dados de contatos adicionais
+                  </div>
+                )}
+
+                {/* Aba Usuário */}
+                {activeTabPF === 'usuario' && (
+                  <div className="text-center text-xs text-gray-500 py-8">
+                    Configurações de usuário do sistema
+                  </div>
+                )}
               </div>
               
-              <div className="flex justify-end space-x-3 mt-6 pt-6 border-t">
+              <div className="flex justify-end space-x-2 p-3 border-t bg-gray-50">
+                <button type="button" className="px-3 py-1 text-xs border border-gray-300 rounded hover:bg-gray-100">Copiar</button>
+                <button type="button" className="px-3 py-1 text-xs border border-gray-300 rounded hover:bg-gray-100 flex items-center">
+                  <span className="mr-1">👨‍👩‍👧‍👦</span> OK & Família
+                </button>
                 <button
                   type="button"
                   onClick={() => setShowPersonFisicaModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
+                  className="px-3 py-1 text-xs border border-gray-300 rounded hover:bg-gray-100"
                 >
                   Cancelar
                 </button>
-                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" disabled={savingPerson}>
-                  {savingPerson ? 'Salvando...' : 'Salvar'}
+                <button type="submit" className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700" disabled={savingPerson}>
+                  {savingPerson ? 'Salvando...' : 'OK'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de cadastro - Pessoa Jurídica */}
+      {showPersonJuridicaModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full mx-4 h-[90vh] overflow-hidden">
+            <div className="p-3 border-b flex justify-between items-center">
+              <h2 className="text-lg font-semibold">🏢 Pessoa Jurídica</h2>
+              <button
+                onClick={() => setShowPersonJuridicaModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <i className="ri-close-line text-xl"></i>
+              </button>
+            </div>
+            
+            {/* Abas */}
+            <div className="px-3 pt-2">
+              <div className="flex space-x-1 border-b">
+                <button
+                  className={`px-3 py-1 text-xs font-medium rounded-t ${activeTabPJ === 'dados' ? 'bg-blue-100 text-blue-700 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-100'}`}
+                  onClick={() => setActiveTabPJ('dados')}
+                >
+                  Detalhes
+                </button>
+                <button
+                  className={`px-3 py-1 text-xs font-medium rounded-t ${activeTabPJ === 'dados_adicionais' ? 'bg-blue-100 text-blue-700 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-100'}`}
+                  onClick={() => setActiveTabPJ('dados_adicionais')}
+                >
+                  Dados Adicionais
+                </button>
+                <button
+                  className={`px-3 py-1 text-xs font-medium rounded-t ${activeTabPJ === 'vendas' ? 'bg-blue-100 text-blue-700 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-100'}`}
+                  onClick={() => setActiveTabPJ('vendas')}
+                >
+                  Vendas
+                </button>
+                <button
+                  className={`px-3 py-1 text-xs font-medium rounded-t ${activeTabPJ === 'marcadores' ? 'bg-blue-100 text-blue-700 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-100'}`}
+                  onClick={() => setActiveTabPJ('marcadores')}
+                >
+                  Marcadores
+                </button>
+                <button
+                  className={`px-3 py-1 text-xs font-medium rounded-t ${activeTabPJ === 'dados_financeiros' ? 'bg-blue-100 text-blue-700 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-100'}`}
+                  onClick={() => setActiveTabPJ('dados_financeiros')}
+                >
+                  Dados Financeiros
+                </button>
+                <button
+                  className={`px-3 py-1 text-xs font-medium rounded-t ${activeTabPJ === 'contatos' ? 'bg-blue-100 text-blue-700 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-100'}`}
+                  onClick={() => setActiveTabPJ('contatos')}
+                >
+                  Contatos
+                </button>
+                <button
+                  className={`px-3 py-1 text-xs font-medium rounded-t ${activeTabPJ === 'usuario' ? 'bg-blue-100 text-blue-700 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-100'}`}
+                  onClick={() => setActiveTabPJ('usuario')}
+                >
+                  Usuário
+                </button>
+                <button
+                  className={`px-3 py-1 text-xs font-medium rounded-t ${activeTabPJ === 'anexos' ? 'bg-blue-100 text-blue-700 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-100'}`}
+                  onClick={() => setActiveTabPJ('anexos')}
+                >
+                  Anexos
+                </button>
+                <button
+                  className={`px-3 py-1 text-xs font-medium rounded-t ${activeTabPJ === 'tarefas' ? 'bg-blue-100 text-blue-700 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-100'}`}
+                  onClick={() => setActiveTabPJ('tarefas')}
+                >
+                  Tarefas
+                </button>
+                <button
+                  className={`px-3 py-1 text-xs font-medium rounded-t ${activeTabPJ === 'campos_personalizados' ? 'bg-blue-100 text-blue-700 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-100'}`}
+                  onClick={() => setActiveTabPJ('campos_personalizados')}
+                >
+                  Campos Personalizados
+                </button>
+                <button
+                  className={`px-3 py-1 text-xs font-medium rounded-t ${activeTabPJ === 'log' ? 'bg-blue-100 text-blue-700 border-b-2 border-blue-500' : 'text-gray-600 hover:bg-gray-100'}`}
+                  onClick={() => setActiveTabPJ('log')}
+                >
+                  Log
+                </button>
+              </div>
+            </div>
+            
+            <form onSubmit={submitPersonJuridica} className="h-[calc(90vh-140px)] overflow-hidden">
+              <div className="p-3 h-full overflow-y-auto">
+                
+                {/* Aba Detalhes */}
+                {activeTabPJ === 'dados' && (
+                  <div className="grid grid-cols-12 gap-2">
+                    {/* Linha 1 */}
+                    <div className="col-span-1">
+                      <label className="block text-xs font-medium mb-1">Código:</label>
+                      <input name="code" type="text" disabled className="w-full px-2 py-1 text-xs border rounded bg-gray-100" placeholder="Auto" />
+                    </div>
+                    <div className="col-span-8">
+                      <label className="block text-xs font-medium mb-1">Nome Fantasia: *</label>
+                      <input name="name" type="text" required className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-3 flex items-center justify-center border-2 border-dashed border-gray-300 rounded text-xs text-gray-500">
+                      Logo
+                    </div>
+                    
+                    {/* Linha 2 */}
+                    <div className="col-span-9">
+                      <label className="block text-xs font-medium mb-1">Razão Social: *</label>
+                      <input name="companyName" type="text" required className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-3"></div>
+                    
+                    {/* Linha 3 */}
+                    <div className="col-span-2">
+                      <label className="block text-xs font-medium mb-1">CEP:</label>
+                      <div className="flex">
+                        <input name="zip" type="text" placeholder="00000-000" className="w-full px-2 py-1 text-xs border rounded-l" />
+                        <button type="button" className="px-2 border-t border-b border-r rounded-r bg-gray-100 text-xs">📍</button>
+                      </div>
+                    </div>
+                    <div className="col-span-5">
+                      <label className="block text-xs font-medium mb-1">Endereço:</label>
+                      <input name="address" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-xs font-medium mb-1">Número:</label>
+                      <input name="number" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-3"></div>
+                    
+                    {/* Linha 4 */}
+                    <div className="col-span-3">
+                      <label className="block text-xs font-medium mb-1">Complemento:</label>
+                      <input name="complement" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-3">
+                      <label className="block text-xs font-medium mb-1">Bairro:</label>
+                      <input name="district" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-6"></div>
+                    
+                    {/* Linha 5 */}
+                    <div className="col-span-5">
+                      <label className="block text-xs font-medium mb-1">Cidade:</label>
+                      <div className="flex">
+                        <select name="cityId" className="w-full px-2 py-1 text-xs border rounded-l" onClick={loadCities}>
+                          <option value="">Selecione uma cidade</option>
+                          {cities.map(city => (
+                            <option key={city.id} value={city.id}>{city.attributes.name}</option>
+                          ))}
+                        </select>
+                        <button type="button" className="px-2 border-t border-b border-r rounded-r bg-gray-100 text-xs">...</button>
+                      </div>
+                      {loadingCities && <p className="text-xs text-gray-500 mt-1">Carregando...</p>}
+                    </div>
+                    <div className="col-span-7"></div>
+                    
+                    {/* Linha 6 */}
+                    <div className="col-span-2">
+                      <label className="block text-xs font-medium mb-1">CNPJ: *</label>
+                      <input name="cnpj" type="text" required placeholder="00.000.000/0000-00" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-3">
+                      <label className="block text-xs font-medium mb-1">Inscrição Municipal:</label>
+                      <input name="cityInscription" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-3">
+                      <label className="block text-xs font-medium mb-1">Inscrição Estadual:</label>
+                      <input name="stateInscription" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-4"></div>
+                    
+                    {/* Linha 7 */}
+                    <div className="col-span-3">
+                      <label className="block text-xs font-medium mb-1">Data de Fundação:</label>
+                      <input name="foundedDate" type="date" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-9"></div>
+                    
+                    {/* Linha 8 */}
+                    <div className="col-span-2">
+                      <label className="block text-xs font-medium mb-1">Telefone Comercial:</label>
+                      <input name="businessPhone" type="text" placeholder="(11) 3333-4444" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-xs font-medium mb-1">Celular:</label>
+                      <div className="flex">
+                        <input name="mobilePhone" type="text" placeholder="(11) 99999-8888" className="w-full px-2 py-1 text-xs border rounded-l" />
+                        <button type="button" className="px-1 border-t border-b border-r rounded-r bg-green-100 text-xs">📱</button>
+                      </div>
+                    </div>
+                    <div className="col-span-8"></div>
+                    
+                    {/* Linha 9 */}
+                    <div className="col-span-6">
+                      <label className="block text-xs font-medium mb-1">E-mail:</label>
+                      <input name="email" type="email" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-3">
+                      <label className="block text-xs font-medium mb-1">Website:</label>
+                      <input name="website" type="url" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-3"></div>
+                    
+                    {/* Observações */}
+                    <div className="col-span-8">
+                      <label className="block text-xs font-medium mb-1">Observações:</label>
+                      <textarea name="observations" rows={4} className="w-full px-2 py-1 text-xs border rounded resize-none"></textarea>
+                    </div>
+                    <div className="col-span-4"></div>
+                    
+                    {/* Vendedor */}
+                    <div className="col-span-8">
+                      <label className="block text-xs font-medium mb-1">Vendedor:</label>
+                      <div className="flex">
+                        <select name="vendorId" className="w-full px-2 py-1 text-xs border rounded-l">
+                          <option value="">Selecione um vendedor</option>
+                          {users.map((user: any) => (
+                            <option key={user.id} value={user.id}>{user.attributes.name}</option>
+                          ))}
+                        </select>
+                        <button type="button" className="px-1 border-t border-b border-r rounded-r bg-gray-100 text-xs">📋</button>
+                      </div>
+                    </div>
+                    <div className="col-span-4"></div>
+                    
+                    {/* Cadastrado por */}
+                    <div className="col-span-12">
+                      <label className="block text-xs font-medium mb-1">Cadastrado por: Fabio Silva</label>
+                    </div>
+                  </div>
+                )}
+
+                {/* Aba Dados Adicionais */}
+                {activeTabPJ === 'dados_adicionais' && (
+                  <div className="grid grid-cols-12 gap-2">
+                    <div className="col-span-3">
+                      <label className="block text-xs font-medium mb-1">Tipo de Empresa:</label>
+                      <select name="companyType" className="w-full px-2 py-1 text-xs border rounded">
+                        <option value="">Selecione</option>
+                        <option value="ltda">LTDA</option>
+                        <option value="sa">S/A</option>
+                        <option value="mei">MEI</option>
+                        <option value="eireli">EIRELI</option>
+                      </select>
+                    </div>
+                    <div className="col-span-3">
+                      <label className="block text-xs font-medium mb-1">Porte da Empresa:</label>
+                      <select name="companySize" className="w-full px-2 py-1 text-xs border rounded">
+                        <option value="">Selecione</option>
+                        <option value="micro">Microempresa</option>
+                        <option value="pequena">Pequena</option>
+                        <option value="media">Média</option>
+                        <option value="grande">Grande</option>
+                      </select>
+                    </div>
+                    <div className="col-span-6"></div>
+
+                    <div className="col-span-4">
+                      <label className="block text-xs font-medium mb-1">Atividade Principal:</label>
+                      <input name="mainActivity" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-8"></div>
+
+                    <div className="col-span-3">
+                      <label className="block text-xs font-medium mb-1">Capital Social:</label>
+                      <input name="socialCapital" type="number" step="0.01" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-9"></div>
+
+                    <div className="col-span-4">
+                      <label className="block text-xs font-medium mb-1">Nome do Responsável:</label>
+                      <input name="responsibleName" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-3">
+                      <label className="block text-xs font-medium mb-1">CPF Responsável:</label>
+                      <input name="responsibleCpf" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-5"></div>
+
+                    <div className="col-span-3">
+                      <label className="block text-xs font-medium mb-1">Cargo Responsável:</label>
+                      <input name="responsibleRole" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-9"></div>
+
+                    {/* Últimos Contatos */}
+                    <div className="col-span-12 mt-4">
+                      <label className="block text-xs font-medium mb-2">Últimos Contatos</label>
+                    </div>
+
+                    <div className="col-span-3">
+                      <label className="block text-xs font-medium mb-1">Primeira Venda:</label>
+                      <input name="firstSale" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-3">
+                      <label className="block text-xs font-medium mb-1">Último Embarque:</label>
+                      <input name="lastBoarding" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-6"></div>
+
+                    <div className="col-span-3">
+                      <label className="block text-xs font-medium mb-1">Última Venda:</label>
+                      <input name="lastSale" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-3">
+                      <label className="block text-xs font-medium mb-1">Último Retorno:</label>
+                      <input name="lastReturn" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-6"></div>
+
+                    <div className="col-span-6">
+                      <label className="block text-xs font-medium mb-1">Última Atualização Tarefa:</label>
+                      <input name="lastTaskUpdate" type="text" className="w-full px-2 py-1 text-xs border rounded" />
+                    </div>
+                    <div className="col-span-6"></div>
+                  </div>
+                )}
+
+                {/* Outras abas */}
+                {(activeTabPJ === 'vendas' || activeTabPJ === 'marcadores' || activeTabPJ === 'dados_financeiros' || 
+                  activeTabPJ === 'contatos' || activeTabPJ === 'usuario' || activeTabPJ === 'anexos' || 
+                  activeTabPJ === 'tarefas' || activeTabPJ === 'campos_personalizados' || activeTabPJ === 'log') && (
+                  <div className="text-center text-xs text-gray-500 py-8">
+                    Conteúdo da aba {activeTabPJ.replace('_', ' ')} em desenvolvimento
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex justify-end space-x-2 p-3 border-t bg-gray-50">
+                <button type="button" className="px-3 py-1 text-xs border border-gray-300 rounded hover:bg-gray-100">Copiar</button>
+                <button type="button" className="px-3 py-1 text-xs border border-gray-300 rounded hover:bg-gray-100 flex items-center">
+                  <span className="mr-1">👨‍👩‍👧‍👦</span> OK & Família
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowPersonJuridicaModal(false)}
+                  className="px-3 py-1 text-xs border border-gray-300 rounded hover:bg-gray-100"
+                >
+                  Cancelar
+                </button>
+                <button type="submit" className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700" disabled={savingPerson}>
+                  {savingPerson ? 'Salvando...' : 'OK'}
                 </button>
               </div>
             </form>

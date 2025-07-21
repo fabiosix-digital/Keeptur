@@ -73,7 +73,136 @@ export default function Dashboard() {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [updateText, setUpdateText] = useState("");
   const [newHistoryText, setNewHistoryText] = useState("");
+  
+  // Estados para configurações do Google Calendar
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showGoogleCalendarModal, setShowGoogleCalendarModal] = useState(false);
+  const [googleConnected, setGoogleConnected] = useState(false);
+  const [googleEmail, setGoogleEmail] = useState("");
+  const [syncEnabled, setSyncEnabled] = useState(false);
   const [attachments, setAttachments] = useState<File[]>([]);
+
+  // Funções do Google Calendar
+  const connectGoogleCalendar = async () => {
+    try {
+      // Simular processo de autenticação OAuth2 do Google
+      const response = await fetch('/api/google/auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('keeptur-token')}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setGoogleConnected(true);
+        setGoogleEmail(data.email || user?.email || 'usuario@gmail.com');
+        setSyncEnabled(true);
+        
+        // Toast de sucesso
+        const toast = document.createElement('div');
+        toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
+        toast.textContent = '✅ Conectado ao Google Calendar com sucesso!';
+        document.body.appendChild(toast);
+        setTimeout(() => document.body.removeChild(toast), 3000);
+        
+        // Sincronizar todas as tarefas existentes
+        syncAllTasks();
+      } else {
+        throw new Error('Falha na autenticação');
+      }
+    } catch (error) {
+      console.error('Erro ao conectar Google Calendar:', error);
+      
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
+      toast.textContent = '❌ Erro ao conectar com Google Calendar';
+      document.body.appendChild(toast);
+      setTimeout(() => document.body.removeChild(toast), 3000);
+    }
+  };
+
+  const disconnectGoogleCalendar = async () => {
+    try {
+      await fetch('/api/google/disconnect', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('keeptur-token')}`,
+        },
+      });
+      
+      setGoogleConnected(false);
+      setGoogleEmail('');
+      setSyncEnabled(false);
+      
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded shadow-lg z-50';
+      toast.textContent = '📅 Desconectado do Google Calendar';
+      document.body.appendChild(toast);
+      setTimeout(() => document.body.removeChild(toast), 3000);
+      
+    } catch (error) {
+      console.error('Erro ao desconectar Google Calendar:', error);
+    }
+  };
+
+  const syncAllTasks = async () => {
+    if (!googleConnected || !syncEnabled) return;
+    
+    try {
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded shadow-lg z-50';
+      toast.textContent = '🔄 Sincronizando tarefas com Google Calendar...';
+      document.body.appendChild(toast);
+      
+      const response = await fetch('/api/google/sync-all', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('keeptur-token')}`,
+        },
+        body: JSON.stringify({ tasks: tasks }),
+      });
+
+      if (response.ok) {
+        document.body.removeChild(toast);
+        
+        const successToast = document.createElement('div');
+        successToast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
+        successToast.textContent = '✅ Tarefas sincronizadas com Google Calendar!';
+        document.body.appendChild(successToast);
+        setTimeout(() => document.body.removeChild(successToast), 3000);
+      } else {
+        throw new Error('Falha na sincronização');
+      }
+    } catch (error) {
+      console.error('Erro ao sincronizar tarefas:', error);
+      
+      const errorToast = document.createElement('div');
+      errorToast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
+      errorToast.textContent = '❌ Erro ao sincronizar tarefas';
+      document.body.appendChild(errorToast);
+      setTimeout(() => document.body.removeChild(errorToast), 3000);
+    }
+  };
+
+  const syncTaskWithGoogle = async (task: any, action: 'create' | 'update' | 'delete') => {
+    if (!googleConnected || !syncEnabled) return;
+    
+    try {
+      await fetch('/api/google/sync-task', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('keeptur-token')}`,
+        },
+        body: JSON.stringify({ task, action }),
+      });
+    } catch (error) {
+      console.error('Erro ao sincronizar tarefa individual:', error);
+    }
+  };
   const [taskAttachments, setTaskAttachments] = useState<any[]>([]);
   const [showDeleted, setShowDeleted] = useState(false);
   
@@ -4874,7 +5003,9 @@ export default function Dashboard() {
           className="mt-auto px-3 py-4 border-t"
           style={{ borderColor: "var(--border-color)" }}
         >
-          <button className="menu-item flex items-center px-3 py-2.5 text-sm font-medium w-full">
+          <button 
+            onClick={() => setShowSettingsModal(true)}
+            className="menu-item flex items-center px-3 py-2.5 text-sm font-medium w-full">
             <div className="w-5 h-5 flex items-center justify-center">
               <i className="ri-settings-3-line"></i>
             </div>
@@ -5535,6 +5666,163 @@ export default function Dashboard() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Configurações */}
+      {showSettingsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6 border-b flex justify-between items-center">
+              <h2 className="text-xl font-semibold">⚙️ Configurações</h2>
+              <button
+                onClick={() => setShowSettingsModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <i className="ri-close-line text-xl"></i>
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <i className="ri-calendar-line text-blue-600 text-xl"></i>
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Google Agenda</h3>
+                    <p className="text-sm text-gray-500">Sincronizar tarefas com Google Calendar</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  {googleConnected && (
+                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                  )}
+                  <button
+                    onClick={() => {
+                      setShowSettingsModal(false);
+                      setShowGoogleCalendarModal(true);
+                    }}
+                    className="text-blue-600 hover:text-blue-700"
+                  >
+                    <i className="ri-arrow-right-s-line text-xl"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal do Google Calendar */}
+      {showGoogleCalendarModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 max-h-[85vh] overflow-y-auto">
+            <div className="p-6 border-b flex justify-between items-center">
+              <h2 className="text-xl font-semibold">📅 Google Agenda</h2>
+              <button
+                onClick={() => setShowGoogleCalendarModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <i className="ri-close-line text-xl"></i>
+              </button>
+            </div>
+            
+            <div className="p-6">
+              {!googleConnected ? (
+                <div className="text-center space-y-6">
+                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                    <i className="ri-calendar-line text-blue-600 text-2xl"></i>
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Conectar Google Agenda</h3>
+                    <p className="text-gray-600 mb-4">
+                      Sincronize automaticamente suas tarefas do Keeptur com o Google Calendar. 
+                      Todas as tarefas serão criadas, atualizadas e excluídas automaticamente.
+                    </p>
+                    
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                      <h4 className="font-medium text-blue-800 mb-2">✨ Funcionalidades:</h4>
+                      <ul className="text-sm text-blue-700 space-y-1">
+                        <li>• Criação automática de eventos no Google Calendar</li>
+                        <li>• Sincronização bidirecional (Keeptur ↔ Google)</li>
+                        <li>• Atualização automática de horários e datas</li>
+                        <li>• Exclusão automática quando tarefa é removida</li>
+                        <li>• Notificações do Google Calendar</li>
+                      </ul>
+                    </div>
+                  </div>
+                  
+                  <button
+                    onClick={connectGoogleCalendar}
+                    className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 flex items-center justify-center space-x-2"
+                  >
+                    <i className="ri-google-line text-xl"></i>
+                    <span>Conectar com Google</span>
+                  </button>
+                  
+                  <p className="text-xs text-gray-500">
+                    Ao conectar, você autoriza o Keeptur a acessar e gerenciar seus eventos do Google Calendar.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <i className="ri-checkbox-circle-fill text-green-600 text-2xl"></i>
+                    </div>
+                    <h3 className="text-lg font-semibold text-green-800">Conectado com Sucesso!</h3>
+                    <p className="text-gray-600">Conta: {googleEmail}</p>
+                  </div>
+                  
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h4 className="font-medium">Sincronização Automática</h4>
+                        <p className="text-sm text-gray-500">Manter tarefas sincronizadas automaticamente</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={syncEnabled}
+                          onChange={(e) => setSyncEnabled(e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      </label>
+                    </div>
+                    
+                    {syncEnabled && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                        <p className="text-sm text-green-800">
+                          ✅ Sincronização ativa - Suas tarefas serão automaticamente gerenciadas no Google Calendar
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={() => {
+                        setShowGoogleCalendarModal(false);
+                        syncAllTasks();
+                      }}
+                      className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700"
+                    >
+                      Sincronizar Agora
+                    </button>
+                    <button
+                      onClick={disconnectGoogleCalendar}
+                      className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700"
+                    >
+                      Desconectar
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

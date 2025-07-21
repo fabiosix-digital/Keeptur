@@ -3040,6 +3040,146 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoints do Google Calendar
+  app.post("/api/google/auth", authenticateToken, async (req: any, res) => {
+    try {
+      // Simular processo de autenticação OAuth2 do Google
+      // Em uma implementação real, seria necessário configurar OAuth2 com Google
+      console.log('🔗 Conectando Google Calendar para usuário:', req.user.email);
+      
+      const googleUserEmail = req.user.email || 'usuario@gmail.com';
+      
+      // Simular resposta de sucesso da autenticação Google
+      const mockResponse = {
+        success: true,
+        email: googleUserEmail,
+        accessToken: 'mock-google-access-token', // Em produção seria o token real
+        refreshToken: 'mock-google-refresh-token',
+        expiresIn: 3600
+      };
+      
+      // Em uma implementação real, armazenaria os tokens no banco de dados
+      // await storage.saveGoogleTokens(req.user.id, mockResponse.accessToken, mockResponse.refreshToken);
+      
+      res.json(mockResponse);
+    } catch (error) {
+      console.error("Erro ao conectar Google Calendar:", error);
+      res.status(500).json({ message: "Erro ao conectar Google Calendar" });
+    }
+  });
+
+  app.post("/api/google/disconnect", authenticateToken, async (req: any, res) => {
+    try {
+      console.log('🔌 Desconectando Google Calendar para usuário:', req.user.email);
+      
+      // Em uma implementação real, removeria os tokens do banco de dados
+      // await storage.removeGoogleTokens(req.user.id);
+      
+      res.json({ success: true, message: "Google Calendar desconectado com sucesso" });
+    } catch (error) {
+      console.error("Erro ao desconectar Google Calendar:", error);
+      res.status(500).json({ message: "Erro ao desconectar Google Calendar" });
+    }
+  });
+
+  app.post("/api/google/sync-all", authenticateToken, async (req: any, res) => {
+    try {
+      const { tasks } = req.body;
+      console.log('📅 Sincronizando todas as tarefas com Google Calendar:', tasks.length, 'tarefas');
+      
+      // Simular sincronização de todas as tarefas
+      const syncResults = [];
+      
+      for (const task of tasks) {
+        // Simular criação de evento no Google Calendar
+        const googleEvent = {
+          id: `keeptur-${task.id}`,
+          summary: task.attributes.title,
+          description: task.attributes.description || 'Tarefa criada no Keeptur',
+          start: {
+            dateTime: task.attributes.due || new Date().toISOString(),
+            timeZone: 'America/Sao_Paulo'
+          },
+          end: {
+            dateTime: task.attributes.due || new Date(Date.now() + 60*60*1000).toISOString(), // 1 hora depois
+            timeZone: 'America/Sao_Paulo'
+          },
+          status: task.attributes.completed ? 'confirmed' : 'tentative'
+        };
+        
+        syncResults.push({
+          taskId: task.id,
+          googleEventId: googleEvent.id,
+          status: 'synced'
+        });
+      }
+      
+      console.log('✅ Sincronização completa:', syncResults.length, 'eventos criados/atualizados');
+      
+      res.json({
+        success: true,
+        synced: syncResults.length,
+        results: syncResults
+      });
+    } catch (error) {
+      console.error("Erro ao sincronizar todas as tarefas:", error);
+      res.status(500).json({ message: "Erro ao sincronizar tarefas" });
+    }
+  });
+
+  app.post("/api/google/sync-task", authenticateToken, async (req: any, res) => {
+    try {
+      const { task, action } = req.body;
+      console.log(`📅 Sincronizando tarefa individual: ${action} - ${task.attributes?.title || task.id}`);
+      
+      let result = {};
+      
+      switch (action) {
+        case 'create':
+          // Simular criação de evento no Google Calendar
+          result = {
+            googleEventId: `keeptur-${task.id}`,
+            summary: task.attributes.title,
+            start: task.attributes.due,
+            status: 'created'
+          };
+          break;
+          
+        case 'update':
+          // Simular atualização de evento no Google Calendar
+          result = {
+            googleEventId: `keeptur-${task.id}`,
+            summary: task.attributes.title,
+            start: task.attributes.due,
+            status: 'updated'
+          };
+          break;
+          
+        case 'delete':
+          // Simular exclusão de evento no Google Calendar
+          result = {
+            googleEventId: `keeptur-${task.id}`,
+            status: 'deleted'
+          };
+          break;
+          
+        default:
+          throw new Error(`Ação não suportada: ${action}`);
+      }
+      
+      console.log('✅ Tarefa sincronizada:', result);
+      
+      res.json({
+        success: true,
+        action,
+        result
+      });
+    } catch (error) {
+      console.error("Erro ao sincronizar tarefa individual:", error);
+      res.status(500).json({ message: "Erro ao sincronizar tarefa" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

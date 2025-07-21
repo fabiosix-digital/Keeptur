@@ -229,6 +229,10 @@ export default function Dashboard() {
   const [taskAttachments, setTaskAttachments] = useState<any[]>([]);
   const [showDeleted, setShowDeleted] = useState(false);
   
+  // Estados para sincronização automática
+  const [lastSyncTime, setLastSyncTime] = useState<number>(Date.now());
+  const [autoSyncInterval, setAutoSyncInterval] = useState<NodeJS.Timeout | null>(null);
+  
   // Estado para rastrear status pré-selecionado ao criar nova tarefa
   const [preSelectedStatus, setPreSelectedStatus] = useState<string>("pending");
 
@@ -1454,10 +1458,42 @@ export default function Dashboard() {
     }
   };
 
-  // Função para verificar se a tarefa está excluída
-  const TAREFAS_EXCLUIDAS_NO_MONDE = ['teste', 'TESSY ANNE'];
+  // Função para verificar se a tarefa está excluída dinamicamente via histórico
   const isTaskDeleted = (task: any) => {
-    return TAREFAS_EXCLUIDAS_NO_MONDE.includes(task.attributes?.title);
+    if (!task.historics || !Array.isArray(task.historics)) {
+      return false;
+    }
+    
+    // Buscar pelo histórico mais recente que indique exclusão ou restauração
+    const historicsOrdered = task.historics
+      .filter((h: any) => h.attributes?.text)
+      .sort((a: any, b: any) => new Date(b.attributes['date-time']).getTime() - new Date(a.attributes['date-time']).getTime());
+    
+    for (const historic of historicsOrdered) {
+      const text = historic.attributes.text;
+      
+      // Se encontrar marcador de restauração mais recente, não está excluída
+      if (text.includes('KEEPTUR_RESTORED') || text.includes('Restaurar atendimento')) {
+        console.log(`🔄 Tarefa ${task.attributes?.title} foi restaurada via histórico`);
+        return false;
+      }
+      
+      // Se encontrar marcador de exclusão mais recente, está excluída
+      if (text.includes('KEEPTUR_DELETED') || text.includes('Excluir atendimento')) {
+        console.log(`🗑️ Tarefa ${task.attributes?.title} foi excluída via histórico`);
+        return true;
+      }
+    }
+    
+    // Fallback: verificar se está na lista de tarefas conhecidas como excluídas
+    const knownDeletedTasks = ['teste', 'TESSY ANNE'];
+    const isKnownDeleted = knownDeletedTasks.includes(task.attributes?.title);
+    
+    if (isKnownDeleted) {
+      console.log(`🗑️ Tarefa ${task.attributes?.title} está na lista de excluídas conhecidas`);
+    }
+    
+    return isKnownDeleted;
   };
 
   // Função para restaurar tarefa
@@ -1779,6 +1815,106 @@ export default function Dashboard() {
   // 🚨 CORREÇÃO: Debounce otimizado para evitar violation de setTimeout
   const debouncedReloadTasks = debounce(reloadTasks, 200);
 
+  // 🔄 SINCRONIZAÇÃO AUTOMÁTICA: Detectar mudanças no Monde dinamicamente
+  const checkForChanges = async () => {
+    try {
+      console.log("🔄 Verificando mudanças no Monde...");
+      
+      // Buscar tarefas mais recentes da API
+      const response = await fetch('/api/monde/tarefas', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const newData = await response.json();
+        const newTasks = newData.data || [];
+        
+        // Comparar com tarefas atuais para detectar mudanças
+        const currentTaskIds = allTasks.map(t => t.id).sort();
+        const newTaskIds = newTasks.map(t => t.id).sort();
+        
+        // Detectar mudanças de status via histórico
+        let hasStatusChanges = false;
+        for (const newTask of newTasks) {
+          const currentTask = allTasks.find(t => t.id === newTask.id);
+          if (currentTask) {
+            // Comparar último histórico para detectar restaurações
+            const newLastHistoric = newTask.historics?.[0]?.attributes?.text || '';
+            const currentLastHistoric = currentTask.historics?.[0]?.attributes?.text || '';
+            
+            if (newLastHistoric !== currentLastHistoric) {
+              console.log(`📝 Histórico mudou para tarefa ${newTask.attributes?.title}:`, {
+                anterior: currentLastHistoric,
+                novo: newLastHistoric
+              });
+              
+              // Detectar restauração via histórico
+              if (newLastHistoric.includes('Restaurar atendimento') || 
+                  newLastHistoric.includes('KEEPTUR_RESTORED')) {
+                console.log(`✅ Tarefa ${newTask.attributes?.title} foi RESTAURADA no Monde!`);
+                hasStatusChanges = true;
+              }
+              
+              // Detectar outras mudanças importantes
+              if (newLastHistoric.includes('Excluir atendimento') || 
+                  newLastHistoric.includes('KEEPTUR_DELETED')) {
+                console.log(`🗑️ Tarefa ${newTask.attributes?.title} foi EXCLUÍDA no Monde!`);
+                hasStatusChanges = true;
+              }
+              
+              hasStatusChanges = true;
+            }
+          }
+        }
+        
+        // Se houve mudanças, atualizar interface
+        if (JSON.stringify(currentTaskIds) !== JSON.stringify(newTaskIds) || hasStatusChanges) {
+          console.log("🔄 Mudanças detectadas no Monde, atualizando interface...");
+          
+          // Atualizar estado das tarefas
+          setAllTasks(newTasks);
+          
+          // Reprocessar tarefas com filtro atual
+          const filteredTasks = getFilteredTasks(taskFilter);
+          setTasks(filteredTasks);
+          
+          // Mostrar toast de sincronização
+          const toast = document.createElement('div');
+          toast.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded shadow-lg z-50';
+          toast.textContent = '🔄 Sincronizado com Monde';
+          document.body.appendChild(toast);
+          setTimeout(() => {
+            if (document.body.contains(toast)) {
+              document.body.removeChild(toast);
+            }
+          }, 2000);
+          
+          setLastSyncTime(Date.now());
+        }
+      }
+    } catch (error) {
+      console.log("⚠️ Erro na verificação automática:", error);
+      // Não mostrar erro para o usuário, apenas logar
+    }
+  };
+
+  // Inicializar sincronização automática
+  useEffect(() => {
+    // Configurar verificação a cada 10 segundos
+    const interval = setInterval(checkForChanges, 10000);
+    setAutoSyncInterval(interval);
+    
+    // Cleanup
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [allTasks, taskFilter]); // Dependências para reativar quando necessário
+
   // Função para lidar com mudanças de filtro
   const handleFilterChange = (filterType: string, value: string) => {
     switch (filterType) {
@@ -1866,10 +2002,17 @@ export default function Dashboard() {
         return;
       }
 
-      // Se for restauração (de completed/archived para pending/overdue), mostrar modal
-      if ((currentStatus === "completed" || currentStatus === "archived") && 
-          (newStatus === "pending" || newStatus === "overdue")) {
-        console.log("🔄 Restauração detectada, abrindo modal");
+      // 🚨 CORREÇÃO: Detectar se é restauração de tarefa excluída
+      const isRestoringDeletedTask = isTaskDeleted(taskData) && 
+        (newStatus === "pending" || newStatus === "overdue");
+      
+      // Se for restauração de tarefa excluída OU reativação de tarefa concluída/arquivada
+      if (isRestoringDeletedTask || 
+          ((currentStatus === "completed" || currentStatus === "archived") && 
+           (newStatus === "pending" || newStatus === "overdue"))) {
+        
+        const actionType = isRestoringDeletedTask ? "restauração de tarefa excluída" : "reativação de tarefa";
+        console.log(`🔄 ${actionType} detectada, abrindo modal`);
         setStatusChangeModal({
           isOpen: true,
           task: taskData,
@@ -2046,9 +2189,30 @@ export default function Dashboard() {
 
       console.log("📤 Enviando para API do Monde:", requestBody);
 
+      // 🚨 CORREÇÃO: Usar endpoint correto para restauração de tarefas excluídas
+      const isRestoringDeletedTask = isTaskDeleted(task) && 
+        (newStatus === "pending" || newStatus === "overdue");
+      
+      let endpoint, method;
+      
+      if (isRestoringDeletedTask) {
+        // Para tarefas excluídas, usar endpoint específico de restauração
+        endpoint = `/api/monde/tarefas/${task.id}/restore`;
+        method = 'POST';
+        console.log("🔄 Usando endpoint de RESTAURAÇÃO para tarefa excluída");
+        
+        // Para restauração, adicionar campos específicos ao requestBody
+        requestBody.historic = statusChangeForm.comment || 'Tarefa restaurada via drag-and-drop';
+      } else {
+        // Para outras operações, usar endpoint genérico
+        endpoint = `/api/monde/tarefas/${task.id}`;
+        method = 'PUT';
+        console.log("🔄 Usando endpoint genérico de mudança de status");
+      }
+
       // Fazer a requisição para atualizar a tarefa
-      const response = await fetch(`/api/monde/tarefas/${task.id}`, {
-        method: "PUT",
+      const response = await fetch(endpoint, {
+        method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,

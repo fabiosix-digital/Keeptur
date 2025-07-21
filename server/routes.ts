@@ -1314,63 +1314,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('📋 Carregando dados do usuário da sessão:', userData);
       
-      // Tentar buscar dados completos do perfil no Monde
+      // ✅ CORRIGIR: Usar endpoint correto do Monde
       try {
-        const userProfileResponse = await fetch("https://web.monde.com.br/api/v2/people", {
+        // Tentar primeiro obter dados do usuário atual via token info
+        const meResponse = await fetch("https://web.monde.com.br/api/v2/tokens", {
           method: "GET",
           headers: {
-            "Content-Type": "application/vnd.api+json",
-            Accept: "application/vnd.api+json",
-            Authorization: `Bearer ${sessao.access_token}`,
+            "Authorization": `Bearer ${sessao.access_token}`,
+            "Accept": "application/vnd.api+json",
           },
         });
 
-        if (userProfileResponse.ok) {
-          const profileData = await userProfileResponse.json();
+        if (meResponse.ok) {
+          const tokenData = await meResponse.json();
+          console.log('✅ Dados do token obtidos:', tokenData.data?.attributes?.login);
           
-          // Buscar o usuário atual na lista de pessoas retornadas
-          const currentUser = profileData.data?.find((person: any) => 
-            person.attributes?.email === userData.email || 
-            person.id === userData.id ||
-            person.attributes?.name?.toLowerCase().includes(userData.login?.toLowerCase())
-          );
+          // Usar dados do token para identificar o usuário
+          const userLogin = tokenData.data?.attributes?.login;
           
-          if (currentUser) {
-            const mondeProfile = currentUser.attributes || {};
-            console.log('✅ Perfil do usuário atual encontrado no Monde:', mondeProfile);
-            
-            // Usar dados do Monde como prioridade
-            const userProfile = {
-              id: userData.id || sessao.id,
-              name: mondeProfile.name || userData.name || userData.login || 'Usuário',
-              email: mondeProfile.email || userData.email || `${userData.login}@${req.sessao.server_domain || 'monde.com.br'}`,
-              login: userData.login || 'usuario',
-              role: userData.role || 'admin',
-              phone: mondeProfile.phone || userData.phone || '',
-              mobilePhone: mondeProfile['mobile-phone'] || userData.mobile_phone || '',
-              businessPhone: mondeProfile['business-phone'] || userData.business_phone || '',
-              cpf: mondeProfile.cpf || '',
-              rg: mondeProfile.rg || '',
-              companyName: mondeProfile['company-name'] || ''
-            };
-            
-            console.log('✅ Perfil completo mesclado:', userProfile);
-            
-            res.json({
-              success: true,
-              user: userProfile,
-              session_data: {
-                server_domain: req.sessao.server_domain,
-                empresa_id: req.empresaId
+          if (userLogin) {
+            // Buscar o usuário específico pelo login
+            const peopleResponse = await fetch(`https://web.monde.com.br/api/v2/people?page[size]=50`, {
+              headers: {
+                'Authorization': `Bearer ${sessao.access_token}`,
+                'Accept': 'application/vnd.api+json'
               }
             });
-            return;
-          } else {
-            console.log('⚠️ Usuário atual não encontrado na lista de pessoas, usando dados da sessão');
+            
+            if (peopleResponse.ok) {
+              const peopleData = await peopleResponse.json();
+              
+              // Buscar usuário pelo login ou email
+              const currentUser = peopleData.data?.find((person: any) => 
+                person.attributes?.login === userLogin ||
+                person.attributes?.email?.includes(userLogin) ||
+                (userData.email && person.attributes?.email === userData.email)
+              );
+              
+              if (currentUser) {
+                const userProfile = {
+                  id: currentUser.id,
+                  name: currentUser.attributes.name || userData.name || userLogin,
+                  email: currentUser.attributes.email || userData.email,
+                  login: userLogin,
+                  role: userData.role || 'admin',
+                  phone: currentUser.attributes.phone || '',
+                  mobilePhone: currentUser.attributes['mobile-phone'] || '',
+                  businessPhone: currentUser.attributes['business-phone'] || '',
+                  cpf: currentUser.attributes.cpf || '',
+                  rg: currentUser.attributes.rg || '',
+                  companyName: currentUser.attributes['company-name'] || ''
+                };
+                
+                console.log('✅ Perfil do usuário encontrado:', userProfile.name);
+                return res.json({
+                  success: true,
+                  user: userProfile,
+                  session_data: {
+                    empresa_id: req.empresaId
+                  }
+                });
+              }
+            }
           }
         }
       } catch (profileError) {
-        console.log('⚠️ Erro ao buscar perfil no Monde, usando dados da sessão:', profileError.message);
+        console.log('⚠️ Erro ao buscar perfil no Monde:', profileError.message);
       }
       
       // Fallback para dados da sessão
@@ -3496,8 +3505,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log('🔍 Buscando perfil completo do usuário no Monde...');
       
-      // Buscar dados completos do usuário atual do Monde (testar endpoints disponíveis)
-      let response = await fetch('https://web.monde.com.br/api/v2/people/me?include=city,creator,company', {
+      // 🔧 DEBUGGING - Adicione logs temporários
+      console.log('🔍 DEBUG - Token:', req.mondeToken ? 'Presente' : 'Ausente');
+      console.log('🔍 DEBUG - Sessão ID:', req.sessao.id);
+      console.log('🔍 DEBUG - User data:', JSON.stringify(req.sessao.user_data, null, 2));
+      
+      // ✅ ESTRATÉGIA CORRIGIDA: Usar dados da sessão para identificar usuário
+      const sessao = await storage.getSessao(req.sessao.id);
+      const userLogin = sessao?.user_data?.login;
+      const userEmail = sessao?.user_data?.email;
+      
+      if (!userLogin) {
+        console.log('❌ Login do usuário não encontrado na sessão');
+        return res.status(400).json({ error: 'Login do usuário não encontrado' });
+      }
+      
+      // Buscar todas as pessoas e filtrar pelo usuário atual
+      const peopleResponse = await fetch('https://web.monde.com.br/api/v2/people?page[size]=100', {
         headers: {
           'Authorization': `Bearer ${req.mondeToken}`,
           'Accept': 'application/vnd.api+json',
@@ -3505,47 +3529,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
 
-      // Buscar usuário nos dados da empresa (método mais confiável)
-      try {
-        const usersResponse = await fetch('https://web.monde.com.br/api/v2/people?filter[kind]=user', {
-          headers: {
-            'Authorization': `Bearer ${req.mondeToken}`,
-            'Accept': 'application/vnd.api+json',
-            'User-Agent': 'Keeptur/1.0'
-          }
+      if (peopleResponse.ok) {
+        const peopleData = await peopleResponse.json();
+        const people = peopleData.data || [];
+        
+        // Buscar o usuário atual com múltiplos critérios
+        const currentUser = people.find((person: any) => {
+          const attrs = person.attributes;
+          return (
+            attrs?.login === userLogin ||
+            attrs?.email === userEmail ||
+            (userEmail && attrs?.email?.toLowerCase() === userEmail.toLowerCase()) ||
+            attrs?.name?.toLowerCase().includes(userLogin?.toLowerCase())
+          );
         });
 
-        if (usersResponse.ok) {
-          const usersData = await usersResponse.json();
-          const users = usersData.data || [];
-          const sessao = await storage.getSessao(req.sessao.id);
-          const userLogin = sessao?.user_data?.login || 'fabio';
-          
-          // Buscar o usuário atual
-          let currentUser = users.find((user: any) => 
-            user.attributes.name?.toLowerCase().includes('fabio silva') ||
-            user.id === '4298475b-8b2b-4396-9f0c-a534eed4768a' ||
-            user.attributes.login === userLogin
+        if (currentUser) {
+          console.log('✅ Usuário encontrado:', currentUser.attributes.name);
+          return res.json({
+            data: {
+              id: currentUser.id,
+              type: currentUser.type,
+              attributes: currentUser.attributes
+            }
+          });
+        } else {
+          console.log('⚠️ Usuário não encontrado na lista de pessoas');
+          console.log('🔍 Critérios de busca:', { userLogin, userEmail });
+          console.log('🔍 Primeiras 3 pessoas encontradas:', 
+            people.slice(0, 3).map(p => ({ 
+              name: p.attributes?.name, 
+              email: p.attributes?.email,
+              login: p.attributes?.login 
+            }))
           );
-
-          if (currentUser) {
-            console.log('✅ Usuário real encontrado:', currentUser.attributes.name);
-            res.json({
-              data: {
-                id: currentUser.id,
-                type: currentUser.type,
-                attributes: currentUser.attributes
-              }
-            });
-            return;
-          }
         }
-      } catch (error) {
-        console.log('⚠️ Erro ao buscar usuários:', error);
       }
 
       // Fallback para dados da sessão
-      const sessao = await storage.getSessao(req.sessao.id);
       console.log('⚠️ Usando dados da sessão como fallback');
       res.json({
         data: {

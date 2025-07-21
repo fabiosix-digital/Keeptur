@@ -121,6 +121,13 @@ Preferred communication style: Simple, everyday language in Portuguese.
 - ✅ Sistema de fallback funcional para dados de usuário
 - ✅ Dashboard carregando perfil real do usuário logado
 - ✅ Logs de depuração melhorados para facilitar troubleshooting
+- ✅ Correção crítica dos endpoints de perfil do usuário
+- ✅ Endpoint /api/user/me corrigido - usa /api/v2/tokens para identificar usuário
+- ✅ Endpoint /api/monde/user-profile corrigido - busca dados reais via /api/v2/people
+- ✅ Remoção de endpoints inexistentes (/people/me, filter[kind]=user)
+- ✅ Múltiplos critérios de busca implementados (login, email, nome)
+- ✅ Logs de debug detalhados adicionados para troubleshooting
+- ✅ Sistema de perfil funcional com dados reais da API do Monde
 
 ## System Architecture
 

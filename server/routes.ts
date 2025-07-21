@@ -66,51 +66,7 @@ const planSubscriptionSchema = z.object({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Endpoint de teste para verificar credenciais do Monde
-  app.post("/api/auth/test-credentials", async (req, res) => {
-    try {
-      const { login, password } = req.body;
-      
-      console.log("🧪 Testando credenciais:", login);
-      
-      const testResponse = await fetch("https://web.monde.com.br/api/v2/tokens", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/vnd.api+json",
-          "Accept": "application/vnd.api+json",
-          "User-Agent": "Keeptur/1.0"
-        },
-        body: JSON.stringify({
-          data: {
-            type: "tokens",
-            attributes: {
-              login: login,
-              password: password
-            }
-          }
-        }),
-      });
-      
-      if (testResponse.ok) {
-        const data = await testResponse.json();
-        res.json({
-          success: true,
-          login: data.data.attributes.login,
-          message: "Credenciais válidas"
-        });
-      } else {
-        const errorText = await testResponse.text();
-        res.status(testResponse.status).json({
-          success: false,
-          status: testResponse.status,
-          error: errorText,
-          message: "Credenciais inválidas"
-        });
-      }
-    } catch (error) {
-      res.status(500).json({ error: "Erro interno do servidor" });
-    }
-  });
+
 
   // Login route
   app.post("/api/auth/login", async (req, res) => {
@@ -1362,7 +1318,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('📋 Carregando dados do usuário da sessão:', userData);
       
-      // Retornar dados básicos do usuário logado
+      // Tentar buscar dados completos do perfil no Monde
+      try {
+        const userProfileResponse = await fetch("https://web.monde.com.br/api/v2/user", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/vnd.api+json",
+            Accept: "application/vnd.api+json",
+            Authorization: `Bearer ${sessao.access_token}`,
+          },
+        });
+
+        if (userProfileResponse.ok) {
+          const profileData = await userProfileResponse.json();
+          const mondeProfile = profileData.data?.attributes || {};
+          
+          console.log('✅ Perfil do Monde carregado:', mondeProfile);
+          
+          // Usar dados do Monde como prioridade
+          const userProfile = {
+            id: userData.id || sessao.id,
+            name: mondeProfile.name || userData.name || userData.login || 'Usuário',
+            email: mondeProfile.email || userData.email || `${userData.login}@${req.sessao.server_domain || 'monde.com.br'}`,
+            login: userData.login || 'usuario',
+            role: userData.role || 'admin',
+            phone: mondeProfile.phone || userData.phone || '',
+            mobilePhone: mondeProfile['mobile-phone'] || userData.mobile_phone || '',
+            businessPhone: mondeProfile['business-phone'] || userData.business_phone || '',
+            cpf: mondeProfile.cpf || '',
+            rg: mondeProfile.rg || '',
+            companyName: mondeProfile['company-name'] || ''
+          };
+          
+          console.log('✅ Perfil completo mesclado:', userProfile);
+          
+          res.json({
+            success: true,
+            user: userProfile,
+            session_data: {
+              server_domain: req.sessao.server_domain,
+              empresa_id: req.empresaId
+            }
+          });
+          return;
+        }
+      } catch (profileError) {
+        console.log('⚠️ Erro ao buscar perfil no Monde, usando dados da sessão:', profileError.message);
+      }
+      
+      // Fallback para dados da sessão
       const userProfile = {
         id: userData.id || sessao.id,
         name: userData.name || userData.login || 'Usuário',
@@ -1374,7 +1378,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         businessPhone: userData.business_phone || ''
       };
       
-      console.log('✅ Perfil do usuário carregado:', userProfile);
+      console.log('✅ Perfil da sessão usado como fallback:', userProfile);
       
       res.json({
         success: true,

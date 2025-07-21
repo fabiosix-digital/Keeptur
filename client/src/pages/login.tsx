@@ -26,6 +26,7 @@ export default function Login() {
     rememberMe: false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showFirstLoginModal, setShowFirstLoginModal] = useState(false);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -219,12 +220,13 @@ export default function Login() {
             >
               Esqueci minha senha
             </button>
-            <a
-              href="/test-credentials"
+            <button
+              type="button"
               className="text-sm text-gray-500 hover:text-gray-700 transition-colors block"
+              onClick={() => setShowFirstLoginModal(true)}
             >
-              Testar credenciais do Monde
-            </a>
+              Primeiro acesso? Clique aqui
+            </button>
           </div>
         </form>
       </Card>
@@ -251,6 +253,51 @@ export default function Login() {
           >
             Tentar Novamente
           </Button>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={showFirstLoginModal}
+        onClose={() => setShowFirstLoginModal(false)}
+        title="Primeiro Acesso - Instruções Importantes"
+      >
+        <div className="space-y-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-blue-800 mb-2">📋 Antes de usar o Keeptur:</h3>
+            <ol className="list-decimal list-inside space-y-2 text-blue-700">
+              <li>Acesse seu sistema <strong>Monde</strong> diretamente</li>
+              <li>Faça login normalmente no Monde</li>
+              <li>Defina uma nova senha quando solicitado</li>
+              <li>Confirme que consegue acessar o Monde sem problemas</li>
+              <li>Anote seu <strong>nome de usuário</strong> e nova senha</li>
+            </ol>
+          </div>
+          
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-amber-800 mb-2">⚠️ Dados para Login:</h3>
+            <ul className="list-disc list-inside space-y-1 text-amber-700">
+              <li><strong>Email ou Username:</strong> Use seu nome de usuário do Monde</li>
+              <li><strong>Senha:</strong> A mesma senha que você usa no Monde</li>
+              <li><strong>Servidor:</strong> URL do seu sistema Monde</li>
+            </ul>
+          </div>
+
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-green-800 mb-2">✅ Exemplo:</h3>
+            <div className="text-green-700">
+              <p><strong>Username:</strong> joao.silva</p>
+              <p><strong>Servidor:</strong> https://suaempresa.monde.com.br</p>
+            </div>
+          </div>
+
+          <div className="text-center pt-4">
+            <Button
+              onClick={() => setShowFirstLoginModal(false)}
+              className="primary-button"
+            >
+              Entendi
+            </Button>
+          </div>
         </div>
       </Modal>
     </div>

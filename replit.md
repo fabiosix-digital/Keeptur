@@ -103,12 +103,6 @@ Preferred communication style: Simple, everyday language in Portuguese.
 - ✅ Campo de responsável corrigido para usar defaultValue e pré-selecionar usuário logado
 - ✅ Data e hora atuais configuradas como padrão em novas tarefas
 - ✅ Sistema de eventos DOM implementado para garantir sincronização dos campos preenchidos
-- ✅ Modal de Pessoa Jurídica otimizada com layout ultra compacto (90vh max-height)
-- ✅ Modal de Pessoa Física criada em componente separado com layout ultra compacto
-- ✅ Fontes reduzidas para text-xs em todos os campos das modais
-- ✅ Espaçamentos minimizados (py-1, gap-2) para maximizar aproveitamento do espaço
-- ✅ Grids responsivos implementados (grid-cols-6, grid-cols-8) para organização otimizada
-- ✅ Padding lateral reduzido (p-3) para melhor aproveitamento da largura
 
 ## System Architecture
 

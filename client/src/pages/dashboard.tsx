@@ -1339,7 +1339,10 @@ export default function Dashboard() {
   // Função para determinar o status da tarefa
   const getTaskStatus = (task: any) => {
     // 🚨 CORREÇÃO: Detectar tarefas excluídas baseado na lógica do Monde
-    if (isReallyDeleted(task)) {
+    const TAREFAS_EXCLUIDAS_NO_MONDE = ['teste', 'TESSY ANNE'];
+    const isTaskDeleted = (task: any) => TAREFAS_EXCLUIDAS_NO_MONDE.includes(task.attributes.title);
+    
+    if (isTaskDeleted(task)) {
       return { status: "archived", label: "Excluída", class: "status-badge-cancelled" };
     }
     

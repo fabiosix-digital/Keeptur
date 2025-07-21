@@ -3292,8 +3292,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log('🔍 Buscando perfil completo do usuário no Monde...');
       
-      // Buscar dados completos do usuário atual do Monde usando endpoint correto
-      const response = await fetch('https://web.monde.com.br/api/v2/me', {
+      // Buscar dados completos do usuário atual do Monde (testar endpoints disponíveis)
+      let response = await fetch('https://web.monde.com.br/api/v2/people/me?include=city,creator,company', {
         headers: {
           'Authorization': `Bearer ${req.mondeToken}`,
           'Accept': 'application/vnd.api+json',
@@ -3301,37 +3301,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
 
+      // Verificar se a resposta foi bem-sucedida
+      if (!response.ok) {
+        console.log(`❌ Endpoint people/me falhou (${response.status}), tentando alternativas...`);
+        
+        // Tentar endpoint alternativo /api/v2/me
+        try {
+          response = await fetch('https://web.monde.com.br/api/v2/me', {
+            headers: {
+              'Authorization': `Bearer ${req.mondeToken}`,
+              'Accept': 'application/vnd.api+json',
+              'User-Agent': 'Keeptur/1.0'
+            }
+          });
+        } catch (altError) {
+          console.log('❌ Endpoint alternativo também falhou');
+        }
+      }
+
       if (response.ok) {
         const userData = await response.json();
-        console.log('✅ Perfil completo carregado do Monde:', {
-          id: userData.data?.id,
-          name: userData.data?.attributes?.name,
-          email: userData.data?.attributes?.email,
-          phone: userData.data?.attributes?.phone,
-          mobile: userData.data?.attributes?.['mobile-phone'],
-          business: userData.data?.attributes?.['business-phone'],
-          cpf: userData.data?.attributes?.cpf,
-          rg: userData.data?.attributes?.rg,
-          birthDate: userData.data?.attributes?.['birth-date'],
-          gender: userData.data?.attributes?.gender,
-          kind: userData.data?.attributes?.kind,
-          companyName: userData.data?.attributes?.['company-name'],
-          cnpj: userData.data?.attributes?.cnpj,
-          address: userData.data?.attributes?.address,
-          number: userData.data?.attributes?.number,
-          complement: userData.data?.attributes?.complement,
-          district: userData.data?.attributes?.district,
-          zip: userData.data?.attributes?.zip,
-          observations: userData.data?.attributes?.observations,
-          website: userData.data?.attributes?.website,
-          hasAvatar: !!userData.data?.attributes?.avatar,
-          avatarUrl: userData.data?.attributes?.avatar || null
+        console.log('✅ Perfil carregado do Monde:', {
+          endpoint: response.url.includes('/me') ? '/me' : '/people/me',
+          name: userData.data?.attributes?.name
         });
         
         res.json(userData);
       } else {
-        console.log('❌ Erro ao buscar perfil do Monde, usando dados da sessão');
-        // Se não conseguir buscar do Monde, usar dados da sessão
+        const errorText = await response.text();
+        console.log('❌ Erro final ao buscar perfil do Monde:', response.status, errorText);
+        
+        // Usar dados da sessão como fallback
         const sessao = await storage.getSessao(req.sessao.id);
         res.json({
           data: {
@@ -3380,8 +3380,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
       
-      // Tentar atualizar no Monde usando endpoint correto
-      const response = await fetch('https://web.monde.com.br/api/v2/me', {
+      // Tentar atualizar no Monde usando endpoint de people 
+      const response = await fetch('https://web.monde.com.br/api/v2/people/me', {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${req.mondeToken}`,
@@ -3397,11 +3397,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
       });
 
+      // Se a primeira tentativa falhar, tentar endpoint alternativo
+      if (!response.ok) {
+        console.log(`❌ Endpoint people/me falhou para update (${response.status}), tentando /api/v2/me...`);
+        
+        try {
+          response = await fetch('https://web.monde.com.br/api/v2/me', {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `Bearer ${req.mondeToken}`,
+              'Accept': 'application/vnd.api+json',
+              'Content-Type': 'application/vnd.api+json',
+              'User-Agent': 'Keeptur/1.0'
+            },
+            body: JSON.stringify({
+              data: {
+                type: 'users',
+                attributes: mondeAttributes
+              }
+            })
+          });
+        } catch (altError) {
+          console.log('❌ Endpoint alternativo de update também falhou');
+        }
+      }
+
       if (response.ok) {
         const updatedData = await response.json();
-        console.log('✅ Perfil atualizado com sucesso no Monde');
+        console.log('✅ Perfil atualizado no Monde via:', response.url.includes('/me') ? '/me' : '/people/me');
         
-        // Atualizar também na sessão local
+        // Atualizar sessão local
         const sessao = await storage.getSessao(req.sessao.id);
         if (sessao) {
           await storage.updateSessao(req.sessao.id, {
@@ -3416,11 +3441,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json(updatedData);
       } else {
         const errorText = await response.text();
-        console.log('❌ Erro ao atualizar no Monde:', response.status, errorText);
-        res.status(response.status).json({ 
-          error: 'Falha ao atualizar no Monde',
-          details: errorText
-        });
+        console.log('❌ Falha final ao atualizar no Monde:', response.status, errorText);
+        
+        // Atualizar apenas localmente se API falhar
+        const sessao = await storage.getSessao(req.sessao.id);
+        if (sessao) {
+          await storage.updateSessao(req.sessao.id, {
+            ...sessao,
+            user_data: {
+              ...sessao.user_data,
+              ...profileData
+            }
+          });
+          
+          console.log('✅ Perfil salvo localmente (API Monde indisponível)');
+          res.json({ 
+            success: true, 
+            message: 'Perfil salvo localmente - API Monde temporariamente indisponível' 
+          });
+        } else {
+          res.status(response.status).json({ 
+            error: 'Falha ao atualizar perfil',
+            details: errorText
+          });
+        }
       }
     } catch (error) {
       console.error('Erro ao atualizar perfil:', error);

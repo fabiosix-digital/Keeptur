@@ -1853,6 +1853,16 @@ export default function Dashboard() {
           newStatus,
           isReopen: true
         });
+        
+        // Para reabertura, preencher data futura automaticamente
+        const now = new Date();
+        now.setMinutes(now.getMinutes() + 30); // 30 minutos no futuro
+        setStatusChangeForm({
+          datetime: now.toISOString().slice(0, 16),
+          comment: "",
+          success: "",
+          error: ""
+        });
         return;
       }
 
@@ -1864,6 +1874,13 @@ export default function Dashboard() {
           task: taskData,
           newStatus,
           isReopen: false
+        });
+        // Para conclusão, não preencher data automaticamente
+        setStatusChangeForm({
+          datetime: "",
+          comment: "",
+          success: "",
+          error: ""
         });
         return;
       }
@@ -1877,6 +1894,13 @@ export default function Dashboard() {
           newStatus,
           isReopen: false
         });
+        // Para exclusão, não preencher data automaticamente
+        setStatusChangeForm({
+          datetime: "",
+          comment: "",
+          success: "",
+          error: ""
+        });
         return;
       }
 
@@ -1887,6 +1911,27 @@ export default function Dashboard() {
         task: taskData,
         newStatus,
         isReopen: false
+      });
+      
+      // Preencher data automaticamente baseado no status
+      const now = new Date();
+      let preFilledDate = "";
+      
+      if (newStatus === "pending") {
+        // Para pendente: mínimo horário atual + 1 minuto
+        now.setMinutes(now.getMinutes() + 1);
+        preFilledDate = now.toISOString().slice(0, 16);
+      } else if (newStatus === "overdue") {
+        // Para atrasada: mínimo 1 minuto antes do horário atual
+        now.setMinutes(now.getMinutes() - 1);
+        preFilledDate = now.toISOString().slice(0, 16);
+      }
+      
+      setStatusChangeForm({
+        datetime: preFilledDate,
+        comment: "",
+        success: "",
+        error: ""
       });
 
     } catch (error: any) {
@@ -1909,23 +1954,54 @@ export default function Dashboard() {
       const task = statusChangeModal.task;
       const newStatus = statusChangeModal.newStatus;
       
-      // Validações de data baseadas no status
-      if (statusChangeForm.datetime) {
+      // Validações específicas baseadas no status
+      const now = new Date();
+      
+      // Para tarefas pendentes: data obrigatória e deve ser futura
+      if (newStatus === "pending") {
+        if (!statusChangeForm.datetime) {
+          setStatusChangeForm(prev => ({ ...prev, error: "Data e hora são obrigatórias para tarefas pendentes." }));
+          return;
+        }
         const selectedDate = new Date(statusChangeForm.datetime);
-        const now = new Date();
-        
-        if (newStatus === "pending" && selectedDate <= now) {
-          console.log("⚠️ Data inválida para tarefa pendente");
+        if (selectedDate <= now) {
           setStatusChangeForm(prev => ({ ...prev, error: "Para tarefas pendentes, a data deve ser futura para evitar que fique atrasada." }));
           return;
         }
-        
-        if (newStatus === "overdue" && selectedDate >= now) {
-          console.log("⚠️ Data inválida para tarefa atrasada");
+      }
+      
+      // Para tarefas atrasadas: data obrigatória e deve ser passada
+      if (newStatus === "overdue") {
+        if (!statusChangeForm.datetime) {
+          setStatusChangeForm(prev => ({ ...prev, error: "Data e hora são obrigatórias para tarefas atrasadas." }));
+          return;
+        }
+        const selectedDate = new Date(statusChangeForm.datetime);
+        if (selectedDate >= now) {
           setStatusChangeForm(prev => ({ ...prev, error: "Para tarefas atrasadas, a data deve ser no passado (antes da data/hora atual)." }));
           return;
         }
       }
+      
+      // Para reabertura: data obrigatória, deve ser futura, comentário obrigatório
+      if (statusChangeModal.isReopen) {
+        if (!statusChangeForm.datetime) {
+          setStatusChangeForm(prev => ({ ...prev, error: "Data e hora são obrigatórias para reabertura de tarefa." }));
+          return;
+        }
+        if (!statusChangeForm.comment.trim()) {
+          setStatusChangeForm(prev => ({ ...prev, error: "Motivo da reabertura é obrigatório." }));
+          return;
+        }
+        const selectedDate = new Date(statusChangeForm.datetime);
+        if (selectedDate <= now) {
+          setStatusChangeForm(prev => ({ ...prev, error: "Para reabertura, a nova data deve ser futura." }));
+          return;
+        }
+      }
+      
+      // Para conclusão e exclusão: data não é obrigatória
+      // (comentário é opcional mas é uma boa prática)
 
       console.log("🔍 Iniciando alteração de status...");
       console.log("📋 Tarefa:", task.id, task.attributes?.title);
@@ -6496,7 +6572,11 @@ export default function Dashboard() {
                 <p className="text-xs text-blue-600 dark:text-blue-300">
                   {statusChangeModal.isReopen 
                     ? 'Esta tarefa será reaberta e movida para ativa'
-                    : `Mudando status para: ${statusChangeModal.newStatus}`
+                    : statusChangeModal.newStatus === 'completed'
+                    ? 'Esta tarefa será marcada como concluída'
+                    : statusChangeModal.newStatus === 'archived'
+                    ? 'Esta tarefa será excluída (movida para lixeira)'
+                    : `Mudando status para: ${getStatusDisplayName(statusChangeModal.newStatus)}`
                   }
                 </p>
               </div>
@@ -6513,28 +6593,73 @@ export default function Dashboard() {
                 </div>
               )}
 
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  {statusChangeModal.isReopen ? 'Nova Data e Hora:' : 'Data e Hora:'}
-                </label>
-                <input
-                  type="datetime-local"
-                  value={statusChangeForm.datetime}
-                  onChange={(e) => setStatusChangeForm(prev => ({ ...prev, datetime: e.target.value }))}
-                  className="w-full px-3 py-2 border rounded-lg"
-                />
-              </div>
+              {/* Campo de data/hora - aparecer somente quando necessário */}
+              {(statusChangeModal.newStatus === 'pending' || statusChangeModal.newStatus === 'overdue' || statusChangeModal.isReopen) && (
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    {statusChangeModal.isReopen 
+                      ? 'Nova Data e Hora (obrigatório):' 
+                      : statusChangeModal.newStatus === 'pending'
+                      ? 'Data e Hora (deve ser futura):'
+                      : 'Data e Hora (deve ser passada):'
+                    }
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={statusChangeForm.datetime}
+                    onChange={(e) => setStatusChangeForm(prev => ({ ...prev, datetime: e.target.value }))}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    required={statusChangeModal.newStatus === 'pending' || statusChangeModal.newStatus === 'overdue' || statusChangeModal.isReopen}
+                  />
+                  {statusChangeModal.newStatus === 'pending' && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      ⏰ Data deve ser no futuro para evitar que a tarefa fique atrasada
+                    </p>
+                  )}
+                  {statusChangeModal.newStatus === 'overdue' && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      ⏰ Data deve ser no passado para marcar como atrasada
+                    </p>
+                  )}
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  {statusChangeModal.isReopen ? 'Motivo da Reabertura:' : 'Comentário:'}
+                  {statusChangeModal.isReopen 
+                    ? 'Motivo da Reabertura (obrigatório):' 
+                    : statusChangeModal.newStatus === 'completed'
+                    ? 'Comentário sobre a conclusão (opcional):'
+                    : statusChangeModal.newStatus === 'archived'
+                    ? 'Motivo da exclusão (opcional):'
+                    : 'Comentário (opcional):'
+                  }
                 </label>
                 <textarea
                   value={statusChangeForm.comment}
                   onChange={(e) => setStatusChangeForm(prev => ({ ...prev, comment: e.target.value }))}
-                  placeholder={statusChangeModal.isReopen ? 'Por que esta tarefa está sendo reaberta?' : 'Adicione um comentário sobre esta mudança'}
+                  placeholder={
+                    statusChangeModal.isReopen 
+                      ? 'Por que esta tarefa está sendo reaberta?' 
+                      : statusChangeModal.newStatus === 'completed'
+                      ? 'Adicione detalhes sobre como a tarefa foi concluída...'
+                      : statusChangeModal.newStatus === 'archived'
+                      ? 'Por que esta tarefa está sendo excluída?'
+                      : 'Adicione um comentário sobre esta mudança...'
+                  }
                   className="w-full px-3 py-2 border rounded-lg h-20 resize-none"
+                  required={statusChangeModal.isReopen}
                 />
+                {statusChangeModal.newStatus === 'completed' && (
+                  <p className="text-xs text-green-600 mt-1">
+                    ✅ Tem certeza que deseja marcar esta tarefa como concluída?
+                  </p>
+                )}
+                {statusChangeModal.newStatus === 'archived' && (
+                  <p className="text-xs text-red-600 mt-1">
+                    🗑️ Tem certeza que deseja excluir esta tarefa?
+                  </p>
+                )}
               </div>
             </div>
 

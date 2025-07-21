@@ -10,7 +10,7 @@ import { google } from "googleapis";
 
 const JWT_SECRET = process.env.JWT_SECRET || "keeptur-secret-key";
 
-// Google OAuth2 Configuration
+// Google OAuth2 Configuration  
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "431481205449-fmpo2uihv5lbg15tbn182mctbektlpig.apps.googleusercontent.com";
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "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";
 
@@ -3292,8 +3292,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log('🔍 Buscando perfil completo do usuário no Monde...');
       
-      // Buscar dados completos do usuário atual do Monde com relacionamentos
-      const response = await fetch('https://web.monde.com.br/api/v2/people/me?include=city,creator,company', {
+      // Buscar dados completos do usuário atual do Monde usando endpoint correto
+      const response = await fetch('https://web.monde.com.br/api/v2/me', {
         headers: {
           'Authorization': `Bearer ${req.mondeToken}`,
           'Accept': 'application/vnd.api+json',
@@ -3380,8 +3380,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
       
-      // Tentar atualizar no Monde
-      const response = await fetch('https://web.monde.com.br/api/v2/people/me', {
+      // Tentar atualizar no Monde usando endpoint correto
+      const response = await fetch('https://web.monde.com.br/api/v2/me', {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${req.mondeToken}`,
@@ -3450,7 +3450,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         access_type: 'offline',
         scope: scopes,
         state: req.sessaoId.toString(),
-        prompt: 'consent'
+        prompt: 'select_account consent' // Força seletor de conta + consentimento
       });
 
       console.log('✅ URL de autorização gerada:', authUrl);
@@ -3509,13 +3509,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para desconectar Google
+  // Endpoint para desconectar Google e limpar cache
   app.post('/api/google/disconnect', authenticateToken, async (req: any, res) => {
     try {
-      // Implementar lógica para remover tokens do Google
-      res.json({ success: true });
+      // Revogar tokens no Google
+      try {
+        await oauth2Client.revokeCredentials();
+      } catch (revokeError) {
+        console.log('Token já inválido ou erro ao revogar:', revokeError);
+      }
+      
+      // Limpar credenciais locais
+      oauth2Client.setCredentials({});
+      
+      res.json({ 
+        success: true,
+        message: 'Desconectado com sucesso. Cache OAuth limpo.' 
+      });
     } catch (error) {
       console.error('Erro ao desconectar Google:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+  
+  // Endpoint para forçar nova autenticação (limpar cache)
+  app.post('/api/google/clear-cache', authenticateToken, async (req: any, res) => {
+    try {
+      // Limpar todas as credenciais OAuth
+      oauth2Client.setCredentials({});
+      
+      // Gerar nova URL de autenticação com parâmetros para forçar seletor de conta
+      const scopes = [
+        'https://www.googleapis.com/auth/calendar',
+        'https://www.googleapis.com/auth/userinfo.email'
+      ];
+
+      const authUrl = oauth2Client.generateAuthUrl({
+        access_type: 'offline',
+        scope: scopes,
+        state: req.sessaoId.toString(),
+        prompt: 'select_account consent',
+        // Adicionar timestamp para forçar nova sessão
+        login_hint: '', 
+        include_granted_scopes: false
+      });
+
+      res.json({ 
+        success: true, 
+        authUrl,
+        message: 'Cache OAuth limpo. Use esta nova URL para autenticar.' 
+      });
+    } catch (error) {
+      console.error('Erro ao limpar cache OAuth:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });

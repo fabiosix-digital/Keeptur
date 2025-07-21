@@ -190,6 +190,38 @@ export default function Settings() {
     }
   };
 
+  const clearGoogleCache = async () => {
+    setLoading(true);
+    
+    try {
+      const response = await fetch('/api/google/clear-cache', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('keeptur-token')}`,
+          'Content-Type': 'application/json'
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        showToast('Cache OAuth limpo - redirecionando...', 'success');
+        
+        // Aguardar 1 segundo e redirecionar para nova URL limpa
+        setTimeout(() => {
+          console.log('🔗 Redirecionando para nova URL limpa:', data.authUrl);
+          window.location.href = data.authUrl;
+        }, 1500);
+      } else {
+        setLoading(false);
+        showToast('Erro ao limpar cache OAuth', 'error');
+      }
+    } catch (error) {
+      console.error('Erro ao limpar cache Google:', error);
+      setLoading(false);
+      showToast('Erro interno ao limpar cache', 'error');
+    }
+  };
+
   const saveUserProfile = async () => {
     setSavingProfile(true);
     try {
@@ -719,18 +751,32 @@ export default function Settings() {
                       </p>
                     </div>
                     
-                    <button
-                      onClick={connectGoogleCalendar}
-                      disabled={loading}
-                      className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2"
-                    >
-                      {loading ? (
-                        <i className="ri-loader-4-line animate-spin"></i>
-                      ) : (
-                        <i className="ri-google-line"></i>
-                      )}
-                      <span>{loading ? 'Conectando...' : 'Conectar Google Calendar'}</span>
-                    </button>
+                    <div className="space-y-3">
+                      <button
+                        onClick={connectGoogleCalendar}
+                        disabled={loading}
+                        className="w-full bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center space-x-2"
+                      >
+                        {loading ? (
+                          <i className="ri-loader-4-line animate-spin"></i>
+                        ) : (
+                          <i className="ri-google-line"></i>
+                        )}
+                        <span>{loading ? 'Conectando...' : 'Conectar Google Calendar'}</span>
+                      </button>
+                      
+                      <div className="border-t pt-3">
+                        <p className="text-xs text-gray-600 mb-2">Problemas de conexão?</p>
+                        <button
+                          onClick={clearGoogleCache}
+                          disabled={loading}
+                          className="w-full bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 disabled:opacity-50 flex items-center justify-center space-x-2 text-sm"
+                        >
+                          <i className="ri-refresh-line"></i>
+                          <span>Limpar Cache e Tentar Novamente</span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-4">

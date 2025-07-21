@@ -57,6 +57,7 @@ export interface IStorage {
   getSessaoByToken(token: string): Promise<Sessao | undefined>;
   updateSessao(id: number, data: Partial<InsertSessao>): Promise<Sessao>;
   deleteSessao(id: number): Promise<void>;
+  invalidateAllSessoes(empresaId: number): Promise<void>;
   
   // Anexo operations
   createAnexo(data: InsertAnexo): Promise<Anexo>;
@@ -179,6 +180,10 @@ export class DatabaseStorage implements IStorage {
 
   async deleteSessao(id: number): Promise<void> {
     await db.delete(sessoes).where(eq(sessoes.id, id));
+  }
+
+  async invalidateAllSessoes(empresaId: number): Promise<void> {
+    await db.delete(sessoes).where(eq(sessoes.empresa_id, empresaId));
   }
 
   async createAnexo(data: InsertAnexo): Promise<Anexo> {

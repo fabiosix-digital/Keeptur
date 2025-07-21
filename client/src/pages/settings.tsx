@@ -1,20 +1,29 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "../lib/auth";
+import { useTheme } from "../hooks/use-theme";
+import logoFull from "@assets/LOGO Lilas_1752695672079.png";
+import logoIcon from "@assets/ico Lilas_1752695703171.png";
 
 export default function Settings() {
   const [, setLocation] = useLocation();
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [currentTab, setCurrentTab] = useState("profile");
-  const [darkMode, setDarkMode] = useState(false);
   const [googleConnected, setGoogleConnected] = useState(false);
   const [googleEmail, setGoogleEmail] = useState("");
   const [syncEnabled, setSyncEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
+  
+  // Estados para editar perfil
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileData, setProfileData] = useState<any>({});
+  const [savingProfile, setSavingProfile] = useState(false);
 
   useEffect(() => {
     checkGoogleConnection();
+    loadUserProfile();
     
     // Verificar se retornou do OAuth com sucesso
     const urlParams = new URLSearchParams(window.location.search);
@@ -45,6 +54,23 @@ export default function Settings() {
     toast.textContent = message;
     document.body.appendChild(toast);
     setTimeout(() => document.body.removeChild(toast), type === 'error' ? 5000 : 3000);
+  };
+
+  const loadUserProfile = async () => {
+    try {
+      const response = await fetch('/api/monde/user-profile', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('keeptur-token')}`,
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setProfileData(data);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar perfil:', error);
+    }
   };
 
   const checkGoogleConnection = async () => {
@@ -84,7 +110,6 @@ export default function Settings() {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Erro ao obter URL de autorização');
       }
-      
     } catch (error) {
       console.error('Erro ao conectar Google Calendar:', error);
       setLoading(false);
@@ -92,13 +117,72 @@ export default function Settings() {
     }
   };
 
-  const toggleSidebar = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
+  const disconnectGoogleCalendar = async () => {
+    try {
+      const response = await fetch('/api/google/disconnect', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('keeptur-token')}`,
+        },
+      });
+      
+      if (response.ok) {
+        setGoogleConnected(false);
+        setGoogleEmail('');
+        setSyncEnabled(false);
+        showToast('Google Calendar desconectado', 'success');
+      }
+    } catch (error) {
+      console.error('Erro ao desconectar Google Calendar:', error);
+    }
   };
 
-  const toggleTheme = () => {
-    setDarkMode(!darkMode);
-    document.documentElement.setAttribute('data-theme', !darkMode ? 'dark' : 'light');
+  const saveUserProfile = async () => {
+    setSavingProfile(true);
+    try {
+      const response = await fetch('/api/monde/user-profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('keeptur-token')}`,
+        },
+        body: JSON.stringify(profileData),
+      });
+
+      if (response.ok) {
+        setIsEditingProfile(false);
+        showToast('Perfil atualizado com sucesso!', 'success');
+        // Recarregar dados do usuário
+        loadUserProfile();
+      } else {
+        throw new Error('Erro ao salvar perfil');
+      }
+    } catch (error) {
+      console.error('Erro ao salvar perfil:', error);
+      showToast('Erro ao salvar perfil', 'error');
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const logoutAllSessions = async () => {
+    try {
+      const response = await fetch('/api/auth/logout-all', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('keeptur-token')}`,
+        },
+      });
+
+      if (response.ok) {
+        logout();
+        setLocation('/login');
+        showToast('Todas as sessões foram encerradas', 'success');
+      }
+    } catch (error) {
+      console.error('Erro ao encerrar sessões:', error);
+      showToast('Erro ao encerrar sessões', 'error');
+    }
   };
 
   const handleLogout = () => {
@@ -106,98 +190,135 @@ export default function Settings() {
     setLocation('/login');
   };
 
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
+
   const renderTabContent = () => {
     switch (currentTab) {
       case 'profile':
         return (
-          <div className="card rounded-xl p-6">
-            <div className="flex items-center mb-6">
-              <div className="w-10 h-10 flex items-center justify-center">
-                <i className="ri-user-3-line text-xl text-primary"></i>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-medium mb-2" style={{ color: "var(--text-primary)" }}>
                   Informações do Perfil
                 </h3>
                 <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
                   Suas informações pessoais e de conta
                 </p>
               </div>
+              <button
+                onClick={() => setIsEditingProfile(!isEditingProfile)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                {isEditingProfile ? 'Cancelar' : 'Editar'}
+              </button>
             </div>
-            
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                    Nome
-                  </label>
-                  <input
-                    type="text"
-                    value={user?.name || ''}
-                    className="form-input w-full px-3 py-2 rounded-lg"
-                    readOnly
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={user?.email || ''}
-                    className="form-input w-full px-3 py-2 rounded-lg"
-                    readOnly
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                    Função
-                  </label>
-                  <input
-                    type="text"
-                    value={user?.role || 'Usuário'}
-                    className="form-input w-full px-3 py-2 rounded-lg"
-                    readOnly
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-                    Empresa
-                  </label>
-                  <input
-                    type="text"
-                    value={user?.empresa || 'Não informado'}
-                    className="form-input w-full px-3 py-2 rounded-lg"
-                    readOnly
-                  />
-                </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                  Nome
+                </label>
+                <input
+                  type="text"
+                  value={profileData?.name || user?.name || ''}
+                  onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  style={{ 
+                    backgroundColor: "var(--bg-secondary)",
+                    borderColor: "var(--border-color)",
+                    color: "var(--text-primary)"
+                  }}
+                  readOnly={!isEditingProfile}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={profileData?.email || user?.email || ''}
+                  onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  style={{ 
+                    backgroundColor: "var(--bg-secondary)",
+                    borderColor: "var(--border-color)",
+                    color: "var(--text-primary)"
+                  }}
+                  readOnly={!isEditingProfile}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                  Função
+                </label>
+                <input
+                  type="text"
+                  value={profileData?.role || user?.role || ''}
+                  onChange={(e) => setProfileData({ ...profileData, role: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  style={{ 
+                    backgroundColor: "var(--bg-secondary)",
+                    borderColor: "var(--border-color)",
+                    color: "var(--text-primary)"
+                  }}
+                  readOnly={!isEditingProfile}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                  Empresa
+                </label>
+                <input
+                  type="text"
+                  value={profileData?.empresa || user?.empresa || ''}
+                  onChange={(e) => setProfileData({ ...profileData, empresa: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  style={{ 
+                    backgroundColor: "var(--bg-secondary)",
+                    borderColor: "var(--border-color)",
+                    color: "var(--text-primary)"
+                  }}
+                  readOnly={!isEditingProfile}
+                />
               </div>
             </div>
+
+            {isEditingProfile && (
+              <div className="flex space-x-4">
+                <button
+                  onClick={saveUserProfile}
+                  disabled={savingProfile}
+                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                >
+                  {savingProfile ? 'Salvando...' : 'Salvar Alterações'}
+                </button>
+                <button
+                  onClick={() => setIsEditingProfile(false)}
+                  className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+                >
+                  Cancelar
+                </button>
+              </div>
+            )}
           </div>
         );
 
       case 'connections':
         return (
-          <div className="card rounded-xl p-6">
-            <div className="flex items-center mb-6">
-              <div className="w-10 h-10 flex items-center justify-center">
-                <i className="ri-links-line text-xl text-primary"></i>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
-                  Integrações Externas
-                </h3>
-                <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                  Conecte suas ferramentas favoritas
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <div className="border rounded-lg p-6" style={{ borderColor: "var(--border-color)" }}>
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-medium mb-4" style={{ color: "var(--text-primary)" }}>
+                Integrações Externas
+              </h3>
+              
+              <div className="border rounded-lg p-6" style={{ borderColor: "var(--border-color)", backgroundColor: "var(--bg-secondary)" }}>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-4">
                     <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -215,28 +336,32 @@ export default function Settings() {
                       )}
                     </div>
                   </div>
-                  <div className={`connection-status ${googleConnected ? 'connected' : 'disconnected'}`}>
-                    <div className="connection-status-dot"></div>
-                    <span>{googleConnected ? 'Conectado' : 'Desconectado'}</span>
+                  <div className="flex items-center space-x-2">
+                    {googleConnected && (
+                      <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                    )}
+                    <span className={`text-sm font-medium ${googleConnected ? 'text-green-600' : 'text-gray-400'}`}>
+                      {googleConnected ? 'Conectado' : 'Desconectado'}
+                    </span>
                   </div>
                 </div>
 
                 {!googleConnected ? (
                   <div className="space-y-4">
-                    <div className="info-box">
+                    <div className="border rounded-lg p-4" style={{ backgroundColor: "rgba(59, 130, 246, 0.1)", borderColor: "rgba(59, 130, 246, 0.3)" }}>
                       <h5 className="font-medium text-blue-800 mb-2">Recursos disponíveis:</h5>
                       <ul className="text-sm text-blue-700 space-y-1">
-                        <li>Criação automática de eventos no Google Calendar</li>
-                        <li>Sincronização bidirecional (Keeptur ↔ Google)</li>
-                        <li>Atualização automática de horários e datas</li>
-                        <li>Notificações do Google Calendar</li>
+                        <li>• Criação automática de eventos no Google Calendar</li>
+                        <li>• Sincronização bidirecional (Keeptur ↔ Google)</li>
+                        <li>• Atualização automática de horários e datas</li>
+                        <li>• Notificações do Google Calendar</li>
                       </ul>
                     </div>
                     
                     <button
                       onClick={connectGoogleCalendar}
                       disabled={loading}
-                      className="google-button px-6 py-2 rounded-lg font-medium disabled:opacity-50"
+                      className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2"
                     >
                       {loading ? (
                         <i className="ri-loader-4-line animate-spin"></i>
@@ -245,16 +370,6 @@ export default function Settings() {
                       )}
                       <span>{loading ? 'Conectando...' : 'Conectar Google Calendar'}</span>
                     </button>
-                    
-                    <div className="text-xs border rounded-lg p-3 bg-amber-50 border-amber-200">
-                      <p className="font-medium text-amber-800 mb-1">⚠️ Configuração necessária</p>
-                      <p className="text-amber-700 mb-2">
-                        Para usar a integração com Google Calendar, certifique-se de que o redirect URI está configurado:
-                      </p>
-                      <p className="font-mono text-xs bg-amber-100 p-1 rounded">
-                        https://keeptur.replit.app/auth/google/callback
-                      </p>
-                    </div>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -263,19 +378,20 @@ export default function Settings() {
                         <h5 className="font-medium text-green-800">Sincronização Ativa</h5>
                         <p className="text-sm text-green-600">Suas tarefas estão sendo sincronizadas automaticamente</p>
                       </div>
-                      <div className="switch">
-                        <input 
-                          type="checkbox" 
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
                           checked={syncEnabled}
                           onChange={(e) => setSyncEnabled(e.target.checked)}
+                          className="sr-only peer"
                         />
-                        <span className="slider"></span>
-                      </div>
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      </label>
                     </div>
                     
                     <button 
-                      className="action-button w-full py-2 px-4 rounded-lg font-medium"
-                      onClick={() => setGoogleConnected(false)}
+                      onClick={disconnectGoogleCalendar}
+                      className="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700"
                     >
                       Desconectar Google Calendar
                     </button>
@@ -286,80 +402,28 @@ export default function Settings() {
           </div>
         );
 
-      case 'notifications':
-        return (
-          <div className="card rounded-xl p-6">
-            <div className="flex items-center mb-6">
-              <div className="w-10 h-10 flex items-center justify-center">
-                <i className="ri-notification-3-line text-xl text-primary"></i>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
-                  Preferências de Notificação
-                </h3>
-                <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                  Gerencie como você recebe notificações
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 border rounded-lg" style={{ borderColor: "var(--border-color)" }}>
-                <div>
-                  <h4 className="font-medium" style={{ color: "var(--text-primary)" }}>Email de notificações</h4>
-                  <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Receber notificações por email sobre tarefas</p>
-                </div>
-                <div className="switch">
-                  <input type="checkbox" />
-                  <span className="slider"></span>
-                </div>
-              </div>
-              
-              <div className="flex items-center justify-between p-4 border rounded-lg" style={{ borderColor: "var(--border-color)" }}>
-                <div>
-                  <h4 className="font-medium" style={{ color: "var(--text-primary)" }}>Notificações push</h4>
-                  <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Receber notificações no navegador</p>
-                </div>
-                <div className="switch">
-                  <input type="checkbox" />
-                  <span className="slider"></span>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
       case 'appearance':
         return (
-          <div className="card rounded-xl p-6">
-            <div className="flex items-center mb-6">
-              <div className="w-10 h-10 flex items-center justify-center">
-                <i className="ri-palette-line text-xl text-primary"></i>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
-                  Aparência
-                </h3>
-                <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                  Personalize a aparência da aplicação
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 border rounded-lg" style={{ borderColor: "var(--border-color)" }}>
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-medium mb-4" style={{ color: "var(--text-primary)" }}>
+                Aparência
+              </h3>
+              
+              <div className="flex items-center justify-between p-4 border rounded-lg" style={{ borderColor: "var(--border-color)", backgroundColor: "var(--bg-secondary)" }}>
                 <div>
                   <h4 className="font-medium" style={{ color: "var(--text-primary)" }}>Modo escuro</h4>
                   <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Alternar entre tema claro e escuro</p>
                 </div>
-                <div className="switch">
+                <label className="relative inline-flex items-center cursor-pointer">
                   <input 
                     type="checkbox" 
-                    checked={darkMode}
+                    checked={theme === "dark"}
                     onChange={toggleTheme}
+                    className="sr-only peer"
                   />
-                  <span className="slider"></span>
-                </div>
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
               </div>
             </div>
           </div>
@@ -367,61 +431,23 @@ export default function Settings() {
 
       case 'security':
         return (
-          <div className="card rounded-xl p-6">
-            <div className="flex items-center mb-6">
-              <div className="w-10 h-10 flex items-center justify-center">
-                <i className="ri-shield-check-line text-xl text-primary"></i>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
-                  Segurança
-                </h3>
-                <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                  Configurações de segurança da conta
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="p-4 border rounded-lg" style={{ borderColor: "var(--border-color)" }}>
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-medium mb-4" style={{ color: "var(--text-primary)" }}>
+                Segurança
+              </h3>
+              
+              <div className="p-4 border rounded-lg" style={{ borderColor: "var(--border-color)", backgroundColor: "var(--bg-secondary)" }}>
                 <h4 className="font-medium mb-2" style={{ color: "var(--text-primary)" }}>Sessão</h4>
                 <p className="text-sm mb-4" style={{ color: "var(--text-secondary)" }}>
                   Gerencie suas sessões ativas
                 </p>
                 <button 
-                  onClick={handleLogout}
-                  className="action-button px-4 py-2 rounded-lg font-medium"
+                  onClick={logoutAllSessions}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                 >
                   Encerrar todas as sessões
                 </button>
-              </div>
-            </div>
-          </div>
-        );
-
-      case 'privacy':
-        return (
-          <div className="card rounded-xl p-6">
-            <div className="flex items-center mb-6">
-              <div className="w-10 h-10 flex items-center justify-center">
-                <i className="ri-database-2-line text-xl text-primary"></i>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
-                  Dados e Privacidade
-                </h3>
-                <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                  Controle seus dados pessoais
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="p-4 border rounded-lg" style={{ borderColor: "var(--border-color)" }}>
-                <h4 className="font-medium mb-2" style={{ color: "var(--text-primary)" }}>Coleta de dados</h4>
-                <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                  Seus dados são utilizados exclusivamente para o funcionamento da plataforma, conforme nossa política de privacidade.
-                </p>
               </div>
             </div>
           </div>
@@ -434,72 +460,83 @@ export default function Settings() {
 
   return (
     <div className="flex h-screen overflow-hidden theme-transition">
-      {/* Sidebar */}
-      <aside className={`sidebar ${sidebarCollapsed ? 'sidebar-collapsed' : 'sidebar-expanded'} sidebar-transition fixed inset-y-0 left-0 z-50 flex flex-col`}>
-        <div className="flex items-center h-16 px-4 border-b" style={{ borderColor: "var(--border-color)" }}>
+      {/* Sidebar - usando exatamente o mesmo do dashboard */}
+      <aside
+        className={`sidebar ${
+          sidebarCollapsed ? "sidebar-collapsed" : "sidebar-expanded"
+        } sidebar-transition fixed inset-y-0 left-0 z-50 flex flex-col`}
+      >
+        <div
+          className="flex items-center h-16 px-4 border-b"
+          style={{ borderColor: "var(--border-color)" }}
+        >
           <div className="flex items-center">
-            <div className="font-['Pacifico'] text-primary text-xl">K</div>
-            {!sidebarCollapsed && (
-              <div className="ml-2 font-bold text-lg" style={{ color: "var(--text-primary)" }}>
-                Keeptur
-              </div>
+            {sidebarCollapsed ? (
+              <img src={logoIcon} alt="Keeptur" className="w-8 h-8" />
+            ) : (
+              <img src={logoFull} alt="Keeptur" className="h-8" />
             )}
           </div>
         </div>
-        
+
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          <a 
-            href="/dashboard"
-            className="menu-item flex items-center px-3 py-2.5 text-sm font-medium"
+          <button
+            onClick={() => setLocation("/dashboard")}
+            className="menu-item flex items-center px-3 py-2.5 text-sm font-medium w-full"
           >
             <div className="w-5 h-5 flex items-center justify-center">
               <i className="ri-task-line"></i>
             </div>
             {!sidebarCollapsed && <span className="ml-3">Tarefas</span>}
             {sidebarCollapsed && <span className="tooltip">Tarefas</span>}
-          </a>
-          
-          <a 
-            href="/clientes"
-            className="menu-item flex items-center px-3 py-2.5 text-sm font-medium"
+          </button>
+
+          <button
+            onClick={() => setLocation("/clientes")}
+            className="menu-item flex items-center px-3 py-2.5 text-sm font-medium w-full"
           >
             <div className="w-5 h-5 flex items-center justify-center">
               <i className="ri-user-3-line"></i>
             </div>
             {!sidebarCollapsed && <span className="ml-3">Clientes</span>}
             {sidebarCollapsed && <span className="tooltip">Clientes</span>}
-          </a>
+          </button>
         </nav>
-        
-        <div className="mt-auto px-3 py-4 border-t" style={{ borderColor: "var(--border-color)" }}>
-          <a 
-            href="/settings"
-            className="menu-item active flex items-center px-3 py-2.5 text-sm font-medium"
-          >
+
+        <div
+          className="mt-auto px-3 py-4 border-t"
+          style={{ borderColor: "var(--border-color)" }}
+        >
+          <button 
+            className="menu-item active flex items-center px-3 py-2.5 text-sm font-medium w-full">
             <div className="w-5 h-5 flex items-center justify-center">
               <i className="ri-settings-3-line"></i>
             </div>
             {!sidebarCollapsed && <span className="ml-3">Configurações</span>}
             {sidebarCollapsed && <span className="tooltip">Configurações</span>}
-          </a>
-          
-          <button 
+          </button>
+
+          <button
             onClick={handleLogout}
-            className="menu-item flex items-center px-3 py-2.5 text-sm font-medium bg-red-500 hover:bg-red-600 text-white w-full"
+            className="menu-item flex items-center px-3 py-2.5 text-sm font-medium w-full bg-red-500 hover:bg-red-600 text-white"
           >
             <div className="w-5 h-5 flex items-center justify-center">
-              <i className="ri-logout-box-line"></i>
+              <i className="ri-logout-box-line text-white"></i>
             </div>
-            {!sidebarCollapsed && <span className="ml-3">Sair</span>}
+            {!sidebarCollapsed && <span className="ml-3 text-white">Sair</span>}
             {sidebarCollapsed && <span className="tooltip">Sair</span>}
           </button>
-          
-          <button 
+
+          <button
             onClick={toggleSidebar}
             className="menu-item flex items-center px-3 py-2.5 text-sm font-medium w-full"
           >
             <div className="w-5 h-5 flex items-center justify-center">
-              <i className={sidebarCollapsed ? "ri-menu-unfold-line" : "ri-menu-fold-line"}></i>
+              <i
+                className={
+                  sidebarCollapsed ? "ri-menu-unfold-line" : "ri-menu-fold-line"
+                }
+              ></i>
             </div>
             {!sidebarCollapsed && <span className="ml-3">Recolher Menu</span>}
             {sidebarCollapsed && <span className="tooltip">Expandir Menu</span>}
@@ -509,58 +546,74 @@ export default function Settings() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header 
+        {/* Header - usando exatamente o mesmo do dashboard */}
+        <header
           className={`header flex items-center justify-between h-16 px-6 content-transition`}
-          style={{ marginLeft: sidebarCollapsed ? '4rem' : '16rem' }}
+          style={{ marginLeft: sidebarCollapsed ? "4rem" : "16rem" }}
         >
           <div className="flex items-center">
-            <h1 className="text-xl font-semibold" style={{ color: "var(--text-primary)" }}>
+            <h1
+              className="text-xl font-semibold"
+              style={{ color: "var(--text-primary)" }}
+            >
               Configurações
             </h1>
           </div>
-          
+
           <div className="flex items-center space-x-4">
-            <button 
+            <button
               onClick={toggleTheme}
-              className="theme-toggle p-2 rounded-lg"
+              className="theme-toggle p-2 rounded-lg rounded-button"
             >
               <div className="w-5 h-5 flex items-center justify-center">
-                <i className={darkMode ? "ri-sun-line" : "ri-moon-line"}></i>
+                <i
+                  className={theme === "light" ? "ri-moon-line" : "ri-sun-line"}
+                ></i>
               </div>
             </button>
-            
+
             <div className="relative">
-              <button className="theme-toggle p-2 rounded-lg relative">
+              <button className="theme-toggle p-2 rounded-lg relative rounded-button">
                 <div className="w-5 h-5 flex items-center justify-center">
                   <i className="ri-notification-3-line"></i>
                 </div>
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">0</span>
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                  0
+                </span>
               </button>
             </div>
-            
+
             <div className="relative">
-              <div className="flex items-center space-x-3 p-1 rounded-lg theme-toggle">
-                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-medium text-sm">
-                  {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+              <button className="flex items-center space-x-3 p-1 rounded-lg theme-toggle rounded-button">
+                <div className="w-8 h-8 rounded-full stats-card flex items-center justify-center text-white font-medium text-sm">
+                  {user?.name?.charAt(0).toUpperCase() || "U"}
                 </div>
                 <div className="hidden md:block text-left">
-                  <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
-                    {user?.name || 'Usuário'}
+                  <p
+                    className="text-sm font-medium"
+                    style={{ color: "var(--text-primary)" }}
+                  >
+                    {user?.name}
                   </p>
-                  <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
-                    {user?.role || 'Usuário'}
+                  <p
+                    className="text-xs"
+                    style={{ color: "var(--text-tertiary)" }}
+                  >
+                    {user?.role}
                   </p>
                 </div>
-              </div>
+                <div className="w-4 h-4 flex items-center justify-center">
+                  <i className="ri-arrow-down-s-line"></i>
+                </div>
+              </button>
             </div>
           </div>
         </header>
 
         {/* Main Content Area */}
-        <main 
+        <main
           className={`flex-1 overflow-auto content-area content-transition p-6`}
-          style={{ marginLeft: sidebarCollapsed ? '4rem' : '16rem' }}
+          style={{ marginLeft: sidebarCollapsed ? "4rem" : "16rem" }}
         >
           <div className="max-w-4xl mx-auto">
             <div className="mb-8">
@@ -578,17 +631,15 @@ export default function Settings() {
                 {[
                   { id: 'profile', icon: 'ri-user-3-line', label: 'Perfil' },
                   { id: 'connections', icon: 'ri-links-line', label: 'Conexões' },
-                  { id: 'notifications', icon: 'ri-notification-3-line', label: 'Notificações' },
                   { id: 'appearance', icon: 'ri-palette-line', label: 'Aparência' },
-                  { id: 'security', icon: 'ri-shield-check-line', label: 'Segurança' },
-                  { id: 'privacy', icon: 'ri-database-2-line', label: 'Dados e Privacidade' }
+                  { id: 'security', icon: 'ri-shield-check-line', label: 'Segurança' }
                 ].map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setCurrentTab(tab.id)}
-                    className={`px-4 py-2 text-sm font-medium rounded-t-lg focus:outline-none ${
+                    className={`px-4 py-2 text-sm font-medium rounded-t-lg focus:outline-none transition-colors ${
                       currentTab === tab.id 
-                        ? 'bg-primary text-white border-b-2 border-primary' 
+                        ? 'bg-blue-600 text-white border-b-2 border-blue-600' 
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
                     style={{
@@ -604,7 +655,7 @@ export default function Settings() {
             </div>
             
             {/* Tab Content */}
-            <div className="fade-in">
+            <div className="card rounded-xl p-6">
               {renderTabContent()}
             </div>
           </div>

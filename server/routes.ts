@@ -3257,6 +3257,176 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para obter perfil do usuário
+  app.get('/api/monde/user-profile', authenticateToken, async (req: any, res) => {
+    try {
+      // Buscar dados do usuário atual do Monde
+      const response = await fetch('https://web.monde.com.br/api/v2/people/me', {
+        headers: {
+          'Authorization': `Bearer ${req.mondeToken}`,
+          'Accept': 'application/vnd.api+json'
+        }
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        res.json(userData);
+      } else {
+        // Se não conseguir buscar do Monde, usar dados da sessão
+        const sessao = await storage.getSessao(req.sessaoId);
+        res.json({
+          data: {
+            attributes: sessao?.user_data || {}
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao buscar perfil:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Endpoint para atualizar perfil do usuário
+  app.put('/api/monde/user-profile', authenticateToken, async (req: any, res) => {
+    try {
+      const profileData = req.body;
+      
+      // Tentar atualizar no Monde
+      const response = await fetch('https://web.monde.com.br/api/v2/people/me', {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${req.mondeToken}`,
+          'Accept': 'application/vnd.api+json',
+          'Content-Type': 'application/vnd.api+json'
+        },
+        body: JSON.stringify({
+          data: {
+            type: 'people',
+            attributes: profileData
+          }
+        })
+      });
+
+      if (response.ok) {
+        const updatedData = await response.json();
+        
+        // Atualizar também na sessão local
+        const sessao = await storage.getSessao(req.sessaoId);
+        if (sessao) {
+          await storage.updateSessao(req.sessaoId, {
+            ...sessao,
+            user_data: {
+              ...sessao.user_data,
+              ...profileData
+            }
+          });
+        }
+        
+        res.json(updatedData);
+      } else {
+        throw new Error('Falha ao atualizar no Monde');
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar perfil:', error);
+      res.status(500).json({ error: 'Erro ao atualizar perfil' });
+    }
+  });
+
+  // Endpoint para obter URL de autenticação do Google
+  app.get('/api/google/auth', authenticateToken, async (req: any, res) => {
+    try {
+      const scopes = [
+        'https://www.googleapis.com/auth/calendar',
+        'https://www.googleapis.com/auth/userinfo.email'
+      ];
+
+      const authUrl = oauth2Client.generateAuthUrl({
+        access_type: 'offline',
+        scope: scopes,
+        state: req.sessaoId.toString()
+      });
+
+      res.json({ authUrl });
+    } catch (error) {
+      console.error('Erro ao gerar URL de autenticação:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Callback do Google OAuth
+  app.get('/auth/google/callback', async (req, res) => {
+    try {
+      const { code, state, error } = req.query;
+      
+      if (error) {
+        console.error('Erro no OAuth:', error);
+        return res.redirect('/settings?error=oauth_failed');
+      }
+
+      if (!code) {
+        return res.redirect('/settings?error=oauth_cancelled');
+      }
+
+      // Trocar código por tokens
+      const { tokens } = await oauth2Client.getToken(code as string);
+      oauth2Client.setCredentials(tokens);
+
+      // Obter informações do usuário
+      const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
+      const userInfo = await oauth2.userinfo.get();
+
+      // Salvar no storage (você pode implementar uma tabela para isso)
+      // Por enquanto, vamos simular o armazenamento
+      console.log('✅ Google OAuth sucesso:', userInfo.data.email);
+
+      res.redirect('/settings?google=connected');
+    } catch (error) {
+      console.error('Erro no callback OAuth:', error);
+      res.redirect('/settings?error=oauth_failed');
+    }
+  });
+
+  // Endpoint para verificar status da conexão Google
+  app.get('/api/google/status', authenticateToken, async (req: any, res) => {
+    try {
+      // Por enquanto, simular status
+      res.json({
+        connected: false,
+        email: '',
+        syncEnabled: false
+      });
+    } catch (error) {
+      console.error('Erro ao verificar status Google:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Endpoint para desconectar Google
+  app.post('/api/google/disconnect', authenticateToken, async (req: any, res) => {
+    try {
+      // Implementar lógica para remover tokens do Google
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Erro ao desconectar Google:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Endpoint para encerrar todas as sessões
+  app.post('/api/auth/logout-all', authenticateToken, async (req: any, res) => {
+    try {
+      const sessao = await storage.getSessao(req.sessaoId);
+      if (sessao) {
+        // Invalidar todas as sessões da empresa
+        await storage.invalidateAllSessoes(sessao.empresa_id);
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Erro ao encerrar sessões:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

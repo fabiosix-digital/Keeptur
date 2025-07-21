@@ -18,6 +18,39 @@ export default function Settings() {
 
   useEffect(() => {
     checkGoogleConnection();
+    
+    // Verificar se retornou do OAuth com sucesso
+    const urlParams = new URLSearchParams(window.location.search);
+    const googleStatus = urlParams.get('google');
+    const error = urlParams.get('error');
+    
+    if (googleStatus === 'connected') {
+      setGoogleConnected(true);
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
+      toast.textContent = '✅ Google Calendar conectado com sucesso!';
+      document.body.appendChild(toast);
+      setTimeout(() => document.body.removeChild(toast), 3000);
+      
+      // Limpar URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (error) {
+      let errorMessage = 'Erro na conexão com Google';
+      if (error === 'oauth_cancelled') {
+        errorMessage = 'Conexão cancelada pelo usuário';
+      } else if (error === 'oauth_failed') {
+        errorMessage = 'Falha na autenticação OAuth';
+      }
+      
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
+      toast.textContent = `❌ ${errorMessage}`;
+      document.body.appendChild(toast);
+      setTimeout(() => document.body.removeChild(toast), 5000);
+      
+      // Limpar URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
   }, []);
 
   const checkGoogleConnection = async () => {
@@ -266,10 +299,18 @@ export default function Settings() {
                   color: "var(--text-secondary)"
                 }}
               >
-                <p className="font-medium text-amber-800 mb-1">⚠️ Configuração necessária</p>
-                <p className="text-amber-700">
-                  Para usar a integração com Google Calendar, é necessário configurar as credenciais OAuth2 do Google no servidor.
-                  Entre em contato com o administrador do sistema se a conexão falhar.
+                <p className="font-medium text-amber-800 mb-1">⚠️ Processo de verificação do Google</p>
+                <p className="text-amber-700 mb-2">
+                  O Google pode mostrar uma tela de "acesso bloqueado" porque o app KEEPTUR está em desenvolvimento.
+                  Para continuar a conexão:
+                </p>
+                <ol className="text-amber-700 text-xs space-y-1 ml-3">
+                  <li>1. Clique em "Avançado" ou "Advanced"</li>
+                  <li>2. Clique em "Ir para KEEPTUR (não seguro)" ou "Go to KEEPTUR (unsafe)"</li>
+                  <li>3. Autorize o acesso ao Google Calendar</li>
+                </ol>
+                <p className="text-amber-700 mt-2 text-xs">
+                  Esta é uma limitação conhecida para apps em desenvolvimento.
                 </p>
               </div>
             </div>

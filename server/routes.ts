@@ -1353,6 +1353,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   await initializePlans();
 
+  // Endpoint simplificado para dados do usuário atual
+  app.get("/api/user/me", authenticateToken, async (req: any, res) => {
+    try {
+      // Buscar dados da sessão local primeiro
+      const sessao = req.sessao;
+      const userData = sessao.user_data || {};
+      
+      console.log('📋 Carregando dados do usuário da sessão:', userData);
+      
+      // Retornar dados básicos do usuário logado
+      const userProfile = {
+        id: userData.id || sessao.id,
+        name: userData.name || userData.login || 'Usuário',
+        email: userData.email || `${userData.login}@${req.sessao.server_domain || 'monde.com.br'}`,
+        login: userData.login || 'usuario',
+        role: userData.role || 'admin',
+        phone: userData.phone || '',
+        mobilePhone: userData.mobile_phone || '',
+        businessPhone: userData.business_phone || ''
+      };
+      
+      console.log('✅ Perfil do usuário carregado:', userProfile);
+      
+      res.json({
+        success: true,
+        user: userProfile,
+        session_data: {
+          server_domain: req.sessao.server_domain,
+          empresa_id: req.empresaId
+        }
+      });
+    } catch (error) {
+      console.error("Erro ao carregar dados do usuário:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Erro ao carregar dados do usuário",
+        error: error.message 
+      });
+    }
+  });
+
   // Endpoint para buscar dados do usuário atual (usando people endpoint)
   app.get("/api/monde/users/me", authenticateToken, async (req: any, res) => {
     try {

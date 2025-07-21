@@ -2,8 +2,14 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "../lib/auth";
 import { useTheme } from "../hooks/use-theme";
-import logoFull from "@assets/LOGO Lilas_1752695672079.png";
-import logoIcon from "@assets/ico Lilas_1752695703171.png";
+import { Button } from "../components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/card";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Switch } from "../components/ui/switch";
+import { Badge } from "../components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { ArrowLeft, User, Calendar, Settings as SettingsIcon, Save, Edit, X } from "lucide-react";
 
 export default function Settings() {
   const [, setLocation] = useLocation();
@@ -879,9 +885,9 @@ export default function Settings() {
         >
           <div className="flex items-center">
             {sidebarCollapsed ? (
-              <img src={logoIcon} alt="Keeptur" className="w-8 h-8" />
+              <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">K</div>
             ) : (
-              <img src={logoFull} alt="Keeptur" className="h-8" />
+              <div className="text-xl font-bold text-purple-600">Keeptur</div>
             )}
           </div>
         </div>

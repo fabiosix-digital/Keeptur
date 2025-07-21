@@ -2,10 +2,14 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { apiRequest } from "./queryClient";
 
 interface User {
-  id: number;
+  id: number | string;
   name: string;
   email: string;
   role: string;
+  login?: string;
+  phone?: string;
+  mobilePhone?: string;
+  businessPhone?: string;
 }
 
 interface AuthContextType {
@@ -18,6 +22,7 @@ interface AuthContextType {
   }>;
   logout: () => void;
   hasActivePlan: boolean;
+  loadUserProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -59,6 +64,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const loadUserProfile = async () => {
+    try {
+      const token = localStorage.getItem("keeptur-token");
+      if (!token) return;
+
+      const response = await apiRequest("GET", "/api/user/me");
+      const data = await response.json();
+      
+      if (data.success && data.user) {
+        setUser(data.user);
+        localStorage.setItem("keeptur-user", JSON.stringify(data.user));
+        console.log('✅ Perfil real carregado:', data.user);
+      }
+    } catch (error) {
+      console.error("Erro ao carregar perfil do usuário:", error);
+    }
+  };
+
   const login = async (email: string, password: string, serverUrl: string) => {
     try {
       const response = await apiRequest("POST", "/api/auth/login", {
@@ -79,6 +102,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem("keeptur-empresa-id", data.empresa_id.toString());
       localStorage.setItem("keeptur-monde-token", data.monde_token);
       localStorage.setItem("keeptur-server-url", serverUrl);
+      
+      // Carregar perfil completo após login bem-sucedido
+      setTimeout(() => {
+        loadUserProfile();
+      }, 1000);
       
       return {
         has_active_plan: data.has_active_plan,
@@ -125,6 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         hasActivePlan,
+        loadUserProfile,
       }}
     >
       {children}

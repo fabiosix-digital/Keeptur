@@ -22,7 +22,7 @@ const debounce = (func: Function, wait: number) => {
 };
 
 export default function Dashboard() {
-  const { user, logout } = useAuth();
+  const { user, logout, loadUserProfile } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState("tarefas");
@@ -234,32 +234,21 @@ export default function Dashboard() {
   // Função para carregar dados reais do usuário
   const loadRealUserProfile = async () => {
     try {
-      const response = await fetch('/api/monde/user-profile', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const userData = {
-          name: data.data.attributes.name || user?.name || 'Usuário',
-          email: data.data.attributes.email || user?.email || '',
-          phone: data.data.attributes.phone || '',
-          mobilePhone: data.data.attributes.mobilePhone || '',
-          businessPhone: data.data.attributes.businessPhone || '',
-          cpf: data.data.attributes.cpf || '',
-          role: user?.role || 'admin'
-        };
-        setRealUserData(userData);
-        console.log('✅ Perfil real carregado:', userData);
-      } else {
-        console.log('⚠️ Não foi possível carregar perfil real, usando dados da sessão');
+      // Usar a função do contexto de autenticação para carregar perfil completo
+      await loadUserProfile();
+      
+      // Após carregar, usar os dados do user do contexto
+      if (user) {
         setRealUserData(user);
+        console.log('✅ Perfil real carregado via contexto:', user);
+      } else {
+        console.log('⚠️ Nenhum usuário no contexto após carregar perfil');
       }
     } catch (error) {
       console.log('⚠️ Erro ao carregar perfil real:', error);
-      setRealUserData(user);
+      if (user) {
+        setRealUserData(user);
+      }
     }
   };
 

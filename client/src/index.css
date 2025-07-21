@@ -238,17 +238,35 @@ body {
   color: #fed7aa;
 }
 
-.action-button {
-  background-color: var(--bg-tertiary);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-color);
-  transition: all 0.2s ease;
+/* 🚨 CORREÇÃO CRÍTICA: Ícones com fundo vermelho - forçar cor correta */
+.action-button,
+.action-button:not(.active),
+button.action-button,
+button.action-button:not(.active) {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-secondary) !important;
+  border: 1px solid var(--border-color) !important;
+  transition: all 0.2s ease !important;
 }
 
-.action-button:hover {
-  background-color: #6366f1;
-  color: white;
-  border-color: #6366f1;
+.action-button:hover,
+button.action-button:hover {
+  background-color: #6366f1 !important;
+  color: white !important;
+  border-color: #6366f1 !important;
+}
+
+/* Garantir que ícones dentro dos botões tenham cor correta */
+.action-button i,
+button.action-button i {
+  color: inherit !important;
+  background: transparent !important;
+}
+
+/* Adicionar status para tarefas arquivadas/excluídas */
+.status-badge-archived {
+  background-color: #6b7280;
+  color: #ffffff;
 }
 
 .primary-button {

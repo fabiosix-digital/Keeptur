@@ -27,7 +27,13 @@ export default function Settings() {
   
   // Estados para editar perfil
   const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [profileData, setProfileData] = useState<any>({});
+  const [profileData, setProfileData] = useState<any>({
+    name: user?.name || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
+    mobilePhone: user?.mobilePhone || '',
+    businessPhone: user?.businessPhone || ''
+  });
   const [savingProfile, setSavingProfile] = useState(false);
 
   useEffect(() => {
@@ -145,6 +151,27 @@ export default function Settings() {
         });
         
         console.log('✅ Perfil completo carregado:', attributes);
+        
+        // 🚨 CORREÇÃO: Garantir que o setProfileData seja chamado mesmo com dados atuais
+        // Verificar se os dados são diferentes antes de atualizar
+        const currentData = profileData;
+        if (JSON.stringify(currentData) !== JSON.stringify({
+          name: attributes.name || user?.name || '',
+          email: attributes.email || user?.email || '',
+          phone: attributes.phone || user?.phone || '',
+          mobilePhone: attributes['mobile-phone'] || user?.mobilePhone || '',
+          businessPhone: attributes['business-phone'] || user?.businessPhone || ''
+        })) {
+          // Forçar atualização com fallback dos dados do usuário
+          setProfileData(prev => ({
+            ...prev,
+            name: attributes.name || user?.name || prev.name || '',
+            email: attributes.email || user?.email || prev.email || '',
+            phone: attributes.phone || user?.phone || prev.phone || '',
+            mobilePhone: attributes['mobile-phone'] || user?.mobilePhone || prev.mobilePhone || '',
+            businessPhone: attributes['business-phone'] || user?.businessPhone || prev.businessPhone || ''
+          }));
+        }
       } else if (response.status === 401) {
         // Token expirado, redirecionar para login
         console.error('❌ Token expirado');

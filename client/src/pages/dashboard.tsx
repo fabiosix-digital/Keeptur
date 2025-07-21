@@ -826,12 +826,7 @@ export default function Dashboard() {
           });
         }
         
-        // 🚨 CORREÇÃO DEFINITIVA baseada na documentação oficial do Monde:
-        // 1. Tarefas excluídas NÃO são retornadas pela API (hard delete)
-        // 2. Tarefas na resposta são apenas: ativas (completed=false) ou concluídas (completed=true)
-        // 3. Não existe campo "deleted" ou status de exclusão
-        
-        console.log('🎯 IMPLEMENTAÇÃO CORRETA: Apenas ativas e concluídas (sem excluídas)');
+        console.log('📋 Processando', uniqueTasks.length, 'tarefas do servidor...');
         
         // Separar tarefas usando APENAS os campos oficiais do Monde
         const activeTasks = uniqueTasks.filter((task: any) => 
@@ -842,30 +837,20 @@ export default function Dashboard() {
           task.attributes.completed   // completed = true = CONCLUÍDA
         );
         
-        // Tarefas excluídas NÃO existem na resposta da API
-        const deletedTasks: any[] = [];
-        
-        console.log('🎯 SEPARAÇÃO OFICIAL baseada na API do Monde:', {
-          ativas: activeTasks.length,
-          concluidas: completedTasks.length,
-          excluidas: deletedTasks.length // Sempre 0 - API não retorna excluídas
-        });
-        
-        console.log('🎯 Tarefas separadas conforme API oficial do Monde:', {
+        console.log('📊 Tarefas separadas:', {
           total: uniqueTasks.length,
           ativas: activeTasks.length,
-          concluidas: completedTasks.length,
-          excluidas: deletedTasks.length
+          concluidas: completedTasks.length
         });
 
-        // Combinar ativas + concluídas para exibição normal
-        const visibleTasks = [...activeTasks, ...completedTasks];
+        // Usar todas as tarefas para exibição
+        const visibleTasks = uniqueTasks;
         
-        // Calcular estatísticas apenas das tarefas ativas
+        // Calcular estatísticas das tarefas
         const realStats = calculateTaskStats(visibleTasks);
 
-        setAllTasks([...visibleTasks, ...deletedTasks]); // Todas únicas
-        setTasks(visibleTasks); // Apenas ativas + concluídas para visualização normal
+        setAllTasks(visibleTasks); // Todas as tarefas
+        setTasks(visibleTasks); // Tarefas para visualização
         
         // Aplicar filtro inicial será feito pelo useEffect do taskFilter
         setCategories(categoriesData?.data || []);
@@ -909,11 +894,8 @@ export default function Dashboard() {
       const filteredTasks = getFilteredTasks(taskFilter);
       setTasks(filteredTasks);
       
-      // Calcular estatísticas SOMENTE das tarefas ativas (filtrar excluídas)
-      const activeTasksOnly = filteredTasks.filter((task: any) => 
-        !task.attributes.deleted && !task.attributes.is_deleted
-      );
-      setStats(calculateTaskStats(activeTasksOnly));
+      // Calcular estatísticas das tarefas filtradas
+      setStats(calculateTaskStats(filteredTasks));
       console.log('✅ Filtros aplicados. Tarefas exibidas:', filteredTasks.length);
     };
 
@@ -975,15 +957,13 @@ export default function Dashboard() {
   const calculateTaskStats = (tasks: any[]) => {
     const now = new Date();
 
-    // 🚨 CORREÇÃO CRÍTICA: Filtrar apenas tarefas ativas (não deletadas)
-    const activeTasks = tasks.filter((t: any) => 
-      !t.attributes.deleted && !t.attributes.is_deleted && !t.attributes.archived
-    );
+    // 🚨 CORREÇÃO: API do Monde já retorna apenas tarefas válidas, usar todas as tarefas
+    const activeTasks = tasks; // Usar todas as tarefas recebidas da API
     
     console.log('📊 ESTATÍSTICAS CORRIGIDAS:', {
       totalOriginal: tasks.length,
       totalAtivas: activeTasks.length,
-      excluidas: tasks.length - activeTasks.length
+      excluidas: 0 // API não retorna excluídas
     });
 
     const stats = {
@@ -994,7 +974,7 @@ export default function Dashboard() {
         const dueDate = t.attributes.due ? new Date(t.attributes.due) : null;
         return !dueDate || dueDate >= now;
       }).length,
-      concluidas: activeTasks.filter((t: any) => t.attributes.completed).length,
+      concluidas: activeTasks.filter((t: any) => t.attributes.completed && !isReallyDeleted(t)).length,
       // Atrasadas = não concluídas E com prazo vencido
       atrasadas: activeTasks.filter((t: any) => {
         if (t.attributes.completed) return false;
@@ -1354,9 +1334,14 @@ export default function Dashboard() {
 
   // Função para determinar o status da tarefa
   const getTaskStatus = (task: any) => {
-    // Verificar se a tarefa foi excluída
+    // 🚨 CORREÇÃO: Detectar tarefas excluídas baseado na lógica do Monde
+    if (isReallyDeleted(task)) {
+      return { status: "archived", label: "Excluída", class: "status-badge-cancelled" };
+    }
+    
+    // Verificar se a tarefa foi excluída (flags do sistema)
     if (task.attributes.deleted || task.attributes.is_deleted) {
-      return { status: "deleted", label: "Excluída", class: "status-badge-deleted" };
+      return { status: "archived", label: "Excluída", class: "status-badge-cancelled" };
     }
     
     if (task.attributes.completed) {
@@ -1391,17 +1376,59 @@ export default function Dashboard() {
     loadCustomFields(task.id);
   };
 
-  // Funções de ação das tarefas
-  const handleCompleteTask = (taskId: string) => {
-    console.log("Completar tarefa:", taskId);
+  // 🚨 CORREÇÃO: Implementar ações das tarefas funcionais
+  const handleCompleteTask = async (taskId: string) => {
+    console.log("✅ Completando tarefa:", taskId);
+    try {
+      const response = await fetch(`/api/monde/tarefas/${taskId}/concluir`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ completed: true })
+      });
+      
+      if (response.ok) {
+        // Recarregar tarefas após conclusão
+        reloadTasks();
+        console.log("✅ Tarefa concluída com sucesso");
+      } else {
+        console.error("❌ Erro ao concluir tarefa:", response.status);
+      }
+    } catch (error) {
+      console.error("❌ Erro ao concluir tarefa:", error);
+    }
   };
 
   const handleTransferTask = (taskId: string) => {
-    console.log("Transferir tarefa:", taskId);
+    console.log("🔄 Transferir tarefa:", taskId);
+    // Abrir modal de transferência (a ser implementado)
+    alert("Funcionalidade de transferência será implementada em breve");
   };
 
-  const handleDeleteTask = (taskId: string) => {
-    console.log("Deletar tarefa:", taskId);
+  const handleDeleteTask = async (taskId: string) => {
+    if (!confirm("Tem certeza que deseja excluir esta tarefa?")) return;
+    
+    console.log("🗑️ Excluindo tarefa:", taskId);
+    try {
+      const response = await fetch(`/api/monde/tarefas/${taskId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+        }
+      });
+      
+      if (response.ok) {
+        // Recarregar tarefas após exclusão
+        reloadTasks();
+        console.log("✅ Tarefa excluída com sucesso");
+      } else {
+        console.error("❌ Erro ao excluir tarefa:", response.status);
+      }
+    } catch (error) {
+      console.error("❌ Erro ao excluir tarefa:", error);
+    }
   };
 
   // 🚨 FUNÇÃO CORRIGIDA: Evitar duplicação e usar dados corretos
@@ -5181,7 +5208,10 @@ export default function Dashboard() {
                     #{selectedTaskDetails.id}
                   </span>
                   <span
-                    className={`status-badge-${selectedTaskDetails.attributes.completed ? "completed" : "pending"} px-3 py-1 rounded-full text-sm font-medium`}
+                    className={`${(() => {
+                      const taskStatus = getTaskStatus(selectedTaskDetails);
+                      return taskStatus.class;
+                    })()} px-3 py-1 rounded-full text-sm font-medium`}
                   >
                     {selectedTaskDetails.attributes.completed
                       ? "Concluído"

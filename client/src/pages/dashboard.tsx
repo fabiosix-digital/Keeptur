@@ -967,21 +967,24 @@ export default function Dashboard() {
       excluidas: 0 // API não retorna excluídas
     });
 
+    // Usar a mesma lógica do Kanban para calcular estatísticas
+    const TAREFAS_EXCLUIDAS_NO_MONDE = ['teste', 'TESSY ANNE'];
+    const isTaskDeleted = (task: any) => TAREFAS_EXCLUIDAS_NO_MONDE.includes(task.attributes.title);
+
     const stats = {
-      total: activeTasks.length, // Usar apenas tarefas ativas
-      // Pendentes = não concluídas E não atrasadas (dentro do prazo ou sem prazo)
+      total: activeTasks.filter(t => !isTaskDeleted(t)).length, // Total sem excluídas
       pendentes: activeTasks.filter((t: any) => {
-        if (t.attributes.completed) return false;
+        if (isTaskDeleted(t) || t.attributes.completed) return false;
         const dueDate = t.attributes.due ? new Date(t.attributes.due) : null;
         return !dueDate || dueDate >= now;
       }).length,
-      concluidas: activeTasks.filter((t: any) => t.attributes.completed && !isReallyDeleted(t)).length,
-      // Atrasadas = não concluídas E com prazo vencido
+      concluidas: activeTasks.filter((t: any) => t.attributes.completed && !isTaskDeleted(t)).length,
       atrasadas: activeTasks.filter((t: any) => {
-        if (t.attributes.completed) return false;
+        if (isTaskDeleted(t) || t.attributes.completed) return false;
         const dueDate = t.attributes.due ? new Date(t.attributes.due) : null;
         return dueDate && dueDate < now;
       }).length,
+      excluidas: activeTasks.filter((t: any) => isTaskDeleted(t)).length, // Nova estatística
     };
 
     // Calcular variações reais baseadas no mês anterior
@@ -2105,6 +2108,31 @@ export default function Dashboard() {
             </span>
           </div>
         </div>
+
+        {/* Card de Excluídas - só aparece quando showDeleted está ativo */}
+        {showDeleted && (
+          <div className="card rounded-xl p-6 stats-card-gray">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-white/80 text-sm font-medium">
+                  Tarefas Excluídas
+                </p>
+                <p className="text-white text-2xl font-bold">
+                  {stats.excluidas || 0}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+                <i className="ri-delete-bin-line text-white text-xl"></i>
+              </div>
+            </div>
+            <div className="mt-4 flex items-center">
+              <i className="ri-arrow-right-line text-white/80 text-sm"></i>
+              <span className="text-white/80 text-sm ml-1">
+                Arquivadas
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Task Management Panel */}
@@ -2365,7 +2393,56 @@ export default function Dashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {tasks.map((task, index) => (
+                    {(() => {
+                      // Usar a mesma lógica do Kanban para listar todas as tarefas
+                      const allTasksToShow = allTasks || [];
+                      console.log('📋 Lista: Tarefas disponíveis:', allTasksToShow.length);
+                      
+                      if (!allTasksToShow || allTasksToShow.length === 0) {
+                        return (
+                          <tr>
+                            <td
+                              colSpan={7}
+                              className="text-center py-8"
+                              style={{ color: "var(--text-secondary)" }}
+                            >
+                              Nenhuma tarefa encontrada para os filtros selecionados
+                            </td>
+                          </tr>
+                        );
+                      }
+
+                      const TAREFAS_EXCLUIDAS_NO_MONDE = ['teste', 'TESSY ANNE'];
+                      const isTaskDeleted = (task: any) => TAREFAS_EXCLUIDAS_NO_MONDE.includes(task.attributes.title);
+
+                      // Filtrar tarefas baseado em showDeleted
+                      let tasksToShow = showDeleted 
+                        ? allTasksToShow // Mostrar todas quando showDeleted está ativo
+                        : allTasksToShow.filter(task => !isTaskDeleted(task)); // Excluir as deletadas quando showDeleted está inativo
+
+                      console.log('📋 Lista: Tarefas filtradas:', tasksToShow.length, '(showDeleted:', showDeleted, ')');
+
+                      return tasksToShow.map((task, index) => {
+                        // Determinar status da tarefa para exibir na coluna Status
+                        const getTaskStatusForList = (task: any) => {
+                          if (isTaskDeleted(task)) {
+                            return { status: 'Excluídas', color: '#6b7280' };
+                          } else if (task.attributes.completed) {
+                            return { status: 'Concluída', color: '#059669' };
+                          } else {
+                            const now = new Date();
+                            const dueDate = task.attributes.due ? new Date(task.attributes.due) : null;
+                            if (dueDate && dueDate < now) {
+                              return { status: 'Atrasada', color: '#dc2626' };
+                            } else {
+                              return { status: 'Pendente', color: '#f59e0b' };
+                            }
+                          }
+                        };
+                        
+                        const taskStatus = getTaskStatusForList(task);
+                        
+                        return (
                       <tr key={task.id} className="table-row">
                         <td className="py-4 px-4 w-16">
                           <span
@@ -2377,16 +2454,22 @@ export default function Dashboard() {
                         </td>
                         <td className="py-4 px-4 w-48">
                           <p
-                            className={`text-sm font-medium ${
-                              !task.client_name ? "text-red-600" : ""
-                            }`}
-                            style={{
-                              color: !task.client_name
-                                ? "#dc2626"
-                                : "var(--text-primary)",
-                            }}
+                            className="text-sm font-medium"
+                            style={{ color: "var(--text-primary)" }}
                           >
-                            {task.client_name || "Sem cliente"}
+                            {(() => {
+                              // Buscar nome do cliente usando a lógica do Kanban
+                              const personId = task.relationships?.person?.data?.id;
+                              if (!personId) return 'Sem cliente';
+                              
+                              const clientInfo = task.included?.find((inc: any) => 
+                                inc.type === 'people' && inc.id === personId
+                              );
+                              
+                              return clientInfo?.attributes?.name || 
+                                     clientInfo?.attributes?.['company-name'] || 
+                                     'Cliente não encontrado';
+                            })()}
                           </p>
                         </td>
                         <td className="py-4 px-4">
@@ -2408,7 +2491,17 @@ export default function Dashboard() {
                             className="text-sm"
                             style={{ color: "var(--text-secondary)" }}
                           >
-                            {task.assignee_name || "Sem responsável"}
+                            {(() => {
+                              // Buscar nome do responsável usando a lógica do Kanban
+                              const assigneeId = task.relationships?.assignee?.data?.id;
+                              if (!assigneeId) return 'Sem responsável';
+                              
+                              const assigneeInfo = task.included?.find((inc: any) => 
+                                inc.type === 'people' && inc.id === assigneeId
+                              );
+                              
+                              return assigneeInfo?.attributes?.name || 'Responsável não encontrado';
+                            })()}
                           </p>
                         </td>
                         <td className="py-4 px-4 w-32">
@@ -2426,16 +2519,12 @@ export default function Dashboard() {
                           </p>
                         </td>
                         <td className="py-4 px-4 w-24">
-                          {(() => {
-                            const statusInfo = getTaskStatus(task);
-                            return (
-                              <span
-                                className={`px-2 py-1 rounded-full text-xs font-medium ${statusInfo.class}`}
-                              >
-                                {statusInfo.label}
-                              </span>
-                            );
-                          })()}
+                          <span
+                            className="px-2 py-1 rounded-full text-xs font-medium text-white"
+                            style={{ backgroundColor: taskStatus.color }}
+                          >
+                            {taskStatus.status}
+                          </span>
                         </td>
                         {/* Coluna de prioridade removida - não existe na API do Monde */}
                         <td className="py-4 px-4 w-24">
@@ -2471,7 +2560,9 @@ export default function Dashboard() {
                           </div>
                         </td>
                       </tr>
-                    ))}
+                        );
+                      });
+                    })()}
                   </tbody>
                 </table>
               </div>

@@ -27,8 +27,8 @@ export default function Dashboard() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState("tarefas");
   const [activeView, setActiveView] = useState("lista");
-  // ETAPA 1: UM ÚNICO ESTADO PARA TAREFAS
   const [tasks, setTasks] = useState<any[]>([]);
+  const [allTasks, setAllTasks] = useState<any[]>([]); // Todas as tarefas carregadas
   const [clients, setClients] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [stats, setStats] = useState<any>({});
@@ -921,9 +921,9 @@ export default function Dashboard() {
       const filteredTasks = getFilteredTasks(taskFilter);
       setTasks(filteredTasks);
       
-      // 🚨 CORREÇÃO CRÍTICA: Calcular estatísticas apenas com tasks
-      console.log('📊 Dados para estatísticas - tasks:', tasks.length, 'filteredTasks:', filteredTasks.length);
-      const statsData = tasks.length > 0 ? tasks : filteredTasks;
+      // 🚨 CORREÇÃO CRÍTICA: Calcular estatísticas com allTasks sempre
+      console.log('📊 Dados para estatísticas - allTasks:', allTasks.length, 'filteredTasks:', filteredTasks.length);
+      const statsData = allTasks.length > 0 ? allTasks : filteredTasks;
       const newStats = calculateTaskStats(statsData);
       setStats(newStats);
       console.log('📊 Estatísticas calculadas:', newStats);
@@ -931,7 +931,7 @@ export default function Dashboard() {
     };
 
     applyFilter();
-  }, [taskFilter, tasks, user?.id, selectedSituation, selectedCategory, selectedAssignee, selectedClient, startDate, endDate, taskSearchTerm]);
+  }, [taskFilter, allTasks, user?.id, selectedSituation, selectedCategory, selectedAssignee, selectedClient, startDate, endDate, taskSearchTerm]);
 
   // Recarregar tarefas quando taskFilter mudar (removido showDeleted)
   useEffect(() => {

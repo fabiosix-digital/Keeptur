@@ -843,14 +843,29 @@ export default function Dashboard() {
         console.log('📋 Primeira categoria:', categoriesData.data?.[0]);
 
         // Carregar usuários/agentes diretamente
-        const usersResponse = await fetch("/api/monde/users", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const usersData = await usersResponse.json();
-        
-        // Forçar recarga de usuários para pegar novos cadastros
-        setUsers(usersData.data || []);
-        console.log("👥 Usuários atualizados:", usersData.data?.length || 0);
+        try {
+          const usersResponse = await fetch("/api/monde/users", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          
+          if (usersResponse.ok) {
+            const usersData = await usersResponse.json();
+            const validUsers = usersData.data || [];
+            setUsers(validUsers);
+            console.log("👥 Usuários carregados com sucesso:", validUsers.length);
+            
+            // Log dos primeiros usuários para debug
+            if (validUsers.length > 0) {
+              console.log("👤 Primeiro usuário:", validUsers[0]);
+            }
+          } else {
+            console.error("❌ Erro ao carregar usuários:", usersResponse.status);
+            setUsers([]);
+          }
+        } catch (error) {
+          console.error("❌ Erro ao carregar usuários:", error);
+          setUsers([]);
+        }
         
         // Carregar estatísticas de clientes
         await loadClientStats();
@@ -1312,43 +1327,68 @@ export default function Dashboard() {
   };
 
   const searchClients = async (query: string, page: number = 1) => {
-    if (!query.trim()) return;
+    if (!query.trim()) {
+      console.log('⚠️ Query vazia, cancelando busca');
+      return;
+    }
+
+    console.log('🔍 Iniciando busca de clientes:', { query, page });
 
     try {
       setSearchingClients(true);
       setHasSearched(true);
       
-      const response = await fetch(
-        `/api/monde/clientes?q=${encodeURIComponent(query)}&page=${page}`,
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem('keeptur-token')}` },
-        }
-      );
+      const url = `/api/monde/clientes?q=${encodeURIComponent(query)}&page=${page}&limit=50`;
+      console.log('📡 URL de busca:', url);
+      
+      const response = await fetch(url, {
+        headers: { 
+          'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`,
+          'Content-Type': 'application/json'
+        },
+      });
+      
+      const responseText = await response.text();
+      console.log('📋 Resposta bruta:', response.status, responseText);
       
       if (!response.ok) {
         if (response.status === 401) {
           setShowTokenExpiredModal(true);
+          return;
         }
-        throw new Error('Erro ao buscar clientes');
+        throw new Error(`Erro ${response.status}: ${responseText}`);
       }
       
-      const data = await response.json();
-      console.log('🔍 Resultado da busca de clientes:', data);
+      const data = JSON.parse(responseText);
+      console.log('✅ Dados processados:', data);
+      
+      const clientsData = data.data || [];
+      console.log('👥 Clientes encontrados:', clientsData.length);
       
       if (page === 1) {
-        setClients(data.data || []);
+        setClients(clientsData);
       } else {
-        setClients(prev => [...prev, ...(data.data || [])]);
+        setClients(prev => [...prev, ...clientsData]);
       }
       
       setClientsCurrentPage(page);
       setClientsHasMore(data.meta?.has_more || false);
+      
+      // Toast informativo
+      if (clientsData.length === 0) {
+        const toast = document.createElement('div');
+        toast.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded shadow-lg z-50';
+        toast.textContent = `Nenhum cliente encontrado para "${query}"`;
+        document.body.appendChild(toast);
+        setTimeout(() => document.body.removeChild(toast), 3000);
+      }
+      
     } catch (error) {
-      console.error("Erro ao buscar clientes:", error);
+      console.error("❌ Erro ao buscar clientes:", error);
       
       const toast = document.createElement('div');
       toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
-      toast.textContent = 'Erro ao buscar clientes';
+      toast.textContent = `Erro ao buscar clientes: ${error.message}`;
       document.body.appendChild(toast);
       setTimeout(() => document.body.removeChild(toast), 3000);
     } finally {
@@ -1523,25 +1563,45 @@ export default function Dashboard() {
     }
 
     try {
+      // Preparar relacionamentos apenas se tiverem valores válidos
+      const relationships: any = {};
+      
+      if (form.category && form.category.trim()) {
+        relationships.category = { 
+          data: { type: 'task-categories', id: form.category } 
+        };
+      }
+      
+      if (form.assignee && form.assignee.trim()) {
+        relationships.assignee = { 
+          data: { type: 'people', id: form.assignee } 
+        };
+      }
+      
+      if (selectedPersonForTask && selectedPersonForTask.id) {
+        relationships.person = { 
+          data: { type: 'people', id: selectedPersonForTask.id } 
+        };
+      } else if (form.client && form.client.trim()) {
+        relationships.person = { 
+          data: { type: 'people', id: form.client } 
+        };
+      }
+
       const taskData = {
         data: {
           type: 'tasks',
           attributes: {
             title: form.title.trim(),
-            description: form.description.trim(),
-            due: form.due || null,
+            description: form.description.trim() || '',
+            due: form.due || new Date().toISOString(),
             priority: 'normal'
           },
-          relationships: {
-            category: form.category ? { data: { type: 'task-categories', id: form.category } } : null,
-            assignee: form.assignee ? { data: { type: 'people', id: form.assignee } } : null,
-            person: form.client ? { data: { type: 'people', id: form.client } } : null,
-            company: form.company ? { data: { type: 'companies', id: form.company } } : null
-          }
+          relationships: relationships
         }
       };
 
-      console.log('📝 Criando nova tarefa:', taskData);
+      console.log('📝 Criando nova tarefa:', JSON.stringify(taskData, null, 2));
 
       const response = await fetch('/api/monde/tarefas', {
         method: 'POST',
@@ -1552,8 +1612,10 @@ export default function Dashboard() {
         body: JSON.stringify(taskData)
       });
 
+      const responseData = await response.text();
+      
       if (response.ok) {
-        const result = await response.json();
+        const result = JSON.parse(responseData);
         console.log('✅ Tarefa criada com sucesso:', result);
         
         // Limpar formulário e fechar modal
@@ -1573,8 +1635,19 @@ export default function Dashboard() {
         setTimeout(() => document.body.removeChild(toast), 3000);
         
       } else {
-        console.error('❌ Erro ao criar tarefa:', response.status);
-        alert('Erro ao criar tarefa. Tente novamente.');
+        console.error('❌ Erro ao criar tarefa:', response.status, responseData);
+        
+        let errorMessage = 'Erro ao criar tarefa. Tente novamente.';
+        try {
+          const errorData = JSON.parse(responseData);
+          if (errorData.message) {
+            errorMessage = errorData.message;
+          }
+        } catch (e) {
+          // Usar mensagem padrão
+        }
+        
+        alert(errorMessage);
       }
     } catch (error) {
       console.error('❌ Erro na requisição:', error);

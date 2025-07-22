@@ -981,37 +981,37 @@ export default function Dashboard() {
     }
   };
 
-  // Função para calcular estatísticas das tarefas (CORRIGIDA - exclui tarefas deletadas)
+  // Função para calcular estatísticas das tarefas (CORRIGIDA - sempre mostrar estatísticas)
   const calculateTaskStats = (tasks: any[]) => {
     const now = new Date();
 
-    // 🚨 CORREÇÃO: API do Monde já retorna apenas tarefas válidas, usar todas as tarefas
-    const activeTasks = tasks; // Usar todas as tarefas recebidas da API
+    // 🚨 CORREÇÃO CRÍTICA: Usar apenas tasks válidas sem lista estática
+    const allTasks = tasks || []; // Garantir que sempre temos um array
     
     console.log('📊 ESTATÍSTICAS CORRIGIDAS:', {
-      totalOriginal: tasks.length,
-      totalAtivas: activeTasks.length,
-      excluidas: 0 // API não retorna excluídas
+      totalOriginal: allTasks.length,
+      totalAtivas: allTasks.length,
+      excluidas: 0 // Será calculado dinamicamente
     });
 
-    // Usar a mesma lógica do Kanban para calcular estatísticas
-    const TAREFAS_EXCLUIDAS_NO_MONDE = ['teste', 'TESSY ANNE'];
-    const isTaskDeleted = (task: any) => TAREFAS_EXCLUIDAS_NO_MONDE.includes(task.attributes.title);
+    // Usar a mesma função isTaskDeleted para consistência
+    const deletedTasks = allTasks.filter((t: any) => isTaskDeleted(t));
+    const activeTasks = allTasks.filter((t: any) => !isTaskDeleted(t));
 
     const stats = {
-      total: activeTasks.filter(t => !isTaskDeleted(t)).length, // Total sem excluídas
+      total: activeTasks.length, // Total de tarefas ativas (não excluídas)
       pendentes: activeTasks.filter((t: any) => {
-        if (isTaskDeleted(t) || t.attributes.completed) return false;
+        if (t.attributes.completed) return false;
         const dueDate = t.attributes.due ? new Date(t.attributes.due) : null;
         return !dueDate || dueDate >= now;
       }).length,
-      concluidas: activeTasks.filter((t: any) => t.attributes.completed && !isTaskDeleted(t)).length,
+      concluidas: activeTasks.filter((t: any) => t.attributes.completed).length,
       atrasadas: activeTasks.filter((t: any) => {
-        if (isTaskDeleted(t) || t.attributes.completed) return false;
+        if (t.attributes.completed) return false;
         const dueDate = t.attributes.due ? new Date(t.attributes.due) : null;
         return dueDate && dueDate < now;
       }).length,
-      excluidas: activeTasks.filter((t: any) => isTaskDeleted(t)).length, // Nova estatística
+      excluidas: deletedTasks.length, // Tarefas excluídas dinamicamente
     };
 
     // Calcular variações reais baseadas no mês anterior
@@ -1099,28 +1099,20 @@ export default function Dashboard() {
       console.log('- UserUUID encontrado:', userUUID);
       console.log('- SourceTasks:', sourceTasks.length);
       
-      // 🚨 CORREÇÃO CRÍTICA: O servidor JÁ filtra as tarefas, não filtrar novamente
-      // tasks = tarefas já filtradas do servidor para o usuário
-      // allTasks = todas as tarefas da empresa
+      // 🚨 CORREÇÃO CRÍTICA: Sempre usar allTasks para ter dados completos
+      // Filtrar pelo usuário no frontend para ter controle total
       
-      if (showDeleted) {
-        // Se mostrando excluídas, usar allTasks (que contém ativas + excluídas)
-        if (userUUID) {
-          filtered = allTasks.filter((task: any) => {
-            const assigneeId = task.relationships?.assignee?.data?.id;
-            return assigneeId === userUUID;
-          });
-          console.log('✅ Usando tarefas ativas para assigned_to_me:', tasks?.length || 0);
-          console.log('🔍 Tarefas filtradas para o usuário:', filtered.length);
-        } else {
-          console.log('❌ UUID do usuário não encontrado');
-          filtered = [];
-        }
+      if (userUUID) {
+        // Filtrar todas as tarefas do allTasks pelo usuário
+        filtered = allTasks.filter((task: any) => {
+          const assigneeId = task.relationships?.assignee?.data?.id;
+          return assigneeId === userUUID;
+        });
+        console.log('✅ Usando tarefas ativas para assigned_to_me:', filtered.length);
+        console.log('🔍 Tarefas filtradas para o usuário:', filtered.length);
       } else {
-        // ✅ SOLUÇÃO: Se não mostrando excluídas, usar tasks diretamente
-        // O servidor já retornou APENAS as tarefas do usuário via filter[assigned]=user_tasks
+        console.log('❌ UUID do usuário não encontrado, usando tasks como fallback');
         filtered = tasks || [];
-        console.log('✅ Usando tarefas do servidor (já filtradas):', filtered.length);
       }
     } else if (filter === 'created_by_me') {
       // Para 'criadas por mim', usar apenas as tarefas ativas do usuário
@@ -1460,7 +1452,7 @@ export default function Dashboard() {
 
   // Função para verificar se a tarefa está excluída dinamicamente via histórico
   const isTaskDeleted = (task: any) => {
-    // DEBUG: Log completo da tarefa para investigação
+    // 🚨 CORREÇÃO CRÍTICA: Não usar lista estática - verificar apenas pelo histórico
     console.log(`🔍 Verificando se tarefa "${task.attributes?.title}" está excluída:`, {
       id: task.id,
       title: task.attributes?.title,
@@ -1470,12 +1462,8 @@ export default function Dashboard() {
     });
     
     if (!task.historics || !Array.isArray(task.historics)) {
-      console.log(`⚠️ Tarefa "${task.attributes?.title}" sem histórico - usando fallback`);
-      // Fallback: verificar se está na lista de tarefas conhecidas como excluídas
-      const knownDeletedTasks = ['teste', 'TESSY ANNE'];
-      const isKnownDeleted = knownDeletedTasks.includes(task.attributes?.title);
-      console.log(`📋 Tarefa "${task.attributes?.title}" está na lista conhecida:`, isKnownDeleted);
-      return isKnownDeleted;
+      console.log(`⚠️ Tarefa "${task.attributes?.title}" sem histórico - assumindo ATIVA`);
+      return false; // Se não tem histórico, assume que está ativa
     }
     
     // Buscar pelo histórico mais recente que indique exclusão ou restauração
@@ -1496,38 +1484,53 @@ export default function Dashboard() {
       console.log(`  ${index + 1}. [${date}] "${text}"`);
       
       // Log extra para detecção
-      if (text.toLowerCase().includes('keeptur') || text.toLowerCase().includes('restaurar') || text.toLowerCase().includes('excluir')) {
+      if (text.toLowerCase().includes('keeptur') || text.toLowerCase().includes('restaurar') || text.toLowerCase().includes('excluir') || text.toLowerCase().includes('reabrir') || text.toLowerCase().includes('concluir')) {
         console.log(`    🎯 MARCADOR DETECTADO: "${text}"`);
       }
     });
     
+    // 🚨 PRIORIZAR AÇÕES MAIS RECENTES DO HISTÓRICO
     for (const historic of historicsOrdered) {
       const text = (historic.attributes?.text || historic.text || '').toLowerCase();
       
-      // Se encontrar marcador de restauração mais recente, não está excluída
-      if (text.includes('keeptur_restored') || text.includes('restaurar atendimento') || text.includes('reabrir atendimento')) {
-        console.log(`✅ Tarefa "${task.attributes?.title}" foi RESTAURADA - último histórico: "${text}"`);
+      // 1. Verificar primeiro por ações de restauração/reabertura (mais recentes prevalecem)
+      if (text.includes('keeptur_restored') || 
+          text.includes('restaurar atendimento') || 
+          text.includes('reabrir atendimento') ||
+          text.includes('tarefa reaberta') ||
+          text.includes('atendimento reaberto')) {
+        console.log(`✅ Tarefa "${task.attributes?.title}" foi RESTAURADA/REABERTA - histórico: "${text}"`);
         return false;
       }
       
-      // Se encontrar marcador de exclusão mais recente, está excluída
-      if (text.includes('keeptur_deleted') || text.includes('excluir atendimento') || text.includes('deletar atendimento')) {
-        console.log(`🗑️ Tarefa "${task.attributes?.title}" foi EXCLUÍDA - último histórico: "${text}"`);
+      // 2. Verificar por ações de conclusão (se foi concluída, não está excluída)
+      if (text.includes('tarefa concluída') || 
+          text.includes('atendimento concluído') ||
+          text.includes('concluir atendimento') ||
+          text.includes('finalizar tarefa')) {
+        console.log(`✅ Tarefa "${task.attributes?.title}" foi CONCLUÍDA - histórico: "${text}"`);
+        return false;
+      }
+      
+      // 3. Por último, verificar por exclusão
+      if (text.includes('keeptur_deleted') || 
+          text.includes('excluir atendimento') || 
+          text.includes('deletar atendimento') ||
+          text.includes('tarefa excluída') ||
+          text.includes('atendimento excluído')) {
+        console.log(`🗑️ Tarefa "${task.attributes?.title}" foi EXCLUÍDA - histórico: "${text}"`);
         return true;
       }
     }
     
-    // Se não encontrou marcadores no histórico, usar lista conhecida
-    const knownDeletedTasks = ['teste', 'TESSY ANNE'];
-    const isKnownDeleted = knownDeletedTasks.includes(task.attributes?.title);
-    
-    if (isKnownDeleted) {
-      console.log(`🗑️ Tarefa "${task.attributes?.title}" está na lista de excluídas conhecidas (sem marcador no histórico)`);
-    } else {
-      console.log(`✅ Tarefa "${task.attributes?.title}" não está excluída (sem marcadores encontrados)`);
+    // Se não encontrou marcadores específicos, usar status completed como indicador
+    if (task.attributes?.completed === true) {
+      console.log(`✅ Tarefa "${task.attributes?.title}" está CONCLUÍDA (completed=true)`);
+      return false;
     }
     
-    return isKnownDeleted;
+    console.log(`✅ Tarefa "${task.attributes?.title}" assumida como ATIVA (sem marcadores de exclusão encontrados)`);
+    return false; // Default: assumir que está ativa
   };
 
   // Função para restaurar tarefa

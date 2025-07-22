@@ -1578,14 +1578,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para buscar usuários/agentes com filtro only_users
+  // Endpoint para buscar APENAS usuários do sistema (não clientes)
   app.get("/api/monde/users", authenticateToken, async (req: any, res) => {
     try {
-      console.log('🔍 Carregando TODOS os usuários/pessoas como possíveis responsáveis...');
+      console.log('👥 Carregando APENAS usuários do sistema como responsáveis...');
       
-      // Primeiro tentar endpoint de usuários
-      let peopleResponse = await fetch(
-        "https://web.monde.com.br/api/v2/users?page[size]=50",
+      // Buscar usuários com filtro específico para usuários do sistema
+      const usersResponse = await fetch(
+        "https://web.monde.com.br/api/v2/people?filter[kind]=user&page[size]=100",
         {
           method: "GET",
           headers: {
@@ -1596,59 +1596,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       );
 
-      // Se falhar, tentar endpoint de pessoas  
-      if (!peopleResponse.ok) {
-        console.log('🔄 Tentando endpoint de people...');
-        peopleResponse = await fetch(
-          "https://web.monde.com.br/api/v2/people?page[size]=50",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/vnd.api+json",
-              Accept: "application/vnd.api+json",
-              Authorization: `Bearer ${req.sessao.access_token}`,
-            },
-          }
-        );
-      }
-
-      const data = await peopleResponse.json();
-      
-      if (data.errors) {
-        console.log("⚠️ Erro na API de people:", data.errors[0]?.title);
-        res.json({ data: [] });
-        return;
-      }
-      
-      let users = data.data || [];
-      
-      // Se veio do endpoint people, transformar em formato de usuários
-      if (users.length > 0 && users[0].type === 'people') {
-        users = users.map((person: any) => ({
-          id: person.id,
+      if (usersResponse.ok) {
+        const data = await usersResponse.json();
+        const systemUsers = data.data || [];
+        
+        // Transformar para formato de usuários
+        const users = systemUsers.map((user: any) => ({
+          id: user.id,
           type: 'user',
           attributes: {
-            name: person.attributes?.name || person.attributes?.['company-name'] || 'Usuário',
-            email: person.attributes?.email || '',
-            login: person.attributes?.login || person.attributes?.email || person.id,
-            role: 'agent'
+            name: user.attributes?.name || 'Usuário',
+            email: user.attributes?.email || '',
+            login: user.attributes?.login || user.attributes?.email || user.id,
+            role: user.attributes?.role || 'agent'
           }
         }));
+        
+        console.log(`✅ ${users.length} usuários do sistema encontrados como responsáveis`);
+        res.json({ data: users, users: users });
+        return;
       }
-      
-      // Filtrar usuários válidos
-      const validUsers = users.filter((user: any) => {
-        const attrs = user.attributes;
-        return attrs?.name && attrs.name.trim().length > 0;
-      });
-      
-      console.log(`✅ Responsáveis encontrados: ${validUsers.length} de ${users.length} total`);
-      console.log("👥 Responsáveis disponíveis:", validUsers.map((u: any) => u.attributes?.name).join(", "));
-      
-      res.json({ data: validUsers, users: validUsers });
+
+      // Se não funcionou, tentar endpoint alternativo
+      console.log('🔄 Tentando endpoint alternativo de usuários...');
+      const altResponse = await fetch(
+        "https://web.monde.com.br/api/v2/users?page[size]=50",
+        {
+          method: "GET", 
+          headers: {
+            "Content-Type": "application/vnd.api+json",
+            Accept: "application/vnd.api+json",
+            Authorization: `Bearer ${req.sessao.access_token}`,
+          },
+        }
+      );
+
+      if (altResponse.ok) {
+        const altData = await altResponse.json();
+        const users = altData.data || [];
+        console.log(`✅ ${users.length} usuários encontrados via endpoint alternativo`);
+        res.json({ data: users, users: users });
+      } else {
+        console.log('⚠️ Nenhum endpoint de usuários funcionou');
+        res.json({ data: [] });
+      }
     } catch (error) {
-      console.error("Erro ao buscar usuários:", error);
-      res.status(500).json({ message: "Erro ao buscar usuários" });
+      console.error("Erro ao buscar usuários do sistema:", error);
+      res.status(500).json({ message: "Erro ao buscar usuários do sistema" });
     }
   });
 

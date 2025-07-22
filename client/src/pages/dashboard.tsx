@@ -4382,19 +4382,18 @@ export default function Dashboard() {
                         <div className="relative">
                           <input
                             type="text"
-                            placeholder="Digite para buscar cliente..."
+                            placeholder="Digite nome do cliente..."
                             className="form-input w-full px-3 py-2 pr-10 text-sm"
                             style={{ backgroundColor: "var(--bg-secondary)" }}
                             value={clientSearchTerm}
                             onChange={(e) => {
                               const value = e.target.value;
-                              updateTaskFormField('client', value);
-                              updateTaskFormField('clientName', value);
                               setClientSearchTerm(value);
+                              updateTaskFormField('clientName', value);
                               
-                              // Busca direta sem timeout para evitar travamento
+                              // Buscar clientes automaticamente
                               if (value.length >= 2) {
-                                searchClientsInMonde(value);
+                                searchClients(value);
                               } else {
                                 setClientSearchResults([]);
                               }

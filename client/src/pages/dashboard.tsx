@@ -270,6 +270,9 @@ export default function Dashboard() {
     company: ''
   });
 
+  // Referência para timeout de busca de clientes
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   // Função para atualizar campo do formulário
   const updateTaskFormField = (field: string, value: string) => {
     taskFormRef.current = {
@@ -329,8 +332,7 @@ export default function Dashboard() {
     }
   };
 
-  // Debounce timeout ref
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
 
   // Função para buscar clientes na API do Monde com debounce otimizado
   const searchClientsInMonde = useCallback((searchTerm: string) => {
@@ -1471,10 +1473,50 @@ export default function Dashboard() {
   };
 
   // Função para abrir modal de nova tarefa com status pré-selecionado
-  const openTaskModalWithStatus = (status: string) => {
+  const openTaskModalWithStatus = async (status: string) => {
+    console.log('📋 Abrindo modal para nova tarefa com status:', status);
+    
     setPreSelectedStatus(status);
-    clearTaskForm(); // Limpar formulário antes de abrir
+    clearTaskForm();
     setSelectedTask(null);
+    setIsEditing(false);
+    
+    // Forçar recarregamento dos responsáveis sempre que abrir nova tarefa
+    try {
+      console.log('👥 Recarregando responsáveis...');
+      const usersResponse = await fetch('/api/monde/users', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+        }
+      });
+      
+      if (usersResponse.ok) {
+        const userData = await usersResponse.json();
+        if (userData.data && Array.isArray(userData.data)) {
+          setUsers(userData.data);
+          console.log('✅ Responsáveis atualizados:', userData.data.length);
+        }
+      }
+      
+      // Recarregar categorias também
+      const categoriesResponse = await fetch('/api/monde/categorias', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+        }
+      });
+      
+      if (categoriesResponse.ok) {
+        const categoriesData = await categoriesResponse.json();
+        if (categoriesData.data && Array.isArray(categoriesData.data)) {
+          setCategories(categoriesData.data);
+          console.log('🏷️ Categorias atualizadas:', categoriesData.data.length);
+        }
+      }
+      
+    } catch (error) {
+      console.warn('⚠️ Erro ao recarregar dados:', error);
+    }
+    
     setShowTaskModal(true);
   };
 
@@ -4266,7 +4308,7 @@ export default function Dashboard() {
                         defaultValue={
                           isEditing 
                             ? selectedTask?.relationships?.assignee?.data?.id || ''
-                            : users.find((u: any) => u.attributes?.email === localStorage.getItem('user-email'))?.id || ''
+                            : realUserData?.id || users.find((u: any) => u.attributes?.email === localStorage.getItem('user-email'))?.id || ''
                         }
                         onChange={(e) => {
                           saveTaskChanges({ assignee_id: e.target.value });
@@ -4357,7 +4399,14 @@ export default function Dashboard() {
                               updateTaskFormField('client', value);
                               updateTaskFormField('clientName', value);
                               setClientSearchTerm(value);
-                              searchClientsInMonde(value);
+                              
+                              // Debounce a busca para evitar travamento
+                              if (searchTimeoutRef.current) {
+                                clearTimeout(searchTimeoutRef.current);
+                              }
+                              searchTimeoutRef.current = setTimeout(() => {
+                                searchClientsInMonde(value);
+                              }, 500);
                             }}
                           />
                           <div className="relative">
@@ -4433,7 +4482,8 @@ export default function Dashboard() {
                                         phoneField.dispatchEvent(new Event('input', { bubbles: true }));
                                       }
                                       if (mobileField) {
-                                        mobileField.value = client.attributes['mobile-phone'] || '';
+                                        const mobile = client.attributes['mobile-phone'] || client.attributes.mobile || client.attributes.cellphone || '';
+                                        mobileField.value = mobile;
                                         mobileField.dispatchEvent(new Event('input', { bubbles: true }));
                                       }
                                     }, 100);

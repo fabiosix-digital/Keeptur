@@ -5682,7 +5682,6 @@ export default function Dashboard() {
               onClick={async () => {
                 console.log("🔄 Atualizando dados manualmente...");
                 await reloadTasks();
-                await loadUsers();
                 
                 // Toast de confirmação
                 const toast = document.createElement('div');

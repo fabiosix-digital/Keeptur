@@ -1858,192 +1858,13 @@ export default function Dashboard() {
   // 🚨 CORREÇÃO: Debounce otimizado para evitar violation de setTimeout
   const debouncedReloadTasks = debounce(reloadTasks, 200);
 
-  // 🔄 SINCRONIZAÇÃO AUTOMÁTICA: Detectar mudanças no Monde dinamicamente
-  const checkForChanges = async () => {
-    try {
-      console.log("🔄 Verificando mudanças no Monde...");
-      
-      const token = localStorage.getItem('keeptur-token');
-      if (!token) return;
-      
-      // Buscar tarefas mais recentes da API
-      const response = await fetch('/api/monde/tarefas', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!response.ok) return;
-      
-      const newData = await response.json();
-      const newTasks = newData.data || [];
-      
-      if (newTasks.length === 0 && allTasks.length === 0) return;
-      
-      // 🚨 DETECÇÃO APRIMORADA DE MUDANÇAS
-      let hasChanges = false;
-      const changes = [];
-      
-      // 1. Verificar mudanças no número de tarefas
-      if (allTasks.length !== newTasks.length) {
-        changes.push(`Número de tarefas: ${allTasks.length} → ${newTasks.length}`);
-        hasChanges = true;
-      }
-      
-      // 2. Verificar mudanças detalhadas em cada tarefa
-      for (const newTask of newTasks) {
-        const currentTask = allTasks.find(t => t.id === newTask.id);
-        
-        if (!currentTask) {
-          changes.push(`Nova tarefa: ${newTask.attributes?.title}`);
-          hasChanges = true;
-          continue;
-        }
-        
-        // Verificar mudança no status completed
-        if (currentTask.attributes?.completed !== newTask.attributes?.completed) {
-          changes.push(`${newTask.attributes?.title}: completed ${currentTask.attributes?.completed} → ${newTask.attributes?.completed}`);
-          hasChanges = true;
-        }
-        
-        // Verificar mudança na data due
-        if (currentTask.attributes?.due !== newTask.attributes?.due) {
-          changes.push(`${newTask.attributes?.title}: due changed`);
-          hasChanges = true;
-        }
-        
-        // Verificar mudanças no histórico (mais sensível)
-        const currentHistoryCount = currentTask.historics?.length || 0;
-        const newHistoryCount = newTask.historics?.length || 0;
-        
-        if (currentHistoryCount !== newHistoryCount) {
-          changes.push(`${newTask.attributes?.title}: história ${currentHistoryCount} → ${newHistoryCount}`);
-          hasChanges = true;
-          
-          // Log detalhado do novo histórico
-          const lastHistory = newTask.historics?.[0]?.attributes?.text || '';
-          console.log(`📄 Novo histórico para ${newTask.attributes?.title}: "${lastHistory}"`);
-          
-          // 🚨 DETECÇÃO ESPECÍFICA: Tarefas restauradas
-          if (lastHistory.includes('Restaurar atendimento') || 
-              lastHistory.includes('KEEPTUR_RESTORED') ||
-              lastHistory.toLowerCase().includes('restaurar')) {
-            console.log(`🔄 TAREFA RESTAURADA DETECTADA: ${newTask.attributes?.title}`);
-            changes.push(`RESTAURAÇÃO: ${newTask.attributes?.title} foi reaberta`);
-          }
-          
-          // 🚨 DETECÇÃO ESPECÍFICA: Tarefas excluídas
-          if (lastHistory.includes('Excluir atendimento') || 
-              lastHistory.includes('KEEPTUR_DELETED') ||
-              lastHistory.toLowerCase().includes('excluir')) {
-            console.log(`🗑️ TAREFA EXCLUÍDA DETECTADA: ${newTask.attributes?.title}`);
-            changes.push(`EXCLUSÃO: ${newTask.attributes?.title} foi excluída`);
-          }
-        }
-        
-        // Verificar mudanças nos atributos chave
-        const keyAttributes = ['title', 'description', 'visualized'];
-        for (const attr of keyAttributes) {
-          if (currentTask.attributes?.[attr] !== newTask.attributes?.[attr]) {
-            changes.push(`${newTask.attributes?.title}: ${attr} changed`);
-            hasChanges = true;
-          }
-        }
-      }
-      
-      // 3. Verificar tarefas removidas
-      for (const currentTask of allTasks) {
-        const stillExists = newTasks.find(t => t.id === currentTask.id);
-        if (!stillExists) {
-          changes.push(`Tarefa removida: ${currentTask.attributes?.title}`);
-          hasChanges = true;
-        }
-      }
-      
-      // Se houve mudanças, atualizar interface
-      if (hasChanges) {
-        console.log("🔄 MUDANÇAS DETECTADAS:");
-        changes.forEach(change => console.log(`  - ${change}`));
-        
-        // Atualizar estado das tarefas IMEDIATAMENTE
-        setAllTasks(newTasks);
-        
-        // 🚨 FORÇAR ATUALIZAÇÃO COMPLETA DA INTERFACE
-        setTimeout(() => {
-          console.log("🔄 Forçando re-render completo...");
-          
-          // Reprocessar filtros
-          const filteredTasks = getFilteredTasks(taskFilter);
-          setTasks(filteredTasks);
-          
-          // Apenas disparar evento se não há interação do usuário
-          if (!isUserInteracting) {
-            window.dispatchEvent(new CustomEvent('tasksUpdated'));
-          }
-          
-          console.log("✅ Interface sincronizada - Tarefas ativas:", filteredTasks.length);
-        }, 50);
-        
-        // Não mostrar toast - sincronização silenciosa
-        console.log(`✅ Sincronização silenciosa: ${changes.length} mudanças processadas`);
-        
-        setLastSyncTime(Date.now());
-      } else {
-        console.log("✅ Nenhuma mudança detectada");
-      }
-      
-    } catch (error) {
-      console.log("⚠️ Erro na verificação automática:", error);
-    }
-  };
+  // Sistema simplificado - sem sincronização automática agressiva
 
-  // Estado para controlar quando pausar sincronização
-  const [isUserInteracting, setIsUserInteracting] = React.useState(false);
-  const interactionTimeoutRef = React.useRef<NodeJS.Timeout>();
-
-  // Função para pausar sincronização durante interação
-  const pauseSyncDuringInteraction = () => {
-    setIsUserInteracting(true);
-    
-    // Limpar timeout anterior
-    if (interactionTimeoutRef.current) {
-      clearTimeout(interactionTimeoutRef.current);
-    }
-    
-    // Retomar após 5 segundos sem interação
-    interactionTimeoutRef.current = setTimeout(() => {
-      setIsUserInteracting(false);
-      console.log("🔄 Retomando sincronização após inatividade");
-    }, 5000);
-  };
-
-  // Inicializar sincronização automática (DESABILITADA TEMPORARIAMENTE)
+  // Configuração limpa - sem sync automática problemática
   useEffect(() => {
-    console.log("🔇 Sincronização automática DESABILITADA para melhorar UX");
-    
-    // Não configurar interval automático para evitar interferências
-    // TODO: Implementar sincronização mais inteligente no futuro
-    
-    // Listener para atualizações manuais apenas
-    const handleTasksUpdated = () => {
-      if (!isUserInteracting) {
-        console.log("🔄 Evento tasksUpdated - atualizando interface (manual)");
-        const filteredTasks = getFilteredTasks(taskFilter);
-        setTasks(filteredTasks);
-      }
-    };
-    
-    window.addEventListener('tasksUpdated', handleTasksUpdated);
-    
-    // Cleanup
-    return () => {
-      if (interactionTimeoutRef.current) {
-        clearTimeout(interactionTimeoutRef.current);
-      }
-      window.removeEventListener('tasksUpdated', handleTasksUpdated);
-    };
-  }, [taskFilter, isUserInteracting]);
+    console.log("✅ Sistema configurado sem sincronização automática");
+    // Interface só atualiza quando usuário faz ações manuais
+  }, []);
 
   // Função para lidar com mudanças de filtro
   const handleFilterChange = (filterType: string, value: string) => {
@@ -4240,8 +4061,7 @@ export default function Dashboard() {
                   setShowTaskModal(false);
                   setSelectedTask(null);
                   setNewHistoryText('');
-                  setIsUserInteracting(false); // Reativar sincronização
-                  console.log("🔄 Modal fechada - sincronização reativada");
+
                   reloadTasks(); // Recarregar lista de tarefas em vez de reload da página
                 } else {
                   console.error('❌ Erro ao salvar tarefa:', result);
@@ -4281,11 +4101,8 @@ export default function Dashboard() {
                         defaultValue={selectedTask?.attributes?.title || ''}
                         style={{ backgroundColor: "var(--bg-secondary)" }}
                         onChange={(e) => {
-                          pauseSyncDuringInteraction();
                           saveTaskChanges({ title: e.target.value });
                         }}
-                        onFocus={() => pauseSyncDuringInteraction()}
-                        onBlur={() => pauseSyncDuringInteraction()}
                       />
                     </div>
                   </div>
@@ -4302,11 +4119,8 @@ export default function Dashboard() {
                         style={{ backgroundColor: "var(--bg-secondary)" }}
                         defaultValue={selectedTask?.relationships?.category?.data?.id || ''}
                         onChange={(e) => {
-                          pauseSyncDuringInteraction();
                           saveTaskChanges({ category: e.target.value });
                         }}
-                        onFocus={() => pauseSyncDuringInteraction()}
-                        onBlur={() => pauseSyncDuringInteraction()}
                       >
                         <option value="">Selecione uma categoria</option>
                         {categories.map((category: any) => (
@@ -4330,11 +4144,8 @@ export default function Dashboard() {
                             : users.find((u: any) => u.attributes?.email === localStorage.getItem('user-email'))?.id || ''
                         }
                         onChange={(e) => {
-                          pauseSyncDuringInteraction();
                           saveTaskChanges({ assignee_id: e.target.value });
                         }}
-                        onFocus={() => pauseSyncDuringInteraction()}
-                        onBlur={() => pauseSyncDuringInteraction()}
                       >
                         <option value="">Selecione um responsável</option>
                         {users.map((user: any) => (
@@ -4417,13 +4228,10 @@ export default function Dashboard() {
                             style={{ backgroundColor: "var(--bg-secondary)" }}
                             value={clientSearchTerm}
                             onChange={(e) => {
-                              pauseSyncDuringInteraction();
                               const value = e.target.value;
                               setClientSearchTerm(value);
                               searchClientsInMonde(value);
                             }}
-                            onFocus={() => pauseSyncDuringInteraction()}
-                            onBlur={() => pauseSyncDuringInteraction()}
                           />
                           <div className="relative">
                             <button
@@ -5869,25 +5677,25 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center space-x-4">
-            {/* Botão de controle de sincronização */}
+            {/* Botão de atualização manual */}
             <button
-              onClick={() => {
-                const newState = !isUserInteracting;
-                setIsUserInteracting(newState);
-                console.log(newState ? "⏸️ Sincronização pausada manualmente" : "▶️ Sincronização retomada manualmente");
+              onClick={async () => {
+                console.log("🔄 Atualizando dados manualmente...");
+                await reloadTasks();
+                await loadUsers();
                 
-                // Toast visual
+                // Toast de confirmação
                 const toast = document.createElement('div');
-                toast.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded shadow-lg z-50';
-                toast.textContent = newState ? '⏸️ Sincronização pausada' : '▶️ Sincronização ativada';
+                toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                toast.textContent = '✅ Dados atualizados';
                 document.body.appendChild(toast);
                 setTimeout(() => document.body.removeChild(toast), 2000);
               }}
-              className={`theme-toggle p-2 rounded-lg rounded-button ${isUserInteracting ? 'bg-red-100 dark:bg-red-900' : 'bg-green-100 dark:bg-green-900'}`}
-              title={isUserInteracting ? "Sincronização pausada - clique para ativar" : "Sincronização ativa - clique para pausar"}
+              className="theme-toggle p-2 rounded-lg rounded-button"
+              title="Atualizar dados manualmente"
             >
               <div className="w-5 h-5 flex items-center justify-center">
-                <i className={isUserInteracting ? "ri-pause-line text-red-600" : "ri-play-line text-green-600"}></i>
+                <i className="ri-refresh-line"></i>
               </div>
             </button>
 
@@ -5952,11 +5760,9 @@ export default function Dashboard() {
       {/* Floating Action Button */}
       <button
         onClick={() => {
-          // Pausar sincronização temporariamente ao abrir modal
-          setIsUserInteracting(true);
           setSelectedTask(null);
           setShowTaskModal(true);
-          console.log("🔇 Modal de nova tarefa aberta - sincronização pausada");
+          console.log("➕ Abrindo modal de nova tarefa");
         }}
         className="floating-button"
         title="Criar nova tarefa"

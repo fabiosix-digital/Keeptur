@@ -1578,12 +1578,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para buscar usuários/agentes (extrair das tarefas)
+  // Endpoint para buscar usuários/agentes com filtro only_users
   app.get("/api/monde/users", authenticateToken, async (req: any, res) => {
     try {
-      // Buscar tarefas que contêm informações de usuários
-      const tasksResponse = await fetch(
-        "https://web.monde.com.br/api/v2/tasks?include=assignee,person,category,author",
+      console.log('🔍 Carregando usuários da API do Monde com filtro only_users...');
+      
+      // Usar o filtro only_users da API do Monde
+      const peopleResponse = await fetch(
+        "https://web.monde.com.br/api/v2/people?filter[only_users]=true&page[size]=100&sort=-registered-at",
         {
           method: "GET",
           headers: {
@@ -1594,82 +1596,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       );
 
-      const data = await tasksResponse.json();
+      const data = await peopleResponse.json();
       
       if (data.errors) {
-        console.log("⚠️ Erro na API de tasks:", data.errors[0]?.title);
+        console.log("⚠️ Erro na API de people:", data.errors[0]?.title);
         res.json({ data: [] });
         return;
       }
       
-      // Extrair usuários únicos das tarefas usando includes
-      const usersSet = new Set();
-      const tasks = data.data || [];
-      const included = data.included || [];
+      const users = data.data || [];
       
-      // Buscar usuários dos includes (pessoas sem CNPJ E sem company-name são usuários)
-      included.forEach((item: any) => {
-        if (item.type === 'people' && 
-          !item.attributes?.cnpj && 
-          !item.attributes?.['company-name'] && 
-          item.attributes?.kind === 'individual'
-        ) {
-          usersSet.add(JSON.stringify({
-            id: item.id,
-            name: item.attributes.name,
-            attributes: {
-              name: item.attributes.name,
-              person_type: 'user'
-            }
-          }));
-        }
+      // Filtrar usuários válidos (com email)
+      const validUsers = users.filter((user: any) => {
+        const attrs = user.attributes;
+        return attrs?.email && 
+               attrs.email.includes('@') && 
+               attrs.name && 
+               attrs.name.trim().length > 0;
       });
       
-      // Se não houver includes, extrair dos relationships das tarefas
-      if (usersSet.size === 0) {
-        tasks.forEach((task: any) => {
-          if (task.relationships?.assignee?.data) {
-            usersSet.add(JSON.stringify({
-              id: task.relationships.assignee.data.id,
-              name: `Usuário ${task.relationships.assignee.data.id}`,
-              attributes: {
-                name: `Usuário ${task.relationships.assignee.data.id}`,
-                person_type: 'user'
-              }
-            }));
-          }
-          if (task.relationships?.author?.data) {
-            usersSet.add(JSON.stringify({
-              id: task.relationships.author.data.id,
-              name: `Usuário ${task.relationships.author.data.id}`,
-              attributes: {
-                name: `Usuário ${task.relationships.author.data.id}`,
-                person_type: 'user'
-              }
-            }));
-          }
-        });
-      }
+      console.log(`✅ Usuários válidos encontrados: ${validUsers.length} de ${users.length} total`);
+      console.log("👥 Usuários encontrados:", validUsers.map((u: any) => u.attributes?.name).join(", "));
       
-      const users = Array.from(usersSet).map(u => JSON.parse(u as string));
-      
-      console.log("✅ Usuários/agentes extraídos das tarefas:", users.length);
-      
-      // Log para debug dos dados das tarefas
-      if (tasks.length > 0) {
-        console.log("📋 Exemplo de tarefa para debug:", JSON.stringify({
-          attributes: tasks[0].attributes,
-          relationships: tasks[0].relationships
-        }, null, 2));
-      }
-      if (included.length > 0) {
-        console.log("📋 Exemplo de include para debug:", JSON.stringify(included[0], null, 2));
-      }
-      
-      // Log detalhado dos usuários encontrados
-      console.log("👥 Usuários encontrados:", users.map(u => u.name).join(", "));
-      
-      res.json({ data: users });
+      res.json({ data: validUsers });
     } catch (error) {
       console.error("Erro ao buscar usuários:", error);
       res.status(500).json({ message: "Erro ao buscar usuários" });

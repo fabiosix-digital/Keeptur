@@ -1581,11 +1581,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint para buscar usuários/agentes com filtro only_users
   app.get("/api/monde/users", authenticateToken, async (req: any, res) => {
     try {
-      console.log('🔍 Carregando usuários da API do Monde com filtro only_users...');
+      console.log('🔍 Carregando TODOS os usuários/pessoas como possíveis responsáveis...');
       
-      // Usar o filtro only_users da API do Monde
+      // Buscar TODOS os people sem filtros para incluir todos os responsáveis possíveis
       const peopleResponse = await fetch(
-        "https://web.monde.com.br/api/v2/people?filter[only_users]=true&page[size]=100&sort=-registered-at",
+        "https://web.monde.com.br/api/v2/people?page[size]=100&sort=-registered-at",
         {
           method: "GET",
           headers: {
@@ -1615,10 +1615,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
                attrs.name.trim().length > 0;
       });
       
-      console.log(`✅ Usuários válidos encontrados: ${validUsers.length} de ${users.length} total`);
-      console.log("👥 Usuários encontrados:", validUsers.map((u: any) => u.attributes?.name).join(", "));
+      console.log(`✅ Pessoas encontradas como responsáveis: ${validUsers.length} de ${users.length} total`);
+      console.log("👥 Responsáveis disponíveis:", validUsers.map((u: any) => u.attributes?.name).join(", "));
       
-      res.json({ data: validUsers });
+      res.json({ data: validUsers, users: validUsers });
     } catch (error) {
       console.error("Erro ao buscar usuários:", error);
       res.status(500).json({ message: "Erro ao buscar usuários" });

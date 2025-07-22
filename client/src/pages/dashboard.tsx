@@ -334,13 +334,8 @@ export default function Dashboard() {
 
 
 
-  // Função para buscar clientes na API do Monde com debounce otimizado
-  const searchClientsInMonde = useCallback((searchTerm: string) => {
-    // Clear previous timeout
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
+  // Função para buscar clientes na API do Monde sem debounce para evitar perda de foco
+  const searchClientsInMonde = useCallback(async (searchTerm: string) => {
     if (!searchTerm || searchTerm.length < 2) {
       setClientSearchResults([]);
       setIsSearchingClients(false);
@@ -349,28 +344,25 @@ export default function Dashboard() {
 
     setIsSearchingClients(true);
     
-    // Set new timeout - reduzido para 800ms para melhor UX
-    searchTimeoutRef.current = setTimeout(async () => {
-      try {
-        const response = await fetch(`/api/monde/people/search?q=${encodeURIComponent(searchTerm)}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
-          }
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setClientSearchResults(data.data || []);
-        } else {
-          console.error('Erro ao buscar clientes:', response.status);
-          setClientSearchResults([]);
+    try {
+      const response = await fetch(`/api/monde/people/search?q=${encodeURIComponent(searchTerm)}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
         }
-      } catch (error) {
-        console.error('Erro ao buscar clientes:', error);
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setClientSearchResults(data.data || []);
+      } else {
+        console.error('Erro ao buscar clientes:', response.status);
         setClientSearchResults([]);
       }
-      setIsSearchingClients(false);
-    }, 800); // Reduzido para 800ms
+    } catch (error) {
+      console.error('Erro ao buscar clientes:', error);
+      setClientSearchResults([]);
+    }
+    setIsSearchingClients(false);
   }, []);
 
   // Função para carregar empresas do usuário
@@ -4400,13 +4392,13 @@ export default function Dashboard() {
                               updateTaskFormField('clientName', value);
                               setClientSearchTerm(value);
                               
-                              // Debounce a busca para evitar travamento
+                              // Usar debounce manual para evitar perda de foco
                               if (searchTimeoutRef.current) {
                                 clearTimeout(searchTimeoutRef.current);
                               }
                               searchTimeoutRef.current = setTimeout(() => {
                                 searchClientsInMonde(value);
-                              }, 500);
+                              }, 300);
                             }}
                           />
                           <div className="relative">
@@ -4432,7 +4424,10 @@ export default function Dashboard() {
                                   Nova Pessoa Física
                                 </button>
                                 <button
-                                  onClick={() => {
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
                                     setShowPersonJuridicaModal(true);
                                     setShowClientDropdown(false);
                                   }}
@@ -6287,9 +6282,9 @@ export default function Dashboard() {
 
       {/* Modal de cadastro - Pessoa Física */}
       {showPersonFisicaModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full mx-4 max-h-[85vh] overflow-hidden">
-            <div className="p-4 border-b flex justify-between items-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-hidden">
+            <div className="p-6 border-b flex justify-between items-center">
               <h2 className="text-xl font-semibold">👤 Cadastrar Pessoa Física</h2>
               <button
                 onClick={() => setShowPersonFisicaModal(false)}

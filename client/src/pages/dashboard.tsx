@@ -1495,9 +1495,14 @@ export default function Dashboard() {
       const date = historic.attributes?.['date-time'] || historic['date-time'] || historic.datetime || 'sem data';
       console.log(`  ${index + 1}. [${date}] "${text}"`);
       
-      // Log extra para detecção
-      if (text.toLowerCase().includes('keeptur') || text.toLowerCase().includes('restaurar') || text.toLowerCase().includes('excluir')) {
-        console.log(`    🎯 MARCADOR DETECTADO: "${text}"`);
+      // Log extra para detecção de mudanças críticas
+      if (text.toLowerCase().includes('keeptur') || 
+          text.toLowerCase().includes('restaurar') || 
+          text.toLowerCase().includes('excluir') ||
+          text.toLowerCase().includes('reabrir') ||
+          text.toLowerCase().includes('restore') ||
+          text.toLowerCase().includes('delete')) {
+        console.log(`    🎯 AÇÃO DETECTADA: "${text}"`);
       }
     });
     
@@ -1915,6 +1920,22 @@ export default function Dashboard() {
           // Log detalhado do novo histórico
           const lastHistory = newTask.historics?.[0]?.attributes?.text || '';
           console.log(`📄 Novo histórico para ${newTask.attributes?.title}: "${lastHistory}"`);
+          
+          // 🚨 DETECÇÃO ESPECÍFICA: Tarefas restauradas
+          if (lastHistory.includes('Restaurar atendimento') || 
+              lastHistory.includes('KEEPTUR_RESTORED') ||
+              lastHistory.toLowerCase().includes('restaurar')) {
+            console.log(`🔄 TAREFA RESTAURADA DETECTADA: ${newTask.attributes?.title}`);
+            changes.push(`RESTAURAÇÃO: ${newTask.attributes?.title} foi reaberta`);
+          }
+          
+          // 🚨 DETECÇÃO ESPECÍFICA: Tarefas excluídas
+          if (lastHistory.includes('Excluir atendimento') || 
+              lastHistory.includes('KEEPTUR_DELETED') ||
+              lastHistory.toLowerCase().includes('excluir')) {
+            console.log(`🗑️ TAREFA EXCLUÍDA DETECTADA: ${newTask.attributes?.title}`);
+            changes.push(`EXCLUSÃO: ${newTask.attributes?.title} foi excluída`);
+          }
         }
         
         // Verificar mudanças nos atributos chave
@@ -1944,28 +1965,25 @@ export default function Dashboard() {
         // Atualizar estado das tarefas IMEDIATAMENTE
         setAllTasks(newTasks);
         
-        // Forçar re-render completo
+        // 🚨 FORÇAR ATUALIZAÇÃO COMPLETA DA INTERFACE
         setTimeout(() => {
-          console.log("🔄 Forçando re-render das colunas...");
+          console.log("🔄 Forçando re-render completo...");
+          
+          // Reprocessar filtros
           const filteredTasks = getFilteredTasks(taskFilter);
           setTasks(filteredTasks);
           
-          // Forçar re-render do componente
+          // Forçar re-render de todos os componentes
           window.dispatchEvent(new CustomEvent('tasksUpdated'));
           
-          console.log("✅ Interface atualizada - Tarefas:", filteredTasks.length);
-        }, 100);
+          // Forçar atualização das estatísticas
+          window.dispatchEvent(new CustomEvent('statsUpdated'));
+          
+          console.log("✅ Interface sincronizada - Tarefas ativas:", filteredTasks.length);
+        }, 50);
         
-        // Toast de sincronização
-        const toast = document.createElement('div');
-        toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
-        toast.textContent = `🔄 ${changes.length} mudança(s) sincronizada(s)`;
-        document.body.appendChild(toast);
-        setTimeout(() => {
-          if (document.body.contains(toast)) {
-            document.body.removeChild(toast);
-          }
-        }, 3000);
+        // Não mostrar toast - sincronização silenciosa
+        console.log(`✅ Sincronização silenciosa: ${changes.length} mudanças processadas`);
         
         setLastSyncTime(Date.now());
       } else {
@@ -1979,18 +1997,26 @@ export default function Dashboard() {
 
   // Inicializar sincronização automática
   useEffect(() => {
-    // Configurar verificação a cada 3 segundos para sincronização mais rápida
-    const interval = setInterval(checkForChanges, 3000);
+    // Configurar verificação a cada 2 segundos para resposta mais rápida
+    const interval = setInterval(checkForChanges, 2000);
     setAutoSyncInterval(interval);
     
     // Listener para atualizações forçadas
     const handleTasksUpdated = () => {
-      console.log("🔄 Evento tasksUpdated recebido - forçando re-render");
-      // Forçar re-render das colunas
-      setTasks([...tasks]);
+      console.log("🔄 Evento tasksUpdated - atualizando interface");
+      // Recarregar tarefas filtradas
+      const filteredTasks = getFilteredTasks(taskFilter);
+      setTasks(filteredTasks);
+    };
+    
+    const handleStatsUpdated = () => {
+      console.log("📊 Evento statsUpdated - atualizando estatísticas");
+      // Força recálculo das estatísticas
+      loadClientStats();
     };
     
     window.addEventListener('tasksUpdated', handleTasksUpdated);
+    window.addEventListener('statsUpdated', handleStatsUpdated);
     
     // Cleanup
     return () => {
@@ -1998,8 +2024,9 @@ export default function Dashboard() {
         clearInterval(interval);
       }
       window.removeEventListener('tasksUpdated', handleTasksUpdated);
+      window.removeEventListener('statsUpdated', handleStatsUpdated);
     };
-  }, []); // Remover dependências para evitar re-criação do interval
+  }, [taskFilter]); // Incluir taskFilter para re-render quando filtros mudarem
 
   // Função para lidar com mudanças de filtro
   const handleFilterChange = (filterType: string, value: string) => {

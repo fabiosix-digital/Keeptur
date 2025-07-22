@@ -804,6 +804,10 @@ export default function Dashboard() {
         });
         const usersData = await usersResponse.json();
         
+        // Forçar recarga de usuários para pegar novos cadastros
+        setUsers(usersData.data || []);
+        console.log("👥 Usuários atualizados:", usersData.data?.length || 0);
+        
         // Carregar estatísticas de clientes
         await loadClientStats();
 
@@ -1973,11 +1977,10 @@ export default function Dashboard() {
           const filteredTasks = getFilteredTasks(taskFilter);
           setTasks(filteredTasks);
           
-          // Forçar re-render de todos os componentes
-          window.dispatchEvent(new CustomEvent('tasksUpdated'));
-          
-          // Forçar atualização das estatísticas
-          window.dispatchEvent(new CustomEvent('statsUpdated'));
+          // Apenas disparar evento se não há interação do usuário
+          if (!isUserInteracting) {
+            window.dispatchEvent(new CustomEvent('tasksUpdated'));
+          }
           
           console.log("✅ Interface sincronizada - Tarefas ativas:", filteredTasks.length);
         }, 50);
@@ -1995,38 +1998,52 @@ export default function Dashboard() {
     }
   };
 
-  // Inicializar sincronização automática
+  // Estado para controlar quando pausar sincronização
+  const [isUserInteracting, setIsUserInteracting] = React.useState(false);
+  const interactionTimeoutRef = React.useRef<NodeJS.Timeout>();
+
+  // Função para pausar sincronização durante interação
+  const pauseSyncDuringInteraction = () => {
+    setIsUserInteracting(true);
+    
+    // Limpar timeout anterior
+    if (interactionTimeoutRef.current) {
+      clearTimeout(interactionTimeoutRef.current);
+    }
+    
+    // Retomar após 5 segundos sem interação
+    interactionTimeoutRef.current = setTimeout(() => {
+      setIsUserInteracting(false);
+      console.log("🔄 Retomando sincronização após inatividade");
+    }, 5000);
+  };
+
+  // Inicializar sincronização automática (DESABILITADA TEMPORARIAMENTE)
   useEffect(() => {
-    // Configurar verificação a cada 2 segundos para resposta mais rápida
-    const interval = setInterval(checkForChanges, 2000);
-    setAutoSyncInterval(interval);
+    console.log("🔇 Sincronização automática DESABILITADA para melhorar UX");
     
-    // Listener para atualizações forçadas
+    // Não configurar interval automático para evitar interferências
+    // TODO: Implementar sincronização mais inteligente no futuro
+    
+    // Listener para atualizações manuais apenas
     const handleTasksUpdated = () => {
-      console.log("🔄 Evento tasksUpdated - atualizando interface");
-      // Recarregar tarefas filtradas
-      const filteredTasks = getFilteredTasks(taskFilter);
-      setTasks(filteredTasks);
-    };
-    
-    const handleStatsUpdated = () => {
-      console.log("📊 Evento statsUpdated - atualizando estatísticas");
-      // Força recálculo das estatísticas
-      loadClientStats();
+      if (!isUserInteracting) {
+        console.log("🔄 Evento tasksUpdated - atualizando interface (manual)");
+        const filteredTasks = getFilteredTasks(taskFilter);
+        setTasks(filteredTasks);
+      }
     };
     
     window.addEventListener('tasksUpdated', handleTasksUpdated);
-    window.addEventListener('statsUpdated', handleStatsUpdated);
     
     // Cleanup
     return () => {
-      if (interval) {
-        clearInterval(interval);
+      if (interactionTimeoutRef.current) {
+        clearTimeout(interactionTimeoutRef.current);
       }
       window.removeEventListener('tasksUpdated', handleTasksUpdated);
-      window.removeEventListener('statsUpdated', handleStatsUpdated);
     };
-  }, [taskFilter]); // Incluir taskFilter para re-render quando filtros mudarem
+  }, [taskFilter, isUserInteracting]);
 
   // Função para lidar com mudanças de filtro
   const handleFilterChange = (filterType: string, value: string) => {
@@ -4223,6 +4240,8 @@ export default function Dashboard() {
                   setShowTaskModal(false);
                   setSelectedTask(null);
                   setNewHistoryText('');
+                  setIsUserInteracting(false); // Reativar sincronização
+                  console.log("🔄 Modal fechada - sincronização reativada");
                   reloadTasks(); // Recarregar lista de tarefas em vez de reload da página
                 } else {
                   console.error('❌ Erro ao salvar tarefa:', result);
@@ -4261,7 +4280,12 @@ export default function Dashboard() {
                         className="form-input w-full px-3 py-2 text-sm"
                         defaultValue={selectedTask?.attributes?.title || ''}
                         style={{ backgroundColor: "var(--bg-secondary)" }}
-                        onChange={(e) => saveTaskChanges({ title: e.target.value })}
+                        onChange={(e) => {
+                          pauseSyncDuringInteraction();
+                          saveTaskChanges({ title: e.target.value });
+                        }}
+                        onFocus={() => pauseSyncDuringInteraction()}
+                        onBlur={() => pauseSyncDuringInteraction()}
                       />
                     </div>
                   </div>
@@ -4277,7 +4301,12 @@ export default function Dashboard() {
                         className="form-input w-full px-3 py-2 text-sm"
                         style={{ backgroundColor: "var(--bg-secondary)" }}
                         defaultValue={selectedTask?.relationships?.category?.data?.id || ''}
-                        onChange={(e) => saveTaskChanges({ category: e.target.value })}
+                        onChange={(e) => {
+                          pauseSyncDuringInteraction();
+                          saveTaskChanges({ category: e.target.value });
+                        }}
+                        onFocus={() => pauseSyncDuringInteraction()}
+                        onBlur={() => pauseSyncDuringInteraction()}
                       >
                         <option value="">Selecione uma categoria</option>
                         {categories.map((category: any) => (
@@ -4300,7 +4329,12 @@ export default function Dashboard() {
                             ? selectedTask?.relationships?.assignee?.data?.id || ''
                             : users.find((u: any) => u.attributes?.email === localStorage.getItem('user-email'))?.id || ''
                         }
-                        onChange={(e) => saveTaskChanges({ assignee_id: e.target.value })}
+                        onChange={(e) => {
+                          pauseSyncDuringInteraction();
+                          saveTaskChanges({ assignee_id: e.target.value });
+                        }}
+                        onFocus={() => pauseSyncDuringInteraction()}
+                        onBlur={() => pauseSyncDuringInteraction()}
                       >
                         <option value="">Selecione um responsável</option>
                         {users.map((user: any) => (
@@ -4383,10 +4417,13 @@ export default function Dashboard() {
                             style={{ backgroundColor: "var(--bg-secondary)" }}
                             value={clientSearchTerm}
                             onChange={(e) => {
+                              pauseSyncDuringInteraction();
                               const value = e.target.value;
                               setClientSearchTerm(value);
                               searchClientsInMonde(value);
                             }}
+                            onFocus={() => pauseSyncDuringInteraction()}
+                            onBlur={() => pauseSyncDuringInteraction()}
                           />
                           <div className="relative">
                             <button
@@ -5832,6 +5869,28 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center space-x-4">
+            {/* Botão de controle de sincronização */}
+            <button
+              onClick={() => {
+                const newState = !isUserInteracting;
+                setIsUserInteracting(newState);
+                console.log(newState ? "⏸️ Sincronização pausada manualmente" : "▶️ Sincronização retomada manualmente");
+                
+                // Toast visual
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                toast.textContent = newState ? '⏸️ Sincronização pausada' : '▶️ Sincronização ativada';
+                document.body.appendChild(toast);
+                setTimeout(() => document.body.removeChild(toast), 2000);
+              }}
+              className={`theme-toggle p-2 rounded-lg rounded-button ${isUserInteracting ? 'bg-red-100 dark:bg-red-900' : 'bg-green-100 dark:bg-green-900'}`}
+              title={isUserInteracting ? "Sincronização pausada - clique para ativar" : "Sincronização ativa - clique para pausar"}
+            >
+              <div className="w-5 h-5 flex items-center justify-center">
+                <i className={isUserInteracting ? "ri-pause-line text-red-600" : "ri-play-line text-green-600"}></i>
+              </div>
+            </button>
+
             <button
               onClick={toggleTheme}
               className="theme-toggle p-2 rounded-lg rounded-button"
@@ -5892,8 +5951,15 @@ export default function Dashboard() {
 
       {/* Floating Action Button */}
       <button
-        onClick={() => setShowTaskModal(true)}
+        onClick={() => {
+          // Pausar sincronização temporariamente ao abrir modal
+          setIsUserInteracting(true);
+          setSelectedTask(null);
+          setShowTaskModal(true);
+          console.log("🔇 Modal de nova tarefa aberta - sincronização pausada");
+        }}
         className="floating-button"
+        title="Criar nova tarefa"
       >
         <i className="ri-add-line text-xl"></i>
       </button>

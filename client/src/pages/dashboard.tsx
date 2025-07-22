@@ -1437,11 +1437,33 @@ export default function Dashboard() {
   };
 
 const isTaskDeleted = (task: any) => {
-  // USAR APENAS OS CAMPOS DA API, SEM MANIPULAÇÃO
-  return task.attributes?.deleted === true || 
-         task.attributes?.is_deleted === true ||
-         task.attributes?.status === 'deleted' ||
-         task.attributes?.status === 'archived';
+  // PRIMEIRO: Verificar campos diretos da API do Monde
+  if (task.attributes?.deleted === true || 
+      task.attributes?.is_deleted === true ||
+      task.attributes?.status === 'deleted' ||
+      task.attributes?.archived === true) {
+    return true;
+  }
+  
+  // SEGUNDO: Verificar se tem histórico de exclusão SEM restauração posterior
+  if (task.historics && Array.isArray(task.historics)) {
+    const hasDeleted = task.historics.some((h: any) => 
+      (h.attributes?.text || h.text || '').includes('KEEPTUR_DELETED') ||
+      (h.attributes?.text || h.text || '').includes('excluído')
+    );
+    
+    const hasRestored = task.historics.some((h: any) => 
+      (h.attributes?.text || h.text || '').includes('KEEPTUR_RESTORED') ||
+      (h.attributes?.text || h.text || '').includes('restaurad')
+    );
+    
+    // Se foi excluída E não foi restaurada = está excluída
+    if (hasDeleted && !hasRestored) {
+      return true;
+    }
+  }
+  
+  return false; // Por padrão, considerar ativa
 };
 
   // Função para restaurar tarefa
@@ -2210,37 +2232,40 @@ const isTaskDeleted = (task: any) => {
         requestBody.due = datetime.toISOString();
       }
 
-      console.log("📤 Enviando para API do Monde:", requestBody);
-
-      // 🚨 CORREÇÃO: Usar endpoint correto para restauração de tarefas excluídas
-      const isRestoringDeletedTask = isTaskDeleted(task) && 
+      // ✅ CORREÇÃO ESPECÍFICA: Detectar restauração usando isTaskDeleted corrigida
+      const isCurrentlyDeleted = isTaskDeleted(task);
+      const isRestoration = isCurrentlyDeleted && statusChangeModal.isReopen && 
         (newStatus === "pending" || newStatus === "overdue");
       
       let endpoint, method;
-      
-      if (isRestoringDeletedTask) {
-        // Para tarefas excluídas, usar endpoint específico de restauração
+
+      // ✅ CORREÇÃO: Usar endpoint /restore para tarefas excluídas sendo restauradas
+      if (isRestoration) {
+        // RESTAURAÇÃO CONFIRMADA: tarefa excluída sendo reativada
         endpoint = `/api/monde/tarefas/${task.id}/restore`;
         method = 'POST';
-        console.log("🔄 Usando endpoint de RESTAURAÇÃO para tarefa excluída");
-        
-        // Para restauração, adicionar campos específicos ao requestBody
-        requestBody.historic = statusChangeForm.comment || 'Tarefa restaurada via drag-and-drop';
+        requestBody.historic = statusChangeForm.comment || 'Tarefa restaurada via interface';
+        console.log("🔄 Usando endpoint de RESTAURAÇÃO");
+      } else if (newStatus === 'archived') {
+        // Para arquivar/excluir tarefa ativa
+        endpoint = `/api/monde/tarefas/${task.id}`;
+        method = 'DELETE';
+        console.log("🗑️ Usando endpoint de EXCLUSÃO");
       } else {
-        // Para outras operações, usar endpoint genérico
+        // Para outras mudanças normais de status
         endpoint = `/api/monde/tarefas/${task.id}`;
         method = 'PUT';
-        console.log("🔄 Usando endpoint genérico de mudança de status");
+        console.log("📝 Usando endpoint de ATUALIZAÇÃO");
       }
 
-      // Fazer a requisição para atualizar a tarefa
+      // Fazer requisição...
       const response = await fetch(endpoint, {
         method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(requestBody),
+        body: method !== 'DELETE' ? JSON.stringify(requestBody) : undefined,
       });
 
       console.log("📡 Resposta da API:", response.status, response.statusText);
@@ -2262,17 +2287,21 @@ const isTaskDeleted = (task: any) => {
       const responseData = await response.json();
       console.log("✅ Tarefa atualizada com sucesso:", responseData);
       
-      // 🚨 CORREÇÃO: Forçar recarregamento imediato das tarefas
-      console.log("🔄 Forçando recarregamento após mudança de status...");
-      
-      // Recarregar tarefas imediatamente
-      setTimeout(() => {
-        reloadTasks();
-        console.log("✅ Recarregamento forçado executado");
-      }, 500);
-      
-      // Mostrar toast de sucesso
-      setStatusChangeForm(prev => ({ ...prev, success: "Status alterado com sucesso!" }));
+      if (response.ok) {
+        // ✅ FORÇAR recarregamento após mudança
+        setTimeout(() => {
+          reloadTasks();
+          checkForChanges(); // Forçar sincronização
+        }, 500);
+        
+        setStatusChangeForm(prev => ({ ...prev, success: "Status alterado com sucesso!" }));
+        
+        // Fechar modal após 1 segundo
+        setTimeout(() => {
+          setStatusChangeModal({ isOpen: false, task: null, newStatus: "", isReopen: false });
+          setStatusChangeForm({ datetime: "", comment: "", success: "", error: "" });
+        }, 1000);
+      }
 
       // Sempre registrar no histórico a mudança de status
       console.log("📝 Registrando no histórico...");

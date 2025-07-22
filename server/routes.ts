@@ -320,6 +320,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+
+
   // Get available plans
   app.get("/api/plans", async (req, res) => {
     try {
@@ -438,6 +440,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ message: "Token inválido" });
     }
   };
+
+  // Endpoint para restaurar tarefas excluídas
+  app.post("/api/monde/tarefas/:id/restore", authenticateToken, async (req: any, res) => {
+    try {
+      const taskId = req.params.id;
+      const mondeUrl = `https://web.monde.com.br/api/v2/tasks/${taskId}`;
+      
+      const requestBody = {
+        data: {
+          type: "tasks",
+          id: taskId,
+          attributes: {
+            title: req.body.title,
+            description: req.body.description || '',
+            due: req.body.due,
+            completed: false
+          }
+        }
+      };
+      
+      const mondeResponse = await fetch(mondeUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/vnd.api+json",
+          "Accept": "application/vnd.api+json",
+          "Authorization": `Bearer ${req.sessao.access_token}`,
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (mondeResponse.ok) {
+        const data = await mondeResponse.json();
+        res.json(data);
+      } else {
+        const errorText = await mondeResponse.text();
+        res.status(mondeResponse.status).json({ error: errorText });
+      }
+      
+    } catch (error) {
+      console.error("Erro ao restaurar tarefa:", error);
+      res.status(500).json({ error: "Erro interno" });
+    }
+  });
 
   // Logout endpoint
   app.post("/api/auth/logout", authenticateToken, async (req: any, res) => {

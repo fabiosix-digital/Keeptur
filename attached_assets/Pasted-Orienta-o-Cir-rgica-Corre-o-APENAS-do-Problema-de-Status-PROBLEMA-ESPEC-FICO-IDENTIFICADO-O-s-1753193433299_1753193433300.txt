@@ -1,0 +1,236 @@
+Orientação Cirúrgica - Correção APENAS do Problema de Status
+🎯 PROBLEMA ESPECÍFICO IDENTIFICADO
+O sistema está funcionando bem, EXCETO na transição de status entre:
+
+Excluída → Pendente/Atrasada
+Pendente/Atrasada → Excluída
+
+🔧 CORREÇÃO PONTUAL (SEM QUEBRAR O RESTO)
+1. CORRIGIR APENAS a função isTaskDeleted()
+typescript// NO Dashboard.tsx - SUBSTITUIR a função isTaskDeleted por:
+
+const isTaskDeleted = (task: any) => {
+  // PRIMEIRO: Verificar campos diretos da API do Monde
+  if (task.attributes?.deleted === true || 
+      task.attributes?.is_deleted === true ||
+      task.attributes?.status === 'deleted' ||
+      task.attributes?.archived === true) {
+    return true;
+  }
+  
+  // SEGUNDO: Verificar se tem histórico de exclusão SEM restauração posterior
+  if (task.historics && Array.isArray(task.historics)) {
+    const hasDeleted = task.historics.some((h: any) => 
+      (h.attributes?.text || h.text || '').includes('KEEPTUR_DELETED') ||
+      (h.attributes?.text || h.text || '').includes('excluído')
+    );
+    
+    const hasRestored = task.historics.some((h: any) => 
+      (h.attributes?.text || h.text || '').includes('KEEPTUR_RESTORED') ||
+      (h.attributes?.text || h.text || '').includes('restaurad')
+    );
+    
+    // Se foi excluída E não foi restaurada = está excluída
+    if (hasDeleted && !hasRestored) {
+      return true;
+    }
+  }
+  
+  return false; // Por padrão, considerar ativa
+};
+2. CORRIGIR APENAS a função handleStatusChange()
+typescript// SUBSTITUIR apenas a parte de detecção de restauração:
+
+const handleStatusChange = async () => {
+  if (!statusChangeModal.task) return;
+
+  try {
+    const token = localStorage.getItem('keeptur-token');
+    const task = statusChangeModal.task;
+    const newStatus = statusChangeModal.newStatus;
+    
+    // ✅ CORREÇÃO: Detectar se é restauração corretamente
+    const isCurrentlyDeleted = isTaskDeleted(task);
+    const isRestoration = isCurrentlyDeleted && (newStatus === "pending" || newStatus === "overdue");
+    
+    // Validações existentes...
+    
+    let endpoint, method;
+    let requestBody = {
+      title: task.attributes?.title || "",
+      description: task.attributes?.description || "",
+      completed: newStatus === "completed"
+    };
+
+    if (statusChangeForm.datetime) {
+      requestBody.due = new Date(statusChangeForm.datetime).toISOString();
+    }
+
+    // ✅ CORREÇÃO: Escolher endpoint correto baseado no estado real
+    if (isRestoration) {
+      // Para tarefas que ESTÃO excluídas e vão ser restauradas
+      endpoint = `/api/monde/tarefas/${task.id}/restore`;
+      method = 'POST';
+      requestBody.historic = statusChangeForm.comment || 'Tarefa restaurada via interface';
+      console.log("🔄 Usando endpoint de RESTAURAÇÃO");
+    } else if (newStatus === 'archived') {
+      // Para arquivar/excluir tarefa ativa
+      endpoint = `/api/monde/tarefas/${task.id}`;
+      method = 'DELETE';
+      console.log("🗑️ Usando endpoint de EXCLUSÃO");
+    } else {
+      // Para outras mudanças normais de status
+      endpoint = `/api/monde/tarefas/${task.id}`;
+      method = 'PUT';
+      console.log("📝 Usando endpoint de ATUALIZAÇÃO");
+    }
+
+    // Fazer requisição...
+    const response = await fetch(endpoint, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: method !== 'DELETE' ? JSON.stringify(requestBody) : undefined,
+    });
+
+    if (response.ok) {
+      // ✅ FORÇAR recarregamento após mudança
+      setTimeout(() => {
+        reloadTasks();
+        checkForChanges(); // Forçar sincronização
+      }, 500);
+      
+      setStatusChangeForm(prev => ({ ...prev, success: "Status alterado com sucesso!" }));
+      
+      // Fechar modal após 1 segundo
+      setTimeout(() => {
+        setStatusChangeModal({ isOpen: false, task: null, newStatus: "", isReopen: false });
+        setStatusChangeForm({ datetime: "", comment: "", success: "", error: "" });
+      }, 1000);
+    }
+
+  } catch (error) {
+    console.error("❌ Erro ao alterar status:", error);
+    setStatusChangeForm(prev => ({ ...prev, error: `Erro: ${error.message}` }));
+  }
+};
+3. GARANTIR que o backend tenha o endpoint correto
+typescript// NO server.ts - VERIFICAR se existe o endpoint de restore:
+
+app.post("/api/monde/tarefas/:id/restore", authenticateToken, async (req: any, res) => {
+  try {
+    const taskId = req.params.id;
+    const mondeUrl = `https://web.monde.com.br/api/v2/tasks/${taskId}`;
+    
+    const requestBody = {
+      data: {
+        type: "tasks",
+        id: taskId,
+        attributes: {
+          title: req.body.title,
+          description: req.body.description || '',
+          due: req.body.due,
+          completed: false // SEMPRE false para restauração
+        }
+      }
+    };
+    
+    const mondeResponse = await fetch(mondeUrl, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/vnd.api+json",
+        "Accept": "application/vnd.api+json",
+        "Authorization": `Bearer ${req.sessao.access_token}`,
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (mondeResponse.ok) {
+      const data = await mondeResponse.json();
+      
+      // Adicionar histórico de restauração
+      const historyText = `🔄 KEEPTUR_RESTORED - ${req.body.historic || 'Tarefa restaurada'}`;
+      
+      await fetch(`https://web.monde.com.br/api/v2/task-historics`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/vnd.api+json",
+          "Accept": "application/vnd.api+json",
+          "Authorization": `Bearer ${req.sessao.access_token}`,
+        },
+        body: JSON.stringify({
+          data: {
+            type: "task-historics",
+            attributes: {
+              text: historyText,
+              "date-time": new Date().toISOString()
+            },
+            relationships: {
+              task: {
+                data: { type: "tasks", id: taskId }
+              }
+            }
+          }
+        }),
+      });
+      
+      res.json(data);
+    } else {
+      const errorText = await mondeResponse.text();
+      res.status(mondeResponse.status).json({ error: errorText });
+    }
+    
+  } catch (error) {
+    console.error("Erro ao restaurar tarefa:", error);
+    res.status(500).json({ error: "Erro interno" });
+  }
+});
+4. CORRIGIR apenas a detecção no drag and drop
+typescript// Na função handleDrop - SUBSTITUIR apenas a parte de detecção:
+
+const handleDrop = async (e: React.DragEvent, newStatus: string) => {
+  // ... código existente até a parte de detecção ...
+  
+  // ✅ CORREÇÃO: Usar a função isTaskDeleted corrigida
+  const taskIsCurrentlyDeleted = isTaskDeleted(taskData);
+  const isRestoringDeletedTask = taskIsCurrentlyDeleted && 
+    (newStatus === "pending" || newStatus === "overdue");
+  
+  // Se for restauração OU reativação de concluída
+  if (isRestoringDeletedTask || 
+      ((currentStatus === "completed" || currentStatus === "archived") && 
+       (newStatus === "pending" || newStatus === "overdue"))) {
+    
+    const actionType = isRestoringDeletedTask ? "restauração de tarefa excluída" : "reativação de tarefa";
+    console.log(`🔄 ${actionType} detectada`);
+    
+    setStatusChangeModal({
+      isOpen: true,
+      task: taskData,
+      newStatus,
+      isReopen: true
+    });
+    
+    return; // Abrir modal para coletar dados
+  }
+
+  // ... resto do código existente ...
+};
+🎯 RESUMO DA CORREÇÃO
+O QUE MUDA:
+
+✅ Função isTaskDeleted() - detecta corretamente tarefas excluídas
+✅ Função handleStatusChange() - escolhe endpoint correto para restauração
+✅ Função handleDrop() - detecta corretamente quando é restauração
+✅ Endpoint /restore no backend - garante restauração correta
+
+O QUE NÃO MUDA:
+
+✅ Layout permanece intacto
+✅ Outras funcionalidades continuam funcionando
+✅ Sistema de filtros permanece igual
+✅ Lógica de sincronização permanece igual
+✅ Interface e design permanecem iguais
+

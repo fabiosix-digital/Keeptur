@@ -1,0 +1,224 @@
+🚨 ORIENTAÇÃO PARA CORREÇÃO DO SISTEMA DE STATUS DE TAREFAS EM TEMPO REAL
+PROBLEMA IDENTIFICADO
+O dashboard está manipulando informações de status das tarefas ao invés de buscar dados em tempo real da API do Monde. Há listas estáticas hardcoded e lógica que tenta "adivinhar" o status das tarefas.
+CORREÇÕES NECESSÁRIAS
+1. REMOVER TODAS AS LISTAS ESTÁTICAS
+Localizar e deletar:
+javascript// DELETAR ESTAS LINHAS (por volta da linha 1000-1100)
+const DELETED_TASKS_IN_MONDE = [
+  "teste",
+  "TESSY ANNE", 
+  // ... toda a lista
+];
+2. REESCREVER A FUNÇÃO isTaskDeleted
+Substituir a função atual por:
+javascriptconst isTaskDeleted = (task: any) => {
+  // USAR APENAS OS CAMPOS DA API, SEM MANIPULAÇÃO
+  return task.attributes?.deleted === true || 
+         task.attributes?.is_deleted === true ||
+         task.attributes?.status === 'deleted' ||
+         task.attributes?.status === 'archived';
+};
+3. CRIAR ENDPOINT ESPECÍFICO PARA STATUS REAL
+Adicionar novo endpoint no backend (/api/monde/tarefas/[id]/status):
+javascript// Endpoint que busca o status real e atualizado de uma tarefa específica
+app.get('/api/monde/tarefas/:id/status', async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    const response = await mondeAPI.get(`/tasks/${id}`);
+    const task = response.data.data;
+    
+    // Retornar status real sem manipulação
+    res.json({
+      id: task.id,
+      status: {
+        completed: task.attributes.completed,
+        deleted: task.attributes.deleted || false,
+        archived: task.attributes.archived || false,
+        visualized: task.attributes.visualized,
+        due: task.attributes.due,
+        updated_at: task.attributes['updated-at'] || task.attributes['registered-at']
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao buscar status' });
+  }
+});
+4. REATIVAR E MELHORAR O SISTEMA DE SINCRONIZAÇÃO AUTOMÁTICA
+Localizar e descomentar/melhorar o polling (por volta da linha 2500):
+javascript// SUBSTITUIR O POLLING COMENTADO POR:
+useEffect(() => {
+  // Sincronização inteligente - mais frequente quando há atividade
+  let syncInterval = 5000; // 5 segundos padrão
+  let lastActivityTime = Date.now();
+  
+  const smartSync = async () => {
+    try {
+      const hasRecentActivity = (Date.now() - lastActivityTime) < 30000; // 30 segundos
+      
+      if (hasRecentActivity) {
+        syncInterval = 3000; // 3 segundos se teve atividade recente
+      } else {
+        syncInterval = 10000; // 10 segundos se não teve atividade
+      }
+      
+      await checkForChanges();
+    } catch (error) {
+      console.error('Erro na sincronização:', error);
+    }
+  };
+  
+  const interval = setInterval(smartSync, syncInterval);
+  
+  // Detectar atividade do usuário
+  const activityHandler = () => {
+    lastActivityTime = Date.now();
+  };
+  
+  window.addEventListener('mousemove', activityHandler);
+  window.addEventListener('keypress', activityHandler);
+  
+  return () => {
+    clearInterval(interval);
+    window.removeEventListener('mousemove', activityHandler);
+    window.removeEventListener('keypress', activityHandler);
+  };
+}, []);
+5. MELHORAR A FUNÇÃO checkForChanges
+Reescrever para ser mais eficiente:
+javascriptconst checkForChanges = async () => {
+  try {
+    const token = localStorage.getItem('keeptur-token');
+    if (!token) return;
+    
+    // Buscar apenas mudanças desde a última sincronização
+    const lastSync = localStorage.getItem('lastSyncTime') || new Date(Date.now() - 300000).toISOString();
+    
+    const response = await fetch(`/api/monde/tarefas?updated_since=${lastSync}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'X-Request-ID': crypto.randomUUID() // Para evitar cache
+      }
+    });
+    
+    if (!response.ok) return;
+    
+    const data = await response.json();
+    const updatedTasks = data.data || [];
+    
+    if (updatedTasks.length > 0) {
+      console.log(`🔄 ${updatedTasks.length} tarefas atualizadas`);
+      
+      // Atualizar apenas as tarefas que mudaram
+      setAllTasks(prevTasks => {
+        const taskMap = new Map(prevTasks.map(t => [t.id, t]));
+        
+        updatedTasks.forEach(updatedTask => {
+          taskMap.set(updatedTask.id, updatedTask);
+        });
+        
+        return Array.from(taskMap.values());
+      });
+      
+      // Salvar timestamp da última sincronização
+      localStorage.setItem('lastSyncTime', new Date().toISOString());
+      
+      // Forçar re-render apenas se necessário
+      if (updatedTasks.some(t => tasks.find(task => task.id === t.id))) {
+        setTasks(prev => [...prev]); // Força re-render
+      }
+    }
+  } catch (error) {
+    console.error('Erro na sincronização:', error);
+  }
+};
+6. IMPLEMENTAR WEBSOCKET PARA ATUALIZAÇÕES EM TEMPO REAL
+Adicionar suporte a WebSocket (opcional mas recomendado):
+javascript// No início do componente Dashboard
+useEffect(() => {
+  const ws = new WebSocket('wss://seu-servidor.com/ws/tasks');
+  
+  ws.onopen = () => {
+    console.log('🔌 WebSocket conectado');
+    ws.send(JSON.stringify({ 
+      type: 'subscribe', 
+      token: localStorage.getItem('keeptur-token') 
+    }));
+  };
+  
+  ws.onmessage = (event) => {
+    const message = JSON.parse(event.data);
+    
+    if (message.type === 'task_updated') {
+      // Atualizar tarefa específica sem recarregar tudo
+      setAllTasks(prev => prev.map(task => 
+        task.id === message.taskId ? message.task : task
+      ));
+    }
+  };
+  
+  ws.onerror = (error) => {
+    console.error('WebSocket erro:', error);
+    // Fallback para polling se WebSocket falhar
+  };
+  
+  return () => ws.close();
+}, []);
+7. REMOVER TODA MANIPULAÇÃO DE STATUS
+Procurar e remover/simplificar:
+
+Função getTaskStatus - deve apenas ler da API
+Função getTasksByStatus - não deve ter lógica complexa
+Remover verificações de histórico para determinar status
+
+8. ADICIONAR CACHE INTELIGENTE
+javascript// Cache com TTL (Time To Live)
+const taskCache = new Map();
+const CACHE_TTL = 30000; // 30 segundos
+
+const getCachedTask = (taskId) => {
+  const cached = taskCache.get(taskId);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.data;
+  }
+  taskCache.delete(taskId);
+  return null;
+};
+
+const setCachedTask = (taskId, taskData) => {
+  taskCache.set(taskId, {
+    data: taskData,
+    timestamp: Date.now()
+  });
+};
+9. IMPLEMENTAR INDICADORES VISUAIS DE SINCRONIZAÇÃO
+javascript// Adicionar estado para mostrar status de sincronização
+const [syncStatus, setSyncStatus] = useState({
+  isSyncing: false,
+  lastSync: null,
+  error: null
+});
+
+// Mostrar indicador no UI
+{syncStatus.isSyncing && (
+  <div className="fixed bottom-4 right-4 bg-blue-500 text-white px-3 py-2 rounded-lg shadow-lg flex items-center">
+    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white mr-2"></div>
+    Sincronizando...
+  </div>
+)}
+10. CONFIGURAÇÃO DE DESENVOLVIMENTO
+Adicionar variáveis de ambiente:
+env# .env
+VITE_SYNC_INTERVAL=3000 # Intervalo de sincronização em ms
+VITE_ENABLE_WEBSOCKET=true # Habilitar WebSocket
+VITE_CACHE_TTL=30000 # Tempo de vida do cache
+RESUMO DAS MUDANÇAS CRÍTICAS
+
+NUNCA usar listas estáticas de IDs
+SEMPRE confiar nos dados da API
+IMPLEMENTAR sincronização automática eficiente
+ADICIONAR indicadores visuais de sincronização
+USAR cache inteligente para reduzir requisições
+CONSIDERAR WebSocket para tempo real verdadeiro
+

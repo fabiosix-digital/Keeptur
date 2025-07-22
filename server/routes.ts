@@ -271,6 +271,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint que busca o status real e atualizado de uma tarefa específica
+  app.get('/api/monde/tarefas/:id/status', async (req, res) => {
+    const { id } = req.params;
+    
+    try {
+      const response = await mondeAPI.get(`/tasks/${id}`);
+      const task = response.data.data;
+      
+      // Retornar status real sem manipulação
+      res.json({
+        id: task.id,
+        status: {
+          completed: task.attributes.completed,
+          deleted: task.attributes.deleted || false,
+          archived: task.attributes.archived || false,
+          visualized: task.attributes.visualized,
+          due: task.attributes.due,
+          updated_at: task.attributes['updated-at'] || task.attributes['registered-at']
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Erro ao buscar status' });
+    }
+  });
+
+  // Endpoint para verificação de status em tempo real das tarefas
+  app.get('/api/monde/tarefas/status-real', async (req, res) => {
+    try {
+      const lastCheck = req.headers['x-last-check'];
+      
+      // Buscar apenas updates recentes se timestamp fornecido
+      let url = '/tasks?include=assignee,person,category&filter[assigned]=user_tasks';
+      if (lastCheck) {
+        url += `&filter[updated_since]=${lastCheck}`;
+      }
+      
+      const response = await mondeAPI.get(url);
+      const tasks = response.data.data || [];
+      
+      res.json({
+        hasChanges: tasks.length > 0,
+        timestamp: new Date().toISOString(),
+        taskCount: tasks.length
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Erro ao verificar status' });
+    }
+  });
+
   // Get available plans
   app.get("/api/plans", async (req, res) => {
     try {

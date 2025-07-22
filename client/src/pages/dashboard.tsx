@@ -1436,19 +1436,13 @@ export default function Dashboard() {
     }
   };
 
-  // 🚨 CORREÇÃO TOTAL: Usar APENAS dados da API do Monde - eliminar toda manipulação
-  const isTaskDeleted = (task: any) => {
-    // 🚨 NOVO: Verificar campo 'deleted' ou 'is_deleted' diretamente da API do Monde
-    if (task.attributes?.deleted === true || task.attributes?.is_deleted === true) {
-      console.log(`✅ Tarefa "${task.attributes?.title}" marcada como EXCLUÍDA na API do Monde`);
-      return true;
-    }
-    
-    // 🚨 SIMPLIFICAÇÃO TOTAL: Todas as outras tarefas são consideradas ATIVAS
-    // Não manipular status - confiar 100% na API do Monde
-    console.log(`✅ Tarefa "${task.attributes?.title}" está ATIVA conforme API do Monde`);
-    return false;
-  };
+const isTaskDeleted = (task: any) => {
+  // USAR APENAS OS CAMPOS DA API, SEM MANIPULAÇÃO
+  return task.attributes?.deleted === true || 
+         task.attributes?.is_deleted === true ||
+         task.attributes?.status === 'deleted' ||
+         task.attributes?.status === 'archived';
+};
 
   // Função para restaurar tarefa
   const handleReopenTask = async (task: any) => {
@@ -1895,11 +1889,37 @@ export default function Dashboard() {
     }
   };
 
-  // Inicializar sincronização automática
+  // SUBSTITUIR O POLLING COMENTADO POR:
   useEffect(() => {
-    // Configurar verificação a cada 3 segundos para sincronização mais rápida
-    const interval = setInterval(checkForChanges, 3000);
-    setAutoSyncInterval(interval);
+    // Sincronização inteligente - mais frequente quando há atividade
+    let syncInterval = 5000; // 5 segundos padrão
+    let lastActivityTime = Date.now();
+    
+    const smartSync = async () => {
+      try {
+        const hasRecentActivity = (Date.now() - lastActivityTime) < 30000; // 30 segundos
+        
+        if (hasRecentActivity) {
+          syncInterval = 3000; // 3 segundos se teve atividade recente
+        } else {
+          syncInterval = 10000; // 10 segundos se não teve atividade
+        }
+        
+        await checkForChanges();
+      } catch (error) {
+        console.error('Erro na sincronização:', error);
+      }
+    };
+    
+    const interval = setInterval(smartSync, syncInterval);
+    
+    // Detectar atividade do usuário
+    const activityHandler = () => {
+      lastActivityTime = Date.now();
+    };
+    
+    window.addEventListener('mousemove', activityHandler);
+    window.addEventListener('keypress', activityHandler);
     
     // Listener para atualizações forçadas
     const handleTasksUpdated = () => {
@@ -1910,14 +1930,13 @@ export default function Dashboard() {
     
     window.addEventListener('tasksUpdated', handleTasksUpdated);
     
-    // Cleanup
     return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
+      clearInterval(interval);
+      window.removeEventListener('mousemove', activityHandler);
+      window.removeEventListener('keypress', activityHandler);
       window.removeEventListener('tasksUpdated', handleTasksUpdated);
     };
-  }, []); // Remover dependências para evitar re-criação do interval
+  }, []);
 
   // Função para lidar com mudanças de filtro
   const handleFilterChange = (filterType: string, value: string) => {

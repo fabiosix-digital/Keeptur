@@ -1,0 +1,321 @@
+ Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.
+e @ frame_ant.js:2
+s @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+s @ frame_ant.js:2
+window.fetch @ frame_ant.js:2
+(anônimo) @ _app-87dbd9d0665e11aa.js:38
+(anônimo) @ _app-87dbd9d0665e11aa.js:25
+e @ _app-87dbd9d0665e11aa.js:14
+t.subscribe @ _app-87dbd9d0665e11aa.js:14
+e.consumeQueue @ _app-87dbd9d0665e11aa.js:25
+(anônimo) @ _app-87dbd9d0665e11aa.js:25
+n @ _app-87dbd9d0665e11aa.js:38
+setTimeout
+(anônimo) @ _app-87dbd9d0665e11aa.js:38
+e.scheduleQueueConsumption @ _app-87dbd9d0665e11aa.js:25
+(anônimo) @ _app-87dbd9d0665e11aa.js:25
+e @ _app-87dbd9d0665e11aa.js:14
+t.subscribe @ _app-87dbd9d0665e11aa.js:14
+(anônimo) @ _app-87dbd9d0665e11aa.js:25
+e @ _app-87dbd9d0665e11aa.js:14
+t.subscribe @ _app-87dbd9d0665e11aa.js:14
+e.try @ _app-87dbd9d0665e11aa.js:25
+e.start @ _app-87dbd9d0665e11aa.js:25
+t.request @ _app-87dbd9d0665e11aa.js:25
+(anônimo) @ _app-87dbd9d0665e11aa.js:14
+(anônimo) @ _app-87dbd9d0665e11aa.js:14
+(anônimo) @ _app-87dbd9d0665e11aa.js:25
+(anônimo) @ _app-87dbd9d0665e11aa.js:14
+e.execute @ _app-87dbd9d0665e11aa.js:14
+e.getObservableFromLink @ _app-87dbd9d0665e11aa.js:11
+(anônimo) @ _app-87dbd9d0665e11aa.js:11
+(anônimo) @ _app-87dbd9d0665e11aa.js:11
+(anônimo) @ _app-87dbd9d0665e11aa.js:11
+(anônimo) @ _app-87dbd9d0665e11aa.js:11
+s @ _app-87dbd9d0665e11aa.js:11
+e.mutate @ _app-87dbd9d0665e11aa.js:11
+e.mutate @ _app-87dbd9d0665e11aa.js:11
+(anônimo) @ _app-87dbd9d0665e11aa.js:14
+(anônimo) @ _app-87dbd9d0665e11aa.js:40
+(anônimo) @ main-c2bae8025b317813.js:1
+n @ main-c2bae8025b317813.js:1
+u @ main-c2bae8025b317813.js:1
+(anônimo) @ main-c2bae8025b317813.js:1
+(anônimo) @ main-c2bae8025b317813.js:1
+n @ _app-87dbd9d0665e11aa.js:38Entenda o erro
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.
+e @ frame_ant.js:2
+s @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+s @ frame_ant.js:2
+window.fetch @ frame_ant.js:2
+(anônimo) @ _app-87dbd9d0665e11aa.js:38
+(anônimo) @ _app-87dbd9d0665e11aa.js:25
+e @ _app-87dbd9d0665e11aa.js:14
+t.subscribe @ _app-87dbd9d0665e11aa.js:14
+e.consumeQueue @ _app-87dbd9d0665e11aa.js:25
+(anônimo) @ _app-87dbd9d0665e11aa.js:25
+n @ _app-87dbd9d0665e11aa.js:38
+setTimeout
+(anônimo) @ _app-87dbd9d0665e11aa.js:38
+e.scheduleQueueConsumption @ _app-87dbd9d0665e11aa.js:25
+(anônimo) @ _app-87dbd9d0665e11aa.js:25
+e @ _app-87dbd9d0665e11aa.js:14
+t.subscribe @ _app-87dbd9d0665e11aa.js:14
+(anônimo) @ _app-87dbd9d0665e11aa.js:25
+e @ _app-87dbd9d0665e11aa.js:14
+t.subscribe @ _app-87dbd9d0665e11aa.js:14
+e.try @ _app-87dbd9d0665e11aa.js:25
+e.start @ _app-87dbd9d0665e11aa.js:25
+t.request @ _app-87dbd9d0665e11aa.js:25
+(anônimo) @ _app-87dbd9d0665e11aa.js:14
+(anônimo) @ _app-87dbd9d0665e11aa.js:14
+(anônimo) @ _app-87dbd9d0665e11aa.js:25
+(anônimo) @ _app-87dbd9d0665e11aa.js:14
+e.execute @ _app-87dbd9d0665e11aa.js:14
+e.getObservableFromLink @ _app-87dbd9d0665e11aa.js:11
+(anônimo) @ _app-87dbd9d0665e11aa.js:11
+(anônimo) @ _app-87dbd9d0665e11aa.js:11
+(anônimo) @ _app-87dbd9d0665e11aa.js:11
+(anônimo) @ _app-87dbd9d0665e11aa.js:11
+s @ _app-87dbd9d0665e11aa.js:11
+e.mutate @ _app-87dbd9d0665e11aa.js:11
+e.mutate @ _app-87dbd9d0665e11aa.js:11
+(anônimo) @ _app-87dbd9d0665e11aa.js:14
+e.wait @ 2581-897f7627a53c27a3.js:1
+u @ 8830-0d32d691b4e487fc.js:1
+(anônimo) @ 8830-0d32d691b4e487fc.js:1
+n @ _app-87dbd9d0665e11aa.js:38Entenda o erro
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+17[Violation] 'requestAnimationFrame' handler levou <N> ms
+19[Violation] Forced reflow while executing JavaScript levou <N> ms
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.
+e @ frame_ant.js:2
+s @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+s @ frame_ant.js:2
+window.fetch @ frame_ant.js:2
+(anônimo) @ _app-87dbd9d0665e11aa.js:38
+(anônimo) @ _app-87dbd9d0665e11aa.js:25
+e @ _app-87dbd9d0665e11aa.js:14
+t.subscribe @ _app-87dbd9d0665e11aa.js:14
+e.consumeQueue @ _app-87dbd9d0665e11aa.js:25
+(anônimo) @ _app-87dbd9d0665e11aa.js:25
+n @ _app-87dbd9d0665e11aa.js:38
+setTimeout
+(anônimo) @ _app-87dbd9d0665e11aa.js:38
+e.scheduleQueueConsumption @ _app-87dbd9d0665e11aa.js:25
+(anônimo) @ _app-87dbd9d0665e11aa.js:25
+e @ _app-87dbd9d0665e11aa.js:14
+t.subscribe @ _app-87dbd9d0665e11aa.js:14
+(anônimo) @ _app-87dbd9d0665e11aa.js:25
+e @ _app-87dbd9d0665e11aa.js:14
+t.subscribe @ _app-87dbd9d0665e11aa.js:14
+e.try @ _app-87dbd9d0665e11aa.js:25
+e.start @ _app-87dbd9d0665e11aa.js:25
+t.request @ _app-87dbd9d0665e11aa.js:25
+(anônimo) @ _app-87dbd9d0665e11aa.js:14
+(anônimo) @ _app-87dbd9d0665e11aa.js:14
+(anônimo) @ _app-87dbd9d0665e11aa.js:25
+(anônimo) @ _app-87dbd9d0665e11aa.js:14
+e.execute @ _app-87dbd9d0665e11aa.js:14
+e.getObservableFromLink @ _app-87dbd9d0665e11aa.js:11
+(anônimo) @ _app-87dbd9d0665e11aa.js:11
+(anônimo) @ _app-87dbd9d0665e11aa.js:11
+(anônimo) @ _app-87dbd9d0665e11aa.js:11
+(anônimo) @ _app-87dbd9d0665e11aa.js:11
+s @ _app-87dbd9d0665e11aa.js:11
+e.mutate @ _app-87dbd9d0665e11aa.js:11
+e.mutate @ _app-87dbd9d0665e11aa.js:11
+(anônimo) @ _app-87dbd9d0665e11aa.js:14
+(anônimo) @ _app-87dbd9d0665e11aa.js:40
+(anônimo) @ main-c2bae8025b317813.js:1
+n @ main-c2bae8025b317813.js:1
+u @ main-c2bae8025b317813.js:1
+(anônimo) @ main-c2bae8025b317813.js:1
+(anônimo) @ main-c2bae8025b317813.js:1
+n @ _app-87dbd9d0665e11aa.js:38Entenda o erro
+Console.js:61 📋 Abrindo modal para nova tarefa com status: pending
+Console.js:61 👥 Recarregando responsáveis...
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Abrindo modal para nova tarefa com status: pending
+Console.js:61 👥 Recarregando responsáveis...
+Console.js:61 ✅ Responsáveis atualizados: 0
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 ✅ Responsáveis atualizados: 0
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Abrindo modal para nova tarefa com status: pending
+Console.js:61 👥 Recarregando responsáveis...
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 🏷️ Categorias atualizadas: 10
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 ✅ Responsáveis atualizados: 0
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 🏷️ Categorias atualizadas: 10
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 🏷️ Categorias atualizadas: 10
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.
+e @ frame_ant.js:2
+s @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+s @ frame_ant.js:2
+window.fetch @ frame_ant.js:2
+(anônimo) @ _app-87dbd9d0665e11aa.js:38
+(anônimo) @ _app-87dbd9d0665e11aa.js:25
+e @ _app-87dbd9d0665e11aa.js:14
+t.subscribe @ _app-87dbd9d0665e11aa.js:14
+e.consumeQueue @ _app-87dbd9d0665e11aa.js:25
+(anônimo) @ _app-87dbd9d0665e11aa.js:25
+n @ _app-87dbd9d0665e11aa.js:38
+setTimeout
+(anônimo) @ _app-87dbd9d0665e11aa.js:38
+e.scheduleQueueConsumption @ _app-87dbd9d0665e11aa.js:25
+(anônimo) @ _app-87dbd9d0665e11aa.js:25
+e @ _app-87dbd9d0665e11aa.js:14
+t.subscribe @ _app-87dbd9d0665e11aa.js:14
+(anônimo) @ _app-87dbd9d0665e11aa.js:25
+e @ _app-87dbd9d0665e11aa.js:14
+t.subscribe @ _app-87dbd9d0665e11aa.js:14
+e.try @ _app-87dbd9d0665e11aa.js:25
+e.start @ _app-87dbd9d0665e11aa.js:25
+t.request @ _app-87dbd9d0665e11aa.js:25
+(anônimo) @ _app-87dbd9d0665e11aa.js:14
+(anônimo) @ _app-87dbd9d0665e11aa.js:14
+(anônimo) @ _app-87dbd9d0665e11aa.js:25
+(anônimo) @ _app-87dbd9d0665e11aa.js:14
+e.execute @ _app-87dbd9d0665e11aa.js:14
+e.getObservableFromLink @ _app-87dbd9d0665e11aa.js:11
+e.getResultsFromLink @ _app-87dbd9d0665e11aa.js:11
+v @ _app-87dbd9d0665e11aa.js:11
+e.fetchQueryByPolicy @ _app-87dbd9d0665e11aa.js:11
+v @ _app-87dbd9d0665e11aa.js:11
+e.fetchConcastWithInfo @ _app-87dbd9d0665e11aa.js:11
+t.fetch @ _app-87dbd9d0665e11aa.js:14
+t.reobserveAsConcast @ _app-87dbd9d0665e11aa.js:14
+e.executeQuery @ _app-87dbd9d0665e11aa.js:26
+(anônimo) @ _app-87dbd9d0665e11aa.js:14
+(anônimo) @ _app-87dbd9d0665e11aa.js:40
+(anônimo) @ main-c2bae8025b317813.js:1
+n @ main-c2bae8025b317813.js:1
+u @ main-c2bae8025b317813.js:1
+(anônimo) @ main-c2bae8025b317813.js:1
+(anônimo) @ main-c2bae8025b317813.js:1
+(anônimo) @ _app-87dbd9d0665e11aa.js:40
+(anônimo) @ _app-87dbd9d0665e11aa.js:40
+(anônimo) @ main-c2bae8025b317813.js:1
+n @ main-c2bae8025b317813.js:1
+u @ main-c2bae8025b317813.js:1
+(anônimo) @ main-c2bae8025b317813.js:1
+(anônimo) @ main-c2bae8025b317813.js:1
+n @ _app-87dbd9d0665e11aa.js:38Entenda o erro
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )
+Console.js:61 📋 Lista: Tarefas disponíveis: 4
+Console.js:61 📋 Lista: Tarefas filtradas: 2 (showDeleted: false )

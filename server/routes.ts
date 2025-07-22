@@ -1583,9 +1583,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log('🔍 Carregando TODOS os usuários/pessoas como possíveis responsáveis...');
       
-      // Buscar TODOS os people sem filtros para incluir todos os responsáveis possíveis
-      const peopleResponse = await fetch(
-        "https://web.monde.com.br/api/v2/people?page[size]=100&sort=-registered-at",
+      // Primeiro tentar endpoint de usuários
+      let peopleResponse = await fetch(
+        "https://web.monde.com.br/api/v2/users?page[size]=50",
         {
           method: "GET",
           headers: {
@@ -1596,6 +1596,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       );
 
+      // Se falhar, tentar endpoint de pessoas  
+      if (!peopleResponse.ok) {
+        console.log('🔄 Tentando endpoint de people...');
+        peopleResponse = await fetch(
+          "https://web.monde.com.br/api/v2/people?page[size]=50",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/vnd.api+json",
+              Accept: "application/vnd.api+json",
+              Authorization: `Bearer ${req.sessao.access_token}`,
+            },
+          }
+        );
+      }
+
       const data = await peopleResponse.json();
       
       if (data.errors) {
@@ -1604,18 +1620,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return;
       }
       
-      const users = data.data || [];
+      let users = data.data || [];
       
-      // Filtrar usuários válidos (com email)
+      // Se veio do endpoint people, transformar em formato de usuários
+      if (users.length > 0 && users[0].type === 'people') {
+        users = users.map((person: any) => ({
+          id: person.id,
+          type: 'user',
+          attributes: {
+            name: person.attributes?.name || person.attributes?.['company-name'] || 'Usuário',
+            email: person.attributes?.email || '',
+            login: person.attributes?.login || person.attributes?.email || person.id,
+            role: 'agent'
+          }
+        }));
+      }
+      
+      // Filtrar usuários válidos
       const validUsers = users.filter((user: any) => {
         const attrs = user.attributes;
-        return attrs?.email && 
-               attrs.email.includes('@') && 
-               attrs.name && 
-               attrs.name.trim().length > 0;
+        return attrs?.name && attrs.name.trim().length > 0;
       });
       
-      console.log(`✅ Pessoas encontradas como responsáveis: ${validUsers.length} de ${users.length} total`);
+      console.log(`✅ Responsáveis encontrados: ${validUsers.length} de ${users.length} total`);
       console.log("👥 Responsáveis disponíveis:", validUsers.map((u: any) => u.attributes?.name).join(", "));
       
       res.json({ data: validUsers, users: validUsers });

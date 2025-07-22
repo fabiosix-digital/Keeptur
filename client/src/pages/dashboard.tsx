@@ -4392,13 +4392,12 @@ export default function Dashboard() {
                               updateTaskFormField('clientName', value);
                               setClientSearchTerm(value);
                               
-                              // Usar debounce manual para evitar perda de foco
-                              if (searchTimeoutRef.current) {
-                                clearTimeout(searchTimeoutRef.current);
-                              }
-                              searchTimeoutRef.current = setTimeout(() => {
+                              // Busca direta sem timeout para evitar travamento
+                              if (value.length >= 2) {
                                 searchClientsInMonde(value);
-                              }, 300);
+                              } else {
+                                setClientSearchResults([]);
+                              }
                             }}
                           />
                           <div className="relative">
@@ -4450,19 +4449,21 @@ export default function Dashboard() {
                             )}
                           </div>
                           
-                          {/* Dropdown de resultados */}
-                          {clientSearchResults.length > 0 && (
+                          {/* Dropdown de resultados - só exibe quando há busca ativa */}
+                          {clientSearchResults.length > 0 && clientSearchTerm.length >= 2 && (
                             <div className="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto">
                               {clientSearchResults.map((client: any) => (
                                 <div
                                   key={client.id}
                                   className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm border-b"
-                                  onClick={() => {
+                                  onMouseDown={(e) => {
+                                    // Usar onMouseDown em vez de onClick para evitar perda de foco
+                                    e.preventDefault();
                                     setSelectedPersonForTask(client);
                                     setClientSearchTerm(client.attributes.name || client.attributes['company-name'] || 'Cliente');
                                     setClientSearchResults([]);
                                     
-                                    // Preencher campos automaticamente usando setTimeout para aguardar renderização
+                                    // Preencher campos automaticamente
                                     setTimeout(() => {
                                       const emailField = document.querySelector('input[name="client_email"]') as HTMLInputElement;
                                       const phoneField = document.querySelector('input[name="client_phone"]') as HTMLInputElement;

@@ -921,8 +921,12 @@ export default function Dashboard() {
       const filteredTasks = getFilteredTasks(taskFilter);
       setTasks(filteredTasks);
       
-      // Calcular estatísticas das tarefas filtradas
-      setStats(calculateTaskStats(filteredTasks));
+      // 🚨 CORREÇÃO CRÍTICA: Calcular estatísticas com allTasks sempre
+      console.log('📊 Dados para estatísticas - allTasks:', allTasks.length, 'filteredTasks:', filteredTasks.length);
+      const statsData = allTasks.length > 0 ? allTasks : filteredTasks;
+      const newStats = calculateTaskStats(statsData);
+      setStats(newStats);
+      console.log('📊 Estatísticas calculadas:', newStats);
       console.log('✅ Filtros aplicados. Tarefas exibidas:', filteredTasks.length);
     };
 
@@ -1952,6 +1956,12 @@ export default function Dashboard() {
           console.log("🔄 Forçando re-render das colunas...");
           const filteredTasks = getFilteredTasks(taskFilter);
           setTasks(filteredTasks);
+          
+          // 🚨 CORREÇÃO CRÍTICA: Calcular estatísticas com allTasks (newTasks)
+          console.log("📊 Calculando estatísticas com:", newTasks.length, "tarefas");
+          const newStats = calculateTaskStats(newTasks);
+          setStats(newStats);
+          console.log("📊 Estatísticas atualizadas:", newStats);
           
           // Forçar re-render do componente
           window.dispatchEvent(new CustomEvent('tasksUpdated'));

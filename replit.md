@@ -136,6 +136,18 @@ Preferred communication style: Simple, everyday language in Portuguese.
 - ✅ Múltiplos métodos de busca de usuário implementados (ID, login, email, nome)
 - ✅ Sistema de fallback para dados da sessão quando API falha
 
+### 2025-07-22 - Correção Definitiva de Sincronização e Estatísticas
+- ✅ Função isTaskDeleted reformulada completamente - eliminadas listas estáticas
+- ✅ Detecção dinâmica de status baseada exclusivamente no histórico real
+- ✅ Priorização correta de ações: reabertura > conclusão > exclusão  
+- ✅ Sistema detecta corretamente marcadores KEEPTUR_RESTORED no histórico
+- ✅ Estatísticas calculadas dinamicamente com dados reais (não mais arrays vazios)
+- ✅ Correção crítica: estatísticas permanecem visíveis independente do toggle "Mostrar Tarefas Excluídas"
+- ✅ Sincronização bidirecional funcionando - tarefa "teste" corretamente identificada como reaberta
+- ✅ Logs detalhados implementados para debugging completo de sincronização
+- ✅ Sistema de filtros corrigido para usar allTasks completos em vez de arrays filtrados
+- ✅ Cálculo de estatísticas baseado em dados dinâmicos sem dependência de listas fixas
+
 ## System Architecture
 
 ### Frontend Architecture

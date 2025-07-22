@@ -271,55 +271,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint que busca o status real e atualizado de uma tarefa específica
-  app.get('/api/monde/tarefas/:id/status', async (req, res) => {
-    const { id } = req.params;
-    
-    try {
-      const response = await mondeAPI.get(`/tasks/${id}`);
-      const task = response.data.data;
-      
-      // Retornar status real sem manipulação
-      res.json({
-        id: task.id,
-        status: {
-          completed: task.attributes.completed,
-          deleted: task.attributes.deleted || false,
-          archived: task.attributes.archived || false,
-          visualized: task.attributes.visualized,
-          due: task.attributes.due,
-          updated_at: task.attributes['updated-at'] || task.attributes['registered-at']
-        }
-      });
-    } catch (error) {
-      res.status(500).json({ error: 'Erro ao buscar status' });
-    }
-  });
-
-  // Endpoint para verificação de status em tempo real das tarefas
-  app.get('/api/monde/tarefas/status-real', async (req, res) => {
-    try {
-      const lastCheck = req.headers['x-last-check'];
-      
-      // Buscar apenas updates recentes se timestamp fornecido
-      let url = '/tasks?include=assignee,person,category&filter[assigned]=user_tasks';
-      if (lastCheck) {
-        url += `&filter[updated_since]=${lastCheck}`;
-      }
-      
-      const response = await mondeAPI.get(url);
-      const tasks = response.data.data || [];
-      
-      res.json({
-        hasChanges: tasks.length > 0,
-        timestamp: new Date().toISOString(),
-        taskCount: tasks.length
-      });
-    } catch (error) {
-      res.status(500).json({ error: 'Erro ao verificar status' });
-    }
-  });
-
   // Get available plans
   app.get("/api/plans", async (req, res) => {
     try {
@@ -448,34 +399,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Logout error:", error);
       res.status(500).json({ message: "Erro ao fazer logout" });
-    }
-  });
-
-  // Endpoint para buscar APENAS tarefas excluídas da API do Monde
-  app.get("/api/monde/tarefas-excluidas", authenticateToken, async (req: any, res) => {
-    try {
-      const { token } = req.user;
-      
-      // Buscar tarefas excluídas diretamente da API do Monde
-      const response = await fetch(`https://web.monde.com.br/api/v2/tasks?include=assignee,person,category,author,task-historics&filter[deleted]=true`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('📋 Tarefas excluídas encontradas na API:', data.data?.length || 0);
-        res.json(data);
-      } else {
-        console.log('❌ Erro ao buscar tarefas excluídas:', response.status);
-        res.status(response.status).json({ error: "Erro ao buscar tarefas excluídas" });
-      }
-    } catch (error) {
-      console.error('❌ Erro ao buscar tarefas excluídas:', error);
-      res.status(500).json({ error: "Erro interno do servidor" });
     }
   });
 

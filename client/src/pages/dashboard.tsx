@@ -1381,9 +1381,8 @@ export default function Dashboard() {
       h.text?.includes('KEEPTUR_REOPENED')
     );
     
-    // 🚨 DETECÇÃO PRINCIPAL: Lista conhecida de tarefas excluídas no Monde
-    const TAREFAS_EXCLUIDAS_MONDE = ['teste', 'TESSY ANNE'];
-    const isDeletedInMonde = TAREFAS_EXCLUIDAS_MONDE.includes(task.attributes.title);
+    // 🚨 CORREÇÃO CRÍTICA: Não usar listas estáticas - verificar apenas histórico
+    const isDeletedInMonde = false; // REMOVIDO: lista estática causava problemas
     
     // Uma tarefa está excluída se:
     // 1. Está na lista conhecida de excluídas NO MONDE E não foi restaurada
@@ -1665,19 +1664,11 @@ export default function Dashboard() {
     
     console.log('🔍 getTasksByStatus para', status, '- total de tarefas:', filteredTasks.length);
     
-    // 🚨 LISTA DE TAREFAS QUE SABEMOS QUE ESTÃO EXCLUÍDAS NO MONDE
-    // (baseado na imagem mostrada pelo usuário)
-    const TAREFAS_EXCLUIDAS_NO_MONDE = [
-      'teste',
-      'TESSY ANNE'
-    ];
-    
     console.log(`🚨 getTasksByStatus chamado para: "${status}" com ${filteredTasks.length} tarefas`);
-    console.log('🔍 Lista de tarefas excluídas no Monde:', TAREFAS_EXCLUIDAS_NO_MONDE);
     
-    // Função auxiliar para verificar se tarefa está realmente excluída
+    // 🚨 CORREÇÃO CRÍTICA: Usar função isTaskDeleted dinâmica baseada no histórico
     const isReallyDeleted = (task: any) => {
-      return TAREFAS_EXCLUIDAS_NO_MONDE.includes(task.attributes.title);
+      return isTaskDeleted(task); // Usar função dinâmica baseada no histórico
     };
 
     switch (status) {
@@ -2833,20 +2824,20 @@ export default function Dashboard() {
                         );
                       }
 
-                      const TAREFAS_EXCLUIDAS_NO_MONDE = ['teste', 'TESSY ANNE'];
-                      const isTaskDeleted = (task: any) => TAREFAS_EXCLUIDAS_NO_MONDE.includes(task.attributes.title);
+                      // 🚨 CORREÇÃO CRÍTICA: Usar função dinâmica baseada no histórico
+                      const isTaskDeletedInList = (task: any) => isTaskDeleted(task);
 
                       // Filtrar tarefas baseado em showDeleted
                       let tasksToShow = showDeleted 
                         ? allTasksToShow // Mostrar todas quando showDeleted está ativo
-                        : allTasksToShow.filter(task => !isTaskDeleted(task)); // Excluir as deletadas quando showDeleted está inativo
+                        : allTasksToShow.filter(task => !isTaskDeletedInList(task)); // Excluir as deletadas quando showDeleted está inativo
 
                       console.log('📋 Lista: Tarefas filtradas:', tasksToShow.length, '(showDeleted:', showDeleted, ')');
 
                       return tasksToShow.map((task, index) => {
                         // Determinar status da tarefa para exibir na coluna Status
                         const getTaskStatusForList = (task: any) => {
-                          if (isTaskDeleted(task)) {
+                          if (isTaskDeletedInList(task)) {
                             return { status: 'Excluídas', color: '#6b7280' };
                           } else if (task.attributes.completed) {
                             return { status: 'Concluída', color: '#059669' };

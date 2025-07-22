@@ -1854,106 +1854,152 @@ export default function Dashboard() {
     try {
       console.log("🔄 Verificando mudanças no Monde...");
       
+      const token = localStorage.getItem('keeptur-token');
+      if (!token) return;
+      
       // Buscar tarefas mais recentes da API
       const response = await fetch('/api/monde/tarefas', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
       
-      if (response.ok) {
-        const newData = await response.json();
-        const newTasks = newData.data || [];
+      if (!response.ok) return;
+      
+      const newData = await response.json();
+      const newTasks = newData.data || [];
+      
+      if (newTasks.length === 0 && allTasks.length === 0) return;
+      
+      // 🚨 DETECÇÃO APRIMORADA DE MUDANÇAS
+      let hasChanges = false;
+      const changes = [];
+      
+      // 1. Verificar mudanças no número de tarefas
+      if (allTasks.length !== newTasks.length) {
+        changes.push(`Número de tarefas: ${allTasks.length} → ${newTasks.length}`);
+        hasChanges = true;
+      }
+      
+      // 2. Verificar mudanças detalhadas em cada tarefa
+      for (const newTask of newTasks) {
+        const currentTask = allTasks.find(t => t.id === newTask.id);
         
-        // Comparar com tarefas atuais para detectar mudanças
-        const currentTaskIds = allTasks.map(t => t.id).sort();
-        const newTaskIds = newTasks.map(t => t.id).sort();
+        if (!currentTask) {
+          changes.push(`Nova tarefa: ${newTask.attributes?.title}`);
+          hasChanges = true;
+          continue;
+        }
         
-        // Detectar mudanças de status via histórico
-        let hasStatusChanges = false;
-        for (const newTask of newTasks) {
-          const currentTask = allTasks.find(t => t.id === newTask.id);
-          if (currentTask) {
-            // Comparar último histórico para detectar restaurações
-            const newLastHistoric = newTask.historics?.[0]?.attributes?.text || '';
-            const currentLastHistoric = currentTask.historics?.[0]?.attributes?.text || '';
-            
-            if (newLastHistoric !== currentLastHistoric) {
-              console.log(`📝 Histórico mudou para tarefa ${newTask.attributes?.title}:`, {
-                anterior: currentLastHistoric,
-                novo: newLastHistoric
-              });
-              
-              // Detectar restauração via histórico
-              if (newLastHistoric.includes('Restaurar atendimento') || 
-                  newLastHistoric.includes('KEEPTUR_RESTORED')) {
-                console.log(`✅ Tarefa ${newTask.attributes?.title} foi RESTAURADA no Monde!`);
-                hasStatusChanges = true;
-              }
-              
-              // Detectar outras mudanças importantes
-              if (newLastHistoric.includes('Excluir atendimento') || 
-                  newLastHistoric.includes('KEEPTUR_DELETED')) {
-                console.log(`🗑️ Tarefa ${newTask.attributes?.title} foi EXCLUÍDA no Monde!`);
-                hasStatusChanges = true;
-              }
-              
-              hasStatusChanges = true;
-            }
+        // Verificar mudança no status completed
+        if (currentTask.attributes?.completed !== newTask.attributes?.completed) {
+          changes.push(`${newTask.attributes?.title}: completed ${currentTask.attributes?.completed} → ${newTask.attributes?.completed}`);
+          hasChanges = true;
+        }
+        
+        // Verificar mudança na data due
+        if (currentTask.attributes?.due !== newTask.attributes?.due) {
+          changes.push(`${newTask.attributes?.title}: due changed`);
+          hasChanges = true;
+        }
+        
+        // Verificar mudanças no histórico (mais sensível)
+        const currentHistoryCount = currentTask.historics?.length || 0;
+        const newHistoryCount = newTask.historics?.length || 0;
+        
+        if (currentHistoryCount !== newHistoryCount) {
+          changes.push(`${newTask.attributes?.title}: história ${currentHistoryCount} → ${newHistoryCount}`);
+          hasChanges = true;
+          
+          // Log detalhado do novo histórico
+          const lastHistory = newTask.historics?.[0]?.attributes?.text || '';
+          console.log(`📄 Novo histórico para ${newTask.attributes?.title}: "${lastHistory}"`);
+        }
+        
+        // Verificar mudanças nos atributos chave
+        const keyAttributes = ['title', 'description', 'visualized'];
+        for (const attr of keyAttributes) {
+          if (currentTask.attributes?.[attr] !== newTask.attributes?.[attr]) {
+            changes.push(`${newTask.attributes?.title}: ${attr} changed`);
+            hasChanges = true;
           }
         }
-        
-        // Se houve mudanças, atualizar interface
-        if (JSON.stringify(currentTaskIds) !== JSON.stringify(newTaskIds) || hasStatusChanges) {
-          console.log("🔄 Mudanças detectadas no Monde, atualizando interface...");
-          
-          // 🚨 CORREÇÃO CRÍTICA: Forçar recarregamento completo
-          console.log("🔄 Forçando recarregamento completo das tarefas...");
-          
-          // Atualizar estado das tarefas imediatamente
-          setAllTasks(newTasks);
-          
-          // Reprocessar tarefas com filtro atual
-          setTimeout(() => {
-            const filteredTasks = getFilteredTasks(taskFilter);
-            setTasks(filteredTasks);
-            console.log("✅ Tarefas filtradas atualizadas:", filteredTasks.length);
-          }, 100);
-          
-          // Mostrar toast de sincronização
-          const toast = document.createElement('div');
-          toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
-          toast.textContent = '🔄 Atualizado automaticamente';
-          document.body.appendChild(toast);
-          setTimeout(() => {
-            if (document.body.contains(toast)) {
-              document.body.removeChild(toast);
-            }
-          }, 2000);
-          
-          setLastSyncTime(Date.now());
+      }
+      
+      // 3. Verificar tarefas removidas
+      for (const currentTask of allTasks) {
+        const stillExists = newTasks.find(t => t.id === currentTask.id);
+        if (!stillExists) {
+          changes.push(`Tarefa removida: ${currentTask.attributes?.title}`);
+          hasChanges = true;
         }
       }
+      
+      // Se houve mudanças, atualizar interface
+      if (hasChanges) {
+        console.log("🔄 MUDANÇAS DETECTADAS:");
+        changes.forEach(change => console.log(`  - ${change}`));
+        
+        // Atualizar estado das tarefas IMEDIATAMENTE
+        setAllTasks(newTasks);
+        
+        // Forçar re-render completo
+        setTimeout(() => {
+          console.log("🔄 Forçando re-render das colunas...");
+          const filteredTasks = getFilteredTasks(taskFilter);
+          setTasks(filteredTasks);
+          
+          // Forçar re-render do componente
+          window.dispatchEvent(new CustomEvent('tasksUpdated'));
+          
+          console.log("✅ Interface atualizada - Tarefas:", filteredTasks.length);
+        }, 100);
+        
+        // Toast de sincronização
+        const toast = document.createElement('div');
+        toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
+        toast.textContent = `🔄 ${changes.length} mudança(s) sincronizada(s)`;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+          if (document.body.contains(toast)) {
+            document.body.removeChild(toast);
+          }
+        }, 3000);
+        
+        setLastSyncTime(Date.now());
+      } else {
+        console.log("✅ Nenhuma mudança detectada");
+      }
+      
     } catch (error) {
       console.log("⚠️ Erro na verificação automática:", error);
-      // Não mostrar erro para o usuário, apenas logar
     }
   };
 
   // Inicializar sincronização automática
   useEffect(() => {
-    // Configurar verificação a cada 5 segundos para testes mais rápidos
-    const interval = setInterval(checkForChanges, 5000);
+    // Configurar verificação a cada 3 segundos para sincronização mais rápida
+    const interval = setInterval(checkForChanges, 3000);
     setAutoSyncInterval(interval);
+    
+    // Listener para atualizações forçadas
+    const handleTasksUpdated = () => {
+      console.log("🔄 Evento tasksUpdated recebido - forçando re-render");
+      // Forçar re-render das colunas
+      setTasks([...tasks]);
+    };
+    
+    window.addEventListener('tasksUpdated', handleTasksUpdated);
     
     // Cleanup
     return () => {
       if (interval) {
         clearInterval(interval);
       }
+      window.removeEventListener('tasksUpdated', handleTasksUpdated);
     };
-  }, [allTasks, taskFilter]); // Dependências para reativar quando necessário
+  }, []); // Remover dependências para evitar re-criação do interval
 
   // Função para lidar com mudanças de filtro
   const handleFilterChange = (filterType: string, value: string) => {
@@ -2322,6 +2368,13 @@ export default function Dashboard() {
         console.log("🔄 Fechando modal...");
         setStatusChangeModal({ isOpen: false, task: null, newStatus: "", isReopen: false });
         setStatusChangeForm({ datetime: "", comment: "", success: "", error: "" });
+        
+        // Forçar sincronização imediata
+        setTimeout(() => {
+          checkForChanges();
+          console.log("🔄 Sincronização forçada após modal");
+        }, 500);
+        
         console.log("✅ Processo concluído com sucesso!");
       }, 1000);
 

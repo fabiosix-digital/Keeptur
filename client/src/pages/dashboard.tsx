@@ -985,25 +985,19 @@ export default function Dashboard() {
     }
   };
 
-  // Função para calcular estatísticas das tarefas (CORRIGIDA - sempre mostrar estatísticas)
+  // Função para calcular estatísticas das tarefas baseada em dados reais
   const calculateTaskStats = (tasks: any[]) => {
     const now = new Date();
-
-    // 🚨 CORREÇÃO CRÍTICA: Usar apenas tasks válidas sem lista estática
-    const allTasks = tasks || []; // Garantir que sempre temos um array
+    const allTasks = tasks || [];
     
-    console.log('📊 ESTATÍSTICAS CORRIGIDAS:', {
-      totalOriginal: allTasks.length,
-      totalAtivas: allTasks.length,
-      excluidas: 0 // Será calculado dinamicamente
-    });
+    console.log('📊 Calculando estatísticas com', allTasks.length, 'tarefas');
 
-    // Usar a mesma função isTaskDeleted para consistência
+    // Separar tarefas por status real
     const deletedTasks = allTasks.filter((t: any) => isTaskDeleted(t));
     const activeTasks = allTasks.filter((t: any) => !isTaskDeleted(t));
 
     const stats = {
-      total: activeTasks.length, // Total de tarefas ativas (não excluídas)
+      total: activeTasks.length,
       pendentes: activeTasks.filter((t: any) => {
         if (t.attributes.completed) return false;
         const dueDate = t.attributes.due ? new Date(t.attributes.due) : null;
@@ -1015,7 +1009,7 @@ export default function Dashboard() {
         const dueDate = t.attributes.due ? new Date(t.attributes.due) : null;
         return dueDate && dueDate < now;
       }).length,
-      excluidas: deletedTasks.length, // Tarefas excluídas dinamicamente
+      excluidas: deletedTasks.length,
     };
 
     // Calcular variações reais baseadas no mês anterior
@@ -1437,15 +1431,21 @@ export default function Dashboard() {
   };
 
 const isTaskDeleted = (task: any) => {
-  // PRIMEIRO: Verificar campos diretos da API do Monde
+  // 🚨 CORREÇÃO CRÍTICA: Usar APENAS dados oficiais da API do Monde
+  // Baseado na documentação da API v2, as tarefas excluídas NÃO são retornadas pela API
+  // Portanto, se a tarefa está na resposta da API, ela NÃO está excluída
+  
+  console.log(`🔍 Verificando status de exclusão para tarefa: ${task.attributes?.title}`);
+  
+  // PRIMEIRO: Verificar campos diretos de exclusão (se existirem na API)
   if (task.attributes?.deleted === true || 
       task.attributes?.is_deleted === true ||
-      task.attributes?.status === 'deleted' ||
       task.attributes?.archived === true) {
+    console.log(`📋 Tarefa ${task.attributes?.title} marcada como excluída nos atributos`);
     return true;
   }
   
-  // SEGUNDO: Verificar histórico incluído com a tarefa
+  // SEGUNDO: Verificar histórico APENAS para marcadores do Keeptur
   const taskHistorics = task.relationships?.['task-historics']?.data || [];
   const includedHistorics = task.included?.filter((item: any) => 
     item.type === 'task-historics' && 
@@ -1455,43 +1455,35 @@ const isTaskDeleted = (task: any) => {
   if (includedHistorics.length > 0) {
     // Ordenar por data mais recente primeiro
     const sortedHistorics = [...includedHistorics].sort((a, b) => {
-      const dateA = new Date(a.attributes?.['registered-at'] || a.attributes?.['date-time'] || 0);
-      const dateB = new Date(b.attributes?.['registered-at'] || b.attributes?.['date-time'] || 0);
+      const dateA = new Date(a.attributes?.['date-time'] || a.attributes?.['registered-at'] || 0);
+      const dateB = new Date(b.attributes?.['date-time'] || b.attributes?.['registered-at'] || 0);
       return dateB.getTime() - dateA.getTime();
     });
     
-    // Verificar o histórico mais recente para ações de exclusão/restauração
+    // Verificar APENAS histórico do Keeptur para restaurações/exclusões
     for (const historic of sortedHistorics) {
       const text = historic.attributes?.historic || historic.attributes?.text || '';
       
-      // Se encontrar restauração recente, a tarefa está ativa
+      // Se encontrar restauração do Keeptur, a tarefa está ativa
       if (text.includes('KEEPTUR_RESTORED') || 
-          text.includes('restaurad') || 
-          text.includes('reaberta')) {
+          text.includes('KEEPTUR_REOPENED')) {
+        console.log(`✅ Tarefa ${task.attributes?.title} foi restaurada pelo Keeptur`);
         return false;
       }
       
-      // Se encontrar exclusão recente (e não foi restaurada depois), está excluída
-      if (text.includes('KEEPTUR_DELETED') || 
-          text.includes('excluído') ||
-          text.includes('deletada')) {
+      // Se encontrar exclusão do Keeptur, está excluída
+      if (text.includes('KEEPTUR_DELETED')) {
+        console.log(`❌ Tarefa ${task.attributes?.title} foi excluída pelo Keeptur`);
         return true;
       }
     }
   }
   
-  // TERCEIRO: Usar lógica baseada no título da tarefa como fallback
-  // (baseado nos logs que mostram que certas tarefas deveriam estar excluídas)
-  const taskTitle = task.attributes?.title || '';
+  // 🚨 REMOÇÃO TOTAL DOS FALLBACKS ESTÁTICOS
+  // Se a tarefa está na resposta da API do Monde e não tem marcadores do Keeptur,
+  // ela está ATIVA conforme o estado real do sistema Monde
   
-  // Verificar se é uma das tarefas que sabemos que deveria estar excluída
-  // mas não tem o histórico correto na API
-  if (taskTitle === 'teste' || taskTitle === 'TESSY ANNE') {
-    console.log(`🔍 Tarefa "${taskTitle}" identificada como excluída (fallback)`);
-    return true;
-  }
-  
-  // Por padrão, considerar ativa se não há evidência de exclusão
+  console.log(`✅ Tarefa ${task.attributes?.title} considerada ATIVA (dados reais da API)`);
   return false;
 };
 
@@ -1616,79 +1608,65 @@ const isTaskDeleted = (task: any) => {
     );
   };
 
-  // 🚨 FUNÇÃO CORRIGIDA: Detectar tarefas realmente excluídas vs concluídas
+  // ✅ FUNÇÃO CORRIGIDA: Usar status reais baseados na API do Monde
   const getTasksByStatus = (status: string) => {
-    // Usar todas as tarefas disponíveis (que já remove duplicatas)
     const filteredTasks = allTasks || [];
     
     console.log('🔍 getTasksByStatus para', status, '- total de tarefas:', filteredTasks.length);
-    
-    console.log(`🚨 getTasksByStatus chamado para: "${status}" com ${filteredTasks.length} tarefas`);
-    
-    // 🚨 CORREÇÃO CRÍTICA: Usar função isTaskDeleted dinâmica baseada no histórico
-    const isReallyDeleted = (task: any) => {
-      return isTaskDeleted(task); // Usar função dinâmica baseada no histórico
-    };
 
     switch (status) {
       case "pending":
-        // ✅ CORREÇÃO: Tarefas pendentes = NÃO concluídas E não excluídas E dentro do prazo
+        // Tarefas pendentes = NÃO concluídas E não excluídas E dentro do prazo
         const now = new Date();
         const pendingTasks = filteredTasks.filter((task: any) => {
           const isCompleted = task.attributes.completed;
-          const isDeleted = isReallyDeleted(task);
+          const isDeleted = isTaskDeleted(task);
           
-          if (isCompleted || isDeleted) return false; // Se concluída ou excluída, não é pendente
+          if (isCompleted || isDeleted) return false;
           
           const dueDate = task.attributes.due ? new Date(task.attributes.due) : null;
           return !dueDate || dueDate >= now;
         });
-        console.log('📋 Tarefas PENDENTES (ativas + dentro do prazo + não excluídas):', pendingTasks.length);
+        console.log('📋 Tarefas PENDENTES:', pendingTasks.length);
+        pendingTasks.forEach(task => console.log(`  - ${task.attributes.title} (completed: ${task.attributes.completed})`));
         return pendingTasks;
 
       case "overdue":
-        // ✅ CORREÇÃO: Tarefas atrasadas = NÃO concluídas E não excluídas E com prazo vencido
+        // Tarefas atrasadas = NÃO concluídas E não excluídas E com prazo vencido
         const nowOverdue = new Date();
         const overdueTasks = filteredTasks.filter((task: any) => {
           const isCompleted = task.attributes.completed;
-          const isDeleted = isReallyDeleted(task);
+          const isDeleted = isTaskDeleted(task);
           
-          if (isCompleted || isDeleted) return false; // Se concluída ou excluída, não é atrasada
+          if (isCompleted || isDeleted) return false;
           
           const dueDate = task.attributes.due ? new Date(task.attributes.due) : null;
           return dueDate && dueDate < nowOverdue;
         });
-        console.log('📋 Tarefas ATRASADAS (ativas + prazo vencido + não excluídas):', overdueTasks.length);
+        console.log('📋 Tarefas ATRASADAS:', overdueTasks.length);
+        overdueTasks.forEach(task => console.log(`  - ${task.attributes.title} (completed: ${task.attributes.completed})`));
         return overdueTasks;
 
       case "completed":
-        // ✅ CORREÇÃO: Tarefas realmente concluídas = completed === true MAS não estão na lista de excluídas
+        // Tarefas concluídas = completed === true E não excluídas
         const completedTasks = filteredTasks.filter((task: any) => {
           const isCompleted = task.attributes.completed;
-          const isDeleted = isReallyDeleted(task);
+          const isDeleted = isTaskDeleted(task);
           
-          return isCompleted && !isDeleted; // Concluída E não excluída
+          return isCompleted && !isDeleted;
         });
-        console.log('📋 Tarefas REALMENTE CONCLUÍDAS (excluindo as que estão excluídas no Monde):', completedTasks.length);
-        completedTasks.forEach(task => console.log(`  - ${task.attributes.title}`));
+        console.log('📋 Tarefas CONCLUÍDAS:', completedTasks.length);
+        completedTasks.forEach(task => console.log(`  - ${task.attributes.title} (completed: ${task.attributes.completed})`));
         return completedTasks;
 
       case "archived":
-        // 🚨 CORREÇÃO: Detectar tarefas que estão "excluídas" no Monde mas aparecem como completed=true na API
-        const archivedTasks = filteredTasks.filter((task: any) => {
-          return isReallyDeleted(task);
-        });
-        console.log('📋 Tarefas REALMENTE EXCLUÍDAS (baseado na lista conhecida):', archivedTasks.length);
-        archivedTasks.forEach(task => console.log(`  - ${task.attributes.title} (aparece como completed=${task.attributes.completed} na API)`));
-        return archivedTasks;
-
       case "deleted":
-        // ✅ NOVO: Status "deleted" específico para a coluna de excluídas
+        // Tarefas excluídas = marcadas como excluídas
         const deletedTasks = filteredTasks.filter((task: any) => {
-          return isReallyDeleted(task);
+          return isTaskDeleted(task);
         });
-        console.log('📋 Tarefas EXCLUÍDAS (coluna Excluídas):', deletedTasks.length);
-        deletedTasks.forEach(task => console.log(`  - ${task.attributes.title} (aparece como completed=${task.attributes.completed} na API)`));
+        console.log('📋 Tarefas EXCLUÍDAS:', deletedTasks.length);
+        deletedTasks.forEach(task => console.log(`  - ${task.attributes.title} (completed: ${task.attributes.completed})`));
         return deletedTasks;
 
       default:

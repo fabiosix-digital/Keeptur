@@ -258,6 +258,56 @@ export default function Dashboard() {
   const [savingPerson, setSavingPerson] = useState(false);
   const [realUserData, setRealUserData] = useState<any>(null);
 
+  // Estado local preservado do formulário da tarefa (resist a re-renderizações)
+  const taskFormRef = useRef({
+    title: '',
+    description: '',
+    due: '',
+    category: '',
+    client: '',
+    clientName: '',
+    assignee: '',
+    company: ''
+  });
+
+  // Função para atualizar campo do formulário
+  const updateTaskFormField = (field: string, value: string) => {
+    taskFormRef.current = {
+      ...taskFormRef.current,
+      [field]: value
+    };
+  };
+
+  // Função para limpar formulário
+  const clearTaskForm = () => {
+    taskFormRef.current = {
+      title: '',
+      description: '',
+      due: '',
+      category: '',
+      client: '',
+      clientName: '',
+      assignee: '',
+      company: ''
+    };
+  };
+
+  // Função para pré-preencher formulário (edição)
+  const fillTaskForm = (task: any) => {
+    if (!task) return;
+    
+    taskFormRef.current = {
+      title: task.attributes?.title || '',
+      description: task.attributes?.description || '',
+      due: task.attributes?.due ? new Date(task.attributes.due).toISOString().slice(0, 16) : '',
+      category: task.relationships?.category?.data?.id || '',
+      client: task.relationships?.person?.data?.id || '',
+      clientName: getPersonName(task.relationships?.person?.data?.id) || '',
+      assignee: task.relationships?.assignee?.data?.id || '',
+      company: userCompanies[0]?.id || ''
+    };
+  };
+
   // Função para carregar dados reais do usuário
   const loadRealUserProfile = async () => {
     try {
@@ -282,7 +332,7 @@ export default function Dashboard() {
   // Debounce timeout ref
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Função para buscar clientes na API do Monde com debounce
+  // Função para buscar clientes na API do Monde com debounce otimizado
   const searchClientsInMonde = useCallback((searchTerm: string) => {
     // Clear previous timeout
     if (searchTimeoutRef.current) {
@@ -297,7 +347,7 @@ export default function Dashboard() {
 
     setIsSearchingClients(true);
     
-    // Set new timeout
+    // Set new timeout - reduzido para 800ms para melhor UX
     searchTimeoutRef.current = setTimeout(async () => {
       try {
         const response = await fetch(`/api/monde/people/search?q=${encodeURIComponent(searchTerm)}`, {
@@ -318,7 +368,7 @@ export default function Dashboard() {
         setClientSearchResults([]);
       }
       setIsSearchingClients(false);
-    }, 2000); // 2 segundos debounce
+    }, 800); // Reduzido para 800ms
   }, []);
 
   // Função para carregar empresas do usuário
@@ -1420,8 +1470,87 @@ export default function Dashboard() {
     return { status: "pending", label: "Pendente", class: "status-badge-pending" };
   };
 
+  // Função para abrir modal de nova tarefa com status pré-selecionado
+  const openTaskModalWithStatus = (status: string) => {
+    setPreSelectedStatus(status);
+    clearTaskForm(); // Limpar formulário antes de abrir
+    setSelectedTask(null);
+    setShowTaskModal(true);
+  };
+
+  // Função para criar nova tarefa usando dados preservados
+  const createNewTask = async () => {
+    const form = taskFormRef.current;
+    
+    // Validações básicas
+    if (!form.title.trim()) {
+      alert('Título é obrigatório!');
+      return;
+    }
+
+    try {
+      const taskData = {
+        data: {
+          type: 'tasks',
+          attributes: {
+            title: form.title.trim(),
+            description: form.description.trim(),
+            due: form.due || null,
+            priority: 'normal'
+          },
+          relationships: {
+            category: form.category ? { data: { type: 'task-categories', id: form.category } } : null,
+            assignee: form.assignee ? { data: { type: 'people', id: form.assignee } } : null,
+            person: form.client ? { data: { type: 'people', id: form.client } } : null,
+            company: form.company ? { data: { type: 'companies', id: form.company } } : null
+          }
+        }
+      };
+
+      console.log('📝 Criando nova tarefa:', taskData);
+
+      const response = await fetch('/api/monde/tarefas', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
+        },
+        body: JSON.stringify(taskData)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Tarefa criada com sucesso:', result);
+        
+        // Limpar formulário e fechar modal
+        clearTaskForm();
+        setShowTaskModal(false);
+        setClientSearchTerm('');
+        setSelectedPersonForTask(null);
+        
+        // Recarregar lista de tarefas
+        await reloadTasks();
+        
+        // Notificação de sucesso
+        const toast = document.createElement('div');
+        toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
+        toast.textContent = 'Nova tarefa criada com sucesso!';
+        document.body.appendChild(toast);
+        setTimeout(() => document.body.removeChild(toast), 3000);
+        
+      } else {
+        console.error('❌ Erro ao criar tarefa:', response.status);
+        alert('Erro ao criar tarefa. Tente novamente.');
+      }
+    } catch (error) {
+      console.error('❌ Erro na requisição:', error);
+      alert('Erro de conexão ao criar tarefa.');
+    }
+  };
+
   // Função para visualizar detalhes da tarefa (agora abre em modo de edição)
   const handleViewTask = async (task: any) => {
+    fillTaskForm(task); // Preencher formulário com dados da tarefa
     setSelectedTask(task);
     setIsEditing(true);
     setShowTaskModal(true);
@@ -2449,7 +2578,7 @@ export default function Dashboard() {
                 </label>
               </div>
               <button
-                onClick={() => setShowTaskModal(true)}
+                onClick={() => openTaskModalWithStatus("pending")}
                 className="primary-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
               >
                 <i className="ri-add-line mr-2"></i>Nova Tarefa
@@ -2983,12 +3112,7 @@ export default function Dashboard() {
                     })()}
                   </div>
                   <button
-                    onClick={() => {
-                      setPreSelectedStatus("pending");
-                      setSelectedTask(null);
-                      setTaskHistory([]);
-                      setShowTaskModal(true);
-                    }}
+                    onClick={() => openTaskModalWithStatus("pending")}
                     className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
                   >
                     <i className="ri-add-line mr-2"></i>Nova Tarefa
@@ -3109,12 +3233,7 @@ export default function Dashboard() {
                     })()}
                   </div>
                   <button
-                    onClick={() => {
-                      setPreSelectedStatus("overdue");
-                      setSelectedTask(null);
-                      setTaskHistory([]);
-                      setShowTaskModal(true);
-                    }}
+                    onClick={() => openTaskModalWithStatus("overdue")}
                     className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
                   >
                     <i className="ri-add-line mr-2"></i>Nova Tarefa
@@ -3235,12 +3354,7 @@ export default function Dashboard() {
                     })()}
                   </div>
                   <button
-                    onClick={() => {
-                      setPreSelectedStatus("completed");
-                      setSelectedTask(null);
-                      setTaskHistory([]);
-                      setShowTaskModal(true);
-                    }}
+                    onClick={() => openTaskModalWithStatus("completed")}
                     className="primary-button w-full mt-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap"
                   >
                     <i className="ri-add-line mr-2"></i>Nova Tarefa
@@ -3992,6 +4106,13 @@ export default function Dashboard() {
             <form onSubmit={async (e) => {
               e.preventDefault();
               
+              if (!isEditing) {
+                // Para novas tarefas, usar a função que respeita o estado local
+                await createNewTask();
+                return;
+              }
+
+              // Para edição, continuar com o sistema atual
               const formData = new FormData(e.target as HTMLFormElement);
               const status = formData.get('status') as string;
               
@@ -4008,13 +4129,10 @@ export default function Dashboard() {
               };
               
               try {
-                console.log(isEditing ? '💾 Editando tarefa com dados:' : '✨ Criando nova tarefa com dados:', taskData);
+                console.log('💾 Editando tarefa com dados:', taskData);
                 
-                const url = isEditing ? `/api/monde/tarefas/${selectedTask.id}` : '/api/monde/tarefas';
-                const method = isEditing ? 'PUT' : 'POST';
-                
-                const response = await fetch(url, {
-                  method: method,
+                const response = await fetch(`/api/monde/tarefas/${selectedTask.id}`, {
+                  method: 'PUT',
                   headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('keeptur-token')}`
@@ -4026,7 +4144,7 @@ export default function Dashboard() {
                 console.log('📋 Resposta da API:', result);
                 
                 if (response.ok) {
-                  console.log(isEditing ? '✅ Tarefa editada com sucesso' : '✅ Nova tarefa criada com sucesso');
+                  console.log('✅ Tarefa editada com sucesso');
                   
                   // Tentar salvar histórico se houver
                   if (newHistoryText?.trim()) {
@@ -4044,7 +4162,6 @@ export default function Dashboard() {
                       
                       if (historyResponse.ok) {
                         console.log('✅ Histórico salvo com sucesso');
-                        // Recarregar histórico após salvar
                         loadTaskHistory(selectedTask.id);
                       } else {
                         console.warn('⚠️ Erro ao salvar histórico, mas tarefa foi salva');
@@ -4053,7 +4170,6 @@ export default function Dashboard() {
                       console.warn('⚠️ Erro ao salvar histórico:', historyError);
                     }
                   } else {
-                    // Se não há histórico para salvar, ainda assim recarregar
                     loadTaskHistory(selectedTask.id);
                   }
                   
@@ -4061,8 +4177,9 @@ export default function Dashboard() {
                   setShowTaskModal(false);
                   setSelectedTask(null);
                   setNewHistoryText('');
+                  setIsEditing(false);
 
-                  reloadTasks(); // Recarregar lista de tarefas em vez de reload da página
+                  reloadTasks();
                 } else {
                   console.error('❌ Erro ao salvar tarefa:', result);
                   alert('Erro ao salvar tarefa. Verifique os dados e tente novamente.');
@@ -4098,10 +4215,18 @@ export default function Dashboard() {
                         type="text"
                         name="title"
                         className="form-input w-full px-3 py-2 text-sm"
-                        defaultValue={selectedTask?.attributes?.title || ''}
+                        defaultValue={
+                          isEditing 
+                            ? selectedTask?.attributes?.title || ''
+                            : taskFormRef.current.title
+                        }
                         style={{ backgroundColor: "var(--bg-secondary)" }}
                         onChange={(e) => {
-                          saveTaskChanges({ title: e.target.value });
+                          const value = e.target.value;
+                          updateTaskFormField('title', value);
+                          if (isEditing) {
+                            saveTaskChanges({ title: value });
+                          }
                         }}
                       />
                     </div>
@@ -4229,6 +4354,8 @@ export default function Dashboard() {
                             value={clientSearchTerm}
                             onChange={(e) => {
                               const value = e.target.value;
+                              updateTaskFormField('client', value);
+                              updateTaskFormField('clientName', value);
                               setClientSearchTerm(value);
                               searchClientsInMonde(value);
                             }}

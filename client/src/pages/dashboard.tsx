@@ -1097,27 +1097,10 @@ export default function Dashboard() {
     
     // Aplicar filtros específicos
     if (filter === 'assigned_to_me') {
-      console.log('🔍 DEBUG FILTRO assigned_to_me:');
-      console.log('- UserEmail:', userEmail);
-      console.log('- Users carregados:', users.length);
-      console.log('- UserUUID encontrado:', userUUID);
-      console.log('- SourceTasks:', sourceTasks.length);
-      
-      // 🚨 CORREÇÃO CRÍTICA: Sempre usar allTasks para ter dados completos
-      // Filtrar pelo usuário no frontend para ter controle total
-      
-      if (userUUID) {
-        // Filtrar todas as tarefas do allTasks pelo usuário
-        filtered = allTasks.filter((task: any) => {
-          const assigneeId = task.relationships?.assignee?.data?.id;
-          return assigneeId === userUUID;
-        });
-        console.log('✅ Usando tarefas ativas para assigned_to_me:', filtered.length);
-        console.log('🔍 Tarefas filtradas para o usuário:', filtered.length);
-      } else {
-        console.log('❌ UUID do usuário não encontrado, usando tasks como fallback');
-        filtered = tasks || [];
-      }
+      // 🚨 CORREÇÃO DEFINITIVA: Usar diretamente as tarefas da API que já vêm filtradas
+      // O endpoint /api/monde/tarefas com filter[assigned]=user_tasks já retorna apenas "Minhas Tarefas"
+      filtered = sourceTasks; // As tarefas já vêm filtradas da API do Monde
+      console.log('✅ Filtro "assigned_to_me" - usando tarefas já filtradas da API:', filtered.length);
     } else if (filter === 'created_by_me') {
       // Para 'criadas por mim', usar apenas as tarefas ativas do usuário
       if (userUUID) {
@@ -1453,87 +1436,18 @@ export default function Dashboard() {
     }
   };
 
-  // Função para verificar se a tarefa está excluída dinamicamente via histórico
+  // 🚨 CORREÇÃO TOTAL: Usar APENAS dados da API do Monde - eliminar toda manipulação
   const isTaskDeleted = (task: any) => {
-    // 🚨 CORREÇÃO CRÍTICA: Não usar lista estática - verificar apenas pelo histórico
-    console.log(`🔍 Verificando se tarefa "${task.attributes?.title}" está excluída:`, {
-      id: task.id,
-      title: task.attributes?.title,
-      completed: task.attributes?.completed,
-      hasHistorics: !!(task.historics && Array.isArray(task.historics)),
-      historicsCount: task.historics ? task.historics.length : 0
-    });
-    
-    if (!task.historics || !Array.isArray(task.historics)) {
-      console.log(`⚠️ Tarefa "${task.attributes?.title}" sem histórico - assumindo ATIVA`);
-      return false; // Se não tem histórico, assume que está ativa
+    // 🚨 NOVO: Verificar campo 'deleted' ou 'is_deleted' diretamente da API do Monde
+    if (task.attributes?.deleted === true || task.attributes?.is_deleted === true) {
+      console.log(`✅ Tarefa "${task.attributes?.title}" marcada como EXCLUÍDA na API do Monde`);
+      return true;
     }
     
-    // Buscar pelo histórico mais recente que indique exclusão ou restauração
-    const historicsOrdered = task.historics
-      .filter((h: any) => h.attributes?.text || h.text)
-      .sort((a: any, b: any) => {
-        const dateA = a.attributes?.['date-time'] || a['date-time'] || a.datetime;
-        const dateB = b.attributes?.['date-time'] || b['date-time'] || b.datetime;
-        return new Date(dateB).getTime() - new Date(dateA).getTime();
-      });
-    
-    console.log(`📝 Tarefa "${task.attributes?.title}" - Históricos encontrados:`, historicsOrdered.length);
-    
-    // Log dos últimos 5 históricos para debug completo
-    historicsOrdered.slice(0, 5).forEach((historic, index) => {
-      const text = historic.attributes?.text || historic.text || '';
-      const date = historic.attributes?.['date-time'] || historic['date-time'] || historic.datetime || 'sem data';
-      console.log(`  ${index + 1}. [${date}] "${text}"`);
-      
-      // Log extra para detecção
-      if (text.toLowerCase().includes('keeptur') || text.toLowerCase().includes('restaurar') || text.toLowerCase().includes('excluir') || text.toLowerCase().includes('reabrir') || text.toLowerCase().includes('concluir')) {
-        console.log(`    🎯 MARCADOR DETECTADO: "${text}"`);
-      }
-    });
-    
-    // 🚨 PRIORIZAR AÇÕES MAIS RECENTES DO HISTÓRICO
-    for (const historic of historicsOrdered) {
-      const text = (historic.attributes?.text || historic.text || '').toLowerCase();
-      
-      // 1. Verificar primeiro por ações de restauração/reabertura (mais recentes prevalecem)
-      if (text.includes('keeptur_restored') || 
-          text.includes('restaurar atendimento') || 
-          text.includes('reabrir atendimento') ||
-          text.includes('tarefa reaberta') ||
-          text.includes('atendimento reaberto')) {
-        console.log(`✅ Tarefa "${task.attributes?.title}" foi RESTAURADA/REABERTA - histórico: "${text}"`);
-        return false;
-      }
-      
-      // 2. Verificar por ações de conclusão (se foi concluída, não está excluída)
-      if (text.includes('tarefa concluída') || 
-          text.includes('atendimento concluído') ||
-          text.includes('concluir atendimento') ||
-          text.includes('finalizar tarefa')) {
-        console.log(`✅ Tarefa "${task.attributes?.title}" foi CONCLUÍDA - histórico: "${text}"`);
-        return false;
-      }
-      
-      // 3. Por último, verificar por exclusão
-      if (text.includes('keeptur_deleted') || 
-          text.includes('excluir atendimento') || 
-          text.includes('deletar atendimento') ||
-          text.includes('tarefa excluída') ||
-          text.includes('atendimento excluído')) {
-        console.log(`🗑️ Tarefa "${task.attributes?.title}" foi EXCLUÍDA - histórico: "${text}"`);
-        return true;
-      }
-    }
-    
-    // Se não encontrou marcadores específicos, usar status completed como indicador
-    if (task.attributes?.completed === true) {
-      console.log(`✅ Tarefa "${task.attributes?.title}" está CONCLUÍDA (completed=true)`);
-      return false;
-    }
-    
-    console.log(`✅ Tarefa "${task.attributes?.title}" assumida como ATIVA (sem marcadores de exclusão encontrados)`);
-    return false; // Default: assumir que está ativa
+    // 🚨 SIMPLIFICAÇÃO TOTAL: Todas as outras tarefas são consideradas ATIVAS
+    // Não manipular status - confiar 100% na API do Monde
+    console.log(`✅ Tarefa "${task.attributes?.title}" está ATIVA conforme API do Monde`);
+    return false;
   };
 
   // Função para restaurar tarefa

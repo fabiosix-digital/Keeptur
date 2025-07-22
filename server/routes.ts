@@ -402,6 +402,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para buscar APENAS tarefas excluídas da API do Monde
+  app.get("/api/monde/tarefas-excluidas", authenticateToken, async (req: any, res) => {
+    try {
+      const { token } = req.user;
+      
+      // Buscar tarefas excluídas diretamente da API do Monde
+      const response = await fetch(`https://web.monde.com.br/api/v2/tasks?include=assignee,person,category,author,task-historics&filter[deleted]=true`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('📋 Tarefas excluídas encontradas na API:', data.data?.length || 0);
+        res.json(data);
+      } else {
+        console.log('❌ Erro ao buscar tarefas excluídas:', response.status);
+        res.status(response.status).json({ error: "Erro ao buscar tarefas excluídas" });
+      }
+    } catch (error) {
+      console.error('❌ Erro ao buscar tarefas excluídas:', error);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  });
+
   // Endpoints específicos para tarefas - usando endpoint correto da API v2 com filtros
   app.get("/api/monde/tarefas", authenticateToken, async (req: any, res) => {
     try {

@@ -2476,7 +2476,7 @@ export default function Dashboard() {
         
         // Forçar sincronização imediata
         setTimeout(() => {
-          checkForChanges();
+          window.location.reload();
           console.log("🔄 Sincronização forçada após modal");
         }, 500);
         

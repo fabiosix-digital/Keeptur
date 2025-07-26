@@ -1,0 +1,64 @@
+framework-3696f0681438c975.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+workspace_iframe.html:32 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.
+e	@	frame_ant.js:2
+s	@	frame_ant.js:2
+Promise.then		
+e	@	frame_ant.js:2
+u	@	frame_ant.js:2
+Promise.then		
+e	@	frame_ant.js:2
+u	@	frame_ant.js:2
+(anônimo)	@	frame_ant.js:2
+(anônimo)	@	frame_ant.js:2
+s	@	frame_ant.js:2
+window.fetch	@	frame_ant.js:2
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:18
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:20
+e	@	_app-fa2bbf2ef2a04535.js:23
+t.subscribe	@	_app-fa2bbf2ef2a04535.js:23
+e.consumeQueue	@	_app-fa2bbf2ef2a04535.js:20
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:20
+n	@	_app-fa2bbf2ef2a04535.js:18
+setTimeout		
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:18
+e.scheduleQueueConsumption	@	_app-fa2bbf2ef2a04535.js:20
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:20
+e	@	_app-fa2bbf2ef2a04535.js:23
+t.subscribe	@	_app-fa2bbf2ef2a04535.js:23
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:20
+e	@	_app-fa2bbf2ef2a04535.js:23
+t.subscribe	@	_app-fa2bbf2ef2a04535.js:23
+e.try	@	_app-fa2bbf2ef2a04535.js:20
+e.start	@	_app-fa2bbf2ef2a04535.js:20
+t.request	@	_app-fa2bbf2ef2a04535.js:20
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:40
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:40
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:20
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:40
+e.execute	@	_app-fa2bbf2ef2a04535.js:40
+e.getObservableFromLink	@	_app-fa2bbf2ef2a04535.js:23
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:23
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:23
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:20
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:20
+s	@	_app-fa2bbf2ef2a04535.js:20
+e.mutate	@	_app-fa2bbf2ef2a04535.js:23
+e.mutate	@	_app-fa2bbf2ef2a04535.js:23
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:20
+(anônimo)	@	6242-bebb560c46eaa218.js:1
+(anônimo)	@	main-bd5a7cc97f1d58f0.js:1
+n	@	main-bd5a7cc97f1d58f0.js:1
+u	@	main-bd5a7cc97f1d58f0.js:1
+(anônimo)	@	main-bd5a7cc97f1d58f0.js:1
+(anônimo)	@	main-bd5a7cc97f1d58f0.js:1
+(anônimo)	@	6242-bebb560c46eaa218.js:1
+oO	@	framework-3696f0681438c975.js:1
+uB	@	framework-3696f0681438c975.js:1
+u_	@	framework-3696f0681438c975.js:1
+r6	@	framework-3696f0681438c975.js:1
+(anônimo)	@	framework-3696f0681438c975.js:1
+uO	@	framework-3696f0681438c975.js:1
+uS	@	framework-3696f0681438c975.js:1
+C	@	framework-3696f0681438c975.js:1
+z

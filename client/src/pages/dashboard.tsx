@@ -2474,11 +2474,10 @@ export default function Dashboard() {
         setStatusChangeModal({ isOpen: false, task: null, newStatus: "", isReopen: false });
         setStatusChangeForm({ datetime: "", comment: "", success: "", error: "" });
         
-        // Forçar sincronização imediata
+        // Recarregar página para sincronizar dados
         setTimeout(() => {
           window.location.reload();
-          console.log("🔄 Sincronização forçada após modal");
-        }, 500);
+        }, 1000);
         
         console.log("✅ Processo concluído com sucesso!");
       }, 1000);

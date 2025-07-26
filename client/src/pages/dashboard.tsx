@@ -948,7 +948,7 @@ export default function Dashboard() {
         
         // Aplicar filtro inicial será feito pelo useEffect do taskFilter
         setCategories(categoriesData?.data || []);
-        setUsers(Array.isArray(usersData?.data) ? usersData.data : []);
+        setUsers(Array.isArray(usersResponse?.data) ? usersResponse.data : []);
 
         // Carregar pessoas/clientes se necessário
         try {
@@ -964,7 +964,7 @@ export default function Dashboard() {
         }
         
         // Log para debug
-        console.log("📋 Usuários carregados:", usersData?.data?.length || 0);
+        console.log("📋 Usuários carregados:", usersResponse?.data?.length || 0);
         
         // Marcar como inicializado
         setIsInitialized(true);
@@ -2194,7 +2194,7 @@ export default function Dashboard() {
       }
 
       // 🚨 CORREÇÃO: Detectar se é restauração de tarefa excluída
-      const isRestoringDeletedTask = isTaskDeleted(taskData) && 
+      const isRestoringDeletedTask = (currentStatus === "deleted") && 
         (newStatus === "pending" || newStatus === "overdue");
       
       // Se for restauração de tarefa excluída OU reativação de tarefa concluída/arquivada
@@ -2214,9 +2214,10 @@ export default function Dashboard() {
         // Para restauração, preencher data futura automaticamente
         const now = new Date();
         now.setMinutes(now.getMinutes() + 30); // 30 minutos no futuro
+        const futureDateTime = now.toISOString().slice(0, 16);
         setStatusChangeForm({
-          datetime: now.toISOString().slice(0, 16),
-          comment: "",
+          datetime: futureDateTime,
+          comment: isRestoringDeletedTask ? "Tarefa restaurada via drag and drop" : "",
           success: "",
           error: ""
         });

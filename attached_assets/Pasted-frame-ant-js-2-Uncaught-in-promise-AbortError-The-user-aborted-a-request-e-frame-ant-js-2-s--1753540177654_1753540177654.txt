@@ -1,0 +1,192 @@
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.
+e @ frame_ant.js:2
+s @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+Promise.then
+e @ frame_ant.js:2
+u @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+(anônimo) @ frame_ant.js:2
+s @ frame_ant.js:2
+window.fetch @ frame_ant.js:2
+(anônimo) @ _app-fa2bbf2ef2a04535.js:18
+(anônimo) @ _app-fa2bbf2ef2a04535.js:20
+e @ _app-fa2bbf2ef2a04535.js:23
+t.subscribe @ _app-fa2bbf2ef2a04535.js:23
+e.consumeQueue @ _app-fa2bbf2ef2a04535.js:20
+(anônimo) @ _app-fa2bbf2ef2a04535.js:20
+n @ _app-fa2bbf2ef2a04535.js:18
+setTimeout
+(anônimo) @ _app-fa2bbf2ef2a04535.js:18
+e.scheduleQueueConsumption @ _app-fa2bbf2ef2a04535.js:20
+(anônimo) @ _app-fa2bbf2ef2a04535.js:20
+e @ _app-fa2bbf2ef2a04535.js:23
+t.subscribe @ _app-fa2bbf2ef2a04535.js:23
+(anônimo) @ _app-fa2bbf2ef2a04535.js:20
+e @ _app-fa2bbf2ef2a04535.js:23
+t.subscribe @ _app-fa2bbf2ef2a04535.js:23
+e.try @ _app-fa2bbf2ef2a04535.js:20
+e.start @ _app-fa2bbf2ef2a04535.js:20
+t.request @ _app-fa2bbf2ef2a04535.js:20
+(anônimo) @ _app-fa2bbf2ef2a04535.js:40
+(anônimo) @ _app-fa2bbf2ef2a04535.js:40
+(anônimo) @ _app-fa2bbf2ef2a04535.js:20
+(anônimo) @ _app-fa2bbf2ef2a04535.js:40
+e.execute @ _app-fa2bbf2ef2a04535.js:40
+e.getObservableFromLink @ _app-fa2bbf2ef2a04535.js:23
+e.getResultsFromLink @ _app-fa2bbf2ef2a04535.js:23
+v @ _app-fa2bbf2ef2a04535.js:23
+e.fetchQueryByPolicy @ _app-fa2bbf2ef2a04535.js:23
+v @ _app-fa2bbf2ef2a04535.js:23
+e.fetchConcastWithInfo @ _app-fa2bbf2ef2a04535.js:23
+t.fetch @ _app-fa2bbf2ef2a04535.js:20
+t.reobserveAsConcast @ _app-fa2bbf2ef2a04535.js:20
+e.executeQuery @ _app-fa2bbf2ef2a04535.js:23
+(anônimo) @ _app-fa2bbf2ef2a04535.js:23
+(anônimo) @ _app-fa2bbf2ef2a04535.js:20
+(anônimo) @ main-bd5a7cc97f1d58f0.js:1
+n @ main-bd5a7cc97f1d58f0.js:1
+u @ main-bd5a7cc97f1d58f0.js:1
+(anônimo) @ main-bd5a7cc97f1d58f0.js:1
+(anônimo) @ main-bd5a7cc97f1d58f0.js:1
+(anônimo) @ _app-fa2bbf2ef2a04535.js:20
+(anônimo) @ _app-fa2bbf2ef2a04535.js:20
+(anônimo) @ main-bd5a7cc97f1d58f0.js:1
+n @ main-bd5a7cc97f1d58f0.js:1
+u @ main-bd5a7cc97f1d58f0.js:1
+(anônimo) @ main-bd5a7cc97f1d58f0.js:1
+(anônimo) @ main-bd5a7cc97f1d58f0.js:1
+n @ _app-fa2bbf2ef2a04535.js:18Entenda o erro
+VM17 frame_ant.js:2  GET https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/monde/clientes/estatisticas 404 (Not Found)
+window.fetch @ VM17 frame_ant.js:2
+window.fetch @ VM19 eruda.js:2
+loadClientStats @ VM70 dashboard.tsx:469
+loadData @ VM70 dashboard.tsx:710
+await in loadData
+(anônimo) @ VM70 dashboard.tsx:781
+commitHookEffectListMount @ VM48 chunk-WERSD76P.js:16915
+commitPassiveMountOnFiber @ VM48 chunk-WERSD76P.js:18156
+commitPassiveMountEffects_complete @ VM48 chunk-WERSD76P.js:18129
+commitPassiveMountEffects_begin @ VM48 chunk-WERSD76P.js:18119
+commitPassiveMountEffects @ VM48 chunk-WERSD76P.js:18109
+flushPassiveEffectsImpl @ VM48 chunk-WERSD76P.js:19490
+flushPassiveEffects @ VM48 chunk-WERSD76P.js:19447
+commitRootImpl @ VM48 chunk-WERSD76P.js:19416
+commitRoot @ VM48 chunk-WERSD76P.js:19277
+performSyncWorkOnRoot @ VM48 chunk-WERSD76P.js:18895
+flushSyncCallbacks @ VM48 chunk-WERSD76P.js:9119
+(anônimo) @ VM48 chunk-WERSD76P.js:18627Entenda o erro
+VM19 eruda.js:2 Erro ao carregar estatísticas de clientes: 404
+Mt.forEach.n.<computed> @ VM19 eruda.js:2
+loadClientStats @ VM70 dashboard.tsx:478
+await in loadClientStats
+loadData @ VM70 dashboard.tsx:710
+await in loadData
+(anônimo) @ VM70 dashboard.tsx:781
+commitHookEffectListMount @ VM48 chunk-WERSD76P.js:16915
+commitPassiveMountOnFiber @ VM48 chunk-WERSD76P.js:18156
+commitPassiveMountEffects_complete @ VM48 chunk-WERSD76P.js:18129
+commitPassiveMountEffects_begin @ VM48 chunk-WERSD76P.js:18119
+commitPassiveMountEffects @ VM48 chunk-WERSD76P.js:18109
+flushPassiveEffectsImpl @ VM48 chunk-WERSD76P.js:19490
+flushPassiveEffects @ VM48 chunk-WERSD76P.js:19447
+commitRootImpl @ VM48 chunk-WERSD76P.js:19416
+commitRoot @ VM48 chunk-WERSD76P.js:19277
+performSyncWorkOnRoot @ VM48 chunk-WERSD76P.js:18895
+flushSyncCallbacks @ VM48 chunk-WERSD76P.js:9119
+(anônimo) @ VM48 chunk-WERSD76P.js:18627Entenda o erro
+VM19 eruda.js:2 Erro ao carregar dados: ReferenceError: usersData is not defined
+    at loadData (VM70 dashboard.tsx:760:32)
+Mt.forEach.n.<computed> @ VM19 eruda.js:2
+loadData @ VM70 dashboard.tsx:776
+await in loadData
+(anônimo) @ VM70 dashboard.tsx:781
+commitHookEffectListMount @ VM48 chunk-WERSD76P.js:16915
+commitPassiveMountOnFiber @ VM48 chunk-WERSD76P.js:18156
+commitPassiveMountEffects_complete @ VM48 chunk-WERSD76P.js:18129
+commitPassiveMountEffects_begin @ VM48 chunk-WERSD76P.js:18119
+commitPassiveMountEffects @ VM48 chunk-WERSD76P.js:18109
+flushPassiveEffectsImpl @ VM48 chunk-WERSD76P.js:19490
+flushPassiveEffects @ VM48 chunk-WERSD76P.js:19447
+commitRootImpl @ VM48 chunk-WERSD76P.js:19416
+commitRoot @ VM48 chunk-WERSD76P.js:19277
+performSyncWorkOnRoot @ VM48 chunk-WERSD76P.js:18895
+flushSyncCallbacks @ VM48 chunk-WERSD76P.js:9119
+(anônimo) @ VM48 chunk-WERSD76P.js:18627Entenda o erro
+VM19 eruda.js:2 Erro ao recarregar tarefas: TypeError: Failed to fetch
+    at window.fetch (VM17 frame_ant.js:2:12357)
+    at window.fetch (VM19 eruda.js:2:218642)
+    at reloadTasks (VM70 dashboard.tsx:1022:30)
+    at VM70 dashboard.tsx:1830:9
+Mt.forEach.n.<computed> @ VM19 eruda.js:2
+reloadTasks @ VM70 dashboard.tsx:1033Entenda o erro
+frame_ant.js:2  GET https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/monde/clientes/estatisticas 404 (Not Found)
+window.fetch @ frame_ant.js:2
+window.fetch @ Network.js:219
+loadClientStats @ dashboard.tsx:535
+loadData @ dashboard.tsx:875
+await in loadData
+(anônimo) @ dashboard.tsx:981
+commitHookEffectListMount @ chunk-WERSD76P.js?v=38e9341d:16915
+commitPassiveMountOnFiber @ chunk-WERSD76P.js?v=38e9341d:18156
+commitPassiveMountEffects_complete @ chunk-WERSD76P.js?v=38e9341d:18129
+commitPassiveMountEffects_begin @ chunk-WERSD76P.js?v=38e9341d:18119
+commitPassiveMountEffects @ chunk-WERSD76P.js?v=38e9341d:18109
+flushPassiveEffectsImpl @ chunk-WERSD76P.js?v=38e9341d:19490
+flushPassiveEffects @ chunk-WERSD76P.js?v=38e9341d:19447
+performSyncWorkOnRoot @ chunk-WERSD76P.js?v=38e9341d:18868
+flushSyncCallbacks @ chunk-WERSD76P.js?v=38e9341d:9119
+commitRootImpl @ chunk-WERSD76P.js?v=38e9341d:19432
+commitRoot @ chunk-WERSD76P.js?v=38e9341d:19277
+finishConcurrentRender @ chunk-WERSD76P.js?v=38e9341d:18805
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=38e9341d:18718
+workLoop @ chunk-WERSD76P.js?v=38e9341d:197
+flushWork @ chunk-WERSD76P.js?v=38e9341d:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=38e9341d:384Entenda o erro
+Console.js:61 Erro ao carregar estatísticas de clientes: 404
+Mt.forEach.n.<computed> @ Console.js:61
+loadClientStats @ dashboard.tsx:545
+await in loadClientStats
+loadData @ dashboard.tsx:875
+await in loadData
+(anônimo) @ dashboard.tsx:981
+commitHookEffectListMount @ chunk-WERSD76P.js?v=38e9341d:16915
+commitPassiveMountOnFiber @ chunk-WERSD76P.js?v=38e9341d:18156
+commitPassiveMountEffects_complete @ chunk-WERSD76P.js?v=38e9341d:18129
+commitPassiveMountEffects_begin @ chunk-WERSD76P.js?v=38e9341d:18119
+commitPassiveMountEffects @ chunk-WERSD76P.js?v=38e9341d:18109
+flushPassiveEffectsImpl @ chunk-WERSD76P.js?v=38e9341d:19490
+flushPassiveEffects @ chunk-WERSD76P.js?v=38e9341d:19447
+performSyncWorkOnRoot @ chunk-WERSD76P.js?v=38e9341d:18868
+flushSyncCallbacks @ chunk-WERSD76P.js?v=38e9341d:9119
+commitRootImpl @ chunk-WERSD76P.js?v=38e9341d:19432
+commitRoot @ chunk-WERSD76P.js?v=38e9341d:19277
+finishConcurrentRender @ chunk-WERSD76P.js?v=38e9341d:18805
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=38e9341d:18718
+workLoop @ chunk-WERSD76P.js?v=38e9341d:197
+flushWork @ chunk-WERSD76P.js?v=38e9341d:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=38e9341d:384Entenda o erro
+Console.js:61 Erro ao carregar dados: ReferenceError: usersData is not defined
+    at loadData (dashboard.tsx:951:32)
+Mt.forEach.n.<computed> @ Console.js:61
+loadData @ dashboard.tsx:975
+await in loadData
+(anônimo) @ dashboard.tsx:981
+commitHookEffectListMount @ chunk-WERSD76P.js?v=38e9341d:16915
+commitPassiveMountOnFiber @ chunk-WERSD76P.js?v=38e9341d:18156
+commitPassiveMountEffects_complete @ chunk-WERSD76P.js?v=38e9341d:18129
+commitPassiveMountEffects_begin @ chunk-WERSD76P.js?v=38e9341d:18119
+commitPassiveMountEffects @ chunk-WERSD76P.js?v=38e9341d:18109
+flushPassiveEffectsImpl @ chunk-WERSD76P.js?v=38e9341d:19490
+flushPassiveEffects @ chunk-WERSD76P.js?v=38e9341d:19447
+performSyncWorkOnRoot @ chunk-WERSD76P.js?v=38e9341d:18868
+flushSyncCallbacks @ chunk-WERSD76P.js?v=38e9341d:9119
+commitRootImpl @ chunk-WERSD76P.js?v=38e9341d:19432
+commitRoot @ chunk-WERSD76P.js?v=38e9341d:19277
+finishConcurrentRender @ chunk-WERSD76P.js?v=38e9341d:18805
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=38e9341d:18718
+workLoop @ chunk-WERSD76P.js?v=38e9341d:197
+flushWork @ chunk-WERSD76P.js?v=38e9341d:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=38e9341d:384Entenda o erro

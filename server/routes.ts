@@ -3747,7 +3747,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       // Tentar atualizar no Monde usando endpoint de people 
-      const response = await fetch('https://web.monde.com.br/api/v2/people/me', {
+      let response = await fetch('https://web.monde.com.br/api/v2/people/me', {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${req.mondeToken}`,

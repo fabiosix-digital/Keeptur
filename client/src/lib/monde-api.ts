@@ -46,20 +46,20 @@ export class MondeAPI {
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
-  }
-
+  } Promise<T> {
   setToken(token: string) {
     this.token = token;
   }
 
-  private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    const url = `/api/monde${endpoint}`;
-    const keepturToken = localStorage.getItem('keeptur-token');
+  private async request<T>(endpoint: string, options?: RequestInit): Promis
+  const url = '/api/monde' + endpoint;
+  
+   const keepturToken = localStorage.getItem('keeptur-token');
     
     const headers = {
       "Content-Type": "application/json",
       ...(keepturToken && { Authorization: `Bearer ${keepturToken}` }),
-      ...options?.headers,
+      options?.headers,
     };
 
     const response = await apiRequest(

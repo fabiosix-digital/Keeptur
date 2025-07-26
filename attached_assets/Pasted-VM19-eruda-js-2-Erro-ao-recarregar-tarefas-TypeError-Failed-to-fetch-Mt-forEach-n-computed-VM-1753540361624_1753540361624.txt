@@ -1,0 +1,59 @@
+VM19 eruda.js:2 Erro ao recarregar tarefas: TypeError: Failed to fetch
+Mt.forEach.n.<computed>	@	VM19 eruda.js:2
+reloadTasks	@	VM70 dashboard.tsx:1033
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.
+e	@	frame_ant.js:2
+s	@	frame_ant.js:2
+Promise.then		
+e	@	frame_ant.js:2
+u	@	frame_ant.js:2
+Promise.then		
+e	@	frame_ant.js:2
+u	@	frame_ant.js:2
+(anônimo)	@	frame_ant.js:2
+(anônimo)	@	frame_ant.js:2
+s	@	frame_ant.js:2
+window.fetch	@	frame_ant.js:2
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:18
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:20
+e	@	_app-fa2bbf2ef2a04535.js:23
+t.subscribe	@	_app-fa2bbf2ef2a04535.js:23
+e.consumeQueue	@	_app-fa2bbf2ef2a04535.js:20
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:20
+n	@	_app-fa2bbf2ef2a04535.js:18
+setTimeout		
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:18
+e.scheduleQueueConsumption	@	_app-fa2bbf2ef2a04535.js:20
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:20
+e	@	_app-fa2bbf2ef2a04535.js:23
+t.subscribe	@	_app-fa2bbf2ef2a04535.js:23
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:20
+e	@	_app-fa2bbf2ef2a04535.js:23
+t.subscribe	@	_app-fa2bbf2ef2a04535.js:23
+e.try	@	_app-fa2bbf2ef2a04535.js:20
+e.start	@	_app-fa2bbf2ef2a04535.js:20
+t.request	@	_app-fa2bbf2ef2a04535.js:20
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:40
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:40
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:20
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:40
+e.execute	@	_app-fa2bbf2ef2a04535.js:40
+e.getObservableFromLink	@	_app-fa2bbf2ef2a04535.js:23
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:23
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:23
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:20
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:20
+s	@	_app-fa2bbf2ef2a04535.js:20
+e.mutate	@	_app-fa2bbf2ef2a04535.js:23
+e.mutate	@	_app-fa2bbf2ef2a04535.js:23
+(anônimo)	@	_app-fa2bbf2ef2a04535.js:20
+e.wait	@	6242-bebb560c46eaa218.js:1
+c	@	181-d52eb2b630a8d920.js:1
+(anônimo)	@	181-d52eb2b630a8d920.js:1
+n	@	_app-fa2bbf2ef2a04535.js:18
+frame_ant.js:2 
+ GET https://d40d28ae-1403-49d7-bf80-507c25f2b161-00-1gejeuav6wbco.spock.replit.dev/api/monde/clientes/estatisticas 404 (Not Found)
+Console.js:61 Erro ao carregar estatísticas de clientes: 404
+Console.js:61 Erro ao carregar dados: ReferenceError: usersResponse is not defined
+    at loadData (dashboard.tsx:951:32)
+frame_ant.js:2 Uncaught (in promise) AbortError: The user aborted a request.

@@ -948,7 +948,7 @@ export default function Dashboard() {
         
         // Aplicar filtro inicial será feito pelo useEffect do taskFilter
         setCategories(categoriesData?.data || []);
-        setUsers(Array.isArray(usersResponse?.data) ? usersResponse.data : []);
+        // Usuários já foram configurados acima no bloco try/catch
 
         // Carregar pessoas/clientes se necessário
         try {
@@ -964,7 +964,7 @@ export default function Dashboard() {
         }
         
         // Log para debug
-        console.log("📋 Usuários carregados:", usersResponse?.data?.length || 0);
+        // Log dos usuários já feito acima
         
         // Marcar como inicializado
         setIsInitialized(true);
@@ -1301,32 +1301,33 @@ export default function Dashboard() {
     try {
       const token = localStorage.getItem("keeptur-token");
       
-      // 🚨 SIMPLIFICAÇÃO TOTAL: Um endpoint por filtro, sem combinar tarefas excluídas
-      let endpoint = "/api/monde/tarefas?assignee=me"; // Padrão: minhas tarefas
-      
-      if (taskFilter === 'assigned_to_me') {
-        endpoint = "/api/monde/tarefas?assignee=me";
-      } else if (taskFilter === 'created_by_me') {
-        endpoint = "/api/monde/tarefas?author=me";
-      } else if (taskFilter === 'all_company') {
-        endpoint = "/api/monde/tarefas?all=true";
+      if (!token) {
+        console.error('Token não encontrado');
+        return;
       }
-
+      
+      // 🚨 SIMPLIFICAÇÃO TOTAL: Um endpoint por filtro, sem combinar tarefas excluídas
+      let endpoint = "/api/monde/tarefas"; // Usar endpoint padrão
+      
       const response = await fetch(endpoint, {
         headers: { Authorization: `Bearer ${token}` },
+        signal: AbortSignal.timeout(10000) // 10 segundos timeout
       });
 
       if (response.ok) {
         const data = await response.json();
-        console.log('✅ Tarefas carregadas:', data.data?.length || 0);
+        console.log('✅ Tarefas recarregadas:', data.data?.length || 0);
         
         // 🚨 USAR APENAS AS TAREFAS DO SERVIDOR (sem combinar)
         const tasksList = data.data || [];
         setAllTasks(tasksList);
         setTasks(tasksList);
+      } else {
+        console.error('Erro HTTP ao recarregar tarefas:', response.status);
       }
     } catch (error) {
       console.error('Erro ao recarregar tarefas:', error);
+      // Não tentar recarregar a página, apenas continuar com dados em cache
     }
   };
 

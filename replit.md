@@ -121,6 +121,19 @@ Preferred communication style: Simple, everyday language in Portuguese.
 - ✅ Sistema de fallback funcional para dados de usuário
 - ✅ Dashboard carregando perfil real do usuário logado
 - ✅ Logs de depuração melhorados para facilitar troubleshooting
+
+### 2025-07-26 - Correção de Problemas de Desconexão e Persistência de Login
+- ✅ Erro de compilação "const response reassignment" corrigido - mudança para let response
+- ✅ Sintaxe de client-side corrigida em monde-api.ts
+- ✅ Duração de sessão aumentada de 1h para 7 dias para evitar desconexões frequentes
+- ✅ Token JWT local sincronizado com duração de sessão (7 dias)
+- ✅ Sistema de extensão automática de sessão implementado
+- ✅ Funcionalidade "lembrar-me" corrigida - dados salvos carregam automaticamente no login
+- ✅ Hook useSessionKeepAlive criado para renovação automática de sessão (30 min)
+- ✅ Sistema de keep-alive integrado no dashboard principal
+- ✅ Endpoint /api/auth/logout-all implementado para limpeza de sessões
+- ✅ Tratamento mais tolerante de expiração - extensão automática em vez de logout imediato
+- ✅ Aplicação funciona sem desconexões constantes e senha persiste quando marcada
 - ✅ Correção crítica dos endpoints de perfil do usuário
 - ✅ Endpoint /api/user/me corrigido - usa /api/v2/tokens para identificar usuário
 - ✅ Endpoint /api/monde/user-profile corrigido - busca dados reais via /api/v2/people

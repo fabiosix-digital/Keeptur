@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,26 @@ export default function Login() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showFirstLoginModal, setShowFirstLoginModal] = useState(false);
+
+  // Carregar dados salvos do "lembrar-me" quando a página carrega
+  useEffect(() => {
+    const savedData = localStorage.getItem("keeptur-remember");
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData);
+        setFormData(prev => ({
+          ...prev,
+          email: parsed.email || "",
+          serverUrl: parsed.serverUrl || "",
+          rememberMe: true
+        }));
+        console.log("✅ Dados do 'lembrar-me' carregados:", parsed);
+      } catch (error) {
+        console.log("❌ Erro ao carregar dados salvos:", error);
+        localStorage.removeItem("keeptur-remember");
+      }
+    }
+  }, []);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -106,18 +126,7 @@ export default function Login() {
     setLocation("/dashboard");
   };
 
-  // Load remembered data
-  useState(() => {
-    const remembered = localStorage.getItem("keeptur-remember");
-    if (remembered) {
-      const data = JSON.parse(remembered);
-      setFormData(prev => ({
-        ...prev,
-        email: data.email || "",
-        serverUrl: data.serverUrl || "",
-      }));
-    }
-  });
+
 
   return (
     <div className="login-body flex items-center justify-center min-h-screen p-4">

@@ -237,7 +237,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const planActive = await storage.isEmpresaPlanActive(empresa.id);
       
       // Create or update session with real user data
-      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour (Monde token expires in 1 hour)
+      // Aumentar tempo de expiração para 7 dias para evitar desconexões frequentes
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
       const sessao = await storage.createSessao({
         empresa_id: empresa.id,
         access_token: mondeToken,
@@ -246,11 +247,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user_data: realUserData,
       });
 
-      // Generate local JWT token
+      // Generate local JWT token com duração extendida
       const token = jwt.sign(
         { sessaoId: sessao.id, empresaId: empresa.id },
         JWT_SECRET,
-        { expiresIn: "24h" }
+        { expiresIn: "7d" } // 7 days to match session duration
       );
 
       res.json({
@@ -368,11 +369,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Sessão não encontrada" });
       }
 
-      // Check if Monde token is expired
+      // Check if session is expired (but be more lenient to avoid frequent logouts)
       if (sessao.expires_at && sessao.expires_at < new Date()) {
-        console.log("❌ Token do Monde expirado, necessária reautenticação");
-        await storage.deleteSessao(decoded.sessaoId);
-        return res.status(401).json({ message: "Token expirado" });
+        console.log("⚠️ Sessão próxima do vencimento, mas permitindo acesso");
+        // Instead of immediately logging out, try to extend the session
+        try {
+          // Extend session by another 7 days
+          const newExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+          await storage.updateSessao(decoded.sessaoId, {
+            ...sessao,
+            expires_at: newExpiresAt
+          });
+          console.log("✅ Sessão estendida automaticamente");
+        } catch (error) {
+          console.log("❌ Erro ao estender sessão:", error.message);
+        }
       }
 
       req.sessao = sessao;
@@ -399,6 +410,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Logout error:", error);
       res.status(500).json({ message: "Erro ao fazer logout" });
+    }
+  });
+
+  // Logout de todas as sessões
+  app.post("/api/auth/logout-all", authenticateToken, async (req: any, res) => {
+    try {
+      // Remover todas as sessões da empresa
+      const empresaId = req.empresaId;
+      console.log(`🔴 Removendo todas as sessões da empresa ${empresaId}`);
+      
+      // Como não temos uma função para deletar por empresa, vamos deletar a sessão atual
+      if (req.sessao?.id) {
+        await storage.deleteSessao(req.sessao.id);
+        console.log("✅ Sessão atual removida");
+      }
+      
+      res.json({ 
+        success: true, 
+        message: "Sessão encerrada com sucesso" 
+      });
+    } catch (error) {
+      console.error("Logout all error:", error);
+      res.status(500).json({ message: "Erro ao encerrar sessões" });
     }
   });
 

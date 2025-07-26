@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "../lib/auth";
 import { MondeAPI } from "../lib/monde-api";
 import { useTheme } from "../hooks/use-theme";
+import { useSessionKeepAlive } from "../hooks/useSessionKeepAlive";
 import { TokenExpiredModal } from "../components/TokenExpiredModal";
 import { setTokenExpiredHandler } from "../lib/queryClient";
 import logoFull from "@assets/LOGO Lilas_1752695672079.png";
@@ -24,6 +25,9 @@ const debounce = (func: Function, wait: number) => {
 export default function Dashboard() {
   const { user, logout, loadUserProfile } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  
+  // Hook para manter a sessão ativa
+  useSessionKeepAlive();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState("tarefas");
   const [activeView, setActiveView] = useState("lista");

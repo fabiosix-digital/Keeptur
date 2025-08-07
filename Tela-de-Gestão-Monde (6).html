@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monde - Sistema de Gestão</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Pacifico&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
+<script src="https://cdn.tailwindcss.com/3.4.16"></script>
+<script>
+tailwind.config = {
+theme: {
+extend: {
+colors: {
+primary: '#6366f1',
+secondary: '#f59e0b'
+},
+borderRadius: {
+'none': '0px',
+'sm': '4px',
+DEFAULT: '8px',
+'md': '12px',
+'lg': '16px',
+'xl': '20px',
+'2xl': '24px',
+'3xl': '32px',
+'full': '9999px',
+'button': '8px'
+},
+fontFamily: {
+sans: ['Inter', 'sans-serif'],
+}
+}
+}
+}
+</script>
+<style>
+:where([class^="ri-"])::before { content: "\f3c2"; }
+:root {
+--bg-primary: #ffffff;
+--bg-secondary: #f8fafc;
+--bg-tertiary: #f1f5f9;
+--text-primary: #0f172a;
+--text-secondary: #475569;
+--text-tertiary: #64748b;
+--border-color: #e2e8f0;
+--shadow-color: rgba(15, 23, 42, 0.1);
+}
+[data-theme="dark"] {
+--bg-primary: #0f172a;
+--bg-secondary: #1e293b;
+--bg-tertiary: #334155;
+--text-primary: #f8fafc;
+--text-secondary: #cbd5e1;
+--text-tertiary: #94a3b8;
+--border-color: #334155;
+--shadow-color: rgba(0, 0, 0, 0.3);
+}
+body {
+font-family: 'Inter', sans-serif;
+background-color: var(--bg-secondary);
+color: var(--text-primary);
+transition: all 0.3s ease;
+}
+.theme-transition {
+transition: all 0.3s ease;
+}
+.sidebar {
+background-color: var(--bg-primary);
+border-right: 1px solid var(--border-color);
+transition: all 0.3s ease;
+}
+.sidebar-collapsed {
+width: 4rem;
+}
+.sidebar-expanded {
+width: 16rem;
+}
+.menu-item {
+color: var(--text-secondary);
+transition: all 0.2s ease;
+border-radius: 0.5rem;
+margin: 0.125rem 0;
+}
+.menu-item:hover {
+background-color: var(--bg-tertiary);
+color: var(--text-primary);
+}
+.menu-item.active {
+background-color: #6366f1;
+color: white;
+}
+.menu-item.active:hover {
+background-color: #5855eb;
+}
+.card {
+background-color: var(--bg-primary);
+border: 1px solid var(--border-color);
+box-shadow: 0 1px 3px var(--shadow-color);
+}
+.header {
+background-color: var(--bg-primary);
+border-bottom: 1px solid var(--border-color);
+}
+.theme-toggle {
+background-color: var(--bg-tertiary);
+border: 1px solid var(--border-color);
+color: var(--text-secondary);
+}
+.theme-toggle:hover {
+background-color: var(--bg-secondary);
+color: var(--text-primary);
+}
+.tooltip {
+position: absolute;
+left: 100%;
+top: 50%;
+transform: translateY(-50%);
+background-color: var(--text-primary);
+color: var(--bg-primary);
+padding: 0.375rem 0.75rem;
+border-radius: 0.375rem;
+font-size: 0.75rem;
+white-space: nowrap;
+opacity: 0;
+pointer-events: none;
+transition: opacity 0.2s ease;
+margin-left: 0.5rem;
+z-index: 100;
+}
+.menu-item:hover .tooltip {
+opacity: 1;
+}
+.content-area {
+background-color: var(--bg-secondary);
+min-height: calc(100vh - 4rem);
+}
+.stats-card {
+background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+}
+.stats-card-secondary {
+background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+}
+.stats-card-success {
+background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+.stats-card-info {
+background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+.client-avatar {
+background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+}
+.status-badge-active {
+background-color: #dcfce7;
+color: #166534;
+}
+[data-theme="dark"] .status-badge-active {
+background-color: #14532d;
+color: #bbf7d0;
+}
+.status-badge-inactive {
+background-color: #fef3c7;
+color: #92400e;
+}
+[data-theme="dark"] .status-badge-inactive {
+background-color: #451a03;
+color: #fde68a;
+}
+.status-badge-pending {
+background-color: #dbeafe;
+color: #1e40af;
+}
+[data-theme="dark"] .status-badge-pending {
+background-color: #1e3a8a;
+color: #bfdbfe;
+}
+.action-button {
+background-color: var(--bg-tertiary);
+color: var(--text-secondary);
+border: 1px solid var(--border-color);
+transition: all 0.2s ease;
+}
+.action-button:hover {
+background-color: #6366f1;
+color: white;
+border-color: #6366f1;
+}
+.primary-button {
+background-color: #6366f1;
+color: white;
+border: 1px solid #6366f1;
+}
+.primary-button:hover {
+background-color: #5855eb;
+border-color: #5855eb;
+}
+.search-input {
+background-color: var(--bg-tertiary);
+border: 1px solid var(--border-color);
+color: var(--text-primary);
+}
+.search-input:focus {
+outline: none;
+border-color: #6366f1;
+box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+.table-row {
+border-bottom: 1px solid var(--border-color);
+transition: all 0.2s ease;
+}
+.table-row:hover {
+background-color: var(--bg-tertiary);
+}
+.modal-overlay {
+background-color: rgba(0, 0, 0, 0.5);
+backdrop-filter: blur(4px);
+}
+.modal-content {
+background-color: var(--bg-primary);
+border: 1px solid var(--border-color);
+box-shadow: 0 20px 25px -5px var(--shadow-color);
+}
+.form-input {
+background-color: var(--bg-tertiary);
+border: 1px solid var(--border-color);
+color: var(--text-primary);
+}
+.form-input:focus {
+outline: none;
+border-color: #6366f1;
+box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+.sidebar-transition {
+transition: width 0.3s ease;
+}
+.content-transition {
+transition: margin-left 0.3s ease;
+}
+.fade-in {
+animation: fadeIn 0.3s ease-in-out;
+}
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(10px); }
+to { opacity: 1; transform: translateY(0); }
+}
+.pulse {
+animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+@keyframes pulse {
+0%, 100% { opacity: 1; }
+50% { opacity: 0.5; }
+}
+</style>
+</head>
+<body class="theme-transition">
+<div class="flex h-screen overflow-hidden">
+<aside id="sidebar" class="sidebar sidebar-expanded sidebar-transition fixed inset-y-0 left-0 z-50 flex flex-col">
+<div class="flex items-center h-16 px-4 border-b" style="border-color: var(--border-color);">
+<div class="flex items-center">
+<div class="font-['Pacifico'] text-primary text-xl">logo</div>
+<div id="brand-text" class="ml-2 font-bold text-lg" style="color: var(--text-primary);">Monde</div>
+</div>
+</div>
+<nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+<a href="https://readdy.ai/home/22057c22-aef2-43df-bd04-6f42c4ca724d/3a2d8705-609c-432b-b4bf-925ba72ecaac" data-readdy="true" class="menu-item flex items-center px-3 py-2.5 text-sm font-medium">
+<div class="w-5 h-5 flex items-center justify-center">
+<i class="ri-task-line"></i>
+</div>
+<span class="menu-text ml-3">Tarefas</span>
+<span class="tooltip">Tarefas</span>
+</a>
+<a href="#" class="menu-item active flex items-center px-3 py-2.5 text-sm font-medium">
+<div class="w-5 h-5 flex items-center justify-center">
+<i class="ri-user-3-line"></i>
+</div>
+<span class="menu-text ml-3">Clientes</span>
+<span class="tooltip">Clientes</span>
+</a>
+</nav>
+<div class="mt-auto px-3 py-4 border-t" style="border-color: var(--border-color);">
+<a href="#" class="menu-item flex items-center px-3 py-2.5 text-sm font-medium">
+<div class="w-5 h-5 flex items-center justify-center">
+<i class="ri-settings-3-line"></i>
+</div>
+<span class="menu-text ml-3">Configurações</span>
+<span class="tooltip">Configurações</span>
+</a>
+<a href="#" class="menu-item flex items-center px-3 py-2.5 text-sm font-medium bg-red-500 hover:bg-red-600 text-white">
+<div class="w-5 h-5 flex items-center justify-center">
+<i class="ri-logout-box-line"></i>
+</div>
+<span class="menu-text ml-3">Sair</span>
+<span class="tooltip">Sair</span>
+</a>
+<button id="sidebar-toggle-bottom" class="menu-item flex items-center px-3 py-2.5 text-sm font-medium w-full">
+<div class="w-5 h-5 flex items-center justify-center">
+<i id="sidebar-icon-bottom" class="ri-menu-fold-line"></i>
+</div>
+<span class="menu-text ml-3">Recolher Menu</span>
+<span class="tooltip">Recolher Menu</span>
+</button>
+</div>
+</aside>
+<div class="flex-1 flex flex-col overflow-hidden">
+<header id="header" class="header flex items-center justify-between h-16 px-6 content-transition" style="margin-left: 16rem;">
+<div class="flex items-center">
+<h1 class="text-xl font-semibold" style="color: var(--text-primary);">Gestão de Clientes</h1>
+</div>
+<div class="flex items-center space-x-4">
+<button id="theme-toggle" class="theme-toggle p-2 rounded-lg !rounded-button whitespace-nowrap">
+<div class="w-5 h-5 flex items-center justify-center">
+<i id="theme-icon" class="ri-moon-line"></i>
+</div>
+</button>
+<div class="relative">
+<button class="theme-toggle p-2 rounded-lg relative !rounded-button whitespace-nowrap">
+<div class="w-5 h-5 flex items-center justify-center">
+<i class="ri-notification-3-line"></i>
+</div>
+<span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">3</span>
+</button>
+</div>
+<div class="relative">
+<button id="user-menu" class="flex items-center space-x-3 p-1 rounded-lg theme-toggle !rounded-button whitespace-nowrap">
+<div class="w-8 h-8 rounded-full client-avatar flex items-center justify-center text-white font-medium text-sm">
+AM
+</div>
+<div class="hidden md:block text-left">
+<p class="text-sm font-medium" style="color: var(--text-primary);">Ana Marques</p>
+<p class="text-xs" style="color: var(--text-tertiary);">Administrador</p>
+</div>
+<div class="w-4 h-4 flex items-center justify-center">
+<i class="ri-arrow-down-s-line"></i>
+</div>
+</button>
+<div id="user-dropdown" class="hidden absolute right-0 mt-2 w-48 card rounded-lg shadow-lg py-1 z-50">
+<a href="#" class="block px-4 py-2 text-sm hover:bg-gray-100" style="color: var(--text-secondary);">Meu Perfil</a>
+<a href="#" class="block px-4 py-2 text-sm hover:bg-gray-100" style="color: var(--text-secondary);">Configurações</a>
+<div class="border-t my-1" style="border-color: var(--border-color);"></div>
+<a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Sair</a>
+</div>
+</div>
+</div>
+</header>
+<main id="main-content" class="flex-1 overflow-auto content-area content-transition p-6" style="margin-left: 16rem;">
+<div class="max-w-7xl mx-auto space-y-6">
+<div class="card rounded-xl p-6">
+<div class="flex flex-col gap-4 mb-6 w-full">
+<div class="flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-3">
+<button id="add-client-btn-card" class="primary-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+<i class="ri-add-line mr-2"></i>
+Novo Cliente
+</button>
+</div>
+<div class="flex items-center space-x-2">
+<button id="list-view" class="action-button px-3 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap active">
+<i class="ri-list-unordered"></i>
+</button>
+<button id="grid-view" class="action-button px-3 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+<i class="ri-grid-line"></i>
+</button>
+</div>
+</div>
+</div>
+<div class="card rounded-xl p-6">
+<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Buscar clientes</label>
+<div class="relative">
+<input type="text" placeholder="Digite para pesquisar..." class="form-input w-full pl-10 pr-4 py-2 rounded-lg text-sm">
+<div class="absolute left-3 top-1/2 transform -translate-y-1/2">
+<i class="ri-search-line text-gray-400"></i>
+</div>
+</div>
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Tipo de Cliente</label>
+<select class="form-input w-full px-3 py-2 rounded-lg text-sm">
+<option value="todos">Todos</option>
+<option value="primeira_venda">Primeira Venda</option>
+<option value="ultima_venda">Última Venda</option>
+<option value="ultimo_embarque">Último Embarque</option>
+<option value="ultimo_retorno">Último Retorno</option>
+<option value="ultima_tarefa">Última Tarefa</option>
+</select>
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Marcador</label>
+<select class="form-input w-full px-3 py-2 rounded-lg text-sm">
+<option value="todos">Todos</option>
+<option value="vip">VIP</option>
+<option value="premium">Premium</option>
+<option value="regular">Regular</option>
+</select>
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Cidade</label>
+<select class="form-input w-full px-3 py-2 rounded-lg text-sm">
+<option value="">Todas as cidades</option>
+<option value="sao_paulo">São Paulo</option>
+<option value="rio_janeiro">Rio de Janeiro</option>
+<option value="belo_horizonte">Belo Horizonte</option>
+</select>
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Estado</label>
+<select class="form-input w-full px-3 py-2 rounded-lg text-sm">
+<option value="">Todos os estados</option>
+<option value="SP">São Paulo</option>
+<option value="RJ">Rio de Janeiro</option>
+<option value="MG">Minas Gerais</option>
+</select>
+</div>
+<div class="flex items-center pt-8">
+<label class="flex items-center">
+<input type="checkbox" class="form-checkbox">
+<span class="ml-2 text-sm" style="color: var(--text-secondary);">Somente pagante</span>
+</label>
+</div>
+</div>
+</div>
+</div>
+<div id="list-view-container" class="overflow-x-auto">
+<table class="w-full">
+<thead>
+<tr class="table-row">
+<th class="text-left py-3 px-4 font-medium text-sm" style="color: var(--text-secondary);">Cliente</th>
+<th class="text-left py-3 px-4 font-medium text-sm" style="color: var(--text-secondary);">E-mail</th>
+<th class="text-left py-3 px-4 font-medium text-sm" style="color: var(--text-secondary);">Telefone</th>
+<th class="text-left py-3 px-4 font-medium text-sm" style="color: var(--text-secondary);">Celular</th>
+<th class="text-left py-3 px-4 font-medium text-sm" style="color: var(--text-secondary);">Cidade</th>
+<th class="text-left py-3 px-4 font-medium text-sm" style="color: var(--text-secondary);">UF</th>
+<th class="text-right py-3 px-4 font-medium text-sm" style="color: var(--text-secondary);">Ações</th>
+</tr>
+</thead>
+<tbody>
+<tr class="table-row">
+<td class="py-4 px-4">
+<div class="flex items-center">
+<div class="w-10 h-10 rounded-full client-avatar flex items-center justify-center text-white font-medium text-sm mr-3">
+MR
+</div>
+<div>
+<p class="font-medium text-sm" style="color: var(--text-primary);">Maria Rodrigues</p>
+<p class="text-xs" style="color: var(--text-tertiary);">Cliente Premium</p>
+</div>
+</div>
+</td>
+<td class="py-4 px-4">
+<p class="text-sm" style="color: var(--text-secondary);">maria.rodrigues@email.com</p>
+</td>
+<td class="py-4 px-4">
+<p class="text-sm" style="color: var(--text-secondary);">(11) 99999-9999</p>
+</td>
+<td class="py-4 px-4">
+<p class="text-sm" style="color: var(--text-secondary);">(11) 98888-8888</p>
+</td>
+<td class="py-4 px-4">
+<p class="text-sm" style="color: var(--text-secondary);">São Paulo</p>
+</td>
+<td class="py-4 px-4">
+<p class="text-sm" style="color: var(--text-secondary);">SP</p>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center justify-end space-x-2">
+<button class="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
+<i class="ri-eye-line text-sm"></i>
+</button>
+<button class="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
+<i class="ri-edit-line text-sm"></i>
+</button>
+<button class="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
+<i class="ri-more-2-line text-sm"></i>
+</button>
+</div>
+</td>
+</tr>
+<tr class="table-row">
+<td class="py-4 px-4">
+<div class="flex items-center">
+<div class="w-10 h-10 rounded-full client-avatar flex items-center justify-center text-white font-medium text-sm mr-3">
+JS
+</div>
+<div>
+<p class="font-medium text-sm" style="color: var(--text-primary);">João Silva</p>
+<p class="text-xs" style="color: var(--text-tertiary);">Cliente Regular</p>
+</div>
+</div>
+</td>
+<td class="py-4 px-4">
+<p class="text-sm" style="color: var(--text-secondary);">joao.silva@email.com</p>
+</td>
+<td class="py-4 px-4">
+<p class="text-sm" style="color: var(--text-secondary);">(11) 88888-8888</p>
+</td>
+<td class="py-4 px-4">
+<p class="text-sm" style="color: var(--text-secondary);">São Paulo</p>
+</td>
+<td class="py-4 px-4">
+<p class="text-sm" style="color: var(--text-secondary);">SP</p>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center justify-end space-x-2">
+<button class="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
+<i class="ri-eye-line text-sm"></i>
+</button>
+<button class="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
+<i class="ri-edit-line text-sm"></i>
+</button>
+<button class="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
+<i class="ri-more-2-line text-sm"></i>
+</button>
+</div>
+</td>
+</tr>
+<tr class="table-row">
+<td class="py-4 px-4">
+<div class="flex items-center">
+<div class="w-10 h-10 rounded-full client-avatar flex items-center justify-center text-white font-medium text-sm mr-3">
+AC
+</div>
+<div>
+<p class="font-medium text-sm" style="color: var(--text-primary);">Ana Costa</p>
+<p class="text-xs" style="color: var(--text-tertiary);">Cliente VIP</p>
+</div>
+</div>
+</td>
+<td class="py-4 px-4">
+<p class="text-sm" style="color: var(--text-secondary);">ana.costa@email.com</p>
+</td>
+<td class="py-4 px-4">
+<p class="text-sm" style="color: var(--text-secondary);">(11) 77777-7777</p>
+</td>
+<td class="py-4 px-4">
+<p class="text-sm" style="color: var(--text-secondary);">Rio de Janeiro</p>
+</td>
+<td class="py-4 px-4">
+<p class="text-sm" style="color: var(--text-secondary);">RJ</p>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center justify-end space-x-2">
+<button class="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
+<i class="ri-eye-line text-sm"></i>
+</button>
+<button class="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
+<i class="ri-edit-line text-sm"></i>
+</button>
+<button class="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
+<i class="ri-more-2-line text-sm"></i>
+</button>
+</div>
+</td>
+</tr>
+<tr class="table-row">
+<td class="py-4 px-4">
+<div class="flex items-center">
+<div class="w-10 h-10 rounded-full client-avatar flex items-center justify-center text-white font-medium text-sm mr-3">
+PM
+</div>
+<div>
+<p class="font-medium text-sm" style="color: var(--text-primary);">Pedro Martins</p>
+<p class="text-xs" style="color: var(--text-tertiary);">Cliente Regular</p>
+</div>
+</div>
+</td>
+<td class="py-4 px-4">
+<p class="text-sm" style="color: var(--text-secondary);">pedro.martins@email.com</p>
+</td>
+<td class="py-4 px-4">
+<p class="text-sm" style="color: var(--text-secondary);">(11) 66666-6666</p>
+</td>
+<td class="py-4 px-4">
+<p class="text-sm" style="color: var(--text-secondary);">Belo Horizonte</p>
+</td>
+<td class="py-4 px-4">
+<p class="text-sm" style="color: var(--text-secondary);">MG</p>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center justify-end space-x-2">
+<button class="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
+<i class="ri-eye-line text-sm"></i>
+</button>
+<button class="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
+<i class="ri-edit-line text-sm"></i>
+</button>
+<button class="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
+<i class="ri-more-2-line text-sm"></i>
+</button>
+</div>
+</td>
+</tr>
+<tr class="table-row">
+<td class="py-4 px-4">
+<div class="flex items-center">
+<div class="w-10 h-10 rounded-full client-avatar flex items-center justify-center text-white font-medium text-sm mr-3">
+LS
+</div>
+<div>
+<p class="font-medium text-sm" style="color: var(--text-primary);">Lucia Santos</p>
+<p class="text-xs" style="color: var(--text-tertiary);">Cliente Premium</p>
+</div>
+</div>
+</td>
+<td class="py-4 px-4">
+<p class="text-sm" style="color: var(--text-secondary);">lucia.santos@email.com</p>
+</td>
+<td class="py-4 px-4">
+<p class="text-sm" style="color: var(--text-secondary);">(11) 55555-5555</p>
+</td>
+<td class="py-4 px-4">
+<p class="text-sm" style="color: var(--text-secondary);">Curitiba</p>
+</td>
+<td class="py-4 px-4">
+<p class="text-sm" style="color: var(--text-secondary);">PR</p>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center justify-end space-x-2">
+<button class="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
+<i class="ri-eye-line text-sm"></i>
+</button>
+<button class="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
+<i class="ri-edit-line text-sm"></i>
+</button>
+<button class="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
+<i class="ri-more-2-line text-sm"></i>
+</button>
+</div>
+</td>
+</tr>
+<tr class="table-row">
+<td class="py-4 px-4">
+<div class="flex items-center">
+<div class="w-10 h-10 rounded-full client-avatar flex items-center justify-center text-white font-medium text-sm mr-3">
+RF
+</div>
+<div>
+<p class="font-medium text-sm" style="color: var(--text-primary);">Roberto Ferreira</p>
+<p class="text-xs" style="color: var(--text-tertiary);">Cliente Regular</p>
+</div>
+</div>
+</td>
+<td class="py-4 px-4">
+<p class="text-sm" style="color: var(--text-secondary);">roberto.ferreira@email.com</p>
+</td>
+<td class="py-4 px-4">
+<p class="text-sm" style="color: var(--text-secondary);">(11) 44444-4444</p>
+</td>
+<td class="py-4 px-4">
+<p class="text-sm" style="color: var(--text-secondary);">Salvador</p>
+</td>
+<td class="py-4 px-4">
+<p class="text-sm" style="color: var(--text-secondary);">BA</p>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center justify-end space-x-2">
+<button class="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
+<i class="ri-eye-line text-sm"></i>
+</button>
+<button class="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
+<i class="ri-edit-line text-sm"></i>
+</button>
+<button class="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
+<i class="ri-more-2-line text-sm"></i>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="grid-view-container" class="hidden">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="card rounded-xl p-6 hover:shadow-lg transition-shadow">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center">
+<div class="w-12 h-12 rounded-full client-avatar flex items-center justify-center text-white font-medium text-sm mr-3">
+MR
+</div>
+<div>
+<p class="font-medium text-sm" style="color: var(--text-primary);">Maria Rodrigues</p>
+<p class="text-xs" style="color: var(--text-tertiary);">Cliente Premium</p>
+</div>
+</div>
+<span class="status-badge-active px-2 py-1 rounded-full text-xs font-medium">Ativo</span>
+</div>
+<div class="space-y-2">
+<p class="text-sm" style="color: var(--text-secondary);"><i class="ri-mail-line mr-2"></i>maria.rodrigues@email.com</p>
+<p class="text-sm" style="color: var(--text-secondary);"><i class="ri-phone-line mr-2"></i>(11) 99999-9999</p>
+<p class="text-sm" style="color: var(--text-secondary);"><i class="ri-time-line mr-2"></i>Última atividade: Há 2 horas</p>
+</div>
+<div class="flex items-center justify-end space-x-2 mt-4 pt-4 border-t" style="border-color: var(--border-color);">
+<button class="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
+<i class="ri-eye-line text-sm"></i>
+</button>
+<button class="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
+<i class="ri-edit-line text-sm"></i>
+</button>
+<button class="action-button p-2 rounded-lg !rounded-button whitespace-nowrap">
+<i class="ri-more-2-line text-sm"></i>
+</button>
+</div>
+</div>
+<!-- Repeat similar card structure for other clients -->
+</div>
+</div>
+<div class="flex items-center justify-between mt-6 pt-4 border-t" style="border-color: var(--border-color);">
+<div class="flex items-center">
+<p class="text-sm" style="color: var(--text-secondary);">
+Mostrando <span class="font-medium">1</span> a <span class="font-medium">6</span> de <span class="font-medium">1,247</span> resultados
+</p>
+</div>
+<div class="flex items-center space-x-2">
+<button class="action-button px-3 py-1.5 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+Anterior
+</button>
+<button class="primary-button px-3 py-1.5 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+1
+</button>
+<button class="action-button px-3 py-1.5 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+2
+</button>
+<button class="action-button px-3 py-1.5 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+3
+</button>
+<button class="action-button px-3 py-1.5 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+Próximo
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+<div id="add-client-modal" class="fixed inset-0 modal-overlay flex items-center justify-center z-50 hidden">
+<div class="modal-content rounded-xl shadow-xl p-4 max-w-7xl w-full mx-4 bg-white" style="height: 90vh;">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-xl font-semibold" style="color: var(--text-primary);">Novo Cliente</h3>
+<button id="close-modal" class="theme-toggle p-2 rounded-lg !rounded-button whitespace-nowrap">
+<i class="ri-close-line text-lg"></i>
+</button>
+</div>
+<form class="h-[calc(100%-80px)] overflow-auto pr-2">
+<div class="flex items-center space-x-4 mb-6">
+<button type="button" data-type="fisica" class="pessoa-type-btn primary-button px-6 py-3 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap active">
+<i class="ri-user-line mr-2"></i>
+Pessoa Física
+</button>
+<button type="button" data-type="juridica" class="pessoa-type-btn action-button px-6 py-3 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+<i class="ri-building-line mr-2"></i>
+Pessoa Jurídica
+</button>
+</div>
+<input type="hidden" name="tipo_pessoa" value="fisica">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 pessoa-fields pessoa-fisica-fields">
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Código</label>
+<input type="text" class="form-input w-full px-3 py-2 rounded-lg text-sm" value="Novo" disabled>
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Razão Social *</label>
+<input type="text" name="razao_social" class="form-input w-full px-3 py-2 rounded-lg text-sm" placeholder="Razão social completa" required>
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">CNPJ *</label>
+<input type="text" name="cnpj" class="form-input w-full px-3 py-2 rounded-lg text-sm" placeholder="00.000.000/0000-00" required>
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Inscrição Estadual</label>
+<input type="text" name="inscricao_estadual" class="form-input w-full px-3 py-2 rounded-lg text-sm" placeholder="IE">
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Inscrição Municipal</label>
+<input type="text" name="inscricao_municipal" class="form-input w-full px-3 py-2 rounded-lg text-sm" placeholder="IM">
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Fundação</label>
+<input type="date" name="fundacao" class="form-input w-full px-3 py-2 rounded-lg text-sm">
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">CPF *</label>
+<input type="text" name="cpf" class="form-input w-full px-3 py-2 rounded-lg text-sm" placeholder="000.000.000-00" required>
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">RG</label>
+<input type="text" name="rg" class="form-input w-full px-3 py-2 rounded-lg text-sm" placeholder="Digite o RG">
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Sexo</label>
+<select name="sexo" class="form-input w-full px-3 py-2 rounded-lg text-sm">
+<option value="">Selecione</option>
+<option value="M">Masculino</option>
+<option value="F">Feminino</option>
+</select>
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Data de Nasc.</label>
+<input type="date" name="data_nascimento" class="form-input w-full px-3 py-2 rounded-lg text-sm">
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Passaporte</label>
+<input type="text" name="passaporte" class="form-input w-full px-3 py-2 rounded-lg text-sm" placeholder="Digite o passaporte">
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Validade</label>
+<input type="date" name="validade_passaporte" class="form-input w-full px-3 py-2 rounded-lg text-sm">
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">CEP</label>
+<input type="text" name="cep" class="form-input w-full px-3 py-2 rounded-lg text-sm" placeholder="00000-000">
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Endereço</label>
+<input type="text" name="endereco" class="form-input w-full px-3 py-2 rounded-lg text-sm" placeholder="Digite o endereço">
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Número</label>
+<input type="text" name="numero" class="form-input w-full px-3 py-2 rounded-lg text-sm" placeholder="Nº">
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Complemento</label>
+<input type="text" name="complemento" class="form-input w-full px-3 py-2 rounded-lg text-sm" placeholder="Complemento">
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Bairro</label>
+<input type="text" name="bairro" class="form-input w-full px-3 py-2 rounded-lg text-sm" placeholder="Digite o bairro">
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Cidade</label>
+<input type="text" name="cidade" class="form-input w-full px-3 py-2 rounded-lg text-sm" placeholder="Digite a cidade">
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Estado</label>
+<select name="estado" class="form-input w-full px-3 py-2 rounded-lg text-sm">
+<option value="">Selecione o estado</option>
+<option value="AC">Acre</option>
+<option value="AL">Alagoas</option>
+<option value="AP">Amapá</option>
+<option value="AM">Amazonas</option>
+<option value="BA">Bahia</option>
+<option value="CE">Ceará</option>
+<option value="DF">Distrito Federal</option>
+<option value="ES">Espírito Santo</option>
+<option value="GO">Goiás</option>
+<option value="MA">Maranhão</option>
+<option value="MT">Mato Grosso</option>
+<option value="MS">Mato Grosso do Sul</option>
+<option value="MG">Minas Gerais</option>
+<option value="PA">Pará</option>
+<option value="PB">Paraíba</option>
+<option value="PR">Paraná</option>
+<option value="PE">Pernambuco</option>
+<option value="PI">Piauí</option>
+<option value="RJ">Rio de Janeiro</option>
+<option value="RN">Rio Grande do Norte</option>
+<option value="RS">Rio Grande do Sul</option>
+<option value="RO">Rondônia</option>
+<option value="RR">Roraima</option>
+<option value="SC">Santa Catarina</option>
+<option value="SP">São Paulo</option>
+<option value="SE">Sergipe</option>
+<option value="TO">Tocantins</option>
+</select>
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Inscrição Municipal</label>
+<input type="text" name="inscricao_municipal" class="form-input w-full px-3 py-2 rounded-lg text-sm" placeholder="Digite a inscrição municipal">
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Telefone Principal *</label>
+<input type="tel" name="telefone_principal" class="form-input w-full px-3 py-2 rounded-lg text-sm" placeholder="(XX) XXXXX-XXXX" required>
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Telefone Alternativo</label>
+<input type="tel" name="telefone_alternativo" class="form-input w-full px-3 py-2 rounded-lg text-sm" placeholder="(XX) XXXXX-XXXX">
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">E-mail *</label>
+<input type="email" name="email" class="form-input w-full px-3 py-2 rounded-lg text-sm" placeholder="Digite o e-mail" required>
+</div>
+</div>
+<div class="md:col-span-3">
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Observações</label>
+<textarea name="observacoes" class="form-input w-full px-3 py-2 rounded-lg text-sm" rows="2" placeholder="Adicione observações sobre o cliente..."></textarea>
+</div>
+<div class="md:col-span-2">
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Agência</label>
+<select name="agencia" class="form-input w-full px-3 py-2 rounded-lg text-sm">
+<option value="">Selecione a agência</option>
+</select>
+</div>
+<div class="md:col-span-1">
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Cobrar taxa de boleto</label>
+<div class="flex items-center h-[38px]">
+<input type="checkbox" name="cobrar_taxa" class="form-checkbox">
+<span class="ml-2" style="color: var(--text-secondary);">Aplicar taxa</span>
+</div>
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Website</label>
+<input type="url" name="website" class="form-input w-full px-3 py-2 rounded-lg text-sm" placeholder="https://www.exemplo.com.br">
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Vendedor</label>
+<select name="vendedor" class="form-input w-full px-3 py-2 rounded-lg text-sm">
+<option value="">Selecione um vendedor</option>
+<option value="1">Carlos Silva</option>
+<option value="2">Maria Santos</option>
+<option value="3">João Oliveira</option>
+</select>
+</div>
+<div>
+<label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Cadastrado por</label>
+<input type="text" name="cadastrado_por" class="form-input w-full px-3 py-2 rounded-lg text-sm" value="Fabio Silva" disabled>
+</div>
+<div class="col-span-3">
+<label class="flex items-center">
+<input type="checkbox" name="cobrar_taxa_boleto" class="form-checkbox">
+<span class="ml-2" style="color: var(--text-secondary);">Cobrar taxa de boleto</span>
+</label>
+</div>
+<div class="flex items-center justify-end space-x-3 mt-4 sticky bottom-0 bg-white py-3 border-t" style="border-color: var(--border-color);">
+<button type="button" id="cancel-btn" class="action-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+Cancelar
+</button>
+<button type="submit" class="primary-button px-4 py-2 rounded-lg text-sm font-medium !rounded-button whitespace-nowrap">
+Salvar Cliente
+</button>
+</div>
+</form>
+</div>
+</div>
+<script id="theme-toggle-script">
+document.addEventListener('DOMContentLoaded', function() {
+const themeToggle = document.getElementById('theme-toggle');
+const themeIcon = document.getElementById('theme-icon');
+const body = document.body;
+let isDark = localStorage.getItem('theme') === 'dark';
+function updateTheme() {
+if (isDark) {
+body.setAttribute('data-theme', 'dark');
+themeIcon.className = 'ri-sun-line';
+} else {
+body.removeAttribute('data-theme');
+themeIcon.className = 'ri-moon-line';
+}
+localStorage.setItem('theme', isDark ? 'dark' : 'light');
+}
+themeToggle.addEventListener('click', function() {
+isDark = !isDark;
+updateTheme();
+});
+updateTheme();
+});
+</script>
+<script id="sidebar-toggle-script">
+document.addEventListener('DOMContentLoaded', function() {
+const sidebar = document.getElementById('sidebar');
+const sidebarToggleBottom = document.getElementById('sidebar-toggle-bottom');
+const sidebarIconBottom = document.getElementById('sidebar-icon-bottom');
+const brandText = document.getElementById('brand-text');
+const menuTexts = document.querySelectorAll('.menu-text');
+const tooltips = document.querySelectorAll('.tooltip');
+const header = document.getElementById('header');
+const mainContent = document.getElementById('main-content');
+let isCollapsed = false;
+function toggleSidebar() {
+isCollapsed = !isCollapsed;
+if (isCollapsed) {
+sidebar.classList.remove('sidebar-expanded');
+sidebar.classList.add('sidebar-collapsed');
+header.style.marginLeft = '4rem';
+mainContent.style.marginLeft = '4rem';
+brandText.style.display = 'none';
+menuTexts.forEach(text => text.style.display = 'none');
+tooltips.forEach(tooltip => tooltip.style.display = 'block');
+sidebarIconBottom.className = 'ri-menu-unfold-line';
+} else {
+sidebar.classList.remove('sidebar-collapsed');
+sidebar.classList.add('sidebar-expanded');
+header.style.marginLeft = '16rem';
+mainContent.style.marginLeft = '16rem';
+brandText.style.display = 'block';
+menuTexts.forEach(text => text.style.display = 'block');
+tooltips.forEach(tooltip => tooltip.style.display = 'none');
+sidebarIconBottom.className = 'ri-menu-fold-line';
+}
+}
+sidebarToggleBottom.addEventListener('click', toggleSidebar);
+function handleResize() {
+if (window.innerWidth < 1024) {
+if (!isCollapsed) {
+toggleSidebar();
+}
+}
+}
+window.addEventListener('resize', handleResize);
+handleResize();
+});
+</script>
+<script id="user-dropdown-script">
+document.addEventListener('DOMContentLoaded', function() {
+const userMenu = document.getElementById('user-menu');
+const userDropdown = document.getElementById('user-dropdown');
+userMenu.addEventListener('click', function(e) {
+e.stopPropagation();
+userDropdown.classList.toggle('hidden');
+});
+document.addEventListener('click', function() {
+userDropdown.classList.add('hidden');
+});
+});
+</script>
+<script id="view-toggle-script">
+document.addEventListener('DOMContentLoaded', function() {
+const listViewBtn = document.getElementById('list-view');
+const gridViewBtn = document.getElementById('grid-view');
+const listViewContainer = document.getElementById('list-view-container');
+const gridViewContainer = document.getElementById('grid-view-container');
+listViewBtn.addEventListener('click', function() {
+listViewContainer.classList.remove('hidden');
+gridViewContainer.classList.add('hidden');
+listViewBtn.classList.add('active');
+gridViewBtn.classList.remove('active');
+});
+gridViewBtn.addEventListener('click', function() {
+gridViewContainer.classList.remove('hidden');
+listViewContainer.classList.add('hidden');
+gridViewBtn.classList.add('active');
+listViewBtn.classList.remove('active');
+});
+});
+</script>
+<style>
+.action-button.active {
+background-color: var(--bg-tertiary);
+color: var(--text-primary);
+}
+</style>
+<script id="modal-script">
+document.addEventListener('DOMContentLoaded', function() {
+const addClientBtnTop = document.getElementById('add-client-btn-top');
+const addClientBtnCard = document.getElementById('add-client-btn-card');
+const addClientModal = document.getElementById('add-client-modal');
+const closeModal = document.getElementById('close-modal');
+const cancelBtn = document.getElementById('cancel-btn');
+const pessoaTypeButtons = document.querySelectorAll('.pessoa-type-btn');
+const tipoPessoaInput = document.querySelector('input[name="tipo_pessoa"]');
+pessoaTypeButtons.forEach(button => {
+button.addEventListener('click', function() {
+pessoaTypeButtons.forEach(btn => {
+btn.classList.remove('primary-button');
+btn.classList.add('action-button');
+});
+this.classList.remove('action-button');
+this.classList.add('primary-button');
+tipoPessoaInput.value = this.dataset.type;
+const pessoaFields = document.querySelectorAll('.pessoa-fields');
+pessoaFields.forEach(field => field.style.display = 'none');
+document.querySelector(`.pessoa-${this.dataset.type}-fields`).style.display = 'grid';
+});
+});
+pessoaFisicaRadio.addEventListener('change', toggleFields);
+pessoaJuridicaRadio.addEventListener('change', toggleFields);
+estrangeiroRadio.addEventListener('change', toggleFields);
+function openModal() {
+addClientModal.classList.remove('hidden');
+addClientModal.classList.add('fade-in');
+}
+function closeModalFunc() {
+addClientModal.classList.add('hidden');
+addClientModal.classList.remove('fade-in');
+}
+addClientBtnTop.addEventListener('click', openModal);
+addClientBtnCard.addEventListener('click', openModal);
+closeModal.addEventListener('click', closeModalFunc);
+cancelBtn.addEventListener('click', closeModalFunc);
+addClientModal.addEventListener('click', function(e) {
+if (e.target === addClientModal) {
+closeModalFunc();
+}
+});
+document.addEventListener('keydown', function(e) {
+if (e.key === 'Escape' && !addClientModal.classList.contains('hidden')) {
+closeModalFunc();
+}
+});
+});
+</script>
+<script id="form-handlers-script">
+document.addEventListener('DOMContentLoaded', function() {
+const form = document.querySelector('#add-client-modal form');
+form.addEventListener('submit', function(e) {
+e.preventDefault();
+const formData = new FormData(form);
+const clientData = Object.fromEntries(formData);
+console.log('Cliente criado:', clientData);
+document.getElementById('add-client-modal').classList.add('hidden');
+const notification = document.createElement('div');
+notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 fade-in';
+notification.textContent = 'Cliente criado com sucesso!';
+document.body.appendChild(notification);
+setTimeout(() => {
+notification.remove();
+}, 3000);
+form.reset();
+});
+});
+</script>
+</body>
+</html>
